@@ -1,0 +1,286 @@
+////////////////////////////////////////////////////////////////////////////////
+/**
+*      \file           raybase.h
+*
+*      \brief         RayBase class template declarataion
+*
+*      \author         François Polack <francois.polack@synchroton-soleil.fr>
+*      \date        2020-10-01  Creation
+*      \date         Last update
+*
+
+*/
+///////////////////////////////////////////////////////////////////////////////////
+//
+//             REVISIONS
+//
+////////////////////////////////////////////////////////////////////////////////////
+#ifndef RAYBASE_H
+#define RAYBASE_H
+
+#include <Eigen/Eigen>
+//#include <Eigen/ParametrizedLine.h>
+#include <fstream>
+#include <iostream>
+#include "OptixException.h"
+
+//#define _USE_MATH_DEFINES
+#include <cmath>
+using namespace Eigen;
+
+/** \brief  base class for rays and ray propagation
+ *
+ */
+template <typename scalar>
+class RayBase : protected ParametrizedLine<scalar,3>
+{
+public:
+    typedef ParametrizedLine<scalar, 3> BaseLine;
+    typedef Matrix<scalar,3,1> VectorType;
+    typedef Matrix<scalar,4,1> HomogeneousType;
+    typedef Hyperplane<scalar,3> PlaneType;
+    typedef Matrix<scalar,4,4> QuadricType;
+
+    /** Default constructor */
+    RayBase() {}
+    /** Default destructor */
+    virtual ~RayBase() {}
+
+    /** Copy constructor with scalar type conversion
+     *  \param other Object to copy from
+     */
+     template<typename otherScalar>
+    inline RayBase(const RayBase<otherScalar>& other):BaseLine( other),
+            m_distance(other.m_distance) {}
+
+
+     /** \brief Construction from origin and direction , sets  position at origin
+      *
+      * \param origin  origin vector
+      * \param direction  direction vector ; it will be normalized if not
+      * \param distance  the distance of ray position from origin
+      */
+     inline explicit RayBase(const VectorType& origin, const VectorType& direction, const scalar distance=0):
+        BaseLine(origin, direction.normalized()), m_distance(distance){ } // force la normalisation
+
+    /** \brief Construction from origin and direction , sets  position at some distance from origin
+     *
+     *
+     * \param origin The origin vector
+     * \param direction the direction vector; it will be normalized if not
+     * \param distance the relative distance of position to origin
+     */
+      template<typename otherScalar>
+     inline explicit RayBase(const Matrix<otherScalar,3,1> &origin,
+                             const Matrix<otherScalar,3,1>  &direction,
+                             otherScalar distance=0):
+                BaseLine( ParametrizedLine<otherScalar,3>( origin, direction) ),
+                m_distance(distance)
+                {BaseLine::m_direction.normalize(); } ;// force la normalisation dans la précision finale
+
+
+
+    /** \brief  Normalize the direction vector
+     *
+     * \return A reference to *this
+     */
+    inline RayBase&  normalized(){BaseLine::m_direction.normalize(); return *this ;}
+
+
+    /** \brief sets the origin at curent position without changing it
+     *
+     * The internal distance is set to zero
+     * \return a reference to this object
+     */
+    inline RayBase& rebase(){
+        BaseLine::m_origin=BaseLine::pointAt(m_distance);
+        m_distance=0;
+        return *this;
+    }
+
+    /** \brief in place origin shift by vT
+     *
+     * \param vT   the origin translation vector
+     * \return  a reference to this \sa operator+()
+     */
+    inline RayBase&  operator+=(Matrix<scalar,3,1> vT){
+        BaseLine::m_origin+=vT;
+        return *this;
+    }
+
+    /** \brief in place origin shift by -vT
+     *
+     * \param vT   the origin translation vector
+     * \return  a reference to this \sa operator-()
+     */
+    inline RayBase&  operator-=(Matrix<scalar,3,1> vT){
+        BaseLine::m_origin-=vT;
+        return *this;
+    }
+
+    /** \brief shifts the position by a given distence along the ray
+    *        \param  offset the requested  shift
+    */
+   template <typename otherScalar>
+   inline  RayBase& operator+=(otherScalar offset)
+   {
+       m_distance+=offset;
+       return *this;
+   }
+
+    /** \brief origin shift by vT
+     *
+     * \param vT   the origin translation vector
+     * \return  a new ray with same position expressed in a new frame translated by -vT
+     */
+    inline  RayBase operator+(Matrix<scalar,3,1> vT){
+        RayBase sum(*this);
+        sum.BaseLine::m_origin+=vT;
+        return sum;
+    }
+
+    /** \brief origin shift by -vT
+     *
+     * \param vT   the origin translation vector
+     * \return  a new ray with same position expressed in a new frame translated by vT
+     */
+    inline  RayBase operator-(Matrix<scalar,3,1> vT){
+        RayBase dif(*this);
+        dif.BaseLine::m_origin-=vT;
+        return dif;
+    }
+
+    /** \brief get the position at a given offset from the current one
+     *
+     * \param  offset
+     * \return VectorType  return the position at a given offset from current. Current position is not changed
+     */
+    //inline VectorType position(scalar offset=0){return pointAt(m_distance+offset) ;   }
+    EIGEN_DEVICE_FUNC inline VectorType position(scalar offset=0){return BaseLine::pointAt(m_distance+offset) ;   }
+
+    EIGEN_DEVICE_FUNC inline VectorType& origin(){return BaseLine::m_origin;}   /**< \brief gets a reference to the origin vector*/
+    EIGEN_DEVICE_FUNC inline VectorType& direction(){return BaseLine::m_direction;}   /**< \brief gets a reference to the direction vector*/
+
+    /** \brief move the internal position at the given distance from origin
+    *   \param distance the distance from orignin of the  new position*/
+    inline RayBase& moveTo(scalar distance)
+    {
+        m_distance=distance;
+        return *this;
+    }
+
+    /** \brief move internal position to the intersection with the given plane
+     *
+     * \param plane The plane to intersect with
+     * \return a reference to *this
+     */
+    inline RayBase& moveToPlane(const PlaneType &plane)
+    {
+         m_distance=BaseLine::intersectionParameter(plane);
+         return *this;
+    }
+
+    /** \brief Move internal position to the insection with the given plane and returns it
+     *
+     * \param plane The plane to intersect with
+     * \return The intersection point
+     */
+    EIGEN_DEVICE_FUNC inline VectorType getToPlane(const PlaneType &plane)
+    {
+        m_distance=BaseLine::intersectionParameter(plane);
+        return BaseLine::pointAt(m_distance);
+    }
+
+    /** \brief returns the intersection point with the given plane without changing the internal position
+     *
+     * \param plane The plane to intersect with
+     * \return The intersection point
+     */
+    inline VectorType getPlaneIntersection(const PlaneType &plane)
+    {
+        return BaseLine::pointAt(BaseLine::intersectionParameter(plane));
+    }
+
+
+    /** \brief Move internal position to the nearest intersection with the given quadric and returns it
+     *
+     * \param quadric The quadric to intersect with
+     * \return The intersection point
+     */
+    EIGEN_DEVICE_FUNC inline VectorType getToQuadric(const QuadricType &quadric)
+    {
+       // m_distance=BaseLine::intersectionParameter(plane);
+        m_distance=-direction().dot(origin());   // move and rebase close to the nearest of quadric apex  (0 point)
+        rebase();
+        HomogeneousType MX=quadric*origin().homogeneous();
+        HomogeneousType MU=quadric*direction().homogeneous();
+        scalar b=direction().homogeneous().dot(MX);
+        scalar delta=b*b - (direction().homogeneous().transpose()*MU).dot((origin().homogeneous().transpose()*MX));
+        if(delta < 0)
+            throw RayException("No intercept found", __FILE__, __func__, __LINE__);
+        m_distance= b>0 ? b-sqrt(delta) : b+sqrt(delta); // return the closest to 0
+
+        return BaseLine::pointAt(m_distance);
+    }
+
+
+
+    /** \brief returns the symmetric of the input ray with respect to the plane
+     *
+     * \param plane  the reflection plane. Normalisation is assumed
+     * \return a reflected ray originating from the plane
+     */
+     inline RayBase reflectOnPlane(const PlaneType &plane)
+     {
+        RayBase reflected(*this);
+        reflected.moveToPlane(plane).rebase();
+        /*(BaseLine)*/ reflected.m_direction-=2.*BaseLine::m_direction.dot(plane.normal())*plane.normal();
+        return reflected;
+     }
+
+
+     /** \brief output the parameters to a text stream
+      */
+     friend std::ostream & operator << (std::ostream & s, const RayBase& ray)
+     {
+       s << ray.m_origin.transpose() << "  "  << ray.m_direction.transpose() << "  " << ray.m_distance;
+       return s;
+     }
+
+
+     /** \brief save the ray into a binary output stream
+     */
+     friend std::fstream & operator << (std::fstream & s, const RayBase& ray)
+     {
+   //     std::cout << "output vector length ="  << sizeof(ray.m_origin) << std::endl;
+        s.write((char*)&ray.m_origin, sizeof(ray.m_origin));
+        s.write((char*)&ray.m_direction, sizeof(ray.m_direction));
+        s.write((char*)&ray.m_distance, sizeof(ray.m_distance));
+        return s;
+     }
+
+     /** \brief retrieves a ray from a binary input stream
+     */
+     friend std::fstream & operator >> (std::fstream & s, const RayBase& ray)
+     {
+   //     std::cout << "input vector length ="  << sizeof(ray.m_origin) << std::endl;
+        s.read((char*)&ray.m_origin, sizeof(ray.m_origin));
+        s.read((char*)&ray.m_direction, sizeof(ray.m_direction));
+        s.read((char*)&ray.m_distance, sizeof(ray.m_distance));
+        return s;
+     }
+
+//     inline static RayBase OX(){ RayBase ox; ox.m_direction(0)=1.; return ox;}
+     inline static RayBase OX(){ return RayBase(VectorType::Zero(), VectorType::UnitX());} /**< \brief ray along X with origin and position set at zero */
+     inline static RayBase OY(){ RayBase oy; oy.m_direction(1)=1.; return oy;}  /**< \brief ray along Y with origin and position set at zero */
+     inline static RayBase OZ(){ RayBase oz; oz.m_direction(2)=1.; return oz;}  /**< \brief ray along X with origin and position set at zero */
+protected:
+    scalar m_distance;/**< \brief distance from origin of the current position */
+private:
+};
+
+
+typedef RayBase<long double> Rayld;
+typedef RayBase<double> Rayd;
+
+#endif // RAYBASE_H
