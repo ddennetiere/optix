@@ -55,7 +55,7 @@ class Quadric : virtual public Surface
         *   \param normal adress of a vector which, if not null,  will receive the surface normal (normalized) at the intercept point
         *   \return a reference to the modified ray
         */
-        EIGEN_DEVICE_FUNC virtual RayBaseType::VectorType intercept(RayType& ray, RayBaseType::VectorType * normal=NULL);
+        EIGEN_DEVICE_FUNC virtual VectorType intercept(RayType& ray, VectorType * normal=NULL);
 
 
     protected:

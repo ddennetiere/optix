@@ -223,7 +223,33 @@ public:
         return BaseLine::pointAt(m_distance);
     }
 
+     EIGEN_DEVICE_FUNC  VectorType getMinDistance(RayBase & ray, scalar* param=NULL, scalar* rayParam=NULL )
+     {
+        VectorType vDist, rhs, vParams, diff0=origin()-ray.origin();
 
+        scalar scal=direction().dot(ray.direction());
+        if(1.L-scal < 1.e-10L)
+        {
+            if(param)
+                *param=std::numeric_limits<scalar>::infinity();
+            if(rayParam)
+               *rayParam=std::numeric_limits<scalar>::infinity();
+            return diff0-diff0.dot(direction())*direction() ;
+        }
+
+         Matrix<scalar,2,2> M=Matrix<scalar,2,2>::Identity()/(scal*scal);
+         M(0,1)= M(1,0)= 1.L/scal;
+         rhs(0)=diff0.dot(direction());
+         rhs(1)=diff0.dot(ray.direction());
+         vParams=M*rhs;
+         vDist=ray.pointAt(vParams(1))-pointAt(vParams(0));
+
+         if(param)
+            *param=vParams(0);
+         if(rayParam)
+            *rayParam=vParams(1);
+         return vDist;
+     }
 
     /** \brief returns the symmetric of the input ray with respect to the plane
      *

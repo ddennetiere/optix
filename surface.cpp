@@ -2,13 +2,13 @@
  *************************************************************************
 *   \file            surface.cpp
 *
-*   Base (virtual) of all the optical elements in the library
-*       gere l'alignement des éléments sur le rayon principal
+*   \brief Surface base class implementation file
 *
 *
 *
 *   \author             François Polack  <francois.polack@synchroton-soleil.fr>
-*   \date               Creation : 2020-10-05
+*   \date               Creation: 2020-10-05
+*   \date               Last update: 2020-29-05
  ***************************************************************************/
 
 
@@ -24,17 +24,17 @@ Surface::Surface(bool transparent, string name, Surface* previous):m_name(name),
 {
     Parameter param;
     param.type=Angle;
-    setParameter("theta", param);
-    setParameter("phi", param);
-    setParameter("psi", param);
-    setParameter("Dtheta", param);
-    setParameter("Dphi", param);
-    setParameter("Dpsi", param);
+    defineParameter("theta", param);
+    defineParameter("phi", param);
+    defineParameter("psi", param);
+    defineParameter("Dtheta", param);
+    defineParameter("Dphi", param);
+    defineParameter("Dpsi", param);
     param.type=Distance;
-    setParameter("distance", param);
-    setParameter("DX", param);
-    setParameter("DY", param);
-    setParameter("DZ", param);
+    defineParameter("distance", param);
+    defineParameter("DX", param);
+    defineParameter("DY", param);
+    defineParameter("DZ", param);
 
     if (previous)
         m_previous->m_next= this;
@@ -141,7 +141,7 @@ void Surface::setHelpstrings()
 
 
 
-RayType& Surface::transmit(RayType& ray)       // this implementation simply moves the ray to the surface and rebase it this position
+RayType& Surface::transmit(RayType& ray)
 {
     if(!ray.m_alive)
         return ray;
@@ -149,7 +149,7 @@ RayType& Surface::transmit(RayType& ray)       // this implementation simply mov
     return ray;
 }
 
-RayType& Surface::reflect(RayType& ray)    /* this implementation simply reflect the ray on the tangent plane */
+RayType& Surface::reflect(RayType& ray)    /**<  this implementation simply reflect the ray on the tangent plane */
 {
     if(!ray.m_alive)
         return ray;

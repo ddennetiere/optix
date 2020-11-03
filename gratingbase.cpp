@@ -1,8 +1,8 @@
 ////////////////////////////////////////////////////////////////////////////////
 /**
-*      \file           grating.cpp
+*      \file           gratingbase.cpp
 *
-*      \brief         Grating class implementation
+*      \brief         Grating base class implementation
 *
 *      \author         François Polack <francois.polack@synchroton-soleil.fr>
 *      \date        2020-10-22  Creation
@@ -14,26 +14,26 @@
 //             REVISIONS
 //
 ////////////////////////////////////////////////////////////////////////////////////
-#include "grating.h"
+#include "gratingbase.h"
 
 
-Grating::Grating():Surface(false, "AbstractGrating") // this should neverbe called since grating are never used abstract but agregated to a surface subtype
+GratingBase::GratingBase():Surface(false, "AbstractGrating") // this should never be called since grating are never used abstract but agregated to a surface subtype
 {
    m_order=0; //ctor
    m_density=1.e-6;
 }
 
-Grating::~Grating()
+GratingBase::~GratingBase()
 {
     //dtor
 }
 
-EIGEN_DEVICE_FUNC  Grating::VectorType Grating::gratingVector(VectorType position)
+EIGEN_DEVICE_FUNC  GratingBase::VectorType GratingBase::gratingVector(VectorType position)
 {
     return VectorType::UnitX()*m_density;
 }
 
-int Grating::align(double wavelength)         /**< \todo to be validated */
+int GratingBase::align(double wavelength)         /**< \todo to be validated */
 {
     // retrouve ou définit l'orientation absolue du trièdre d'entrée
     RotationType inputFrameRot; // rotation part
@@ -117,7 +117,7 @@ int Grating::align(double wavelength)         /**< \todo to be validated */
     return 0;
 }
 
-RayType& Grating::transmit(RayType& ray)
+RayType& GratingBase::transmit(RayType& ray)
 {
     if(!ray.m_alive)
         return ray;
@@ -143,7 +143,7 @@ RayType& Grating::transmit(RayType& ray)
     return ray;
 }
 
-RayType& Grating::reflect(RayType& ray)
+RayType& GratingBase::reflect(RayType& ray)
 {
     if(!ray.m_alive)
         return ray;

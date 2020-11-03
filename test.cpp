@@ -16,11 +16,11 @@
 ////////////////////////////////////////////////////////////////////////////////////
 #
 #include <iostream>
-#include "plane.h"
-#include "quadric.h"
+#include "mirrors.h"
+#include "sourcebase.h"
 #include <fstream>
 #include <float.h>
-#include "grating.h"
+#include "gratingbase.h"
 
 //#define POSTFIX(X, P) X#P
 //#define M_PIl POSTFIX(M_PI, L)
@@ -78,6 +78,8 @@ int main()
     cout << "new inray   " << inray << endl;
     Plane  film;
     Quadric quad;
+    PlaneMirror planeMir;
+    SourceBase source ;
   //  Grating grat; la classe grating n'est pas directement instanciable
 
     cout << "     " << film.getName() << endl;

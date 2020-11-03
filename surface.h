@@ -2,19 +2,20 @@
 *************************************************************************
 *   \file       surface.h
 *
-*   \brief     virtual base  of all the optical elements in the library
+*   \brief     Surface base class and surface parameter class definition file
 *
 *
 *
 *
 *   \author             François Polack  <francois.polack@synchroton-soleil.fr>
 *   \date               Creation : 2020-10-05
+*   \date               Last update:
 *
 *   \mainpage   OptiX
 *       An X-ray optics librray
 *
 *   \defgroup enums  Enumeration list
-*      \brief  enumarated values used in the library
+*      \brief  enumerated values used in the library
 *
 *
  ***************************************************************************/
@@ -47,7 +48,7 @@ enum UnitType{
 /** \ingroup enums
  * \brief Impact recoording flag
  */
-enum RecordSpace{
+enum RecordMode{
     RecordNone=0,   /**< do not record impacts on this surface */
     RecordInput=1,  /**< record the inpacts in entrance space  */
     RecordOutput=2  /**< record the impacts in exit space */
@@ -59,8 +60,26 @@ enum RecordSpace{
 enum ParameterGroup{
     BasicGroup=0,   /**< The parameter belongs to the base group common to all surfaces */
     ShapeGroup=1,   /**< The parameter descripe asurface shape */
-    GratingGroup=2  /**<  the parameter describes a grating*/
+    SourceGroup=2,
+    GratingGroup=3  /**<  the parameter describes a grating*/
 };
+
+/** \ingroup enums
+ * \brief modifier flags applicable to parameters
+ *
+ *  Range   | applies to | description
+ *  ------- | ---------- | ------------
+ * 0 - 0xF  | any object |  optimization and computation modifiers
+ * 0x10 - 0xF0 | Sources  | Type of ray generator associated with the parameter
+ * flag > 0xF  | none     | reserved for future use
+ */
+enum ParameterFlags:uint32_t{
+    Optimizable=1, /**< The parameter can be optimizes */
+    Uniform=0x10,  /**< Uniform random generator (value=0)*/
+    Gaussian=0x20, /**< Gaussian random (value=sigma) */
+    Grided=0x80    /**< Grided (value=stepsize) */
+};
+
 /** \brief Keyed access class for the numeric parameters of an optical surface
  */
 class Parameter{
@@ -70,7 +89,7 @@ public:
     double multiplier=1.; /**< \brief multiplier for display */
     UnitType type=Dimensionless;  /**< \brief type of unit */
     ParameterGroup group=BasicGroup;
-    bool optimizable=false; /**< \brief is this an optimization parameter ?*/
+    uint32_t flags=0; /**< \brief is this an optimization parameter ?*/
     Parameter(){}
     inline Parameter(double newvalue, UnitType newtype, double newmultiplier=1.):/**<  \brief standard constructor sets optimization bounds to  parameter value */
         value(newvalue), multiplier(newmultiplier), type(newtype){bounds[0]=bounds[1]=value;}
@@ -83,7 +102,7 @@ public:
 /** \brief Abstract base class of all optical surfaces
 *
 *       Surface is the base class of both shape definition classes like Plane, Quadric, Toroid
-*       and behaviour type classes like Trasparency, Mirror, Grating.
+*       and behaviour type classes like Transparency, Mirror, Grating.
 *     \n Optical element classes might be derived from an agregates of these classes, but they MUST refer to the same surface object.
 *      Hence these derived objects must declare the base Surface ùmember as virtual
 *
@@ -118,16 +137,26 @@ public:
 
     Surface(bool transparent=true, string name="", Surface* previous=NULL); /**< \brief default  constructor (Film) with explicit chaining to previous */
 
-    virtual inline string getRuntimeClass(){return "Surface";}/**< return the derived class name of this object */
+    virtual inline string getRuntimeClass(){return "Surface";}/**< \brief return the derived class name of this object */
 
-    EIGEN_DEVICE_FUNC virtual VectorType intercept(RayType& ray, VectorType * normal=NULL )=0; /**< Pure virtual function
-    *   implemented in shape classes (Plane , Quadric, Toroid)
+    EIGEN_DEVICE_FUNC virtual VectorType intercept(RayType& ray, VectorType * normal=NULL )=0; /**< \brief Pure virtual function
+    *
+    *   Implemented in shape classes (Plane , Quadric, Toroid)
     *   \n All mplementations <b> must move and rebase </b> the ray at its intersection with the surface and return this position
     */
 
-    virtual RayType& transmit(RayType& ray);       /**< To be reimplemented in derived  class  */
+    virtual RayType& transmit(RayType& ray);       /**<  \brief  ray transmission. \n To be reimplemented in derived class
+            *   \param ray the input ray in entrance space \return the transmitted ray in exit space
+            *
+            *  this implementation moves the ray to the surface and rebase it there */
 
-    virtual RayType& reflect(RayType& ray);    /**< To be reimplemented in derived class */
+    virtual RayType& reflect(RayType& ray);    /**< \brief Ray reflection. \n To be reimplemented in derived class
+            *    \param ray the input ray in entrance space \return the reflected ray in exit space
+            *
+            *    This implementation simply reflect the ray on the tangent plane */
+
+    inline void setRecording(RecordMode rflag){m_recording=rflag;} /**< \brief Sets the impact recording mode for the surface */
+    inline RecordMode getRecording(){return m_recording;} /**< \brief Gets the impact recording mode of the surface */
 
     void propagate(RayType& ray); /**< \brief computes and stores the inpact point on the surface, computes the reflected ray and iterate to the next surface*/
 
@@ -188,16 +217,24 @@ public:
     bool isAligned(); /**< \brief  returns true if all elements of the surface chain starting from here are aligned , false otherwise*/
 
 
-    /** \brief Sets a named numeric parameter
+    /** \brief Sets an existing  named numeric parameter
+    * \param name the name of parameter to set
+    * \param param the new parameter  object
+    * \return  true if parameters was changed , false if parameter doesn't belong to the object
     */
-    inline ParamRef setParameter(string name, Parameter& param)
+    inline bool setParameter(string name, Parameter& param)
     {
-        pair<ParamRef,bool> result= m_parameters.insert(make_pair(name,param));
-        if(!result.second)
-          result.first->second=param;
-        m_isaligned=false;  //maybe some changes do not require this
-        return result.first;
+        ParamRef it=m_parameters.find(name);
+        if (it !=m_parameters.end())
+        {
+            it->second=param;
+            return true;
+        }
+        else
+            return false;
     }
+
+
     /** \brief retrieves a numeric parameter by its name
     */
     inline bool getParameter(string name, Parameter& param)
@@ -238,11 +275,23 @@ protected:
     static map<string, string> m_helpstrings;  /**< \brief  parameter description help strings  */
     static int m_nameIndex;
 
+
+    /** \brief Creates and sets a new named numeric parameter
+    */
+    inline ParamRef defineParameter(string name, Parameter& param)    {
+        pair<ParamRef,bool> result= m_parameters.insert(make_pair(name,param));
+        if(!result.second)
+          result.first->second=param;
+        m_isaligned=false;  //maybe some changes do not require this
+        return result.first;
+    }
+    inline void removeParameter(string name){ m_parameters.erase(name);}/**< \brief removes a tagged parameter */
+
 //  surface definition primary parameters
     string m_name;   /**< \brief  an identification name for calling this surface from scripts  */
     map<string,Parameter> m_parameters;   /**<  \brief tagged parameters of the surface.  */
     bool m_transmissive;   /**< \brief  flag defining whether ray propagation should call the surface transmit() or reflect()  function */
-    RecordSpace m_recording; /**<  \brief flag defining wether or not the ray impacts on this surace are recorded and in forward or backward space   */
+    RecordMode m_recording; /**<  \brief flag defining wether or not the ray impacts on this surace are recorded and in forward or backward space   */
     Surface* m_previous; /**<  \brief the previous element in the surface chain */
     Surface* m_next; /**<  \brief the next element in the surface chain */
     vector<RayType> m_impacts; /**<  \brief the ray impacts on the surfaces in forward or backward element space */

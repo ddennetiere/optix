@@ -40,6 +40,8 @@ public:
     string what_str;
 };
 
+/** \brief Tagged parameter setting or recovering error
+ */
 class ParameterException:public runtime_error
 {
 public:

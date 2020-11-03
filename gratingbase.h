@@ -1,12 +1,13 @@
 ////////////////////////////////////////////////////////////////////////////////
 /**
-*      \file           grating.h
+*      \file           gratingbase.h
 *
-*      \brief         Grating class declarations
+*      \brief         GratingBase class declarations
+*      \todo         Derived classes RuledGrating and HoloGrating vith specific implementation of (should be) virtual function gratingVector()
 *
 *      \author         François Polack <francois.polack@synchroton-soleil.fr>
-*      \date        2020-10-22  Creation
-*      \date         Last update
+*      \date         2020-10-22  Creation
+*      \date         Last update 2020-10-30
 *
 
 */
@@ -15,23 +16,24 @@
 //             REVISIONS
 //
 ////////////////////////////////////////////////////////////////////////////////////
-#ifndef GRATING_H
-#define GRATING_H
+#ifndef GRATINGBASE_H
+#define GRATINGBASE_H
 
 #include "surface.h"
 
 
 /** \brief Base class for all gratings
  */
-class Grating : virtual public Surface
+class GratingBase : virtual public Surface
 {
     public:
         /** Default constructor */
-        Grating();
+        GratingBase();
         /** Default destructor */
-        virtual ~Grating();
-        virtual inline string getRuntimeClass(){return "Grating";}/**< return the derived class name ie. Grating */
-        EIGEN_DEVICE_FUNC virtual VectorType gratingVector(VectorType position);/**< Line density vector in  grating coordinates */
+        virtual ~GratingBase();
+        virtual  inline string getRuntimeClass(){return "GratingBase";}/**< return the derived class name ie. GratingBase */
+        EIGEN_DEVICE_FUNC virtual VectorType gratingVector(VectorType position);/**< Line density vector in  grating coorinates
+                *       \todo should be made pure virtual*/
         virtual int align(double wavelength);/**< \brief Orients the grating on the given order and wavelength and defines the related geometric space transforms
                 * \param wavelength  the alignment wavelength (m)
                 * If reflective:
@@ -48,4 +50,4 @@ class Grating : virtual public Surface
     private:
 };
 
-#endif // GRATING_H
+#endif // GRATINGBASE_H
