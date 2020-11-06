@@ -16,8 +16,8 @@
 ////////////////////////////////////////////////////////////////////////////////////
 #
 #include <iostream>
-#include "mirrors.h"
-#include "sourcebase.h"
+#include "opticalelements.h"
+#include "gridSource.h"
 #include <fstream>
 #include <float.h>
 #include "gratingbase.h"
@@ -74,26 +74,47 @@ int main()
 
     cout << T.matrix() << endl;
 
+    Parameter param;
+
     inray=RayType (RayBaseType(ldpos,RayType::VectorType::UnitX() ,3.));
     cout << "new inray   " << inray << endl;
-    Plane  film;
-    Quadric quad;
-    PlaneMirror planeMir;
-    SourceBase source ;
+    XYGridSource source("Source") ;
+    PlaneFilm  film("Film",&source);
+    film.getParameter("distance",param);
+    param.value=1.;
+    film.setParameter("distance", param);
+    film.getParameter("theta",param);
+    param.value=M_PI_4;
+    film.getParameter("theta",param);
+    film.setRecording(RecordInput);
+  //   Quadric quad;
   //  Grating grat; la classe grating n'est pas directement instanciable
+  //  PlaneMirror planeMir("MP", &film);
 
-    cout << "     " << film.getName() << endl;
+   // source.setParameter("nYdiv", param);
+    double wavelength=1e-9;
+    source.generate(wavelength);
+    source.alignFromHere(wavelength);
+    source.radiate();
+
+    cout << "\nIMPACTS\n";
+    vector<RayType>::iterator it;
+    int ncount=0;
+    for(it=film.m_impacts.begin(); it!=film.m_impacts.end(); ++it,++ncount)
+        cout << ncount << "  " << it->position().transpose() << endl;
+        //"  " << it->direction().transpose() << "  " << it->parameter() << endl;
+
+    cout << "     " << source.getName() << endl;
     string strHelp, name;
-    Parameter param;
     param.value=0.04;
 
     film.setParameter(name="theta", param);
-    quad.setParameter(name="theta", param);
-    quad.align();
+//    quad.setParameter(name="theta", param);
+//    quad.align();
 
     param.value=M_PI_4;
     film.setParameter("phi", param);
-    film.align();
+    film.alignFromHere(wavelength);
     cout << film.intercept(inray).transpose()<< endl;
     cout << inray.rebase()<< endl;
 

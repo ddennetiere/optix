@@ -145,20 +145,30 @@ public:
     *   \n All mplementations <b> must move and rebase </b> the ray at its intersection with the surface and return this position
     */
 
-    virtual RayType& transmit(RayType& ray);       /**<  \brief  ray transmission. \n To be reimplemented in derived class
-            *   \param ray the input ray in entrance space \return the transmitted ray in exit space
+    virtual RayType& transmit(RayType& ray);       /**<  \brief  ray transmission and impact storage. \n To be reimplemented in derived class
+            *   \param ray the input ray in previous element exit space \return the transmitted ray in exit space of this element
             *
-            *  this implementation moves the ray to the surface and rebase it there */
+            *  this implementation moves the ray to the surface and rebase it there
+            *   All implementations <b> must take care of recording impacts </b> in entrance or exit plane as required */
 
-    virtual RayType& reflect(RayType& ray);    /**< \brief Ray reflection. \n To be reimplemented in derived class
-            *    \param ray the input ray in entrance space \return the reflected ray in exit space
+    virtual RayType& reflect(RayType& ray);    /**< \brief Ray reflection and impact storage. \n To be reimplemented in derived class
+            *    \param ray the input ray inprevious element exit space  \return the reflected ray in exit space of this element
             *
-            *    This implementation simply reflect the ray on the tangent plane */
+            *    This implementation simply reflect the ray on the tangent plane
+            *   All implementations <b> must take care of recording impacts </b> in entrance or exit plane as required */
 
     inline void setRecording(RecordMode rflag){m_recording=rflag;} /**< \brief Sets the impact recording mode for the surface */
     inline RecordMode getRecording(){return m_recording;} /**< \brief Gets the impact recording mode of the surface */
 
-    void propagate(RayType& ray); /**< \brief computes and stores the inpact point on the surface, computes the reflected ray and iterate to the next surface*/
+    inline void propagate(RayType& ray) /**< \brief  call transmit or reflect according to surface type ray and iterate to the next surface*/
+    {
+        if(m_transmissive)
+            transmit(ray);
+        else
+            reflect(ray);
+        if(m_next!=NULL)
+            m_next->propagate(ray);
+    }
 
     void clearImpacts();    /**< \brief  clear the impact vector of all elements of the surface chain starting from this element*/
 
@@ -271,6 +281,10 @@ public:
     static void setHelpstrings();  /**< \brief sets help strings of all parameters used by this object */
 
     EIGEN_DEVICE_FUNC inline IsometryType& exitFrame(){return m_exitFrame;}
+
+public:
+    vector<RayType> m_impacts; /**<  \brief the ray impacts on the surfaces in forward or backward element space */
+
 protected:
     static map<string, string> m_helpstrings;  /**< \brief  parameter description help strings  */
     static int m_nameIndex;
@@ -294,7 +308,6 @@ protected:
     RecordMode m_recording; /**<  \brief flag defining wether or not the ray impacts on this surace are recorded and in forward or backward space   */
     Surface* m_previous; /**<  \brief the previous element in the surface chain */
     Surface* m_next; /**<  \brief the next element in the surface chain */
-    vector<RayType> m_impacts; /**<  \brief the ray impacts on the surfaces in forward or backward element space */
 
 
 // surface secondary parameters build during alignment

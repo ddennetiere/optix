@@ -17,6 +17,6 @@
 #include "plane.h"
 
 
-Plane::Plane():Surface(true,"Plane") {} //{Surface::m_transmissive=false;}
+Plane::Plane(string name, Surface *previous):Surface(true,name, previous) {} //{Surface::m_transmissive=false;}
 
 Plane::~Plane(){}

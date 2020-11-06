@@ -28,7 +28,7 @@ class Plane : virtual public Surface
 {
     public:
         /** Default constructor */
-        Plane(); //:Surface("Plane"){Surface::m_transmissive=false;}
+        Plane(string name="" ,Surface * previous=NULL); //:Surface("Plane"){Surface::m_transmissive=false;}
         /** Default destructor */
         virtual ~Plane(); //{}
 

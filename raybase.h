@@ -160,6 +160,7 @@ public:
 
     EIGEN_DEVICE_FUNC inline VectorType& origin(){return BaseLine::m_origin;}   /**< \brief gets a reference to the origin vector*/
     EIGEN_DEVICE_FUNC inline VectorType& direction(){return BaseLine::m_direction;}   /**< \brief gets a reference to the direction vector*/
+    inline scalar& parameter(){return m_distance;}
 
     /** \brief move the internal position at the given distance from origin
     *   \param distance the distance from orignin of the  new position*/

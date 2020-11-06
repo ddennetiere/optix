@@ -50,11 +50,18 @@ class SourceBase : public virtual Surface
          *
          * \param wavelength the new wavelength for all stored rays
          */
-        void inline setWavelength(double wavelength)
+        inline void setWavelength(double wavelength)
         {
             vector<RayType>::iterator it;
             for(it=m_impacts.begin(); it!= m_impacts.end(); ++it)
                 it->m_wavelength=wavelength;
+        }
+
+        inline void radiate()
+        {
+            vector<RayType>::iterator it;
+            for(it=m_impacts.begin(); it != m_impacts.end(); ++it)
+                m_next->propagate(*it);
         }
     protected:
 

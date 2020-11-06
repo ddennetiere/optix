@@ -34,7 +34,7 @@ XYGridSource::XYGridSource(string name ,Surface * previous):Surface(false,name, 
     param.value=1;
     defineParameter("nYsize", param); //1 seul point source
     defineParameter("nZsize", param);
-    param.value=10;
+    param.value=5;
     defineParameter("nYdiv", param); // soit 21x21 points
     defineParameter("nZdiv", param);
 
@@ -73,25 +73,29 @@ int XYGridSource::generate(double wavelength)
     double Ysize=param.value;
     getParameter("sizeZ", param);
     double Zsize=param.value;
+    int ntYprim=2*nYprim-1;
+    int ntZprim=2*nYprim-1;
+    int ntY=2*nY-1;
+    int ntZ=2*nZ-1;
 
-    VectorXd vYprim=VectorXd::LinSpaced(2*nYprim-1, -Yprim, nYprim==1? 0 : Yprim);
-    VectorXd vZprim=VectorXd::LinSpaced(2*nZprim-1, -Zprim, nZprim==1? 0 : Zprim);
-    VectorXd vY=VectorXd::LinSpaced(2*nY-1, -Ysize, nY==1? 0 : Ysize);
-    VectorXd vZ=VectorXd::LinSpaced(2*nZ-1, -Zsize, nZ==1? 0 : Zsize);
+    VectorXd vYprim=VectorXd::LinSpaced(ntYprim, -Yprim, nYprim==1? 0 : Yprim);
+    VectorXd vZprim=VectorXd::LinSpaced(ntZprim, -Zprim, nZprim==1? 0 : Zprim);
+    VectorXd vY=VectorXd::LinSpaced(ntY, -Ysize, nY==1? 0 : Ysize);
+    VectorXd vZ=VectorXd::LinSpaced(ntZ, -Zsize, nZ==1? 0 : Zsize);
 
 
     int nRays=vYprim.size()*vZprim.size()*vY.size()*vZ.size();
     reserveImpacts(m_impacts.size() + nRays);
     VectorType org=VectorType::Zero(),dir=VectorType::Zero();
 
-    for(Index iZ=0; iZ <nZ; ++iZ)
-      for(Index iY=0; iY< nY; ++iY)
+    for(Index iZ=0; iZ <ntZ; ++iZ)
+      for(Index iY=0; iY< ntY; ++iY)
       {
-        org.segment(1,2) <<vY(iY), vZ(iZ);
-        for(Index iZprim=0; iZprim<nZprim; ++iZprim)
-          for(Index iYprim=0; iYprim<nYprim; ++iYprim)
+        org << 0, vY(iY), vZ(iZ);
+        for(Index iZprim=0; iZprim<ntZprim; ++iZprim)
+          for(Index iYprim=0; iYprim<ntYprim; ++iYprim)
           {
-              dir.segment(1,2) << vYprim(iYprim), vZprim(iZprim);
+              dir << 1.L, vYprim(iYprim), vZprim(iZprim);
               m_impacts.emplace_back(RayBaseType(org,dir),wavelength); // amplitude set to 1 and S polar
           }
       }

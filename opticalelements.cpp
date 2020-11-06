@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 /**
-*      \file           mirrors.cpp
+*      \file           opticalelements.cpp
 *
 *      \brief         Mirror template instanciation
 *
@@ -14,8 +14,13 @@
 //             REVISIONS
 //
 ////////////////////////////////////////////////////////////////////////////////////
-#include "mirrors.h"
+#include "opticalelements.h"
 
 template class Mirror<Plane>;
 template class Mirror<Sphere>;
 template class Mirror<Cylinder>;
+
+template class Film<Plane>;
+template class Film<Sphere>;
+template class Film<Cylinder>;
+

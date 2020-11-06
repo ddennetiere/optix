@@ -91,7 +91,7 @@ int Surface::align(double wavelength)  /**< alignement par défaut des surfaces 
     getParameter("theta",param);
     angle=param.value;
     if(m_transmissive) // si la surface est transmissive l'axe d'alignement de sortie reste celui d'entrée mais la rotation phi change le trièdre
-        angle -=M_PI_2; // La normale pointe vers l'aval et theta donne le désalignement de la surface / l'axe d'entrée autour de Y
+        angle -=3.1415926535897932384626433832795L/2; // La normale pointe vers l'aval et theta donne le désalignement de la surface / l'axe d'entrée autour de Y
     else
         rayTransform*=AngleAxis<FloatType>(-2.*angle, inputFrameRot.col(1)) ;
 
@@ -143,38 +143,34 @@ void Surface::setHelpstrings()
 
 RayType& Surface::transmit(RayType& ray)
 {
-    if(!ray.m_alive)
-        return ray;
-    intercept(ray); // intercept effectue le changement de repère entrée/sortie
+    if(ray.m_alive)
+        intercept(ray); // intercept effectue le changement de repère previous to this
+    if(m_recording!=RecordNone)
+            m_impacts.push_back(ray);
     return ray;
 }
 
 RayType& Surface::reflect(RayType& ray)    /**<  this implementation simply reflect the ray on the tangent plane */
 {
-    if(!ray.m_alive)
-        return ray;
+    if(ray.m_alive)
+    {
+        VectorType normal;
+        intercept(ray, &normal);
+        if(m_recording==RecordInput)
+            m_impacts.push_back(ray);
+        ray.direction()-=2.*ray.direction().dot(normal)*normal;
+        if(m_recording==RecordOutput)
+            m_impacts.push_back(ray);
+    }
+    else if(m_recording!=RecordNone)
+            m_impacts.push_back(ray);
 
-    VectorType normal;
-    intercept(ray, &normal);
-    ray.direction()-=2.*ray.direction().dot(normal)*normal;
     return ray;
 }
 
 
-void Surface::propagate(RayType& ray)
-{
-    if(m_recording==RecordInput)
-        m_impacts.push_back(ray);
-    if(m_transmissive)
-        transmit(ray);
-    else
-        reflect(ray);
-    if(m_recording==RecordOutput)
-        m_impacts.push_back(ray);
+ //void Surface::propagate(RayType& ray)  // has been inlined
 
-    if(m_next!=NULL)
-        m_next->propagate(ray);
-}
 
 
 void Surface::clearImpacts()

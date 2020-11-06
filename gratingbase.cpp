@@ -119,27 +119,34 @@ int GratingBase::align(double wavelength)         /**< \todo to be validated */
 
 RayType& GratingBase::transmit(RayType& ray)
 {
-    if(!ray.m_alive)
-        return ray;
+    if(ray.m_alive)
+    {
+        VectorType normal;
+        intercept(ray, &normal);    // intercept effectue le changement de repère entrée/sortie
+        if(m_recording==RecordInput)
+            m_impacts.push_back(ray);
 
-    VectorType normal;
-    intercept(ray, &normal);    // intercept effectue le changement de repère entrée/sortie
+        VectorType G=gratingVector(ray.position())*m_order*ray.m_wavelength;
+        FloatType normG=G.norm();
 
-    VectorType G=gratingVector(ray.position())*m_order*ray.m_wavelength;
-    FloatType normG=G.norm();
+        if(normG > 1e-10)// diffraction non négligeable
+        {
+            VectorType dirG=G/normG;
+            VectorType T=normal.cross(dirG);
+            FloatType gProj=dirG.dot(ray.direction())+normG;
+            FloatType tProj=T.dot(ray.direction());
+            FloatType nProj2=1.L - gProj*gProj -tProj*tProj;
+            if(nProj2 >0)
+                ray.direction()=gProj*dirG+ tProj*T +sqrtl(nProj2)* normal ;
+        }
+        else
+            ray.m_alive=false;
 
-    if(normG < 1e-10)
-        return ray;   // diffraction négligeable
-
-    VectorType dirG=G/normG;
-    VectorType T=normal.cross(dirG);
-    FloatType gProj=dirG.dot(ray.direction())+normG;
-    FloatType tProj=T.dot(ray.direction());
-    FloatType nProj2=1.L - gProj*gProj -tProj*tProj;
-    if(nProj2 >0)
-        ray.direction()=gProj*dirG+ tProj*T +sqrtl(nProj2)* normal ;
-    else
-        ray.m_alive=false;
+        if(m_recording==RecordOutput)
+            m_impacts.push_back(ray);
+    }
+    else if(m_recording!=RecordNone)
+            m_impacts.push_back(ray);
     return ray;
 }
 

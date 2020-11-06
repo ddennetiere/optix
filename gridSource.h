@@ -35,6 +35,7 @@
 
 class XYGridSource: public virtual SourceBase
 {
+public:
     /** Default constructor */
     XYGridSource(string name="" ,Surface * previous=NULL);
     /** Default destructor */
@@ -46,6 +47,7 @@ class XYGridSource: public virtual SourceBase
 
 class RadialGridSource: public virtual SourceBase
 {
+public:
     /** Default constructor */
     RadialGridSource(string name="" ,Surface * previous=NULL);
     /** Default destructor */
