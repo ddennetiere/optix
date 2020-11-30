@@ -54,7 +54,7 @@ int GratingBase::align(double wavelength)         /**< \todo to be validated */
 
     // positinne la surface par rapport à la précédente
     Parameter param;
-    RayBaseType inRay=(m_previous==NULL)?RayBaseType::OX() : RayBaseType(m_previous->exitFrame().translation(), inputFrameRot.col(0) ) ;  // alignment exit Ray is normalized and its position is at previous optics
+    RayBaseType inRay=(m_previous==NULL)?RayBaseType::OZ() : RayBaseType(VectorType::Zero(), inputFrameRot.col(2) ) ;  // alignment exit Ray is normalized and its position is at previous optics
     getParameter("distance", param);
     (inRay+=param.value).rebase();  // inray a maintenant son origine à la position absolue de la surface
     m_translationFromPrevious=inRay.position();
@@ -64,24 +64,25 @@ int GratingBase::align(double wavelength)         /**< \todo to be validated */
 
     IsometryType rayTransform;
 
+
     getParameter("phi",param);
     FloatType angle(param.value);
-    rayTransform=IsometryType(AngleAxis<FloatType>(angle, inputFrameRot.col(0)));
+    m_exitFrame=inputFrameRot*AngleAxis<FloatType>(angle, VectorType::UnitZ());
     getParameter("Dphi",param);
     angle+=param.value;
-    m_surfaceDirect=IsometryType(AngleAxis<FloatType>(angle, inputFrameRot.col(0)));
+    m_surfaceDirect= IsometryType(inputFrameRot)*AngleAxis<FloatType>(angle, VectorType::UnitZ()); // rot/nouveau Z
+
 
     getParameter("theta",param);
     angle=param.value;
     double omega=0 ;  // omega est la rotation du réseau autour du nouvel axe Y tourné de Phi autour du  rayon incident
     double psi=0; // angle de rotation classique autour de la normale
 
-    if(m_transmissive) // si la surface est transmissive l'axe d'alignement de sortie reste celui d'entrée mais la rotation phi change me trièdre
-        angle -=M_PI_2; // La normale pointe vers l'aval et theta donne le désalignement de la surface / l'axe d'entrée autour de Y
-                /**<  \todo add an "align on exit" switch  to change the exit axis  and frame */
-    else
+    if(!m_transmissive) // si la surface est transmissive l'axe d'alignement de sortie reste celui d'entrée mais la rotation phi change
+                // le trièdre.   La normale pointe vers l'aval et theta donne le désalignement de la surface / l'axe d'entrée autour de OX
     {
-        rayTransform*=AngleAxis<FloatType>(-2.*angle, inputFrameRot.col(1)) ;
+        m_exitFrame*=AngleAxis<FloatType>(-2.*angle,VectorType::UnitX()) ; // axe X nouveau
+
         double s=G.norm()/(2.*sin(angle)); // theta
         if(abs(s) >1.)
             return -1;  // cannot align
@@ -90,11 +91,11 @@ int GratingBase::align(double wavelength)         /**< \todo to be validated */
 
     getParameter("Dtheta",param);
     angle+=omega+param.value;
-    m_surfaceDirect*=AngleAxis<FloatType>(-angle, inputFrameRot.col(1)) ;  // convention déviation vers le haut si phi=0, vers l'extérieur anneau si phi=Pi/2 (M_PI_2)
+    m_surfaceDirect*=AngleAxis<FloatType>(-angle, VectorType::UnitX()) ;  // convention déviation vers le haut si phi=0, vers l'extérieur anneau si phi=Pi/2 (M_PI_2)
 
-    m_frameDirect=rayTransform*inputFrameRot;
+
     m_exitFrame.translation()=inputFrameTranslation+m_translationFromPrevious;
-    m_exitFrame.linear()=m_frameDirect;
+    m_frameDirect=m_exitFrame.linear();
     m_frameInverse=m_frameDirect.inverse();
 
     param.value=psi;
@@ -102,7 +103,12 @@ int GratingBase::align(double wavelength)         /**< \todo to be validated */
 
     getParameter("Dpsi",param);
     angle=psi+param.value;
-    m_surfaceDirect*=AngleAxis<FloatType>(angle, inputFrameRot.col(2)) ;
+    if(!m_transmissive)// si reflection
+    {
+        m_surfaceDirect*= Matrix<FloatType,4,4>(m_FlipSurfCoefs); // la surface est basculée noormale vers Y
+    }
+
+    m_surfaceDirect*=AngleAxis<FloatType>(angle, VectorType::UnitZ()) ;
 
     VectorType surfShift;
     getParameter("DX",param);

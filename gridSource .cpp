@@ -16,86 +16,86 @@
 ////////////////////////////////////////////////////////////////////////////////////
 #include "gridSource.h"
 
-XYGridSource::XYGridSource(string name ,Surface * previous):Surface(false,name, previous)
+XYGridSource::XYGridSource(string name ,Surface * previous):Surface(true,name, previous)  // surface non réfléchissante
 {
     Parameter param;
     param.type=Angle;
     param.group=SourceGroup;
     param.value=5.e-4;
-    defineParameter("divY", param);  // 1/2 divergence Y par défaut 500 µrad
-    defineParameter("divZ", param);   // 1/2 divergence Z par défaut 500 µrad
+    defineParameter("divX", param);  // 1/2 divergence Y par défaut 500 µrad
+    defineParameter("divY", param);   // 1/2 divergence Z par défaut 500 µrad
 
     param.type=Distance;
     param.value=0;
-    defineParameter("sizeY", param);  // 1/2 field Y  Defaut 0 (source ponctuelle)
-    defineParameter("sizeZ", param);   // 1/2 field Z
+    defineParameter("sizeX", param);  // 1/2 field Y  Defaut 0 (source ponctuelle)
+    defineParameter("sizeY", param);   // 1/2 field Z
 
     param.type=Dimensionless;
     param.value=1;
-    defineParameter("nYsize", param); //1 seul point source
-    defineParameter("nZsize", param);
+    defineParameter("nXsize", param); //1 seul point source
+    defineParameter("nYsize", param);
     param.value=5;
-    defineParameter("nYdiv", param); // soit 21x21 points
-    defineParameter("nZdiv", param);
+    defineParameter("nXdiv", param); // soit 9 x 9 points
+    defineParameter("nYdiv", param);
 
-    setHelpstring("divY", "1/2 divergence in the horiz. plane ");  // complete la liste de infobulles de la classe Surface
-    setHelpstring("divZ", "1/2 divergence in the vertical plane");
-    setHelpstring("nYdiv", "Number of steps in horiz. 1/2 divergence ");
-    setHelpstring("nZdiv", "Number of steps in vertical 1/2 divergence ");
-    setHelpstring("sizeY", "1/2 source size in the Horiz. plane ");
-    setHelpstring("sizeZ", "1/2 source size in the vertical plane");
+    setHelpstring("divX", "1/2 divergence in the horiz. plane ");  // complete la liste de infobulles de la classe Surface
+    setHelpstring("divY", "1/2 divergence in the vertical plane");
+    setHelpstring("nXdiv", "Number of steps in horiz. 1/2 divergence ");
+    setHelpstring("nYdiv", "Number of steps in vertical 1/2 divergence ");
+    setHelpstring("sizeX", "1/2 source size in the Horiz. plane ");
+    setHelpstring("sizeY", "1/2 source size in the vertical plane");
+    setHelpstring("nXsize", "Number of steps in horiz. 1/2 size");
     setHelpstring("nYsize", "Number of steps in horiz. 1/2 size");
-    setHelpstring("nZsize", "Number of steps in horiz. 1/2 size");
 }
 
 /**< \todo if needed iterate the generation of upstream sources. Upstream direction is require since the impacts are cleared before generation*/
 int XYGridSource::generate(double wavelength)
 {
     Parameter param;
+    getParameter("nXdiv",param);
+    nXprim=lround(param.value);
+    if(nXprim <1) nXprim=1;
     getParameter("nYdiv",param);
     nYprim=lround(param.value);
     if(nYprim <1) nYprim=1;
-    getParameter("nZdiv",param);
-    nZprim=lround(param.value);
-    if(nZprim <1) nZprim=1;
+    getParameter("nXsize",param);
+    nX=lround(param.value);
+    if(nX <1) nX=1;
     getParameter("nYsize",param);
     nY=lround(param.value);
     if(nY <1) nY=1;
-    getParameter("nZsize",param);
-    nZ=lround(param.value);
-    if(nZ <1) nZ=1;
 
-    getParameter("divY", param);
+    getParameter("divX", param);
+    double Xprim=param.value;
+    getParameter("divY",param);
     double Yprim=param.value;
-    getParameter("divZ",param);
-    double Zprim=param.value;
     getParameter("sizeX",param);
+    double Xsize=param.value;
+    getParameter("sizeY", param);
     double Ysize=param.value;
-    getParameter("sizeZ", param);
-    double Zsize=param.value;
+    int ntXprim=2*nXprim-1;
     int ntYprim=2*nYprim-1;
-    int ntZprim=2*nYprim-1;
+    int ntX=2*nX-1;
     int ntY=2*nY-1;
-    int ntZ=2*nZ-1;
 
+    VectorXd vXprim=VectorXd::LinSpaced(ntXprim, -Xprim, nXprim==1? 0 : Xprim);
     VectorXd vYprim=VectorXd::LinSpaced(ntYprim, -Yprim, nYprim==1? 0 : Yprim);
-    VectorXd vZprim=VectorXd::LinSpaced(ntZprim, -Zprim, nZprim==1? 0 : Zprim);
+    VectorXd vX=VectorXd::LinSpaced(ntX, -Xsize, nX==1? 0 : Xsize);
     VectorXd vY=VectorXd::LinSpaced(ntY, -Ysize, nY==1? 0 : Ysize);
-    VectorXd vZ=VectorXd::LinSpaced(ntZ, -Zsize, nZ==1? 0 : Zsize);
 
 
-    int nRays=vYprim.size()*vZprim.size()*vY.size()*vZ.size();
+    int nRays=vXprim.size()*vYprim.size()*vX.size()*vY.size();
     reserveImpacts(m_impacts.size() + nRays);
     VectorType org=VectorType::Zero(),dir=VectorType::Zero();
 
-    for(Index iZ=0; iZ <ntZ; ++iZ)
-      for(Index iY=0; iY< ntY; ++iY)
+    for(Index iY=0; iY <ntY; ++iY)
+      for(Index iX=0; iX< ntX; ++iX)
       {
-        org << 0, vY(iY), vZ(iZ);
-        for(Index iZprim=0; iZprim<ntZprim; ++iZprim)
-          for(Index iYprim=0; iYprim<ntYprim; ++iYprim)
+        org << vX(iX), vY(iY), 0 ;
+        for(Index iYprim=0; iYprim<ntYprim; ++iYprim)
+          for(Index iXprim=0; iXprim<ntXprim; ++iXprim)
           {
-              dir << 1.L, vYprim(iYprim), vZprim(iZprim);
+              dir << vXprim(iXprim), vYprim(iYprim), 1.L;
               m_impacts.emplace_back(RayBaseType(org,dir),wavelength); // amplitude set to 1 and S polar
           }
       }
@@ -108,7 +108,7 @@ int XYGridSource::generate(double wavelength)
 
 
 
-RadialGridSource::RadialGridSource(string name ,Surface * previous):Surface(false,name, previous)
+RadialGridSource::RadialGridSource(string name ,Surface * previous):Surface(true,name, previous)
 {
     Parameter param;
     param.type=Angle;
@@ -175,13 +175,13 @@ int RadialGridSource::generate(double wavelength)
       double Ro=Rsize*sqrt(double(iR)/nR);
       for(Index iT=0; iT< (iR==0) ? 1: nT; ++iT)
       {
-        org.segment(1,2) <<Ro*CosSize(iT), Ro*SinSize(iT);
+        org <<Ro*CosSize(iT), Ro*SinSize(iT), 0;
         for(Index iRprim=0; iRprim<=nRprim; ++iRprim)
         {
           double RoPrim=Rprim*sqrt(double(iRprim)/nRprim);
           for(Index iTprim=0; iTprim< (iRprim==0) ? 1:nTprim; ++iTprim)
           {
-              dir.segment(1,2) << RoPrim*CosDiv(iTprim), RoPrim*SinDiv(iTprim);
+              dir << RoPrim*CosDiv(iTprim), RoPrim*SinDiv(iTprim), 1.L;
               m_impacts.emplace_back(RayBaseType(org,dir),wavelength); // amplitude set to 1 and S polar
           }
         }

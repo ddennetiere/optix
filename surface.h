@@ -23,80 +23,23 @@
 #ifndef _SURFACE_H
 #define   _SURFACE_H
 
-
-#include "ray.h"
 #include <string>
 #include <vector>
 #include <map>
+
+#include "types.h"
+#include "files.h"
+
+
 using namespace std;
 
-typedef long double FloatType ;
-typedef Ray<FloatType>  RayType;
-typedef RayBase<FloatType>  RayBaseType;
+class SourceBase;
 
-/**
-*   \ingroup enums
-*   \brief Unit category
- */
-enum UnitType{
-    Dimensionless =0,   /**< dparameter is dimensionless  */
-    Angle =1,           /**< parameter is an angle  */
-    Distance=2,         /**< parameter is a distance  */
-    InverseDistance=3   /**< parameter is the inverse of a distance */
-};
-
-/** \ingroup enums
- * \brief Impact recoording flag
- */
-enum RecordMode{
-    RecordNone=0,   /**< do not record impacts on this surface */
-    RecordInput=1,  /**< record the inpacts in entrance space  */
-    RecordOutput=2  /**< record the impacts in exit space */
-};
-
-/** \ingroup enums
- * \brief parameter group indicator intended for property pages
- */
-enum ParameterGroup{
-    BasicGroup=0,   /**< The parameter belongs to the base group common to all surfaces */
-    ShapeGroup=1,   /**< The parameter descripe asurface shape */
-    SourceGroup=2,
-    GratingGroup=3  /**<  the parameter describes a grating*/
-};
-
-/** \ingroup enums
- * \brief modifier flags applicable to parameters
- *
- *  Range   | applies to | description
- *  ------- | ---------- | ------------
- * 0 - 0xF  | any object |  optimization and computation modifiers
- * 0x10 - 0xF0 | Sources  | Type of ray generator associated with the parameter
- * flag > 0xF  | none     | reserved for future use
- */
-enum ParameterFlags:uint32_t{
-    Optimizable=1, /**< The parameter can be optimizes */
-    Uniform=0x10,  /**< Uniform random generator (value=0)*/
-    Gaussian=0x20, /**< Gaussian random (value=sigma) */
-    Grided=0x80    /**< Grided (value=stepsize) */
-};
-
-/** \brief Keyed access class for the numeric parameters of an optical surface
- */
-class Parameter{
-public:
-    double value=0; /**< \brief the internal value for in internal unit (m, rad, etc)*/
-    double bounds[2]={0,0};/**< \brief  boundary value for optimization */
-    double multiplier=1.; /**< \brief multiplier for display */
-    UnitType type=Dimensionless;  /**< \brief type of unit */
-    ParameterGroup group=BasicGroup;
-    uint32_t flags=0; /**< \brief is this an optimization parameter ?*/
-    Parameter(){}
-    inline Parameter(double newvalue, UnitType newtype, double newmultiplier=1.):/**<  \brief standard constructor sets optimization bounds to  parameter value */
-        value(newvalue), multiplier(newmultiplier), type(newtype){bounds[0]=bounds[1]=value;}
-};
-
-
-//class elementov;
+inline double oneMinusSqrt1MinusX(double x)
+{
+    if(::fabs(x) > 0.01) return 1.-sqrt(1. - x);
+    return  x*(0.5 + x*(0.125 + x*(0.0625 + x*(0.0390625 + x*(0.02734375 + x*(0.0205078125 + x*0.01611328125))))));
+}
 
 
 /** \brief Abstract base class of all optical surfaces
@@ -160,7 +103,8 @@ public:
     inline void setRecording(RecordMode rflag){m_recording=rflag;} /**< \brief Sets the impact recording mode for the surface */
     inline RecordMode getRecording(){return m_recording;} /**< \brief Gets the impact recording mode of the surface */
 
-    inline void propagate(RayType& ray) /**< \brief  call transmit or reflect according to surface type ray and iterate to the next surface*/
+/** \brief  call transmit or reflect according to surface type ray and iterate to the next surface*/
+    inline void propagate(RayType& ray) /**< the propagated ray */
     {
         if(m_transmissive)
             transmit(ray);
@@ -184,8 +128,13 @@ public:
     virtual inline void setPrevious(Surface* previous)  { // virtual because sources need a special treatment
         if(m_previous == previous) return;
         if(m_previous) m_previous->m_next=NULL;
+        if(previous)
+        {
+            if(previous->m_next)
+                previous->m_next->m_previous=NULL;
+            m_previous->m_next=this;
+        }
         m_previous=previous;
-        if(previous)  m_previous->m_next=this;
     }
 
     /** \brief defines the next element in the active chain
@@ -195,8 +144,13 @@ public:
     {
         if(m_next == next) return;
         if(m_next)  m_next->m_previous=NULL;
+        if(next)
+        {
+            if(next->m_previous)
+                next->m_previous->m_next=NULL;
+            m_next->m_previous=this;
+        }
         m_next=next;
-        if(next)  m_next->m_previous=this;
     }
 
     /** \brief removes this element- from the active chain
@@ -214,20 +168,28 @@ public:
 
     *       alignement defines the transformations matrices needed for ray propagation computations
     *       This is a default implementation which will be overridden for gratings and maybe other elements
-    *       If the surface is reflective theta is the half-deflection angle of the chief ray,
+    *       \n If the surface is reflective \b theta is the half-deflection angle of the chief ray,
     *       if it is transmissive, the chief ray direction is not modified and theta represents the surface tilt angle of normal to chief ray)
-    *       In all cases Phi defines the frame rotation auround the incident chief ray from entry to exit
-    *       Psi is always the rotation around the surface normal
+    *       \n In all cases \b Phi defines the frame rotation auround the incident chief ray from entry to exit.
+    *       When the surface is reflective the incidence plane is the YZ plane of the rotated frame and XZ is tangent to the surface
+    *       \n \b Psi is always the rotation around the surface normal (in case of transmissive a
     */
     virtual int align(double wavelength);/**< \brief Align this surface with respect to the main incident ray and defines the related geometric space transforms
-                            *   \return  0 if alignment  is OK ; -1 if a grating can't be aligned*/
+                            *   \return  0 if alignment  is OK ; -1 if a grating can't be aligned */
     int alignFromHere(double wavelength);/**< \brief Align the whole surface chain;  stops at first error and return the error code
-                            *    \return  0 if OK; the error code which stopped the alignment*/
-
-    bool isAligned(); /**< \brief  returns true if all elements of the surface chain starting from here are aligned , false otherwise*/
+                            *    \return  0 if OK; the error code which stopped the alignment */
 
 
-    /** \brief Sets an existing  named numeric parameter
+
+    bool isAligned();/**< \brief  returns true if all elements of the surface chain starting from here are aligned, false otherwise */
+
+     bool isSource();/**< \brief Checks whether this element is a source (i.e. has a radiate() function )*/
+     Surface* getSource(); /**< \brief explore the element string to find the most upstream source from here  \return the most upstream source or NULL if there is none */
+
+
+    /** \brief Modifies an existing  named numeric parameter
+    *
+    * The type and group of a parameter are internally defined and cannot be changed. Their actual values will be reflected in param on returning
     * \param name the name of parameter to set
     * \param param the new parameter  object
     * \return  true if parameters was changed , false if parameter doesn't belong to the object
@@ -237,13 +199,15 @@ public:
         ParamRef it=m_parameters.find(name);
         if (it !=m_parameters.end())
         {
+            param.type=it->second.type; // type and group of a parameter must not be modified
+            param.group=it->second.group;
             it->second=param;
+            m_isaligned=false;
             return true;
         }
         else
             return false;
     }
-
 
     /** \brief retrieves a numeric parameter by its name
     */
@@ -258,6 +222,9 @@ public:
         else
             return false;
     }
+
+    inline map<string,Parameter>::iterator parameterBegin(){return m_parameters.begin();}/**< \brief return an iterator positionned on the first element of the parameter list of this surface*/
+    inline map<string,Parameter>::iterator parameterEnd(){return m_parameters.end();}  /**< \brief return an iterator positionned after the last element of the parameter list of this surface*/
 
     /** \brief return true if inserted returne false if helpstring is already existing
     */
@@ -280,14 +247,37 @@ public:
 
     static void setHelpstrings();  /**< \brief sets help strings of all parameters used by this object */
 
-    EIGEN_DEVICE_FUNC inline IsometryType& exitFrame(){return m_exitFrame;}
+    EIGEN_DEVICE_FUNC inline IsometryType& exitFrame(){return m_exitFrame;}  /**< \brief returns a reference to the space transform from laboratory oriented frame to exit space of this element */
 
-public:
-    vector<RayType> m_impacts; /**<  \brief the ray impacts on the surfaces in forward or backward element space */
+    vector<RayType> getImpacts(FrameID frame); /**< \brief get the impacts and directions of the set of of rays propagated from the source
+                    *    \return a vector of  propagated rays rays in this object recording space. Ray position is the ray intercept with the surface  */
+
+
+    /** \brief Computes and fills-up a SpotDiagram object from the internally stored impact collection
+     * \param spotDiagram a SpotDiagram object reference which wiill be uptated on return
+     * \param distance the distance from this surface along the alignment ray where the observation plane is located
+     * \return the number of stored impacts
+     */
+    int getSpotDiagram(SpotDiagram& spotDiagram, double distance=0);
+
+    /** \brief Computes and fills-up a CausticDiagram object from the internally stored impact collection
+     *
+     * The CausticDiagram consists in the point of each ray wich is the closest to the central alignment ray
+     * \param causticData a CausticDiagram object reference which wiill be uptated on return
+     * \return the number of stored impacts
+     */    int getCaustic(CausticDiagram& causticData);
+
+     int getWavefrontData(SpotDiagram& WFdata, double distance=0);
+
+    friend TextFile& operator<<(TextFile& file,  Surface& surface);  /**< \brief Duf this Surface object to a TextFile, in a human readable format  */
+
+    friend TextFile& operator >>(TextFile& file,  Surface& surface);  /**< \brief Retrieves a Surface object from a TextFile  */
 
 protected:
+    static FloatType m_FlipSurfCoefs[];
     static map<string, string> m_helpstrings;  /**< \brief  parameter description help strings  */
     static int m_nameIndex;
+    vector<RayType> m_impacts; /**<  \brief the ray impacts on the surfaces in forward or backward element space */
 
 
     /** \brief Creates and sets a new named numeric parameter

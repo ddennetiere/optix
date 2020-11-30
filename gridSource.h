@@ -40,9 +40,10 @@ public:
     XYGridSource(string name="" ,Surface * previous=NULL);
     /** Default destructor */
     virtual ~XYGridSource(){}
+    virtual inline string getRuntimeClass(){return "XYGridSource";}/**< return the derived class name ie. XYGridSource */
     virtual int generate(double wavelength);
     //public members
-    int nYprim, nZprim,nY,nZ;
+    int nXprim, nYprim,nX,nY;
 };
 
 class RadialGridSource: public virtual SourceBase
@@ -52,6 +53,7 @@ public:
     RadialGridSource(string name="" ,Surface * previous=NULL);
     /** Default destructor */
     virtual ~RadialGridSource(){}
+    virtual inline string getRuntimeClass(){return "RadialGridSource";}/**< return the derived class name ie. RadialGridSource */
     virtual int generate(double wavelength);
     // public members
     int nRprim, nTprim,nR,nT;

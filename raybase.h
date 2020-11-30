@@ -103,8 +103,8 @@ public:
      * \param vT   the origin translation vector
      * \return  a reference to this \sa operator+()
      */
-    inline RayBase&  operator+=(Matrix<scalar,3,1> vT){
-        BaseLine::m_origin+=vT;
+    inline RayBase&  operator+=(Matrix<scalar,3,1>& vT){
+        origin()+=vT;
         return *this;
     }
 
@@ -113,7 +113,26 @@ public:
      * \param vT   the origin translation vector
      * \return  a reference to this \sa operator-()
      */
-    inline RayBase&  operator-=(Matrix<scalar,3,1> vT){
+    inline RayBase&  operator-=(Matrix<scalar,3,1>& vT){
+        BaseLine::m_origin-=vT;
+        return *this;
+    }
+    /** \brief in place origin shift by vT
+     *
+     * \param vT   the origin translation vector
+     * \return  a reference to this \sa operator+()
+     */
+    inline RayBase&  operator+=(Matrix<scalar,3,1>&& vT){
+        origin()+=vT;
+        return *this;
+    }
+
+    /** \brief in place origin shift by -vT
+     *
+     * \param vT   the origin translation vector
+     * \return  a reference to this \sa operator-()
+     */
+    inline RayBase&  operator-=(Matrix<scalar,3,1>&& vT){
         BaseLine::m_origin-=vT;
         return *this;
     }
@@ -121,8 +140,8 @@ public:
     /** \brief shifts the position by a given distence along the ray
     *        \param  offset the requested  shift
     */
-   template <typename otherScalar>
-   inline  RayBase& operator+=(otherScalar offset)
+  // template <typename otherScalar>
+   inline  RayBase& operator+=(scalar offset)
    {
        m_distance+=offset;
        return *this;
@@ -138,6 +157,8 @@ public:
         sum.BaseLine::m_origin+=vT;
         return sum;
     }
+
+
 
     /** \brief origin shift by -vT
      *
@@ -160,6 +181,7 @@ public:
 
     EIGEN_DEVICE_FUNC inline VectorType& origin(){return BaseLine::m_origin;}   /**< \brief gets a reference to the origin vector*/
     EIGEN_DEVICE_FUNC inline VectorType& direction(){return BaseLine::m_direction;}   /**< \brief gets a reference to the direction vector*/
+    EIGEN_DEVICE_FUNC inline VectorType projection(const VectorType& p){return BaseLine::projection(p);}   /**< \brief gets a reference projection of point p on this*/
     inline scalar& parameter(){return m_distance;}
 
     /** \brief move the internal position at the given distance from origin
@@ -270,7 +292,8 @@ public:
       */
      friend std::ostream & operator << (std::ostream & s, const RayBase& ray)
      {
-       s << ray.m_origin.transpose() << "  "  << ray.m_direction.transpose() << "  " << ray.m_distance;
+        IOFormat CleanFmt(4, 0, ", ", "\n", "[", "]");
+        s << ray.m_origin.transpose().format(CleanFmt) << "  "  << ray.m_direction.transpose().format(CleanFmt) << "  d=" << ray.m_distance;
        return s;
      }
 
@@ -299,8 +322,8 @@ public:
 
 //     inline static RayBase OX(){ RayBase ox; ox.m_direction(0)=1.; return ox;}
      inline static RayBase OX(){ return RayBase(VectorType::Zero(), VectorType::UnitX());} /**< \brief ray along X with origin and position set at zero */
-     inline static RayBase OY(){ RayBase oy; oy.m_direction(1)=1.; return oy;}  /**< \brief ray along Y with origin and position set at zero */
-     inline static RayBase OZ(){ RayBase oz; oz.m_direction(2)=1.; return oz;}  /**< \brief ray along X with origin and position set at zero */
+     inline static RayBase OY(){ return RayBase(VectorType::Zero(), VectorType::UnitY());}  /**< \brief ray along Y with origin and position set at zero */
+     inline static RayBase OZ(){ return RayBase(VectorType::Zero(), VectorType::UnitZ());}  /**< \brief ray along X with origin and position set at zero */
 protected:
     scalar m_distance;/**< \brief distance from origin of the current position */
 private:

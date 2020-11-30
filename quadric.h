@@ -41,7 +41,7 @@ class Quadric : virtual public Surface
          * \return 0 if OK       */
         virtual inline int align(double wavelength=0)
         {
-            m_alignedQuadric = m_surfaceDirect.matrix().transpose() * m_localQuadric * m_surfaceDirect.matrix();
+            m_alignedQuadric = m_surfaceInverse.matrix().transpose() * m_localQuadric * m_surfaceInverse.matrix();
             return 0;
         }
 

@@ -26,18 +26,18 @@
 
 /** \brief  Mirror template class
  */
-template<class Shape>
-class Mirror: public Shape
+template<class SShape>   // pour ne pas confobndre avec Eigen::Shape
+class Mirror: public SShape
 {
 public:
     Mirror(string name="" ,Surface * previous=NULL):Surface(false,name, previous) {}
     virtual ~Mirror(){}
-    virtual inline string  getRuntimeClass(){return string("Mirror<")+Shape::getRuntimeClass()+">"; }
+    virtual inline string  getRuntimeClass(){return string("Mirror<")+SShape::getRuntimeClass()+">"; }
     inline int align(double wavelength)
     {
         int rcode= Surface::align(wavelength);  // this call defines the space transforms
         if(!rcode)
-          return Shape::align(wavelength); // this call transforms the surface equation
+          return SShape::align(wavelength); // this call transforms the surface equation
         else return rcode;
     }
 } ;
@@ -46,18 +46,18 @@ typedef Mirror<Plane> PlaneMirror;
 typedef Mirror<Sphere> SphericalMirror ;
 typedef Mirror<Cylinder> CylindricalMirror;
 
-template<class Shape>
-class Film: public Shape
+template<class SShape>
+class Film: public SShape
 {
 public:
-    Film(string name="" ,Surface * previous=NULL):Surface(true,name, previous) {}
+    Film(string name="" ,Surface * previous=NULL):Surface(true,name, previous){SShape::setRecording(RecordInput);}
     virtual ~Film(){}
-    virtual inline string  getRuntimeClass(){return string("Film<")+Shape::getRuntimeClass()+">"; }
+    virtual inline string  getRuntimeClass(){return string("Film<")+SShape::getRuntimeClass()+">"; }
     inline int align(double wavelength)
     {
         int rcode= Surface::align(wavelength);  // this call defines the space transforms
         if(!rcode)
-          return Shape::align(wavelength); // this call transforms the surface equation
+          return SShape::align(wavelength); // this call transforms the surface equation
         else return rcode;
     }
 } ;

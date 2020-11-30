@@ -35,14 +35,14 @@ class SourceBase : public virtual Surface
          *  so that the element is completely transparent
          *
          * \param ray  the ray in previous space if there is one
-         * \param normal  The Unit X vector will be always return
+         * \param normal  The Unit Z vector will be always return
          * \return Unchanged ray position but expressed in this exit space
          */
         virtual EIGEN_DEVICE_FUNC VectorType intercept(RayType& ray, VectorType *normal=NULL)
         {
             ray-=m_translationFromPrevious; // change ref fram from previous to this surface
             if(normal)
-                *normal=VectorType::UnitX();  // le vect unitaire sur OX
+                *normal=VectorType::UnitZ();  // le vect unitaire sur OZ
             return ray.position();
         }
 

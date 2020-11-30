@@ -45,8 +45,8 @@ public:
 
     template<typename otherScalar>
     inline Ray(Ray<otherScalar> & ray) :
-        RayBase<scalar>(RayBase<otherScalar>::ray), m_wavelength(ray.wavelength), m_amplitude_S(ray.amplitudeS),
-                m_amplitude_P(ray.amplitudeP), m_alive(ray.m_alive){} /**<  \brief
+        RayBase<scalar>(ray), m_wavelength(ray.m_wavelength), m_amplitude_S(ray.m_amplitude_S),
+                m_amplitude_P(ray.m_amplitude_P), m_alive(ray.m_alive){} /**<  \brief
     *   copyc constructor with type conversion */
 
 
@@ -57,7 +57,7 @@ public:
      friend std::fstream & operator << (std::fstream & s, const Ray& ray)
      {
          s << (RayBase<scalar>)ray;
-         s.write( (char*)&ray.m_wavelength, 5*sizeof(double));
+         s.write( (char*)&ray.m_wavelength, datasize);
          return s;
      }
 
@@ -66,12 +66,13 @@ public:
      friend std::fstream & operator >> (std::fstream & s, const Ray& ray)
      {
          s >> (RayBase<scalar>)ray;
-         s.read((char*) &ray.m_wavelength, 5*sizeof(double));
+         s.read((char*) &ray.m_wavelength, datasize);
          return s;
      }
 
 
-// data :
+// data :  // ne pas modifier  sans reviser les opérateurs >> et  <<
+    static const  int datasize=5*sizeof(double)+sizeof(bool);
     double m_wavelength;
     ComplexType m_amplitude_S, m_amplitude_P; // en attente d'une implémentation possible
     bool m_alive;
