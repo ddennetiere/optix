@@ -42,11 +42,11 @@ void Cylinder::createSurface()
         m_localQuadric.setZero();
         m_localQuadric(2,2)=1.L;
     }
-    else
+    else  /**< \todo cas degenéré inutile avec nouvelle definition */
     {
-        V*=param.value;
-        m_localQuadric.block(0,0,2,2)=V*V.transpose();
-        m_localQuadric(3,2) =m_localQuadric(2,3)=-param.value;
+        //V*=param.value;
+        m_localQuadric.block(0,0,2,2)=V*V.transpose()*param.value;
+        m_localQuadric(3,2) =m_localQuadric(2,3)=-1.L; //  param.value;
         m_localQuadric(3,3)=0; //passe par 0
     }
 }

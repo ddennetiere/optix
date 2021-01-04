@@ -109,6 +109,7 @@ class DiagramType{
 public:
     int m_dim=Vsize;
     int m_count;    /**< number of point in the spot diagram */
+    int m_lostCount=0;
     double m_min[Vsize];    /**< minimum values of the 4 components X, Y, dX/dZ, dY/dZ */
     double m_max[Vsize];    /**< maximum values of the 4 components  */
     double m_mean[Vsize];   /**< average value of each of the 4 components */
@@ -118,6 +119,16 @@ public:
     DiagramType():m_count(0),m_spots(NULL){}
     DiagramType(int n):m_count(n), m_spots(new double[Vsize*n]){}
     ~DiagramType(){if(m_spots) delete [] m_spots;}
+};
+struct WavefrontData{
+    Array22d m_bounds;
+    ArrayXXd m_WFdata;
+};
+
+struct C_WFtype{            /**< \brief C equivalebnt structure to WavefrontData, holding a Wavefront map */
+  double m_bounds[4];       /**< aray conntaining the X and Y bounds of the mapped area in order X min, X max, Ymin, Ymax */
+  double * m_WFdata;        /**< pointer to the WF height data in memory */
+  size_t m_dataSize[2];     /**< dimensions of the mapped array in order nX, nY */
 };
 
 typedef DiagramType<4> SpotDiagram;

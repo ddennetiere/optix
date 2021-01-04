@@ -35,11 +35,11 @@ void Sphere::createSurface()
         m_localQuadric.setZero();
         m_localQuadric(2,2)=1.L;
     }
-    else
+    else        /**< \todo avec cette nouvelle définition cv==0 n'est plus un cas particulier voir aussi cylindre */
     {
-        m_localQuadric=RayType::QuadricType::Identity()*(cv.value*cv.value);
+        m_localQuadric=RayType::QuadricType::Identity()*cv.value ;//(cv.value*cv.value);
         m_localQuadric(3,3)=0; //passe par 0
-        m_localQuadric(3,2)=m_localQuadric(2,3)=-cv.value;
+        m_localQuadric(3,2)=m_localQuadric(2,3)=-1.L; //cv.value;
     }
 }
 

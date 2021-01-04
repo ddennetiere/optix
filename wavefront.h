@@ -19,10 +19,11 @@
 //
 ////////////////////////////////////////////////////////////////////////////////////
 #include <Eigen/Eigen>
+#include <iostream>
 
 using namespace Eigen;
 
-EIGEN_DEVICE_FUNC ArrayXXd Legendre(int Norder, const Ref<ArrayXd>& Xpos, Ref<ArrayXXd> derivative );
+EIGEN_DEVICE_FUNC ArrayXXd Legendre(int Norder, const Ref<ArrayXd>& Xpos, ArrayXXd& derivative );
 
 /** \brief Computes a wavefront interpolation by 2D legendre polynomials on the given aperture from  a set of aperure points and transverse aberrations
  *
@@ -36,5 +37,7 @@ EIGEN_DEVICE_FUNC ArrayXXd Legendre(int Norder, const Ref<ArrayXd>& Xpos, Ref<Ar
  */
 EIGEN_DEVICE_FUNC ArrayXXd LegendreIntegrateSlopes(int Nx, int Ny, const Ref<ArrayX4d>& WFdata,
                                                    const Ref<Array2d>& Xaperture, const Ref<Array2d>& Yaperture);
+
+EIGEN_DEVICE_FUNC ArrayXXd LegendreSurface(const Ref<ArrayXd>& Xpos, const Ref<ArrayXd>& Ypos, const Ref<Array22d>& bounds, const Ref<MatrixXd>& legendreCoefs );
 
 #endif // WAVEFRONT_H_INCLUDED

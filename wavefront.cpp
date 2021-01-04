@@ -16,16 +16,20 @@
 ////////////////////////////////////////////////////////////////////////////////////
 #include "wavefront.h"
 #include <exception>
+#include <algorithm>
 
 using namespace std;
 
-EIGEN_DEVICE_FUNC ArrayXXd Legendre(int Norder, const Ref<ArrayXd>& Xpos, Ref<ArrayXXd> derivative )
+EIGEN_DEVICE_FUNC ArrayXXd Legendre(int Norder, const Ref<ArrayXd>& Xpos, ArrayXXd& derivative )
 {
-    if (Xpos.maxCoeff() >1. || Xpos.minCoeff() <-1. )
+    cout << "bounds in Legendre  " << Xpos.minCoeff() <<"  " << Xpos.maxCoeff() << endl;
+    if ((Xpos.maxCoeff() > 1.) || (Xpos.minCoeff() < -1. ))
         throw runtime_error("Values in Xpos vector should be in the [-1, +1] range");
 
     int Xsize=Xpos.size();
     ArrayXXd fvalue(Xsize, Norder);
+    derivative.resize(Xsize, Norder);
+
     double c1,c2;
 
     fvalue.col(0).setOnes();
@@ -49,12 +53,13 @@ EIGEN_DEVICE_FUNC ArrayXXd LegendreIntegrateSlopes(int Nx, int Ny, const Ref<Arr
 {
     Index numData=WFdata.rows(), nvars=Nx*Ny-1;
     Index nlines=2*numData, i=0,j=0, k=0;
-    double Kx=2./(Xaperture(1)-Xaperture(0)), Ky=2/(Yaperture(1)-Yaperture(0));
-    double X0=(Xaperture(1)+Xaperture(0))/(Xaperture(1)-Xaperture(0));
-    double Y0=(Yaperture(1)+Yaperture(0))/(Yaperture(1)-Yaperture(0));
+    double Kx=2./(Xaperture(1)-Xaperture(0));
+    double Ky=2./(Yaperture(1)-Yaperture(0));
+    double X0=(Xaperture(1)+Xaperture(0))/2.;
+    double Y0=(Yaperture(1)+Yaperture(0))/2.;
     ArrayXXd Zcoefs(Nx,Ny);
     ArrayXXd Lx, Ly, LPx, LPy;
-    ArrayXd Xnormed=Kx*WFdata.col(0)-X0, Ynormed=Ky*WFdata.col(1)-Y0;
+    ArrayXd Xnormed=Kx*(WFdata.col(2)-X0), Ynormed=Ky*(WFdata.col(3)-Y0);
 
     MatrixXd Mat(nlines, Nx*Ny), A;
     VectorXd Vprim(nlines), Rhs;
@@ -62,14 +67,14 @@ EIGEN_DEVICE_FUNC ArrayXXd LegendreIntegrateSlopes(int Nx, int Ny, const Ref<Arr
     Lx=Legendre(Nx,Xnormed, LPx);
     Ly=Legendre(Ny,Ynormed, LPy);
 
-    for(j=0, k=0; j < Ny; ++j, ++k)
-        for(i=0; i < Nx; ++i )
+    for(j=0, k=0; j < Ny; ++j)
+        for(i=0; i < Nx; ++i, ++k)
         {
-            Mat.block(0, k, numData, 1)=LPx*Ly;
-            Mat.block(numData, k, numData, 1)=Lx*LPy;
+            Mat.block(0, k, numData, 1)=LPx.col(i)*Ly.col(j);
+            Mat.block(numData, k, numData, 1)=Lx.col(i)*LPy.col(j);
         }
-    Vprim.segment(0, numData)=WFdata.col(2);
-    Vprim.segment(numData, numData)=WFdata.col(3);
+    Vprim.segment(0, numData)=WFdata.col(0);
+    Vprim.segment(numData, numData)=WFdata.col(1);
 
     A=Mat.block(0,1,nlines,nvars).transpose()*Mat.block(0,1,nlines,nvars);
     Rhs=Mat.block(0,1,nlines,nvars).transpose()*Vprim;
@@ -77,4 +82,23 @@ EIGEN_DEVICE_FUNC ArrayXXd LegendreIntegrateSlopes(int Nx, int Ny, const Ref<Arr
     Map<VectorXd>(Zcoefs.data()+1, nvars)=A.lu().solve(Rhs);
     Zcoefs(0,0)=0;
     return Zcoefs;
+}
+
+
+EIGEN_DEVICE_FUNC ArrayXXd LegendreSurface(const Ref<ArrayXd>& Xpos, const Ref<ArrayXd>& Ypos, const Ref<Array22d>& bounds, const Ref<MatrixXd>& legendreCoefs )
+{
+    ArrayXXd surface;
+    MatrixXd Lx, Ly;
+    ArrayXXd deriv;
+    double Kx=2./(bounds(1,0)-bounds(0,0));
+    double Ky=2./(bounds(1,1)-bounds(0,1));
+    double X0=(bounds(1,0)+bounds(0,0))/2.;
+    double Y0=(bounds(1,1)+bounds(0,1))/2.;
+    ArrayXd Xnormed=Kx*(Xpos-X0), Ynormed=Ky*(Ypos-Y0);
+
+
+    Lx=Legendre(legendreCoefs.rows(),Xnormed, deriv);
+    Ly=Legendre(legendreCoefs.cols(),Ynormed, deriv);
+    surface=Lx*legendreCoefs*Ly.transpose();
+    return surface;
 }

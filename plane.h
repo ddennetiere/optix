@@ -27,8 +27,8 @@
 class Plane : virtual public Surface
 {
     public:
-        /** Default constructor */
-        Plane(string name="" ,Surface * previous=NULL); //:Surface("Plane"){Surface::m_transmissive=false;}
+        /**Constructor */
+        Plane(string name="" ,Surface * previous=NULL); //:Surface("Plane"){Surface::m_transmissive=true;}
         /** Default destructor */
         virtual ~Plane(); //{}
 
@@ -52,14 +52,17 @@ class Plane : virtual public Surface
         *   \param  ray  on input : the ray in the previous surface frame. in output the ray positionned on the surface in this surface frame
         *   \param normal adress of a vector which, if not null,  will receive the surface normal (normalized) at the intercept point
         *   \return a reference to the modified ray
-        /*  \todo ne pas retourner la position si elle n'est pas utilisée
+        *  \todo ne pas retourner la position si elle n'est pas utilisée
         */
         EIGEN_DEVICE_FUNC virtual VectorType intercept(RayType& ray, VectorType * normal=NULL)
         {
             ray-=m_translationFromPrevious; // change ref fram from previous to this surface
-            if(normal)
-                *normal=m_hyperplane.normal();  // this vector is normalized by construction
-            ray.moveToPlane(m_hyperplane).rebase();
+            if(ray.m_alive)
+            {
+                if(normal)
+                    *normal=m_hyperplane.normal();  // this vector is normalized by construction
+                ray.moveToPlane(m_hyperplane).rebase();
+            }
             return ray.position();  // == origin() puisque rebase
         }
 

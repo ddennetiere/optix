@@ -19,8 +19,10 @@
 template class Mirror<Plane>;
 template class Mirror<Sphere>;
 template class Mirror<Cylinder>;
+template class Mirror<Toroid>;
 
 template class Film<Plane>;
 template class Film<Sphere>;
 template class Film<Cylinder>;
+template class Film<Toroid>;
 
