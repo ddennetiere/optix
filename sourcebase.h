@@ -41,8 +41,11 @@ class SourceBase : public virtual Surface
         virtual EIGEN_DEVICE_FUNC VectorType intercept(RayType& ray, VectorType *normal=NULL)
         {
             ray-=m_translationFromPrevious; // change ref fram from previous to this surface
-            if(normal)
-                *normal=VectorType::UnitZ();  // le vect unitaire sur OZ
+            if(ray.m_alive)
+            {
+                if(normal)
+                    *normal=VectorType::UnitZ();  // le vect unitaire sur OZ
+            }
             return ray.position();
         }
 

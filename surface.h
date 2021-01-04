@@ -13,6 +13,7 @@
 *
 *   \mainpage   OptiX
 *       An X-ray optics librray
+*       this is an &alpha; version of the library
 *
 *   \defgroup enums  Enumeration list
 *      \brief  enumerated values used in the library
@@ -249,9 +250,13 @@ public:
 
     EIGEN_DEVICE_FUNC inline IsometryType& exitFrame(){return m_exitFrame;}  /**< \brief returns a reference to the space transform from laboratory oriented frame to exit space of this element */
 
-    vector<RayType> getImpacts(FrameID frame); /**< \brief get the impacts and directions of the set of of rays propagated from the source
-                    *    \return a vector of  propagated rays rays in this object recording space. Ray position is the ray intercept with the surface  */
-
+    /** \brief get the impacts and directions of the set of of rays propagated from the source
+     *
+     * \param impacts a vector of  propagated rays rays in this object recording space. Ray position is the ray intercept with the surface
+     * \param frame  The type of frame where impacts must be referred to. Can be *AlignedLocalFrame, *SurfaceFrame, *GeneralFrame or *LocalAbsoluteFrame
+     * \return int  The number of lost rays in propagation from source
+     */
+    int getImpacts(vector<RayType> &impacts, FrameID frame);
 
     /** \brief Computes and fills-up a SpotDiagram object from the internally stored impact collection
      * \param spotDiagram a SpotDiagram object reference which wiill be uptated on return
@@ -268,6 +273,7 @@ public:
      */    int getCaustic(CausticDiagram& causticData);
 
      int getWavefrontData(SpotDiagram& WFdata, double distance=0);
+     EIGEN_DEVICE_FUNC MatrixXd getWavefontExpansion(double distance, Index Nx, Index Ny, Array22d& XYbounds);
 
     friend TextFile& operator<<(TextFile& file,  Surface& surface);  /**< \brief Duf this Surface object to a TextFile, in a human readable format  */
 

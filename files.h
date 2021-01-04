@@ -219,6 +219,17 @@ inline fstream& operator<<(fstream& file, DiagramType<Vsize>& diagram )
     return file;
 }
 
+inline fstream& operator<<(fstream& file, WavefrontData& wfData )
+{
+    int N[2]={(int)wfData.m_WFdata.rows(), (int)wfData.m_WFdata.cols()};
+    file.write((char*)N, 2*sizeof(int));
+    file.write((char*)wfData.m_bounds.data(), 4*sizeof(double )) ;
+    file.write ((char*)wfData.m_WFdata.data(), N[0]*N[1]*sizeof(double));
+
+    return file;
+}
+
+
 /** \brief write a Parameter to a readable output file
  *
  * \param file  output text file

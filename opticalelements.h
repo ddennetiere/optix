@@ -22,6 +22,7 @@
 #include "plane.h"
 #include "sphere.h"
 #include "cylinder.h"
+#include "toroid.h"
 
 
 /** \brief  Mirror template class
@@ -45,6 +46,7 @@ public:
 typedef Mirror<Plane> PlaneMirror;
 typedef Mirror<Sphere> SphericalMirror ;
 typedef Mirror<Cylinder> CylindricalMirror;
+typedef Mirror<Toroid> ToroidalMirror;
 
 template<class SShape>
 class Film: public SShape
@@ -65,6 +67,7 @@ public:
 typedef Film<Plane> PlaneFilm;
 typedef Film<Sphere> SphericalFilm ;
 typedef Film<Cylinder> CylindricalFilm;
+typedef Film<Toroid> ToroidalFilm;
 
 
 #endif // OPTICALELEMENTS_H_INCLUDED

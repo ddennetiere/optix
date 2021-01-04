@@ -48,7 +48,7 @@ extern "C"
     DLL_EXPORT bool SetParameter(size_t surfaceID,const char* paramTag, Parameter paramData);
     DLL_EXPORT bool GetParameter(size_t surfaceID,const char* paramTag, Parameter* paramData);
     DLL_EXPORT bool GetNextParameter(size_t surfaceID, size_t * nextPtr, char* tagBuffer, int bufSize , Parameter* paramData);
-    DLL_EXPORT void FreeNextPointer(size_t nextPtr);
+//    DLL_EXPORT void FreeNextPointer(size_t nextPtr);  cette fonction n'a pas d'objet clair
     DLL_EXPORT void SaveSystem(const char* filename);
     DLL_EXPORT bool OpenSystem(const char* filename);
 

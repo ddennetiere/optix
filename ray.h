@@ -47,7 +47,7 @@ public:
     inline Ray(Ray<otherScalar> & ray) :
         RayBase<scalar>(ray), m_wavelength(ray.m_wavelength), m_amplitude_S(ray.m_amplitude_S),
                 m_amplitude_P(ray.m_amplitude_P), m_alive(ray.m_alive){} /**<  \brief
-    *   copyc constructor with type conversion */
+    *   copy constructor with type conversion */
 
 
     virtual ~Ray(){}    /**< \brief virtual destructor */

@@ -32,7 +32,7 @@ class GratingBase : virtual public Surface
         /** Default destructor */
         virtual ~GratingBase();
         virtual  inline string getRuntimeClass(){return "GratingBase";}/**< return the derived class name ie. GratingBase */
-        EIGEN_DEVICE_FUNC virtual VectorType gratingVector(VectorType position);/**< Line density vector in  grating coorinates
+        EIGEN_DEVICE_FUNC virtual VectorType gratingVector(VectorType position, VectorType normal=VectorType::UnitZ());/**< Line density vector in  grating coorinates
                 *       \todo should be made pure virtual*/
         virtual int align(double wavelength);/**< \brief Orients the grating on the given order and wavelength and defines the related geometric space transforms
                 * \param wavelength  the alignment wavelength (m)
@@ -47,6 +47,7 @@ class GratingBase : virtual public Surface
     protected:
         int m_order;
         double m_density; /**< \todo à évaluer : implementation de base d'un réseau uniforme   */
+        IsometryType psiTransform;
     private:
 };
 

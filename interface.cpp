@@ -147,7 +147,7 @@ extern "C"
     DLL_EXPORT size_t RemoveSurface_byID(size_t surfaceID)
     {
         string name= ((Surface*)surfaceID)->getName();
-        RemoveSurface_byName(name.c_str());
+        return RemoveSurface_byName(name.c_str());
     }
 
     DLL_EXPORT void ChainSurface_byName(const char* previous, const char* next)
@@ -216,12 +216,13 @@ extern "C"
         * nextPtr=(size_t) pRef;
         return true;
     }
-    DLL_EXPORT void FreeNextPointer(size_t nextPtr)
-    {
-        map<string, Parameter>::iterator* pRef;
-        if(nextPtr==0)
-            delete (map<string, Parameter>::iterator*) nextPtr;
-    }
+
+//    DLL_EXPORT void FreeNextPointer(size_t nextPtr)  // il n'y a aucune raison de libérer la mémoire localisée par ce pointeur
+//    {
+//        map<string, Parameter>::iterator* pRef;
+//        if(nextPtr==0)
+//            delete (map<string, Parameter>::iterator*) nextPtr;
+//    }
 
     DLL_EXPORT void SaveSystem(const char* filename)
     {
