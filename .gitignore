@@ -1,0 +1,21 @@
+# skip doxygen generated html files
+doxygen/html/
+doxygen/latex/
+html
+doxygen*
+*.o
+*.a
+*.exe
+*.dll
+*.def
+*.layout
+*.depend
+*.cscope*
+*copie*
+
+# not maintained directories
+removed/
+bin/
+
+
+

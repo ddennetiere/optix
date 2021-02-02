@@ -4,7 +4,7 @@
 *
 *      \brief         TODO  fill in file purpose
 *
-*      \author         FranÃ§ois Polack <francois.polack@synchroton-soleil.fr>
+*      \author         François Polack <francois.polack@synchroton-soleil.fr>
 *      \date        2020-10-05  Creation
 *      \date        Last update
 *
@@ -29,6 +29,8 @@
 
 //#define POSTFIX(X, P) X#P
 //#define M_PIl POSTFIX(M_PI, L)
+
+
 
 using namespace std;
 int main()
@@ -94,7 +96,7 @@ int main()
     param.value=1./80.;
     Tmir.setParameter("major_curvature",param);
     Tmir.getParameter("theta",param);
-    param.value=0.08; // 0.707; // env 4Â°
+    param.value=0.08; // 0.707; // env 4°
     Tmir.setParameter("theta",param);
 
     Tmir.alignFromHere(0);

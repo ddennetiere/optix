@@ -1,3 +1,6 @@
+#ifndef HEADER_8E1A0D821BB07443
+#define HEADER_8E1A0D821BB07443
+
 ////////////////////////////////////////////////////////////////////////////////
 /**
 *      \file           sourcebase.h
@@ -49,7 +52,7 @@ class SourceBase : public virtual Surface
             return ray.position();
         }
 
-        /** \brief  change the wavelength ao all the generated rays stored in inpacts
+        /** \brief  change the wavelength of all the generated rays stored in inpacts
          *
          * \param wavelength the new wavelength for all stored rays
          */
@@ -73,3 +76,5 @@ class SourceBase : public virtual Surface
 
 
 #endif // SOURCEBASE_H
+#endif // header guard 
+

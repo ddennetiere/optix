@@ -6,7 +6,7 @@
 *
 *
 *
-*   \author             FranÃ§ois Polack  <francois.polack@synchroton-soleil.fr>
+*   \author             François Polack  <francois.polack@synchroton-soleil.fr>
 *   \date               Creation: 2020-10-05
 *   \date               Last update: 2020-29-05
  ***************************************************************************/
@@ -75,9 +75,9 @@ Surface::Surface(bool transparent, string name, Surface* previous):m_name(name),
     m_translationFromPrevious.setZero();
 }
 
-int Surface::align(double wavelength)  /**< alignement par dÃ©faut des surfaces non diffractives  \n le paramÃ¨tre wavelength n'est utilisÃ© que pour les rÃ©seaux  */
+int Surface::align(double wavelength)  /**< alignement par défaut des surfaces non diffractives  \n le paramètre wavelength n'est utilisé que pour les réseaux  */
 {
-    // retrouve ou dÃ©finit l'orientation absolue du triÃ¨dre d'entrÃ©e
+    // retrouve ou définit l'orientation absolue du trièdre d'entrée
     RotationType inputFrameRot; // rotation part
     VectorType inputFrameTranslation;  // translation part
     if (m_previous==NULL)
@@ -91,14 +91,14 @@ int Surface::align(double wavelength)  /**< alignement par dÃ©faut des surfaces 
          inputFrameTranslation=m_previous->m_exitFrame.translation();
     }
 
-    // NB pour calculer la position de l'optique dans le repÃ¨re absolu local on utilise les desaxements Rx(phi+Dphi)*Ry(-theta-Dtheta), Rz(psi+Dpsi)
+    // NB pour calculer la position de l'optique dans le repère absolu local on utilise les desaxements Rx(phi+Dphi)*Ry(-theta-Dtheta), Rz(psi+Dpsi)
     // mais pas pour calculer le le reference frame sortant Rx(phi)*Ry(-2*theta)
 
-    // positionne la surface par rapport Ã  la prÃ©cÃ©dente
+    // positionne la surface par rapport à la précédente
     Parameter param;
     RayBaseType inRay=(m_previous==NULL)?RayBaseType::OZ() : RayBaseType(VectorType::Zero(), inputFrameRot.col(2) ) ;  // alignment exit Ray is normalized and its position is at previous optics
     getParameter("distance", param);
-    (inRay+=param.value).rebase();  // inray a maintenant son origine Ã  la position absolue de la surface
+    (inRay+=param.value).rebase();  // inray a maintenant son origine à la position absolue de la surface
     m_translationFromPrevious=inRay.position();
 
 
@@ -113,14 +113,14 @@ int Surface::align(double wavelength)  /**< alignement par dÃ©faut des surfaces 
 
     getParameter("theta",param);
     angle=param.value;
-    if(!m_transmissive) // si la surface est transmissive l'axe d'alignement de sortie reste celui d'entrÃ©e mais la rotation phi change
-                // le triÃ¨dre.   La normale pointe vers l'aval et theta donne le dÃ©salignement de la surface / l'axe d'entrÃ©e autour de OX
+    if(!m_transmissive) // si la surface est transmissive l'axe d'alignement de sortie reste celui d'entrée mais la rotation phi change
+                // le trièdre.   La normale pointe vers l'aval et theta donne le désalignement de la surface / l'axe d'entrée autour de OX
         m_exitFrame*=AngleAxis<FloatType>(-2.*angle,VectorType::UnitX()) ; // axe X nouveau
 
     getParameter("Dtheta",param);
     angle+=param.value;
     /**< \todo Should we keep the same sign convention on theta angle for transmissive and reflective elements ? */
-    m_surfaceDirect*=AngleAxis<FloatType>(-angle, VectorType::UnitX()) ;  // convention dÃ©viation vers le haut si phi=0, vers l'extÃ©rieur anneau si phi=Pi/2 (M_PI_2)
+    m_surfaceDirect*=AngleAxis<FloatType>(-angle, VectorType::UnitX()) ;  // convention déviation vers le haut si phi=0, vers l'extérieur anneau si phi=Pi/2 (M_PI_2)
 
    // m_frameDirect=rayTransform;
     m_exitFrame.translation()=inputFrameTranslation+m_translationFromPrevious;
@@ -134,7 +134,7 @@ int Surface::align(double wavelength)  /**< alignement par dÃ©faut des surfaces 
     angle+=param.value;
     if(!m_transmissive)// si reflection
     {
-        m_surfaceDirect*= Matrix<FloatType,4,4>(m_FlipSurfCoefs); // la surface est basculÃ©e normale vers Y
+        m_surfaceDirect*= Matrix<FloatType,4,4>(m_FlipSurfCoefs); // la surface est basculée normale vers Y
     }
 
     m_surfaceDirect*=AngleAxis<FloatType>(angle, VectorType::UnitZ()) ; // rotation psi
@@ -172,7 +172,7 @@ void Surface::setHelpstrings()
 RayType& Surface::transmit(RayType& ray)
 {
 
-    intercept(ray); // intercept effectue le changement de repÃ¨re previous to this
+    intercept(ray); // intercept effectue le changement de repère previous to this
     if(m_recording!=RecordNone)
             m_impacts.push_back(ray);
     return ray;
@@ -232,7 +232,7 @@ int Surface::alignFromHere(double wavelength)
     return 0;
 }
 
-bool Surface::isAligned()/**< Eventuellement retourner le pointeur du 1er Ã©lÃ©ment non alignÃ© et NULL si OK */
+bool Surface::isAligned()/**< Eventuellement retourner le pointeur du 1er élément non aligné et NULL si OK */
 {
     if(! m_isaligned )
         return false;
@@ -303,7 +303,7 @@ int Surface::getSpotDiagram(SpotDiagram& spotDiagram, double distance)
 
     RayType::PlaneType obsPlane(VectorType::UnitZ(), -distance);  // equation UnitZ*X - distance =0
     Index ip;
-    for(ip=0, pRay=impacts.begin(); pRay!=impacts.end(); ++pRay)  /// \todo GÃ©rer la validitÃ© des rayons dans getSpotDiagram()
+    for(ip=0, pRay=impacts.begin(); pRay!=impacts.end(); ++pRay)  /// \todo Gérer la validité des rayons dans getSpotDiagram()
     {
         if(pRay->m_alive)
         {
@@ -337,7 +337,7 @@ int Surface::getCaustic(CausticDiagram& causticData)
 
     Array3Xd causticMat(3,impacts.size() );
 
-    //  minimum de distance Ã  l'axe oz   param t= (DP.U0 + DP.U U0.U) (1-U0.U^2)  avec U0=UnitZ DP =(P-P0)= P
+    //  minimum de distance à l'axe oz   param t= (DP.U0 + DP.U U0.U) (1-U0.U^2)  avec U0=UnitZ DP =(P-P0)= P
     //              donc t=(Pz+ P.U Uz  )(1-Uz^2)
 
     vector<RayType>::iterator pRay;
@@ -412,6 +412,9 @@ EIGEN_DEVICE_FUNC MatrixXd Surface::getWavefontExpansion(double distance, Index 
 
     vector<RayType>::iterator pRay;
     Index ip;
+    // on charge dans le tableau slope mat
+    // dans les colonnes 0 et 1, l'aberration transverse selon x et y (dans le plan perpendiculaire au rayon)
+    // dans les colonnes 2 et 4 les coefficient directeur de la direction du rayon
     for(ip=0, pRay=impacts.begin(); pRay!=impacts.end(); ++pRay, ++ip)
     {
 
@@ -420,7 +423,7 @@ EIGEN_DEVICE_FUNC MatrixXd Surface::getWavefontExpansion(double distance, Index 
         slopeMat(ip,1)= (delta(1)*pRay->direction()(2)- delta(2)*pRay->direction()(1) ) /sqrtl(1.L-pRay->direction()(0)*pRay->direction()(0));
         slopeMat.block<1,2>(ip,2)= pRay->direction().segment(0,2).cast<double>();
     }
-    XYbounds.row(0)=slopeMat.block(0,2,ip,2).colwise().minCoeff(); // ici il est permis de faire min max sur les bvaleurs passÃ©es dans XY bounds
+    XYbounds.row(0)=slopeMat.block(0,2,ip,2).colwise().minCoeff(); // ici il est permis de faire min max sur les bvaleurs passées dans XY bounds
     XYbounds.row(1)=slopeMat.block(0,2,ip,2).colwise().maxCoeff();
 
     cout << "bounds\n" <<XYbounds.col(0).transpose() << endl<< XYbounds.col(1).transpose() << endl;

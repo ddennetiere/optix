@@ -4,7 +4,7 @@
 *
 *      \brief         TODO  fill in file purpose
 *
-*      \author         FranÃ§ois Polack <francois.polack@synchroton-soleil.fr>
+*      \author         François Polack <francois.polack@synchroton-soleil.fr>
 *      \date        2020-11-29  Creation
 *      \date        Last update
 *
@@ -42,7 +42,7 @@ EIGEN_DEVICE_FUNC ArrayXXd Legendre(int Norder, const Ref<ArrayXd>& Xpos, ArrayX
         c2=double(icol-1)/icol;
         fvalue.col(icol)=c1* Xpos*fvalue.col(icol-1)-c2*fvalue.col(icol-2);
         derivative.col(icol)=c1*(Xpos*derivative.col(icol-1)+fvalue.col(icol-1))-c2*derivative.col(icol-2);
-  //      second.col(icol)=c1*(Xpos*second.col(icol-1)+ 2.*derivative.col(icol-1))-c2*second.col(icol-2);  // si dÃ©rivÃ©e seconde utile (col 0 et 1 == zero)
+  //      second.col(icol)=c1*(Xpos*second.col(icol-1)+ 2.*derivative.col(icol-1))-c2*second.col(icol-2);  // si dérivée seconde utile (col 0 et 1 == zero)
     }
     return fvalue;
 }
@@ -51,15 +51,19 @@ EIGEN_DEVICE_FUNC ArrayXXd Legendre(int Norder, const Ref<ArrayXd>& Xpos, ArrayX
 EIGEN_DEVICE_FUNC ArrayXXd LegendreIntegrateSlopes(int Nx, int Ny, const Ref<ArrayX4d>& WFdata, const Ref<Array2d>& Xaperture,
                                                    const Ref<Array2d>& Yaperture)
 {
+//  WFdata Transversa aberration array  stored in aperture points order. Columns are respectively
+//      X component of transverse aberration, Y component of transverse aberration.
+//      X aperture angle, Y aperture angle
+
     Index numData=WFdata.rows(), nvars=Nx*Ny-1;
     Index nlines=2*numData, i=0,j=0, k=0;
     double Kx=2./(Xaperture(1)-Xaperture(0));
     double Ky=2./(Yaperture(1)-Yaperture(0));
     double X0=(Xaperture(1)+Xaperture(0))/2.;
     double Y0=(Yaperture(1)+Yaperture(0))/2.;
-    ArrayXXd Zcoefs(Nx,Ny);
+    ArrayXXd Zcoefs=ArrayXXd::Zero(Nx,Ny);
     ArrayXXd Lx, Ly, LPx, LPy;
-    ArrayXd Xnormed=Kx*(WFdata.col(2)-X0), Ynormed=Ky*(WFdata.col(3)-Y0);
+    ArrayXd Xnormed=Kx*(WFdata.col(2)-X0), Ynormed=Ky*(WFdata.col(3)-Y0);  // ccordonnées normalisés
 
     MatrixXd Mat(nlines, Nx*Ny), A;
     VectorXd Vprim(nlines), Rhs;
@@ -75,11 +79,16 @@ EIGEN_DEVICE_FUNC ArrayXXd LegendreIntegrateSlopes(int Nx, int Ny, const Ref<Arr
         }
     Vprim.segment(0, numData)=WFdata.col(0);
     Vprim.segment(numData, numData)=WFdata.col(1);
-
+    // On construit la matrice en supprimant la colonne 0 (facteur constant qui n'a pas d'incidence sur les aberrations transverses à fitter)
     A=Mat.block(0,1,nlines,nvars).transpose()*Mat.block(0,1,nlines,nvars);
     Rhs=Mat.block(0,1,nlines,nvars).transpose()*Vprim;
 
+
+// la ligne suivante ne compile pas sur ORD01022
     Map<VectorXd>(Zcoefs.data()+1, nvars)=A.lu().solve(Rhs);
+//    VectorXd vtemp=A.lu().solve(Rhs);
+//    Map<VectorXd> mtemp(Zcoefs.data()+1, nvars);
+//    mtemp=vtemp;
     Zcoefs(0,0)=0;
     return Zcoefs;
 }

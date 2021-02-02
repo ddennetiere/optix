@@ -1,3 +1,6 @@
+#ifndef HEADER_F8DB404DC9E4F0F5
+#define HEADER_F8DB404DC9E4F0F5
+
 /**
 *************************************************************************
 *   \file       surface.h
@@ -45,10 +48,11 @@ inline double oneMinusSqrt1MinusX(double x)
 
 /** \brief Abstract base class of all optical surfaces
 *
-*       Surface is the base class of both shape definition classes like Plane, Quadric, Toroid
-*       and behaviour type classes like Transparency, Mirror, Grating.
-*     \n Optical element classes might be derived from an agregates of these classes, but they MUST refer to the same surface object.
-*      Hence these derived objects must declare the base Surface ùmember as virtual
+*     Surface is the base class of all shape definition classes like Plane, Quadric, Toroid
+*     and behaviour type classes like Transparency, Mirror, Grating.
+*
+*     Optical element classes might be derived from an agregates of these classes, but they MUST refer to the same surface object.
+*      Hence these derived objects must declare the base Surface member as virtual
 *
 *     General parameters common to all surfaces
 *     -----------------------------------------
@@ -126,7 +130,7 @@ public:
     /** \brief defines the preceeding element in the active chain
     *
     *  \param previous pointer to the previous element; if NULL  the element should be a  source otherwise the chain will not be activable */
-    virtual inline void setPrevious(Surface* previous)  { // virtual because sources need a special treatment
+     inline void setPrevious(Surface* previous)  { // virtual qualifier withdrawn //  sources need a special treatment
         if(m_previous == previous) return;
         if(m_previous) m_previous->m_next=NULL;
         if(previous)
@@ -163,20 +167,22 @@ public:
         m_previous=m_next=NULL;
     }
 
-    /** \brief align the element accordg to the parameters and return 0 if OK otherwise a return code
+    /** \brief Align this surface with respect to the main incident ray according to the parameters,
+    *        and defines the related geometric space transforms
     *
-    *       \param wavelength the alinment wavelength (used by chromatic elements only)
-
+    *       \param wavelength the alignment wavelength (used by chromatic elements only)
+    *       \return  0 if alignment  is OK ; -1 if a grating can't be aligned
+    *
     *       alignement defines the transformations matrices needed for ray propagation computations
     *       This is a default implementation which will be overridden for gratings and maybe other elements
     *       \n If the surface is reflective \b theta is the half-deflection angle of the chief ray,
     *       if it is transmissive, the chief ray direction is not modified and theta represents the surface tilt angle of normal to chief ray)
-    *       \n In all cases \b Phi defines the frame rotation auround the incident chief ray from entry to exit.
+    *       \ In all cases \b Phi defines the frame rotation auround the incident chief ray from entry to exit.
     *       When the surface is reflective the incidence plane is the YZ plane of the rotated frame and XZ is tangent to the surface
     *       \n \b Psi is always the rotation around the surface normal (in case of transmissive a
     */
-    virtual int align(double wavelength);/**< \brief Align this surface with respect to the main incident ray and defines the related geometric space transforms
-                            *   \return  0 if alignment  is OK ; -1 if a grating can't be aligned */
+    virtual int align(double wavelength);
+
     int alignFromHere(double wavelength);/**< \brief Align the whole surface chain;  stops at first error and return the error code
                             *    \return  0 if OK; the error code which stopped the alignment */
 
@@ -246,7 +252,7 @@ public:
             helpstring.erase();
     }
 
-    static void setHelpstrings();  /**< \brief sets help strings of all parameters used by this object */
+    static void setHelpstrings();  /**< \brief sets help strings all alignment parameters */
 
     EIGEN_DEVICE_FUNC inline IsometryType& exitFrame(){return m_exitFrame;}  /**< \brief returns a reference to the space transform from laboratory oriented frame to exit space of this element */
 
@@ -282,7 +288,7 @@ public:
 protected:
     static FloatType m_FlipSurfCoefs[];
     static map<string, string> m_helpstrings;  /**< \brief  parameter description help strings  */
-    static int m_nameIndex;
+    static int m_nameIndex;  /**< \brief Index for automatic naming of surfeces created without a name */
     vector<RayType> m_impacts; /**<  \brief the ray impacts on the surfaces in forward or backward element space */
 
 
@@ -346,4 +352,6 @@ protected:
 
 
 
+
+#endif // header guard
 

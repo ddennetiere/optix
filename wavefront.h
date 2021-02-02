@@ -29,8 +29,8 @@ EIGEN_DEVICE_FUNC ArrayXXd Legendre(int Norder, const Ref<ArrayXd>& Xpos, ArrayX
  *
  * \param Nx number of polynomials of the X basis (degree <Nx)
  * \param Ny number of polynomials of the Y basis (degree <Ny)
- * \param WFdata Transversa aberration array  stored in aperture points order. Columns are respectively X aperture angle, Y aperture angle,
- *      X component of transverse aberration, Y component of transverse aberration.
+ * \param WFdata Transversa aberration array  stored in aperture points order. Columns are respectively
+ *      X component of transverse aberration, Y component of transverse aberration, X aperture angle, Y aperture angle,
  * \param Xaperture Bounds (Min, Max) of X aperture angle for Legendre definition along X
  * \param Yaperture Bounds of Y aperture angle for Legendre definition along Y
  * \return The Nx x Ny array of coefficients of Legendre polynomials describing the wavefront error to the given degrees and best fitting  the transverse aberration data
