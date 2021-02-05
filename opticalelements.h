@@ -36,7 +36,7 @@ public:
     virtual inline string  getRuntimeClass(){return string("Mirror<")+SShape::getRuntimeClass()+">"; }
     inline int align(double wavelength)
     {
-        int rcode= Surface::align(wavelength);  // this call defines the space transforms
+        int rcode= SShape::setFrameTransforms(wavelength);  // this call defines the space transforms
         if(!rcode)
           return SShape::align(wavelength); // this call transforms the surface equation
         else return rcode;
@@ -57,7 +57,7 @@ public:
     virtual inline string  getRuntimeClass(){return string("Film<")+SShape::getRuntimeClass()+">"; }
     inline int align(double wavelength)
     {
-        int rcode= Surface::align(wavelength);  // this call defines the space transforms
+        int rcode= SShape::setFrameTransforms(wavelength);  // this call defines the space transforms
         if(!rcode)
           return SShape::align(wavelength); // this call transforms the surface equation
         else return rcode;

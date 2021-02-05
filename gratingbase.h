@@ -46,7 +46,7 @@ class GratingBase : virtual public Surface
         *   sets the grating angle Omega and the rotation angle Psi
         *   so that the exit direction ofthe main ray is satisfied
         *   if transmissive the alignment axis is not changed */
-        virtual int align(double wavelength);
+        int setFrameTransforms(double wavelength);
 
         virtual RayType& transmit(RayType& ray);       /**< \brief Implementation of transmission grating  */
 

@@ -52,6 +52,17 @@ class SourceBase : public virtual Surface
             return ray.position();
         }
 
+        /** \brief require implementation of align function
+         *
+         * \param wavelength double
+         * \return int
+         * \todo define sources which do not radiate along Z axis
+         */
+        inline int align(double wavelength)
+        {
+            return setFrameTransforms(wavelength);  // this call onlu defines the space transforms
+        }
+
         /** \brief  change the wavelength of all the generated rays stored in inpacts
          *
          * \param wavelength the new wavelength for all stored rays
@@ -76,5 +87,5 @@ class SourceBase : public virtual Surface
 
 
 #endif // SOURCEBASE_H
-#endif // header guard 
+#endif // header guard
 

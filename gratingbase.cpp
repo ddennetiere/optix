@@ -34,7 +34,7 @@ EIGEN_DEVICE_FUNC  GratingBase::VectorType GratingBase::gratingVector(VectorType
 }
 
 
-int GratingBase::align(double wavelength)         /**< \todo to be validated */
+int GratingBase::setFrameTransforms(double wavelength)         /**< \todo to be validated */
 {
     // retrouve ou définit l'orientation absolue du trièdre d'entrée
     RotationType inputFrameRot; // rotation part

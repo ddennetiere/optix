@@ -74,6 +74,8 @@
 		<Unit filename="ToroidSolver.cpp" />
 		<Unit filename="cylinder.cpp" />
 		<Unit filename="cylinder.h" />
+		<Unit filename="elementbase.cpp" />
+		<Unit filename="elementbase.h" />
 		<Unit filename="files.h" />
 		<Unit filename="gratingbase.cpp" />
 		<Unit filename="gratingbase.h" />

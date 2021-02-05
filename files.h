@@ -237,7 +237,14 @@ inline fstream& operator<<(fstream& file, WavefrontData& wfData )
  * \return a reference to the file
  * \relates Parameter
  */
-TextFile& operator<<(TextFile& file, const Parameter& param);  /**< \attention declared in files.h but defined in surface.cpp*/
+inline TextFile& operator<<(TextFile& file, const Parameter& param)
+{
+    file << param.value << param.bounds[0] << param.bounds[1] << param.multiplier << (uint32_t)param.type <<
+                        (uint32_t)param.group << (uint32_t)param.flags;
+    if(file.fail()) throw TextFileException("Error while reading Parameter from File", __FILE__, __func__, __LINE__);
+
+    return file;
+}
 
 /** \brief write a Parameter to a readable output file
  *
@@ -246,7 +253,13 @@ TextFile& operator<<(TextFile& file, const Parameter& param);  /**< \attention d
  * \return a reference to the file
  * \relates Parameter
  */
-TextFile& operator>>( TextFile& file,  Parameter& param);   /**< \attention declared in files.h but defined in surface.cpp*/
+inline TextFile& operator>>( TextFile& file,  Parameter& param)
+{   uint32_t t1,t2;
+    file >> param.value  >> param.bounds[0] >> param.bounds[1] >> param.multiplier  >> t1 >> t2 >> param.flags;
+    param.type =UnitType(t1);
+    param.group =ParameterGroup(t2);
 
+    return file;
+}
 
 #endif // FILES_H_INCLUDED

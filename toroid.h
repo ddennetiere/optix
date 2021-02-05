@@ -1,3 +1,6 @@
+#ifndef HEADER_1E1A1F94451C1791
+#define HEADER_1E1A1F94451C1791
+
 ////////////////////////////////////////////////////////////////////////////////
 /**
 *      \file           toroid.h
@@ -86,3 +89,5 @@ class Toroid : virtual public Surface
 };
 
 #endif // TOROID_H
+#endif // header guard
+

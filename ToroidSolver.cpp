@@ -75,7 +75,7 @@ int ToroidSolver(Matrix<FloatType,2,Dynamic> &solutions, Matrix<FloatType,3,3> &
             {
                 if(abs((saes.eigenvalues()[j])) > ZeroTest)
                 {
-    //                cout <<"i j k "<<i <<"  " << j << " " << k << endl;
+    //            cout <<"i j k "<<i <<"  " << j << " " << k  <<" EV(j) " <<saes.eigenvalues()[j]<<endl;
 
 
     //                if(signbit(saes.eigenvalues()[j]))
