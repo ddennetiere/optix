@@ -21,6 +21,7 @@
 
 #include <fstream>
 #include <limits>
+#include <iomanip>
 #include "types.h"
 
 using namespace std;
@@ -261,5 +262,28 @@ inline TextFile& operator>>( TextFile& file,  Parameter& param)
 
     return file;
 }
+
+class SolemioFile:public fstream
+{
+public:
+  //  SolemioFile(){}
+    ~SolemioFile(){fstream::close();}
+    SolemioFile(string filename);        //  :fstream(filename,  ios::in ){} // ouverture en lecture seule
+    void skipline(int n=1);
+    void getPrefixedString(string& str);
+    void getScript(string& str);
+    bool check_comment(const string comment);
+    bool get_element();
+    inline SolemioFile& operator>>(int& i) {*((fstream*)this)>>i; return *this;}
+    inline SolemioFile& operator>>(uint32_t& i) {*((fstream*)this)>>i; return *this;}
+    inline SolemioFile& operator>>(double& i) {*((fstream*)this)>>i; return *this;}
+    SolemioFile& operator>>(ArrayXd&  darray);
+    int version;
+};
+
+
+
+void ReadSolemioFile(string filename);
+
 
 #endif // FILES_H_INCLUDED

@@ -15,12 +15,16 @@
 //
 ////////////////////////////////////////////////////////////////////////////////////
 #include "gratingbase.h"
+EIGEN_DEVICE_FUNC  Surface::VectorType Pattern::gratingVector( Surface::VectorType position,  Surface::VectorType normal)
+{
+    throw ElementException("Pattern base class virtual functions should never be called", __FILE__, __func__, __LINE__);
+    return  Surface::VectorType::Zero();   // calcul dans le plan de description de la surface (XY), pas dans l'espace d propagation
+}
 
 
 GratingBase::GratingBase():Surface(false, "AbstractGrating") // this should never be called since grating are never used abstract but agregated to a surface subtype
 {
-   m_order=0; //ctor
-   m_density=1.e-6;
+
 }
 
 GratingBase::~GratingBase()
@@ -28,12 +32,8 @@ GratingBase::~GratingBase()
     //dtor
 }
 
-EIGEN_DEVICE_FUNC  GratingBase::VectorType GratingBase::gratingVector(VectorType position, VectorType normal)
-{
-    return VectorType::UnitX()*m_density;   // calcul dans le plan de description de la surface (XY), pas dans l'espace d propagation
-}
 
-
+// wavelength is the alignment wavelength
 int GratingBase::setFrameTransforms(double wavelength)         /**< \todo to be validated */
 {
     // retrouve ou définit l'orientation absolue du trièdre d'entrée
@@ -88,12 +88,12 @@ int GratingBase::setFrameTransforms(double wavelength)         /**< \todo to be 
 
     if(m_transmissive)
         psiTransform=AngleAxis<FloatType>(psi,VectorType::UnitZ());
-    else        // si la surface est réflective clacul de chi et omega
+    else        // si la surface est réflective, calcul de chi et omega
     {
         psiTransform=Matrix<FloatType,4,4>(m_FlipSurfCoefs);
         psiTransform*=AngleAxis<FloatType>(psi,VectorType::UnitZ());
 
-        VectorType G=psiTransform*gratingVector(VectorType::Zero())*m_order*wavelength; // G dans leplan tangent ==> Gy==0
+        VectorType G=psiTransform*gratingVector(VectorType::Zero())*m_alignmentOrder*wavelength; // G dans le plan tangent ==> Gy==0
 
         m_exitFrame*=AngleAxis<FloatType>(-2.*theta,VectorType::UnitX()) ; // axe X nouveau
 
@@ -117,7 +117,7 @@ int GratingBase::setFrameTransforms(double wavelength)         /**< \todo to be 
     m_frameInverse=m_frameDirect.inverse();
 
 
- //  ici on ne peut pas utiliser psiTransform parceque'il faut tenir compte de Dpsi
+ //  ici on ne peut pas utiliser psiTransform parce que'il faut tenir compte de Dpsi
 
     getParameter("Dpsi",param);
     psi+=param.value;
@@ -152,7 +152,7 @@ RayType& GratingBase::transmit(RayType& ray)
         if(m_recording==RecordInput)
             m_impacts.push_back(ray);
 
-        VectorType G=m_surfaceDirect*gratingVector(m_surfaceInverse*ray.position())*m_order*ray.m_wavelength; // le vecteur réseau exprimé dans le repère de calcul (absolu local)
+        VectorType G=m_surfaceDirect*gratingVector(m_surfaceInverse*ray.position())*m_useOrder*ray.m_wavelength; // le vecteur réseau exprimé dans le repère de calcul (absolu local)
         // G par  construction est dans le plan tangent G. Normal=0
 
             FloatType KinPerp=normal.dot(ray.direction());
@@ -184,7 +184,7 @@ RayType& GratingBase::reflect(RayType& ray)
         if(m_recording==RecordInput)
             m_impacts.push_back(ray);
 
-        VectorType G=m_surfaceDirect*gratingVector(m_surfaceInverse*ray.position())*m_order*ray.m_wavelength; // le vecteur réseau exprimé dans le repère de calcul (absolu local)
+        VectorType G=m_surfaceDirect*gratingVector(m_surfaceInverse*ray.position())*m_useOrder*ray.m_wavelength; // le vecteur réseau exprimé dans le repère de calcul (absolu local)
         // G par  construction est dans le plan tangent G.Normal=0
 
             FloatType KinPerp=normal.dot(ray.direction());

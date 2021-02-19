@@ -24,14 +24,14 @@
 #include "files.h"
 
 
-class SurfaceCollection:public map<string, Surface*>
+class ElementCollection:public map<string, ElementBase*>
 {
-    typedef map<string, Surface*> BaseMap;
+    typedef map<string, ElementBase*> BaseMap;
 public:
-    SurfaceCollection(){}
-    ~SurfaceCollection()
+    ElementCollection(){}
+    ~ElementCollection()
     {
-        map<string, Surface*>::iterator it;
+        map<string, ElementBase*>::iterator it;
         for(it=begin(); it!=end();  ++it)
             delete it->second;
     }
@@ -88,55 +88,41 @@ public:
     };
 };
 
-SurfaceCollection System;
+ElementCollection System;
 StringVector stringData;
 
 extern "C"
 {
 
-    DLL_EXPORT size_t CreateSurface(const char* type, const char* name)
+    DLL_EXPORT size_t CreateElement(const char* type, const char* name)
     {
-        Surface * surf=NULL;
-        string s_type(type);
-        if (s_type=="XYGridSource")
-            surf=new XYGridSource(name);
+        ElementBase * surf;
+        try {
+                surf=(ElementBase*)CreateElementObject(type,name);
+            }
+            catch(ElementException& ex)
+            {
+                 cout << " Object not created: "<< ex.what();
+                 return 0;
+            }
 
-        else if (s_type=="RadialGridSource")
-            surf= new RadialGridSource(name);
-
-        else if (s_type=="Mirror<Plane>" || s_type=="PlaneMirror")
-            surf= new Mirror<Plane>(name);
-        else if (s_type=="Mirror<Sphere>" || s_type=="SphericalMirror")
-            surf= new Mirror<Sphere>(name);
-        else if (s_type=="Mirror<Cylinder>" || s_type=="CylindricalMirror")
-            surf= new Mirror<Cylinder>(name);
-
-        else if (s_type=="Film<Plane>" || s_type=="PlaneFilm")
-            surf= new Film<Plane>(name);
-        else if (s_type=="Film<Sphere>" || s_type=="SphericalFilm")
-            surf= new Film<Sphere>(name);
-        else if (s_type=="Film<Cylinder>" || s_type=="CylindricalFilm")
-            surf= new Film<Cylinder>(name);
-        else
-            cout << " Object not created:  invalid Surface class\n";
-
-        System.insert(pair<string, Surface*>(name, surf) );
+        System.insert(pair<string, ElementBase*>(name, surf) );
         return (size_t)surf;
     }
 
-    DLL_EXPORT size_t GetSurfaceID(const char* surfaceName)
+    DLL_EXPORT size_t GetElementID(const char* ElementName)
     {
-        return (size_t) System.find(surfaceName)->second;
+        return (size_t) System.find(ElementName)->second;
     }
 
-    DLL_EXPORT void GetSurfaceName(size_t surfaceID, char* strBuffer, int bufSize)
+    DLL_EXPORT void GetElementName(size_t ElementID, char* strBuffer, int bufSize)
     {
-        strncpy(strBuffer,((Surface*)surfaceID)->getName().c_str(), bufSize);
+        strncpy(strBuffer,((ElementBase*)ElementID)->getName().c_str(), bufSize);
     }
 
-    DLL_EXPORT size_t RemoveSurface_byName(const char* name)
+    DLL_EXPORT size_t RemoveElement_byName(const char* name)
     {
-        map<string,Surface*>:: iterator it= System.find(name);
+        map<string,ElementBase*>:: iterator it= System.find(name);
         if(it!=System.end())
             it=System.erase(it);
         if(it==System.end())
@@ -144,16 +130,16 @@ extern "C"
         return (size_t) it->second;
     }
 
-    DLL_EXPORT size_t RemoveSurface_byID(size_t surfaceID)
+    DLL_EXPORT size_t RemoveElement_byID(size_t elementID)
     {
-        string name= ((Surface*)surfaceID)->getName();
-        return RemoveSurface_byName(name.c_str());
+        string name= ((ElementBase*)elementID)->getName();
+        return RemoveElement_byName(name.c_str());
     }
 
-    DLL_EXPORT void ChainSurface_byName(const char* previous, const char* next)
+    DLL_EXPORT void ChainElement_byName(const char* previous, const char* next)
     {
-        Surface* sprev=(previous[0]==0) ? NULL : System.find(previous)->second;
-        Surface* snext=(next[0]==0) ? NULL : System.find(next)->second;
+        ElementBase* sprev=(previous[0]==0) ? NULL : System.find(previous)->second;
+        ElementBase* snext=(next[0]==0) ? NULL : System.find(next)->second;
         if(!sprev)
         {
             if(snext)
@@ -168,38 +154,38 @@ extern "C"
         }
     }
 
-    DLL_EXPORT void ChainSurface_byID(size_t prevID, size_t nextID)
+    DLL_EXPORT void ChainElement_byID(size_t prevID, size_t nextID)
     {
         if(prevID==0)
         {
             if(nextID!=0)
-               ((Surface*)nextID)->setPrevious(NULL);
+               ((ElementBase*)nextID)->setPrevious(NULL);
         }
         else
         {
             if(nextID==0)
-                ((Surface*)prevID)->setNext(NULL);
+                ((ElementBase*)prevID)->setNext(NULL);
             else
-                ((Surface*)prevID)->setNext((Surface*)nextID);
+                ((ElementBase*)prevID)->setNext((ElementBase*)nextID);
         }
     }
 
-    DLL_EXPORT bool SetParameter(size_t surfaceID, const char* paramTag, Parameter paramData)
+    DLL_EXPORT bool SetParameter(size_t elementID, const char* paramTag, Parameter paramData)
     {
-        return ((Surface*)surfaceID)->setParameter(paramTag, paramData);
+        return ((ElementBase*)elementID)->setParameter(paramTag, paramData);
     }
 
-    DLL_EXPORT bool GetParameter(size_t surfaceID, const char* paramTag, Parameter* paramData)
+    DLL_EXPORT bool GetParameter(size_t elementID, const char* paramTag, Parameter* paramData)
     {
-        return ((Surface*)surfaceID)->getParameter(paramTag, *paramData);
+        return ((ElementBase*)elementID)->getParameter(paramTag, *paramData);
     }
 
-    DLL_EXPORT bool GetNextParameter(size_t surfaceID, size_t * nextPtr, char* tagBuffer, int bufSize , Parameter* paramData)
+    DLL_EXPORT bool GetNextParameter(size_t elementID, size_t * nextPtr, char* tagBuffer, int bufSize , Parameter* paramData)
     {
         map<string, Parameter>::iterator* pRef;
         if (*nextPtr==0)
         {
-            pRef= new map<string, Parameter>::iterator( ((Surface*)surfaceID)->parameterBegin() );
+            pRef= new map<string, Parameter>::iterator( ((ElementBase*)elementID)->parameterBegin() );
         }
         else
             pRef= (map<string, Parameter>::iterator*) *nextPtr;
@@ -207,7 +193,7 @@ extern "C"
         strncpy(tagBuffer, (char*)((*pRef)->first).c_str(), bufSize);
         *paramData=(*pRef)->second;
 
-        if(++(*pRef) ==((Surface*)surfaceID)->parameterEnd() )
+        if(++(*pRef) ==((ElementBase*)elementID)->parameterEnd() )
         {
             delete pRef;
             *nextPtr=0;
@@ -227,7 +213,7 @@ extern "C"
     DLL_EXPORT void SaveSystem(const char* filename)
     {
         TextFile file(filename, ios::out);
-        map<string,Surface*>::iterator it;
+        map<string,ElementBase*>::iterator it;
         for (it=System.begin(); it!=System.end(); ++it)
             file << *(it->second);
         file.close();
@@ -241,37 +227,37 @@ extern "C"
 
         string sClass, sName, sPrev,sNext, paramName;
         Parameter param;
-        size_t surfaceID;
+        size_t ElementBaseID;
 
         System.clear();
-        while(!file.eof()) // loop of surface creation
+        while(!file.eof()) // loop of ElementBase creation
         {
             file >> sClass;
             if(sClass.empty())
                 break;
             file >> sName >> sNext >> sPrev >> paramName;
-            surfaceID=CreateSurface(sClass.c_str(), sName.c_str() );
+            ElementBaseID=CreateElement(sClass.c_str(), sName.c_str() );
 
             while(!paramName.empty())
             {
                file >> param;
-               SetParameter(surfaceID, paramName.c_str(), param);
+               SetParameter(ElementBaseID, paramName.c_str(), param);
 
                file >> paramName;
             }
 
             file.ignore('\n');
-        }               // end surface  creation
+        }               // end ElementBase  creation
 
         file.seekg(0);
-                while(!file.eof()) // loop of surface creation
+                while(!file.eof()) // loop of ElementBase creation
         {
             file >> sClass;
             if(sClass.empty())
                 break;
             file >> sName >> sNext ; //>> sPrev ;   // On peut se contenter d'appeler seulement set next qui se chargera de mettre à jour les 2 elements connectés
             if(!sNext.empty() )   // inutile d'agir si sNext empty; les nouvelles sy=urfaces ou tous leurs liens nuls
-                System.find(sName)->second->setNext(System.find(sNext)->second); // ces deux surfaces existent; elles viennent d'âtre créées.
+                System.find(sName)->second->setNext(System.find(sNext)->second); // ces deux ElementBases existent; elles viennent d'âtre créées.
 
             file.ignore('\n'); // skip prameters
         }

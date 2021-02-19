@@ -69,5 +69,14 @@ typedef Film<Sphere> SphericalFilm ;
 typedef Film<Cylinder> CylindricalFilm;
 typedef Film<Toroid> ToroidalFilm;
 
+/** \brief  Creates a new element of the given type and returns it as a pointer to the base class  ElementBase
+ *
+ * \param s_type The composite type of the element to be created
+ * \param name The name of the element
+ * \return  pointer to the base class  ElementBase
+ * \todo check that the element is not duplicate
+ */
+ ElementBase* CreateElementObject(string s_type, string name);
+
 
 #endif // OPTICALELEMENTS_H_INCLUDED

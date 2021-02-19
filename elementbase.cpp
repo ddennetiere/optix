@@ -13,7 +13,7 @@
 
 
 #include "elementbase.h"
-
+//#include "interface.h"   // to use CreateElement()
 
 map<string, string> ElementBase::m_helpstrings;
 int ElementBase::m_nameIndex=0;
@@ -200,3 +200,12 @@ TextFile& operator<<(TextFile& file,  ElementBase& elem)
     return file;
 }
 
+TextFile& operator>>(TextFile& file,  ElementBase* elem)
+{
+    string str;
+    Parameter param;
+    if (elem) delete elem;
+    elem=NULL;
+    file >>str; // gets runtime class
+    return file;
+}

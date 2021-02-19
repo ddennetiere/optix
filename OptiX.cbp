@@ -17,6 +17,7 @@
 					<Add option="-Wall" />
 					<Add option="-DBUILD_DLL" />
 					<Add option="-g" />
+					<Add directory="include" />
 				</Compiler>
 				<Linker>
 					<Add library="user32" />
@@ -32,6 +33,7 @@
 					<Add option="-O2" />
 					<Add option="-Wall" />
 					<Add option="-DBUILD_DLL" />
+					<Add directory="include" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
@@ -47,6 +49,7 @@
 				<Compiler>
 					<Add option="-g" />
 					<Add option="-DNO_DLL" />
+					<Add directory="include" />
 				</Compiler>
 			</Target>
 			<Target title="Test(release)">
@@ -59,6 +62,7 @@
 					<Add option="-O2" />
 					<Add option="-Wall" />
 					<Add option="-DNO_DLL" />
+					<Add directory="include" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
@@ -76,10 +80,11 @@
 		<Unit filename="cylinder.h" />
 		<Unit filename="elementbase.cpp" />
 		<Unit filename="elementbase.h" />
+		<Unit filename="files.cpp" />
 		<Unit filename="files.h" />
 		<Unit filename="gratingbase.cpp" />
 		<Unit filename="gratingbase.h" />
-		<Unit filename="gridSource .cpp" />
+		<Unit filename="gridSource.cpp" />
 		<Unit filename="gridSource.h" />
 		<Unit filename="interface.cpp" />
 		<Unit filename="interface.h" />

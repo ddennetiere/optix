@@ -39,6 +39,18 @@ int main()
 //    double d_Pi=3.1415926535897932384626433832795;
 //    long double ld_Pi=3.1415926535897932384626433832795L;
 
+//  -----  MEMSET TEST   ---------------------------
+
+    double dtest[]={1., 1., 1., 1., 1., 1., 1., 1.};
+    for(int ii =0; ii <8; ++ii)
+        cout << dtest[ii] << "  ";
+    cout << endl;
+    memset(dtest, 0, 8* sizeof(double));
+    for(int ii =0; ii <8; ++ii)
+        cout << dtest[ii] << "  ";
+    cout << endl;
+
+
     Vector3d pos={0,0,0}, dir={1,0,-1}, pZ={0,0,1};
 //    Matrix<long double,3,1> Trans={1,-1,3};
 
@@ -266,7 +278,15 @@ int main()
     };
 
  //   Parameter param;
-
+//    ReadSolemioFile("R:\\Partage\\SOLEMIO\\DEIMOS-cpy.txt");
+    ReadSolemioFile("R:\\Partage\\SOLEMIO\\CASSIOPEE");
+//    ReadSolemioFile("R:\\Partage\\SOLEMIO\\HERMES");
+//    ReadSolemioFile("R:\\Partage\\SOLEMIO\\ANTARES");
+//    ReadSolemioFile("R:\\Partage\\SOLEMIO\\SEXTANTS");
+//    ReadSolemioFile("R:\\Partage\\SOLEMIO\\DISCOdefintif");
+//    ReadSolemioFile("R:\\Partage\\SOLEMIO\\TEMPOajoutReseauSLICING.dat");
+//    ReadSolemioFile("R:\\Partage\\SOLEMIO\\DESIRSvraiM3coefAx3=62");
+//    ReadSolemioFile("R:\\Partage\\SOLEMIO\\AILES7");
 
 
     return 0;

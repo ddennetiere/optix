@@ -36,18 +36,18 @@ using namespace std;
 
 extern "C"
 {
-    DLL_EXPORT size_t CreateSurface(const char* type, const char* name);
-    DLL_EXPORT size_t GetSurfaceID(const char* surfaceName);
-    DLL_EXPORT void GetSurfaceName(size_t surfaceID, char* strBuffer, int bufSize);
-    DLL_EXPORT size_t RemoveSurface_byName(const char* name);
-    DLL_EXPORT size_t RemoveSurface_byID(size_t surfaceID);
-    DLL_EXPORT void ChainSurface_byName(const char* previous, const char* next);
-    DLL_EXPORT void ChainSurface_byID(size_t prevID, size_t nextID);
-    DLL_EXPORT size_t GetPreviousSurface(size_t surfaceID);
-    DLL_EXPORT size_t GetNextSurface(size_t surfaceID);
-    DLL_EXPORT bool SetParameter(size_t surfaceID,const char* paramTag, Parameter paramData);
-    DLL_EXPORT bool GetParameter(size_t surfaceID,const char* paramTag, Parameter* paramData);
-    DLL_EXPORT bool GetNextParameter(size_t surfaceID, size_t * nextPtr, char* tagBuffer, int bufSize , Parameter* paramData);
+    DLL_EXPORT size_t CreateElement(const char* type, const char* name);
+    DLL_EXPORT size_t GetElementID(const char* elementName);
+    DLL_EXPORT void GetElementName(size_t elementID, char* strBuffer, int bufSize);
+    DLL_EXPORT size_t RemoveElement_byName(const char* name);
+    DLL_EXPORT size_t RemoveElement_byID(size_t elementID);
+    DLL_EXPORT void ChainElement_byName(const char* previous, const char* next);
+    DLL_EXPORT void ChainElement_byID(size_t prevID, size_t nextID);
+    DLL_EXPORT size_t GetPreviousElemente(size_t elementID);
+    DLL_EXPORT size_t GetNextElement(size_t elementID);
+    DLL_EXPORT bool SetParameter(size_t elementID,const char* paramTag, Parameter paramData);
+    DLL_EXPORT bool GetParameter(size_t elementID,const char* paramTag, Parameter* paramData);
+    DLL_EXPORT bool GetNextParameter(size_t elementID, size_t * nextPtr, char* tagBuffer, int bufSize , Parameter* paramData);
 //    DLL_EXPORT void FreeNextPointer(size_t nextPtr);  cette fonction n'a pas d'objet clair
     DLL_EXPORT void SaveSystem(const char* filename);
     DLL_EXPORT bool OpenSystem(const char* filename);

@@ -23,11 +23,27 @@
 #define GRATINGBASE_H
 
 #include "surface.h"
+#include "OptixException.h"
 
+/** \brief Describes the grating line spacing
+ * This class only provides the gratingVector() function which need to be overriden by actual implementation classes
+ */
+class Pattern
+{
+        /** Default constructor */
+        Pattern(){}
+        /** Default destructor */
+        virtual ~Pattern(){}
+    public:
+        /** Line density vector in  grating coordinates
+        *       \todo should be made pure virtual when derived classes are setup */
+        EIGEN_DEVICE_FUNC virtual Surface::VectorType gratingVector(Surface::VectorType position,
+                                Surface::VectorType normal=Surface::VectorType::UnitZ());
+};
 
 /** \brief Base class for all gratings
  */
-class GratingBase : virtual public Surface
+class GratingBase : virtual public Surface, virtual public Pattern
 {
     public:
         /** Default constructor */
@@ -36,16 +52,13 @@ class GratingBase : virtual public Surface
         virtual ~GratingBase();
         virtual  inline string getRuntimeClass(){return "GratingBase";}/**< return the derived class name ie. GratingBase */
 
-        /** Line density vector in  grating coorinates
-        *       \todo should be made pure virtual*/
-        EIGEN_DEVICE_FUNC virtual VectorType gratingVector(VectorType position, VectorType normal=VectorType::UnitZ());
 
         /** \brief Orients the grating on the given order and wavelength and defines the related geometric space transforms
-        * \param wavelength  the alignment wavelength (m)
-        * If reflective:
+        * \param wavelength  the \b alignment \b wavelength (m)
+        *  \n If reflective:
         *   sets the grating angle Omega and the rotation angle Psi
-        *   so that the exit direction ofthe main ray is satisfied
-        *   if transmissive the alignment axis is not changed */
+        *   so that the exit direction of the main ray is satisfied
+        *  \n If transmissive: the alignment axis is not changed */
         int setFrameTransforms(double wavelength);
 
         virtual RayType& transmit(RayType& ray);       /**< \brief Implementation of transmission grating  */
@@ -53,9 +66,9 @@ class GratingBase : virtual public Surface
         virtual RayType& reflect(RayType& ray);    /**<  \brief Implementation of reflexion grating  */
 
     protected:
-        int m_order;
-        double m_density; /**< \todo à évaluer : implementation de base d'un réseau uniforme   */
-        IsometryType psiTransform;
+        int m_alignmentOrder;
+        int m_useOrder;
+        IsometryType psiTransform;/**< transformation incluant la rotation psi autour de la normale et le passage de la représentation surface à la représentation espace */
     private:
 };
 

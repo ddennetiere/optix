@@ -252,34 +252,34 @@ EIGEN_DEVICE_FUNC MatrixXd Surface::getWavefontExpansion(double distance, Index 
     return LegendreCoefs;
 }
 
-
-
-TextFile& operator<<(TextFile& file,  Surface& surface)
-{
-    file << surface.getRuntimeClass(); // <<'\0';
-    file << surface.m_name;
-    if(surface.m_previous)
-        file << surface.m_previous->getName() ;
-    else
-        file << string();
-
-
-    if(surface.m_next)
-        file << surface.m_next->getName();
-    else
-        file << string();
-//    file << '\0';
-
-
-    map<string,Parameter>::iterator it;
-    for(it=surface.m_parameters.begin(); it != surface.m_parameters.end(); ++it)
-    {
-        file << it->first  ;
-        file << it->second;
-    }
-    file << '\0' << '\n';
-    return file;
-}
+// supprimée car fait double embloi avec la meme fonction dans ElementBase
+//
+//TextFile& operator<<(TextFile& file,  Surface& surface)
+//{
+//    file << surface.getRuntimeClass(); // <<'\0';
+//    file << surface.m_name;
+//    if(surface.m_previous)
+//        file << surface.m_previous->getName() ;
+//    else
+//        file << string();
+//
+//
+//    if(surface.m_next)
+//        file << surface.m_next->getName();
+//    else
+//        file << string();
+////    file << '\0';
+//
+//
+//    map<string,Parameter>::iterator it;
+//    for(it=surface.m_parameters.begin(); it != surface.m_parameters.end(); ++it)
+//    {
+//        file << it->first  ;
+//        file << it->second;
+//    }
+//    file << '\0' << '\n';
+//    return file;
+//}
 
  bool Surface::isSource()
 {

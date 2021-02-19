@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 /**
-*      \file           gridSource.cpp
+*      \file        gridSource.cpp
 *
 *      \brief         implements the base mechanisms for sources
 *

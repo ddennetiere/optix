@@ -24,7 +24,7 @@
 using std::string;
 using  std::runtime_error;
 
-/** \brief Exception notifying athe occurence of an error in ray propagation
+/** \brief Exception notifying he occurence of an error in ray propagation
  */
 class RayException:public runtime_error
 {
@@ -56,6 +56,7 @@ public:
     string what_str;
 };
 
+
 /** \brief Tagged parameter setting or recovering error
  */
 class TextFileException:public runtime_error
@@ -73,5 +74,19 @@ public:
 };
 
 
+
+class ElementException:public runtime_error
+{
+public:
+    ElementException(string what ="", string file="", string callingFunction="", int line=-1 ):runtime_error("ElementException")
+    {
+        char str[128];
+        sprintf(str, "%s in %s  %s line %d", what.empty()?"ElementException":what.c_str(), file.c_str(), callingFunction.c_str(), line);
+        what_str=str;
+    }
+    virtual ~ElementException() {}
+    virtual string  what(){return what_str;}
+    string what_str;
+};
 
 #endif // OPTIXEXCEPTION_H_INCLUDED

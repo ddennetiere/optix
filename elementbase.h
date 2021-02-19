@@ -222,7 +222,7 @@ public:
 
     friend TextFile& operator<<(TextFile& file,  ElementBase& elem);  /**< \brief Dump this Element object to a TextFile, in a human readable format  */
 
-    friend TextFile& operator>>(TextFile& file,  ElementBase& elem);  /**< \brief Retrieves a Element object from a TextFile  */
+    friend TextFile& operator>>(TextFile& file,  ElementBase* elem);  /**< \brief Retrieves a Element object from a TextFile  \todo call interface::createElement(type) */
 
 protected:
 
