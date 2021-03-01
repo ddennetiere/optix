@@ -75,6 +75,8 @@ public:
 
 
 
+/** \brief Exception raised when an error occurs during element definition or alignment
+ */
 class ElementException:public runtime_error
 {
 public:

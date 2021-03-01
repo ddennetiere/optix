@@ -5,8 +5,8 @@
 /**
 *      \file           types.h
 *
-*      \brief         TODO  fill in file purpose
-*
+*      \brief         basic types used thoughout OptiX
+*                      Surface types are defined in opticalelements.h
 *      \author         François Polack <francois.polack@synchroton-soleil.fr>
 *      \date        2020-11-13  Creation
 *      \date         Last update
@@ -29,11 +29,15 @@ typedef RayBase<FloatType>  RayBaseType;
 *   \ingroup enums
 *   \brief Unit category
  */
-enum UnitType:uint32_t{
+enum UnitType:int32_t{
     Dimensionless =0,   /**< dparameter is dimensionless  */
     Angle =1,           /**< parameter is an angle  */
     Distance=2,         /**< parameter is a distance  */
-    InverseDistance=3   /**< parameter is the inverse of a distance */
+    InverseDistance=-1,  /**< parameter is the inverse of a distance */
+    DistanceMoins1=-1,
+    DistanceMoins2=-2,
+    DistanceMoins3=-3,
+    DistanceMoinsN=-4
 };
 
 /** \ingroup enums
@@ -79,7 +83,7 @@ enum ParameterGroup:uint32_t{
  * flag > 0xF  | none     | reserved for future use
  */
 enum ParameterFlags:uint32_t{
-    Optimizable=1, /**< The parameter can be optimizes */
+    Optimizable=1, /**< The parameter can be optimized */
     Uniform=0x10,  /**< Uniform random generator (value=0)*/
     Gaussian=0x20, /**< Gaussian random (value=sigma) */
     Grided=0x80    /**< Grided (value=stepsize) */
@@ -120,12 +124,16 @@ public:
     DiagramType(int n):m_count(n), m_spots(new double[Vsize*n]){}
     ~DiagramType(){if(m_spots) delete [] m_spots;}
 };
+/** \brief Structure containing a wavefront map
+ *  \see see also C_WFtype
+ */
 struct WavefrontData{
-    Array22d m_bounds;
-    ArrayXXd m_WFdata;
+    Array22d m_bounds;/**< 2 X 2 array of doubles containing the bounds of the map */
+    ArrayXXd m_WFdata;/**< Array of double holding the wavefront heights*/
 };
 
-struct C_WFtype{            /**< \brief C equivalebnt structure to WavefrontData, holding a Wavefront map */
+/** \brief C equivalent structure to WavefrontData, holding a Wavefront map */
+struct C_WFtype{
   double m_bounds[4];       /**< aray conntaining the X and Y bounds of the mapped area in order X min, X max, Ymin, Ymax */
   double * m_WFdata;        /**< pointer to the WF height data in memory */
   size_t m_dataSize[2];     /**< dimensions of the mapped array in order nX, nY */

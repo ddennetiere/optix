@@ -24,6 +24,16 @@
 #include "Surface.h"
 
 
+/** \class Toroid
+ *  \brief Implement a toroidal surface
+ *    The class has two specific parameters belonging to the ShapeGroup
+ *     -----------------------------------------
+ *
+ *   Name of parameter | UnitType | Description
+ *   ----------------- | -------- | --------------
+ *   \b minor_curvature | InverseDistance | Curvature (1/rc) of generator circle
+ *   \b major_curvature | InverseDistance | Curvature (1/Rc) of the generated circle at apex
+ */
 class Toroid : virtual public Surface
 {
     public:
@@ -79,10 +89,10 @@ class Toroid : virtual public Surface
         EIGEN_DEVICE_FUNC virtual VectorType intercept(RayType& ray, VectorType * normal=NULL);
 
     protected:
-        void createSurface(); /**< \brief Inilialize the local equation. Called when curvature is changed  */
+        void createSurface(); /**< \brief Initialize the local equation. Called when curvature is changed  */
 
         Matrix<FloatType,5,5> m_toreMat1, m_toreMat2;   /**< \brief definition matrices in the surface frame */
-        Matrix<FloatType,5,5> m_alignedMat1, m_alignedMat2; /**< \brief definition matrices in theabsolute frame */
+        Matrix<FloatType,5,5> m_alignedMat1, m_alignedMat2; /**< \brief definition matrices in the absolute frame */
 
     private:
 

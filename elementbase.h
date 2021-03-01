@@ -29,10 +29,33 @@ using namespace std;
 
 //class SourceBase;
 
+/** \brief series developpement of \f$ \sqrt{1-x} \f$ for small \f$ x \f$
+ *  \ingroup GlobalCpp
+ *
+ * \param x  the value of x
+ * \return \f$ \sqrt{1-x} \f$
+ *
+ */
 inline double oneMinusSqrt1MinusX(double x)
 {
     if(::fabs(x) > 0.01) return 1.-sqrt(1. - x);
     return  x*(0.5 + x*(0.125 + x*(0.0625 + x*(0.0390625 + x*(0.02734375 + x*(0.0205078125 + x*0.01611328125))))));
+}
+
+extern char LastError[256];
+
+/** \brief  set the global error message  to b retrieved by from the C interface
+ *  \ingroup GlobalCpp
+ *
+ * \param what the error string
+ * \param filename file where the error occured (use __FILE__)
+ * \param funcname function where the error occured (use __func__)
+ */
+inline void SetOptiXLastError(string what, const char* filename, const char* funcname )
+{
+
+    sprintf(LastError, "%s in function %s of file %s", what.c_str(), funcname,funcname);
+
 }
 
 
@@ -40,24 +63,29 @@ inline double oneMinusSqrt1MinusX(double x)
 *
 *
 *
-*     Optical element classes might be derived from an agregate with shape and behaviour classes, but they MUST refer to the same Element object.
+*     Optical element classes might be derived from an agregate with shape and behavior classes, but they MUST refer to the same Element object.
 *      Hence these derived objects must declare the base Element member as virtual
 *
 *     General parameters common to all optical elements
 *     -----------------------------------------
 *
-*   Name of parameter | Description
-*   -------------- | --------------
-*   \b distance | Distance to the preceeding surface
-*   \b theta | Chief ray half-deviation
-*   \b phi | Roatation angle of the surface reference frame around the incident chief ray
-*   \b psi | Roatation angle of the surface reference frame around its normal
-*   \b Dtheta | Correction to the incidence angle theta
-*   \b Dphi | Correction to phi rotation angle
-*   \b Dpsi | Correction to in-plane rotation angle psi
-*   \b DX | X offset in surface reference frame
-*   \b DY | Y offset in surface reference frame
-*   \b DZ | Z offset in surface reference frame
+*   Name of parameter | UnitType | Description
+*   ----------------- | -------- | --------------
+*   \b distance | Distance | Distance to the preceeding element. (see note)
+*   \b theta | Angle | Chief ray half-deviation
+*   \b phi | Angle | Roatation angle of the surface reference frame around the incident chief ray
+*   \b psi | Angle | Roatation angle of the surface reference frame around its normal
+*   \b Dtheta | Angle | Correction to the incidence angle theta
+*   \b Dphi | Angle | Correction to phi rotation angle
+*   \b Dpsi | Angle | Correction to in-plane rotation angle psi
+*   \b DX | Distance | X offset of the element in the surface reference frame
+*   \b DY | Distance | Y offset of the element in the surface reference frame
+*   \b DZ | Distance | Z offset of the element in the surface reference frame
+*
+*   \note
+*   - <em> All parameters are in \b BasicGroup </em>
+*   - If element is first (previous==0) the incident chief ray is along Z, with an origin at 0 in absolute frame .
+*   The element distance is counted from this absolute origin.
  */
 class ElementBase {
 protected:
@@ -77,11 +105,15 @@ public:
     virtual inline string getRuntimeClass(){return "Surface";}/**< \brief return the derived class name of this object */
 
     /** \brief Align this surface with respect to the main incident ray according to the parameters,
-    *
     *       \param wavelength the alignment wavelength (used by chromatic elements only)
     *       \return  0 if alignment  is OK ; -1 if a grating can't be aligned
     *
-    *    Align defines the actual surface equation in the computation frame. It is implemented in derived clsses
+    *   Surfaces are aligned in two times.
+    *   *   definition of transforms between input exit and surface frames
+    *   *   definition of the surface equation in the propagation space (input frame)
+    *    Align() defines the actual surface equation in the computation frame. it cannot be called before the
+    *       frame transforms are defined (see setFrameTransforms())
+    *    \n   It must be reimplemented in derived classes
     */
     virtual int align(double wavelength)=0;
 
@@ -106,8 +138,7 @@ public:
         m_previous=previous;
     }
 
-      inline ElementBase* getPrevious()  { return m_previous;}
-
+    inline ElementBase* getPrevious()  { return m_previous;}
 
     /** \brief defines the next element in the active chain
     *
@@ -144,7 +175,7 @@ public:
     * \param param the new parameter  object
     * \return  true if parameters was changed , false if parameter doesn't belong to the object
     */
-    inline bool setParameter(string name, Parameter& param)
+    inline virtual  bool setParameter(string name, Parameter& param)
     {
         ParamRef it=m_parameters.find(name);
         if (it !=m_parameters.end())
@@ -197,18 +228,22 @@ public:
 
     static void setHelpstrings();  /**< \brief sets help strings all alignment parameters */
 
+    inline void setTransmissive(bool trans=true) {m_transmissive=trans;}
+    inline bool getTransmissive(){return m_transmissive;}
+
     /** \brief setFrameTransforms defines the geometric space transforms related to the position of an element in the various frames
-    *
     *       \param wavelength the alignment wavelength (used by chromatic elements only)
     *       \return  0 if alignment  is OK ; -1 if a grating can't be aligned
     *
-    *       alignement defines the transformations matrices needed for ray propagation computations
-    *       This is a default implementation which will be overridden for gratings and maybe other elements
-    *       \n If the surface is reflective \b theta is the half-deflection angle of the chief ray,
-    *       if it is transmissive, the chief ray direction is not modified and theta represents the surface tilt angle of normal to chief ray)
-    *       \ In all cases \b Phi defines the frame rotation auround the incident chief ray from entry to exit.
-    *       When the surface is reflective the incidence plane is the YZ plane of the rotated frame and XZ is tangent to the surface
-    *       \n \b Psi is always the rotation around the surface normal (in case of transmissive a
+    *       setFrameTransforms() defines the transformations matrices needed for ray propagation computations. It doesn't define
+    *       the surface equation in computation space. \n This is done by the align() function.
+    *       \n This implementation is a default one, which will be overridden for gratings and maybe other elements.
+    *       * If the surface is reflective \b theta is the half-deflection angle of the chief ray,
+    *       * if it is transmissive, the chief ray direction is not modified and theta represents the surface tilt angle of normal to chief ray)
+    *
+    *       In all cases \b Phi defines the frame rotation around the incident chief ray from entry to exit.
+    *       \n When the surface is reflective the incidence plane is the YZ plane of the rotated frame and XZ is tangent to the surface
+    *       \n \b Psi is always the rotation around the surface normal
     */
     virtual int setFrameTransforms(double wavelength)  ;
 
@@ -222,7 +257,7 @@ public:
 
     friend TextFile& operator<<(TextFile& file,  ElementBase& elem);  /**< \brief Dump this Element object to a TextFile, in a human readable format  */
 
-    friend TextFile& operator>>(TextFile& file,  ElementBase* elem);  /**< \brief Retrieves a Element object from a TextFile  \todo call interface::createElement(type) */
+    friend TextFile& operator>>(TextFile& file,  ElementBase* elem);  /**< \brief Retrieves a Element object from a TextFile  \todo call interface::createElementObject(type) */
 
 protected:
 
@@ -239,7 +274,7 @@ protected:
 
     static FloatType m_FlipSurfCoefs[];
     static map<string, string> m_helpstrings;  /**< \brief  parameter description help strings  */
-    static int m_nameIndex;  /**< \brief Index for automatic naming of surfeces created without a name */
+    static int m_nameIndex;  /**< \brief Index for automatic naming of surfaces created without a name */
  //   vector<RayType> m_impacts; /**<  \brief the ray impacts on the surfaces in forward or backward element space */
 
 

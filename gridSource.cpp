@@ -45,7 +45,7 @@ XYGridSource::XYGridSource(string name ,Surface * previous):Surface(true,name, p
     setHelpstring("sizeX", "1/2 source size in the Horiz. plane ");
     setHelpstring("sizeY", "1/2 source size in the vertical plane");
     setHelpstring("nXsize", "Number of steps in horiz. 1/2 size");
-    setHelpstring("nYsize", "Number of steps in horiz. 1/2 size");
+    setHelpstring("nYsize", "Number of steps in vertical 1/2 size");
 }
 
 /**< \todo if needed iterate the generation of upstream sources. Upstream direction is require since the impacts are cleared before generation*/
@@ -129,11 +129,11 @@ RadialGridSource::RadialGridSource(string name ,Surface * previous):Surface(true
     defineParameter("nTheta_div", param);
 
     setHelpstring("divR", "1/2 divergence in the radial direction");  // complete la liste de infobulles de la classe Surface
-    setHelpstring("nRdiv", "Number of steps in the radial 1/2divergence");
-    setHelpstring("nTheta_div", "Number of azimut steps on divegence  ");
-    setHelpstring("sizeR", "Radius of the  source size ");
-    setHelpstring("nRsize", "Number of azimut steps ");
-    setHelpstring("nTheta_size", "Number of azimut steps on size ");
+    setHelpstring("nRdiv", "Number of radial steps in 1/2 divergence");
+    setHelpstring("nTheta_div", "Number of azimuth steps in 2 Pi");
+    setHelpstring("sizeR", "Radius of the  source");
+    setHelpstring("nRsize", "Number of radial steps in source radius ");
+    setHelpstring("nTheta_size", "Number of azimuth steps in 2 Pi ");
 }
 
 int RadialGridSource::generate(double wavelength)

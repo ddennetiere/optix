@@ -26,6 +26,8 @@
 
 using namespace std;
 
+/** \brief stream file with operators for storing OptiX elements  in a human readable way
+ */
 class TextFile:protected fstream
 {
 public:
@@ -219,7 +221,13 @@ inline fstream& operator<<(fstream& file, DiagramType<Vsize>& diagram )
     file.write((char*)diagram.m_spots, bytes);
     return file;
 }
-
+/** \brief Write a WavefrontData  object to a file in binary format
+ *
+ * \param file  output binary file
+ * \param wfData Wavefront data
+ * \return the file reference
+ * \relates WavefrontData and C_WFtype
+ */
 inline fstream& operator<<(fstream& file, WavefrontData& wfData )
 {
     int N[2]={(int)wfData.m_WFdata.rows(), (int)wfData.m_WFdata.cols()};
@@ -263,27 +271,29 @@ inline TextFile& operator>>( TextFile& file,  Parameter& param)
     return file;
 }
 
+/** \brief Text stream file with appropriate operators for reading elements sored in Solemio data file
+ */
 class SolemioFile:public fstream
 {
 public:
   //  SolemioFile(){}
-    ~SolemioFile(){fstream::close();}
-    SolemioFile(string filename);        //  :fstream(filename,  ios::in ){} // ouverture en lecture seule
-    void skipline(int n=1);
-    void getPrefixedString(string& str);
-    void getScript(string& str);
-    bool check_comment(const string comment);
-    bool get_element();
-    inline SolemioFile& operator>>(int& i) {*((fstream*)this)>>i; return *this;}
-    inline SolemioFile& operator>>(uint32_t& i) {*((fstream*)this)>>i; return *this;}
-    inline SolemioFile& operator>>(double& i) {*((fstream*)this)>>i; return *this;}
-    SolemioFile& operator>>(ArrayXd&  darray);
+    ~SolemioFile(){fstream::close();}/**< \brief close the file and delete the file object */
+    SolemioFile(string filename);   /**< \brief open the file in read-only mode */     //  :fstream(filename,  ios::in ){} // ouverture en lecture seule
+    void skipline(int n=1);/**< \brief skips a number of end-of-line marks */
+    void getPrefixedString(string& str);/**< \brief gets a length prefixed string */
+    void getScript(string& str);/**< \brief gets a length and 's' prefixed string */
+    bool check_comment(const string comment);/**< \brief assert that thee next item in the stream is a comment of given content*/
+    bool get_element();/**< \brief reads the next solemio surface element and dump its content to  cout. Not all elemnts types are implemented yet*/
+    inline SolemioFile& operator>>(int& i) {*((fstream*)this)>>i; return *this;}/**< \brief read an integer value */
+    inline SolemioFile& operator>>(uint32_t& i) {*((fstream*)this)>>i; return *this;}/**< \brief read an unsigned integer value */
+    inline SolemioFile& operator>>(double& i) {*((fstream*)this)>>i; return *this;}/**< \brief reads a double floating point value */
+    SolemioFile& operator>>(ArrayXd&  darray);/**< \brief reads an array of double of known size */
     int version;
 };
 
 
 
-void ReadSolemioFile(string filename);
+void ReadSolemioFile(string filename);/**< dumps the content of a Solemio file to cout */
 
 
 #endif // FILES_H_INCLUDED

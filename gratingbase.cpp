@@ -34,7 +34,7 @@ GratingBase::~GratingBase()
 
 
 // wavelength is the alignment wavelength
-int GratingBase::setFrameTransforms(double wavelength)         /**< \todo to be validated */
+int GratingBase::setFrameTransforms(double alWavelength)         /**< \todo to be validated */
 {
     // retrouve ou définit l'orientation absolue du trièdre d'entrée
     RotationType inputFrameRot; // rotation part
@@ -93,7 +93,7 @@ int GratingBase::setFrameTransforms(double wavelength)         /**< \todo to be 
         psiTransform=Matrix<FloatType,4,4>(m_FlipSurfCoefs);
         psiTransform*=AngleAxis<FloatType>(psi,VectorType::UnitZ());
 
-        VectorType G=psiTransform*gratingVector(VectorType::Zero())*m_alignmentOrder*wavelength; // G dans le plan tangent ==> Gy==0
+        VectorType G=psiTransform*gratingVector(VectorType::Zero())*m_alignmentOrder*alWavelength; // G dans le plan tangent ==> Gy==0
 
         m_exitFrame*=AngleAxis<FloatType>(-2.*theta,VectorType::UnitX()) ; // axe X nouveau
 

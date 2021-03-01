@@ -1,3 +1,6 @@
+#ifndef HEADER_4A628506A6948E78
+#define HEADER_4A628506A6948E78
+
 ////////////////////////////////////////////////////////////////////////////////
 /**
 *      \file           sphere.h
@@ -22,8 +25,15 @@
 
 
 /** \brief Describes a spherical surface
+ *
+ *    The class has one specific parameter belonging to the ShapeGroup
+ *     -----------------------------------------
+ *
+ *   Name of parameter | UnitType | Description
+ *   ----------------- | -------- | --------------
+ *   \b curvature | InverseDistance | Curvature (1/Rc) of the sphere
  */
-class Sphere : public Quadric
+class Sphere :  virtual public Surface, public Quadric
 {
     public:
         /** \brief  Default constructor. Initialize curvature to 0.*/
@@ -51,3 +61,5 @@ class Sphere : public Quadric
 };
 
 #endif // SPHERE_H
+#endif // header guard
+

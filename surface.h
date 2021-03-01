@@ -12,15 +12,18 @@
 *
 *   \author             François Polack  <francois.polack@synchroton-soleil.fr>
 *   \date               Creation : 2020-10-05
-*   \date               Last update: 2021-02-03
+*   \date               Last update: 2021-02-26
 *
 *   \mainpage   OptiX
 *       An X-ray optics librray
 *       this is an &alpha; version of the library
 *
+*
 *   \defgroup enums  Enumeration list
 *      \brief  enumerated values used in the library
 *
+*   \defgroup GlobalCpp  Global internal C++ functons
+*      \brief  C++ functions defined at the OptiX library internal level
 *
  ***************************************************************************/
 
@@ -110,7 +113,7 @@ public:
             *   All implementations <b> must take care of recording impacts </b> in entrance or exit plane as required */
 
 /** \brief  call transmit or reflect according to surface type ray and iterate to the next surface*/
-    inline void propagate(RayType& ray) /**< the propagated ray */
+    inline  void propagate(RayType& ray) /**< the propagated ray */
     {
         if(m_transmissive)
             transmit(ray);

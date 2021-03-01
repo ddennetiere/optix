@@ -1,3 +1,6 @@
+#ifndef HEADER_A41E56F526BF17F7
+#define HEADER_A41E56F526BF17F7
+
 ////////////////////////////////////////////////////////////////////////////////
 /**
 *      \file           cylinder.h
@@ -22,6 +25,13 @@
 
 
 /** \brief Describes a cylindrical surface
+ *    The class has two specific parameters belonging to the ShapeGroup
+ *     -----------------------------------------
+ *
+ *   Name of parameter | UnitType | Description
+ *   ----------------- | -------- | --------------
+ *   \b curvature | InverseDistance | Curvature (1/Rc) of the cylinder
+ *   \b axis_angle | Angle | Orientation of the axis;  default=0: tangential cylinder
  */
 class Cylinder : public Quadric
 {
@@ -51,3 +61,5 @@ class Cylinder : public Quadric
 };
 
 #endif // CYLINDER_H
+#endif // header guard
+

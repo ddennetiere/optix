@@ -31,13 +31,13 @@ Toroid::Toroid(string name, Surface *previous):Surface(false,name, previous)  //
     param.type=InverseDistance;
     param.group=ShapeGroup;
     defineParameter("minor_curvature", param);  // courbure par défaut 0
-    setHelpstring("minor_curvature", "Curvature (1/rc) of generator circle");  // complete la liste de infobulles de la classe Surface
+    setHelpstring("minor_curvature", "Curvature (1/rc) of the generator circle");  // complete la liste de infobulles de la classe Surface
     defineParameter("major_curvature", param);  // courbure par défaut 0
-    setHelpstring("major_curvature", "Curvature (1/Rc) of generator circle");  // complete la liste de infobulles de la classe Surface
+    setHelpstring("major_curvature", "Curvature (1/Rc) of the generated circle at apex");  // complete la liste de infobulles de la classe Surface
 
 }
 
-void Toroid::createSurface()/**<  \todo This functuntion needs to be written */
+void Toroid::createSurface()
 {
     Parameter param;
 

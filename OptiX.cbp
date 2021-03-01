@@ -72,6 +72,8 @@
 		<Compiler>
 			<Add option="-ftemplate-backtrace-limit=0" />
 			<Add directory="D:/projets/projetsCB/eigen-3.3.9" />
+			<Add directory="D:/projets/projetsCB/OptiX/" />
+			<Add directory="D:/projets/projetsCB/OptiX/include" />
 		</Compiler>
 		<Unit filename="OptixException.h" />
 		<Unit filename="ToroidComplexSolver.cpp" />
@@ -86,10 +88,10 @@
 		<Unit filename="gratingbase.h" />
 		<Unit filename="gridSource.cpp" />
 		<Unit filename="gridSource.h" />
+		<Unit filename="include/Poly1D.h" />
+		<Unit filename="include/holo.h" />
 		<Unit filename="interface.cpp" />
 		<Unit filename="interface.h" />
-		<Unit filename="minimizable.cpp" />
-		<Unit filename="minimizable.h" />
 		<Unit filename="opticalelements.cpp" />
 		<Unit filename="opticalelements.h" />
 		<Unit filename="plane.cpp" />
@@ -106,6 +108,8 @@
 		<Unit filename="sourcebase.h" />
 		<Unit filename="sphere.cpp" />
 		<Unit filename="sphere.h" />
+		<Unit filename="src/Poly1D.cpp" />
+		<Unit filename="src/holo.cpp" />
 		<Unit filename="surface.cpp" />
 		<Unit filename="surface.h" />
 		<Unit filename="test.cpp">

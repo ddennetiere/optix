@@ -24,10 +24,14 @@
 #include "Surface.h"
 
 
+/** \brief Implement the basic mechanisms for a source object
+ *
+ *  The class namely defines a generate() function which initiates the congruence of rays to be propagated
+ */
 class SourceBase : public virtual Surface
 {
     public:
-        /** \brief Default constructor le constructeur de Surface doit être appelé dans les classes dérivée avec transparent=true */
+        /** \brief Default constructor. In derived class constructors, the constructor of Surface must be called with transparent=true  */
         SourceBase();
         /** Default destructor */
         virtual ~SourceBase();

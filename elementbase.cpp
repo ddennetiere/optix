@@ -13,12 +13,15 @@
 
 
 #include "elementbase.h"
-//#include "interface.h"   // to use CreateElement()
+
 
 map<string, string> ElementBase::m_helpstrings;
 int ElementBase::m_nameIndex=0;
 
 FloatType ElementBase::m_FlipSurfCoefs[]={0, 0, 1, 0,  1, 0, 0, 0,  0, 1, 0, 0,   0, 0, 0, 1 };
+
+char LastError[256];
+//char* LastError=LastErrorBuffer;
 
 
 
@@ -100,7 +103,7 @@ int ElementBase::setFrameTransforms(double wavelength)
 
     getParameter("Dtheta",param);
     angle+=param.value;
-    /**< \todo Should we keep the same sign convention on theta angle for transmissive and reflective elements ? */
+    /** \todo Should we keep the same sign convention on theta angle for transmissive and reflective elements ? */
     m_surfaceDirect*=AngleAxis<FloatType>(-angle, VectorType::UnitX()) ;  // convention déviation vers le haut si phi=0, vers l'extérieur anneau si phi=Pi/2 (M_PI_2)
 
    // m_frameDirect=rayTransform;

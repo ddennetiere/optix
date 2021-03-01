@@ -99,6 +99,8 @@ MAXGLOBALPARAMS, // 26 systemparameters.cpp
 //D:\projets\projetsCB\Beamline\minimizzatore.cpp|214|n_parametres = 15 ;|
 //D:\projets\projetsCB\Beamline\polsourceimage.cpp|82|n_parametres = 61 ;|
 
+/** \brief structure and functions to enable reading and decoding a Solemio file
+ */
 struct SolemioSurface
 {
 	SolemioSurface(int stype ):type(stype){}
