@@ -1,5 +1,5 @@
-#ifndef HEADER_29A4858F3C0BB3C5
-#define HEADER_29A4858F3C0BB3C5
+#ifndef SOURCES_H
+#define SOURCES_H
 
 ////////////////////////////////////////////////////////////////////////////////
 /**
@@ -18,13 +18,12 @@
 //             REVISIONS
 //
 ////////////////////////////////////////////////////////////////////////////////////
-#ifndef GRIDSOURCE_H
-#define GRIDSOURCE_H
+
 
 #include "sourcebase.h"
 
 
-/** \brief a point source radiating regularly spaced rays on a cartesian defined angular grid
+/** \brief a source composed of points distributed on a regular Cartesian grid, radiating regularly spaced rays on a Cartesian angular grids
  *
  *    The class has eight specific parameters belonging to the SourceGroup
  *     -----------------------------------------
@@ -39,6 +38,7 @@
  *   \b sizeY | Distance | 1/2 source size in the vertical plane
  *   \b nXsize | Dimensionless | Number of steps in horizontal 1/2 size
  *   \b nYsize | Dimensionless | Number of steps in vertical 1/2 size
+ *   All parameters are defined and store as double. nXsize, nYsize,  nXdiv, nYdiv  will be rounded to the nearest integer
  */
 class XYGridSource: public virtual SourceBase
 {
@@ -47,13 +47,13 @@ public:
     XYGridSource(string name="" ,Surface * previous=NULL);
     /** Default destructor */
     virtual ~XYGridSource(){}
-    virtual inline string getRuntimeClass(){return "XYGridSource";}/**< return the derived class name ie. XYGridSource */
+    virtual inline string getRuntimeClass(){return "Source<XYGrid>";}/**< return the derived class name ie. Source<XYGrid> */
     virtual int generate(double wavelength);    /**< implementation of SourceBase::generate for XYGridSource() */
     //public members
     int nXprim, nYprim,nX,nY;
 };
 
-/** \brief a point source radiating regularly spaced rays on a  polar defined angular grid
+/** \brief a source composed of points distributed on a regular polar grid, radiating regularly spaced rays on a polar angular grids
  *
  *    The class has six specific parameters belonging to the SourceGroup
  *     -----------------------------------------
@@ -66,6 +66,7 @@ public:
  *   \b sizeR | Distance | Radius of the  source
  *   \b nRsize | Dimensionless | Number of radial steps in source radius
  *   \b nTheta_size | Dimensionless | Number of  source azimuth steps in 2 Pi
+ *   All parameters are defined and store as double. nRsize, nTheta_size,  nRdiv, nTheta_div  will be rounded to the nearest integer
  */
 class RadialGridSource: public virtual SourceBase
 {
@@ -74,12 +75,46 @@ public:
     RadialGridSource(string name="" ,Surface * previous=NULL);
     /** Default destructor */
     virtual ~RadialGridSource(){}
-    virtual inline string getRuntimeClass(){return "RadialGridSource";}/**< return the derived class name ie. RadialGridSource */
+    virtual inline string getRuntimeClass(){return "Source<RadialGrid>";}/**< return the derived class name ie. Source<RadialGrid> */
     virtual int generate(double wavelength);    /**< implementation of SourceBase::generate for RadialGridSource() */
     // public members
     int nRprim, nTprim,nR,nT;
 };
 
-#endif // GRIDSOURCE_H
-#endif // header guard
+
+
+
+
+/** \brief an extended source radiating gaussian distributed ray in source size and aperture
+ *
+ *    The class has five specific parameters belonging to the SourceGroup
+ *     -----------------------------------------
+ *
+ *   Name of parameter | UnitType | Description
+ *   ----------------- | -------- | --------------
+ *   \b nRays | Dimensionless | number of rays to be generated
+ *   \b sigmaX | Distance | RMS source size in X direction
+ *   \b sigmaY | Distance | RMS source size in Y direction
+ *   \b sigmaXdiv | Angle | RMS source divergence in X direction
+ *   \b sigmaYdiv | Angle | RMS source divergence in Y direction
+ *  \note
+ *  All parameters are defined and store as double. nRays will be rounded to the nearest integer
+ */
+class GaussianSource: public virtual SourceBase
+{
+public:
+    /** Default constructor */
+    GaussianSource(string name="" ,Surface * previous=NULL);
+    /** Default destructor */
+    virtual ~GaussianSource(){}
+    virtual inline string getRuntimeClass(){return "Source<Gaussian>";}/**< return the derived class name ie. Source<XYGrid> */
+    virtual int generate(double wavelength);    /**< implementation of SourceBase::generate for GaussianSource() */
+    //public members
+
+};
+
+
+
+#endif // SOURCES_H
+
 

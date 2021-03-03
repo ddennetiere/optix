@@ -43,6 +43,7 @@ inline double oneMinusSqrt1MinusX(double x)
 }
 
 extern char LastError[256];
+extern bool OptiXError;
 
 /** \brief  set the global error message  to b retrieved by from the C interface
  *  \ingroup GlobalCpp
@@ -53,10 +54,12 @@ extern char LastError[256];
  */
 inline void SetOptiXLastError(string what, const char* filename, const char* funcname )
 {
-
+    OptiXError=true;
     sprintf(LastError, "%s in function %s of file %s", what.c_str(), funcname,funcname);
 
 }
+
+inline void ClearOptiXError() {OptiXError=false;}
 
 
 /** \brief Abstract base class of all optical elements, surfaces and groups
@@ -99,14 +102,24 @@ public:
 
     ElementBase(bool transparent=true, string name="", ElementBase* previous=NULL); /**< \brief default  constructor (Film) with explicit chaining to previous */
 
-    virtual ~ElementBase(){}    /**< \brief virtual destructor */
-
+    /** \brief virtual destructor
+     *
+     *  Clears the links of neighboring elements
+     */
+    virtual ~ElementBase()
+    {
+     //   cout << "destroying element " << m_name << endl;
+        if(m_next)
+            setNext(NULL);
+        if(m_previous)
+            setPrevious(NULL);
+    }
 
     virtual inline string getRuntimeClass(){return "Surface";}/**< \brief return the derived class name of this object */
 
     /** \brief Align this surface with respect to the main incident ray according to the parameters,
     *       \param wavelength the alignment wavelength (used by chromatic elements only)
-    *       \return  0 if alignment  is OK ; -1 if a grating can't be aligned
+    *       \return  0 if alignment  is OK ; -1 if a grating can't be aligned and OptiXLastError is set with the grating name
     *
     *   Surfaces are aligned in two times.
     *   *   definition of transforms between input exit and surface frames
@@ -121,7 +134,7 @@ public:
     virtual void propagate(RayType& ray)=0 ;/**< \param ray the propagated ray */
 
     inline void setName(string&& name ){m_name=name;} /**< \brief sets the element name for scripting */
-    inline string getName(){return m_name;}    /**<  \brief retrieves the element name for scripting */
+    inline string getName(){ return m_name;}    /**<  \brief retrieves the element name for scripting */
 
     /** \brief defines the preceeding element in the active chain
     *
@@ -133,7 +146,7 @@ public:
         {
             if(previous->m_next)
                 previous->m_next->m_previous=NULL;
-            m_previous->m_next=this;
+            previous->m_next=this;
         }
         m_previous=previous;
     }
@@ -151,7 +164,7 @@ public:
         {
             if(next->m_previous)
                 next->m_previous->m_next=NULL;
-            m_next->m_previous=this;
+            next->m_previous=this;
         }
         m_next=next;
     }
@@ -247,12 +260,18 @@ public:
     */
     virtual int setFrameTransforms(double wavelength)  ;
 
+    EIGEN_DEVICE_FUNC inline IsometryType& exitFrame(){return m_exitFrame;}  /**< \brief returns a reference to the space transform from laboratory oriented frame to exit space of this element */
+
     int alignFromHere(double wavelength);/**< \brief Align the whole surface chain;  stops at first error and return the error code
                             *    \return  0 if OK; the error code which stopped the alignment */
 
     bool isAligned();/**< \brief  returns true if all elements of the surface chain starting from here are aligned, false otherwise */
 
-    EIGEN_DEVICE_FUNC inline IsometryType& exitFrame(){return m_exitFrame;}  /**< \brief returns a reference to the space transform from laboratory oriented frame to exit space of this element */
+
+
+     bool isSource();/**< \brief Checks whether this element is a source (i.e. has a radiate() function )*/
+     ElementBase* getSource(); /**< \brief explore the element string to find the most upstream source from here  \return the most upstream source or NULL if there is none */
+
 
 
     friend TextFile& operator<<(TextFile& file,  ElementBase& elem);  /**< \brief Dump this Element object to a TextFile, in a human readable format  */

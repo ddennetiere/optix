@@ -17,7 +17,7 @@
 #
 #include <iostream>
 #include "opticalelements.h"
-#include "gridSource.h"
+#include "sources.h"
 #include <fstream>
 #include <float.h>
 #include "gratingbase.h"
@@ -158,6 +158,11 @@ int main()
 
    // source.setParameter("nYdiv", param);
     double wavelength=1e-9;
+    ElementBase* ps= film1.getSource();
+    if(ps==NULL)
+        cout << "No source found \n";
+    else
+        cout << "Source is " << ps->getName() << endl;
 
     source.alignFromHere(wavelength);
     source.generate(wavelength);
@@ -179,10 +184,12 @@ int main()
     {
         fstream spotfile("Spotdiag.sdg", ios::out | ios::binary);
         SpotDiagram spotDg;
+       // PlaneFilm screenCopy(film2);
         film2.getSpotDiagram(spotDg,0.00);
         spotfile << spotDg;
         spotfile.close();
     }
+
     {
         fstream causticFile("diagram.cdg", ios::out | ios::binary);
         CausticDiagram caustic;
@@ -226,6 +233,37 @@ int main()
     cout << "     " << film2.getName() << endl;
 
 
+
+    if(1)
+    {
+        Parameter param;
+
+        GaussianSource gSource("GaussSource") ;
+
+        source.clearImpacts();
+        source.setPrevious(&gSource);
+
+        cout << "  added " << gSource.getName() << endl;
+
+//        source.getParameter("distance",param);
+//        param.value=0.;
+//        mirror1.setParameter("distance", param);
+
+        gSource.alignFromHere(wavelength);
+        gSource.generate(wavelength);
+        gSource.radiate();
+
+        fstream spotfile("Spotdiag2.sdg", ios::out | ios::binary);
+        SpotDiagram spotDg;
+       // PlaneFilm screenCopy(film2);
+        film2.getSpotDiagram(spotDg,0.00);
+        spotfile << spotDg;
+        spotfile.close();
+
+        cout << "Spotdiag2.sdg saved \n";
+
+    }
+
     string strHelp, name;
     param.value=0.04;
 
@@ -246,36 +284,51 @@ int main()
     TextFile file;
     file.open("systemSave.data", ios::out);
 
-    file << source  << mirror1 << film1<< mirror2 << film2;
-  //  file.flush();
-    file.close();
 
-    TextFile infile("systemSave.data", ios::in);
-
-    string sClass, sName, sPrev,sNext;
-    while(!infile.eof())
+    if(file.is_open())
     {
 
-        infile >> sClass;
-        if(sClass.empty())
-            break;
-        infile >>sName >> sPrev >> sNext;
+        file << source << mirror1 << film1<< mirror2 << film2;
 
-        cout  << "class: "<< sClass << "  " << sName <<  endl;
-        cout  << "linked to : "<< sPrev << " & " << sNext <<  endl;
-  //      infile.ignore('\n'); // ignore to next endl
-        string paramName;
-        Parameter param;
-        infile >> paramName;
-        while(!paramName.empty())
+      //  file<< mirror1 << film1<< mirror2 << film2;
+        file.flush();
+        file.close();
+
+        cout << "SystemSave.data file saved\n";
+
+        TextFile infile("systemSave.data", ios::in);
+
+        string sClass, sName, sPrev,sNext;
+        while(!infile.eof())
         {
-            infile >> param;
-            cout << paramName << "  " << param.value <<" [" << param.bounds[0] <<", "<< param.bounds[1] <<"] x " << param.multiplier <<
-                    " T:" << param.type << " G:" << param.group << " F:0x"<< cout.hex << param.flags << cout.dec << endl;
-           infile >> paramName;
-        }
-        infile.ignore('\n');
-    };
+
+            infile >> sClass;
+            cout << sClass  <<endl;
+            if(sClass.empty())
+                break;
+            infile >>sName >> sPrev >> sNext;
+
+            cout  << "class: "<< sClass << "  " << sName <<  endl;
+            cout  << "linked to : "<< sPrev << " & " << sNext <<  endl;
+      //      infile.ignore('\n'); // ignore to next endl
+            string paramName;
+            Parameter param;
+            infile >> paramName;
+            while(!paramName.empty())
+            {
+                infile >> param;
+                cout << paramName << "  " << param.value <<" [" << param.bounds[0] <<", "<< param.bounds[1] <<"] x " << param.multiplier <<
+                        " T:" << param.type << " G:" << param.group << " F:0x"<< cout.hex << param.flags << cout.dec << endl;
+               infile >> paramName;
+            }
+            infile.ignore('\n');
+        };
+    }
+    else
+        cout << "could not open file for output\n";
+
+    if(0)
+    {
 
  //   Parameter param;
 //    ReadSolemioFile("R:\\Partage\\SOLEMIO\\DEIMOS-cpy.txt");
@@ -288,6 +341,7 @@ int main()
 //    ReadSolemioFile("R:\\Partage\\SOLEMIO\\DESIRSvraiM3coefAx3=62");
 //    ReadSolemioFile("R:\\Partage\\SOLEMIO\\AILES7");
 
+    }
 
     return 0;
 }

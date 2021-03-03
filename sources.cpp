@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 /**
-*      \file        gridSource.cpp
+*      \file        sources.cpp
 *
 *      \brief         implements the base mechanisms for sources
 *
@@ -14,7 +14,10 @@
 //             REVISIONS
 //
 ////////////////////////////////////////////////////////////////////////////////////
-#include "gridSource.h"
+#include "sources.h"
+# include <random>
+
+//   ----------------   XYGridSource implementation   --------------------------
 
 XYGridSource::XYGridSource(string name ,Surface * previous):Surface(true,name, previous)  // surface non réfléchissante
 {
@@ -48,7 +51,7 @@ XYGridSource::XYGridSource(string name ,Surface * previous):Surface(true,name, p
     setHelpstring("nYsize", "Number of steps in vertical 1/2 size");
 }
 
-/**< \todo if needed iterate the generation of upstream sources. Upstream direction is require since the impacts are cleared before generation*/
+/** \todo if needed iterate the generation of upstream sources. */
 int XYGridSource::generate(double wavelength)
 {
     Parameter param;
@@ -104,8 +107,7 @@ int XYGridSource::generate(double wavelength)
 }
 
 
-// Implementation of  RadialGridSource
-
+//   ----------------   RadialGridSource implementation   --------------------------
 
 
 RadialGridSource::RadialGridSource(string name ,Surface * previous):Surface(true,name, previous)
@@ -192,3 +194,84 @@ int RadialGridSource::generate(double wavelength)
 }
 
 
+
+//   ----------------   GaussianSource implementation   --------------------------
+
+
+GaussianSource::GaussianSource(string name ,Surface * previous):Surface(true,name, previous)
+{
+    cout << "creating Gaussian source " << name << endl;
+    Parameter param;
+    param.type=Dimensionless;
+    param.group=SourceGroup;
+    param.value=1000.;
+    defineParameter("nRays", param);  // 1000 points par défaut
+
+    param.type=Distance;
+    param.value=0;
+    defineParameter("sigmaX", param);  //
+    defineParameter("sigmaY", param);  // default sigma source = 0 (source ponctuelle)
+
+
+    param.type=Angle ;
+    param.value=0.35e-3;
+    defineParameter("sigmaXdiv", param); //
+    defineParameter("sigmaYdiv", param); // default round source dsigma div = 500 µrad
+
+
+    setHelpstring("nRays", " number of rays to be generated");  // complete la liste de infobulles de la classe Surface
+    setHelpstring("sigmaX", "RMS source size in X direction");
+    setHelpstring("sigmaY", "RMS source size in Y direction");
+    setHelpstring("sigmaXdiv", "RMS source divergence in X direction");
+    setHelpstring("sigmaYdiv", "RMS source divergence in y direction");
+
+}
+
+int GaussianSource::generate(double wavelength)
+{
+    int nRays;
+    FloatType sigmaX, sigmaY, sigmaXprim, sigmaYprim;
+
+    Parameter param;
+    getParameter("nRays",param);
+    nRays=lround(param.value);
+    getParameter("sigmaX", param);
+    sigmaX=param.value;
+    getParameter("sigmaY", param);
+    sigmaY=param.value;
+    getParameter("sigmaXdiv", param);
+    sigmaXprim=param.value;
+    getParameter("sigmaYdiv", param);
+    sigmaYprim=param.value;
+
+        normal_distribution<FloatType> gaussX(0.,sigmaX);
+
+        normal_distribution<FloatType> gaussY(0., sigmaY);
+
+        normal_distribution<FloatType> gaussXprim(0., sigmaXprim);
+
+        normal_distribution<FloatType> gaussYprim(0., sigmaYprim);
+
+    reserveImpacts(m_impacts.size() + nRays);
+    VectorType org=VectorType::Zero(),dir=VectorType::Zero();
+
+
+    random_device rd;
+    // if no clean enough use a mMersenne twister as mt19937 gen{rd()};
+    for(int i=0; i<nRays; ++ i)
+    {
+        org <<0, 0, 0;
+        if(sigmaX > 0)
+            org(0)=gaussX(rd);
+        if(sigmaY >0)
+            org(1)=gaussY(rd);
+        dir << 0, 0, 1.L;
+        if(sigmaXprim > 0)
+            dir(0)=gaussXprim(rd);
+        if(sigmaYprim > 0)
+            dir(1)=gaussYprim(rd);
+        m_impacts.emplace_back(RayBaseType(org,dir),wavelength); // amplitude set to 1 and S polar
+    }
+
+    return nRays;
+}

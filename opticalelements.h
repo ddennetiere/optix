@@ -134,8 +134,7 @@ typedef Grating<Poly1D,Toroid> ToroidalPoly1DGrating;
  *  \ingroup GlobalCpp
  * \param s_type The composite type of the element to be created
  * \param name The name of the element
- * \return  pointer to the base class  ElementBase
- * \todo check that the element is not duplicate
+ * \return  pointer to the base class  ElementBase; Throw ElementException id s_type is invalid
  */
  ElementBase* CreateElementObject(string s_type, string name);
 

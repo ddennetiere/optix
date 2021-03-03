@@ -123,9 +123,6 @@ public:
             m_next->propagate(ray);
     }
 
-     bool isSource();/**< \brief Checks whether this element is a source (i.e. has a radiate() function )*/
-     Surface* getSource(); /**< \brief explore the element string to find the most upstream source from here  \return the most upstream source or NULL if there is none */
-
     inline void setRecording(RecordMode rflag){m_recording=rflag;} /**< \brief Sets the impact recording mode for the surface */
     inline RecordMode getRecording(){return m_recording;} /**< \brief Gets the impact recording mode of the surface */
 

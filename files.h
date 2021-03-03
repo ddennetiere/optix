@@ -217,7 +217,7 @@ inline fstream& operator<<(fstream& file, DiagramType<Vsize>& diagram )
     streamsize bytes=Vsize*sizeof(double)*diagram.m_count;
 //    int vecSize=Vsize;
 //    file.write((char*)&vecSize, sizeof(int));
-    file.write((char*)&diagram, 2*sizeof(int)+ 4*Vsize*sizeof(double));
+    file.write((char*)&diagram, 4*sizeof(int)+ 4*Vsize*sizeof(double));
     file.write((char*)diagram.m_spots, bytes);
     return file;
 }

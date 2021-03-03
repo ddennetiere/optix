@@ -105,15 +105,18 @@ public:
         value(newvalue), multiplier(newmultiplier), type(newtype){bounds[0]=bounds[1]=value;}
 };
 
-/** \brief Structure to hold spot diagrams
+/** \brief Structure to hold spot and caustic diagrams
  *
- * each spot records the ray position and dircetion with 4 numers X, Y, dX/dZ, dY/dZ*/
+ * For spot diagrams, each spot records the ray position and dircetion with 4 numers X, Y, dX/dZ, dY/dZ
+ * \n For caustic diagrams, each spot records
+ */
 template<int Vsize>
-class DiagramType{
+class DiagramType{  // if this structure is changed, mind it is aligned on 8 byte boundaries
 public:
-    int m_dim=Vsize;
+    int m_dim=Vsize; /**<  number of components stored in each spot vector */
     int m_count;    /**< number of point in the spot diagram */
-    int m_lostCount=0;
+    int m_lost=0;  /**< Number of ray lost in propagation from source */
+    int m_dropped=0;   /**< Number of ray dropped in caustic evaluation when angle is too small (caustic data only) */
     double m_min[Vsize];    /**< minimum values of the 4 components X, Y, dX/dZ, dY/dZ */
     double m_max[Vsize];    /**< maximum values of the 4 components  */
     double m_mean[Vsize];   /**< average value of each of the 4 components */

@@ -15,7 +15,7 @@
 //
 ////////////////////////////////////////////////////////////////////////////////////
 #include "opticalelements.h"
-#include "gridSource.h"   /**< \todo create a source.h file for including all sources at once */
+#include "sources.h"   /**< \todo create a source.h file for including all sources at once */
 
 template class Mirror<Plane>;
 template class Mirror<Sphere>;
@@ -40,11 +40,15 @@ template class Grating<Poly1D,Toroid>;
 ElementBase* CreateElementObject(string s_type, string name)
 {
     ElementBase*  elem=NULL;
-    if (s_type=="XYGridSource")
+
+    if (s_type=="Source<XYGrid>" || s_type=="XYGridSource")
     elem=new XYGridSource(name);
 
-    else if (s_type=="RadialGridSource")
+    else if (s_type=="Source<RadialGrid>" || s_type=="RadialGridSource")
         elem= new RadialGridSource(name);
+
+    else if (s_type=="Source<Gaussian>" || s_type=="GaussianSource")
+        elem= new GaussianSource(name);
 
     else if (s_type=="Mirror<Plane>" || s_type=="PlaneMirror")
         elem= new Mirror<Plane>(name);

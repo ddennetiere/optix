@@ -99,7 +99,10 @@ int GratingBase::setFrameTransforms(double alWavelength)         /**< \todo to b
 
         G/=(2.*sin(theta)); // angle=theta  (la formule est identique en x et en Z
         if(abs(G(0)) >1. || abs(G(2))>1.)
+        {
+            SetOptiXLastError(getName()+" grating cannot diffract the given wavelength in the given direction", __FILE__, __func__);
             return -1;  // cannot align
+        }
         chi=asin(G(0));
         omega=asin(G(2));
 

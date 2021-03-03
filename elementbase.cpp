@@ -13,6 +13,7 @@
 
 
 #include "elementbase.h"
+#include "sourcebase.h"
 
 
 map<string, string> ElementBase::m_helpstrings;
@@ -21,6 +22,8 @@ int ElementBase::m_nameIndex=0;
 FloatType ElementBase::m_FlipSurfCoefs[]={0, 0, 1, 0,  1, 0, 0, 0,  0, 1, 0, 0,   0, 0, 0, 1 };
 
 char LastError[256];
+bool OptiXError=false;
+
 //char* LastError=LastErrorBuffer;
 
 
@@ -175,23 +178,46 @@ bool ElementBase::isAligned()/**< Eventuellement retourner le pointeur du 1er él
         return true;
 }
 
+ bool ElementBase::isSource()
+{
+    if(dynamic_cast<SourceBase*>(this))
+        return true;
+    else
+        return false;
+}
+
+ElementBase* ElementBase::getSource()
+{
+    SourceBase * pSource=NULL, *ps;
+    ElementBase* pSurf=m_previous;
+    while(pSurf)
+    {
+        ps=dynamic_cast<SourceBase*>(pSurf);
+        if(ps)
+            pSource=ps;
+        pSurf=pSurf->getPrevious();
+    }
+    return pSource;
+}
+
+
 
 TextFile& operator<<(TextFile& file,  ElementBase& elem)
 {
+    string namestr;
     file << elem.getRuntimeClass(); // <<'\0';
     file << elem.m_name;
+
     if(elem.m_previous)
-        file << elem.m_previous->getName() ;
+        file << elem.m_previous->getName();
     else
         file << string();
-
 
     if(elem.m_next)
         file << elem.m_next->getName();
     else
         file << string();
 //    file << '\0';
-
 
     map<string,Parameter>::iterator it;
     for(it=elem.m_parameters.begin(); it != elem.m_parameters.end(); ++it)

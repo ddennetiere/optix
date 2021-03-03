@@ -13,7 +13,7 @@
 
 
 #include "surface.h"
-#include "sourcebase.h"
+//#include "sourcebase.h"
 #include "wavefront.h"
 
 
@@ -51,7 +51,13 @@ void Surface::clearImpacts()
 {
     m_impacts.clear();
     if(m_next!=NULL)
-        dynamic_cast<Surface*>(m_next)->clearImpacts();
+    {
+        Surface* psurf=dynamic_cast<Surface*>(m_next);
+        if(psurf)
+            psurf->clearImpacts();
+        else    //this is a group
+            throw ElementException("Group object not implemented", __FILE__,__func__);  // should call here clearImpacts of the group class
+    }
 }
 
 void Surface::reserveImpacts(int n)
@@ -104,7 +110,7 @@ int Surface::getSpotDiagram(SpotDiagram& spotDiagram, double distance)
         delete[] spotDiagram.m_spots;
 
     vector<RayType> impacts;
-    spotDiagram.m_lostCount=getImpacts(impacts,AlignedLocalFrame);
+    spotDiagram.m_lost=getImpacts(impacts,AlignedLocalFrame);
     spotDiagram.m_count=impacts.size();
     if(! spotDiagram.m_count)
     {
@@ -144,10 +150,10 @@ int Surface::getSpotDiagram(SpotDiagram& spotDiagram, double distance)
 int Surface::getCaustic(CausticDiagram& causticData)
 {
     if(causticData.m_spots)
-    delete[] causticData.m_spots;
+        delete[] causticData.m_spots;
 
     vector<RayType> impacts;
-    causticData.m_lostCount=getImpacts(impacts,AlignedLocalFrame);
+    causticData.m_lost=getImpacts(impacts,AlignedLocalFrame);
     if(impacts.size()==0)
     {
         causticData.m_spots=NULL;
@@ -160,11 +166,17 @@ int Surface::getCaustic(CausticDiagram& causticData)
     //              donc t=(Pz+ P.U Uz  )(1-Uz^2)
 
     vector<RayType>::iterator pRay;
+    causticData.m_dropped=0;
     Index ip;
     for(ip=0, pRay=impacts.begin(); pRay!=impacts.end(); ++pRay)
     {
         long double Ut2 = pRay->direction()[0]*pRay->direction()[0] + pRay->direction()[1]*pRay->direction()[1];
-        if(Ut2 < 1e-12) continue;   //skip too small angles
+        if(Ut2 < 1e-12)
+        {
+            ++causticData.m_dropped;
+            continue;   //skip too small angles
+        }
+        // clacule l'éloignement du point où le rayon est le plus proche de l'axe d'alignement (OZ dans le repère local)
         long double t=(pRay->position()[2] +  pRay->position().dot(pRay->direction())* pRay->direction()[2])/ Ut2;
         causticMat.col(ip)=pRay->position(t).cast<double>();
         ++ip;
@@ -193,7 +205,7 @@ int Surface::getWavefrontData(SpotDiagram& WFdata, double distance)
     delete[] WFdata.m_spots;
 
     vector<RayType> impacts;
-    WFdata.m_lostCount=getImpacts(impacts,AlignedLocalFrame);
+    WFdata.m_lost=getImpacts(impacts,AlignedLocalFrame);
 
     if(impacts.size()==0)
     {
@@ -281,24 +293,3 @@ EIGEN_DEVICE_FUNC MatrixXd Surface::getWavefontExpansion(double distance, Index 
 //    return file;
 //}
 
- bool Surface::isSource()
-{
-    if(dynamic_cast<SourceBase*>(this))
-        return true;
-    else
-        return false;
-}
-
-Surface* Surface::getSource()
-{
-    SourceBase * pSource=NULL, *ps;
-    ElementBase* pSurf=m_previous;
-    while(pSurf)
-    {
-        ps=dynamic_cast<SourceBase*>(pSurf);
-        if(ps)
-            pSource=ps;
-        pSurf=pSurf->getPrevious();
-    }
-    return pSource;
-}
