@@ -23,9 +23,9 @@
 #include <complex>
 
 
-/** \brief  implement Raybase class and provides metadata such as photometric information
+/** \brief  implement Raybase class and provides wavelength and metadata such as photometric information
  *
- *
+ * Currently only the wavelength is used. Other metadata are ignored
  */
 template <typename scalar>
 class Ray:public RayBase<scalar>{

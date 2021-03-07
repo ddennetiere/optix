@@ -28,6 +28,16 @@
 #include "holo.h"
 
 
+
+typedef map<ElementBase *, ElementBase*> ElementCopyMap;
+struct ChainCopy
+{
+    ElementBase * First=NULL;
+    ElementCopyMap copyMap;
+    ~ChainCopy();
+};
+
+
 /** \class Mirror
  *  \brief  Mirror template class
  *  \tparam SShape a shape class derived from surface mainly  providing the intercept() function, with  specific définitions of the surface shape
@@ -50,10 +60,10 @@ public:
     }
 } ;
 
-typedef Mirror<Plane> PlaneMirror;          /**< implements a reflective plane surface */
-typedef Mirror<Sphere> SphericalMirror ;    /**< implements a reflective spherical surface */
-typedef Mirror<Cylinder> CylindricalMirror; /**< implements a reflective cylindrical surface */
-typedef Mirror<Toroid> ToroidalMirror;      /**< implements a reflective toroidal surface */
+typedef Mirror<Plane> PlaneMirror;          /**< \brief implements a reflective plane surface */
+typedef Mirror<Sphere> SphericalMirror ;    /**< \brief implements a reflective spherical surface */
+typedef Mirror<Cylinder> CylindricalMirror; /**< \brief implements a reflective cylindrical surface */
+typedef Mirror<Toroid> ToroidalMirror;      /**< \brief implements a reflective toroidal surface */
 
 
 
@@ -80,10 +90,10 @@ public:
     }
 } ;
 
-typedef Film<Plane> PlaneFilm;           /**< implements a plane film */
-typedef Film<Sphere> SphericalFilm ;     /**< implements a spherical film*/
-typedef Film<Cylinder> CylindricalFilm;  /**< implements a cylindrical film*/
-typedef Film<Toroid> ToroidalFilm;       /**< implements a toroidal film */
+typedef Film<Plane> PlaneFilm;           /**< \brief implements a plane film */
+typedef Film<Sphere> SphericalFilm ;     /**< \brief implements a spherical film*/
+typedef Film<Cylinder> CylindricalFilm;  /**< \brief implements a cylindrical film*/
+typedef Film<Toroid> ToroidalFilm;       /**< \brief implements a toroidal film */
 
 
 /** \class Grating
@@ -121,14 +131,14 @@ public:
 
 } ;
 
-typedef Grating<Holo,Plane> PlaneHoloGrating;
-typedef Grating<Holo,Sphere> SphericalHoloGrating;
-typedef Grating<Holo,Cylinder> CylindricalHoloGrating;
-typedef Grating<Holo,Toroid> ToroidalHoloGrating;
-typedef Grating<Poly1D,Plane> PlanePoly1DGrating;
-typedef Grating<Poly1D,Sphere> SphericalPoly1DGrating;
-typedef Grating<Poly1D,Cylinder> CylindricalPoly1DGrating;
-typedef Grating<Poly1D,Toroid> ToroidalPoly1DGrating;
+typedef Grating<Holo,Plane> PlaneHoloGrating;           /**< \brief implements a plane holographic grating */
+typedef Grating<Holo,Sphere> SphericalHoloGrating;      /**< \brief implements a spherical holographic grating */
+typedef Grating<Holo,Cylinder> CylindricalHoloGrating;  /**< \brief implements a cylindrical holographic grating */
+typedef Grating<Holo,Toroid> ToroidalHoloGrating;       /**< \brief implements a toroidal holographic grating */
+typedef Grating<Poly1D,Plane> PlanePoly1DGrating;       /**< \brief implements a plane polynomial grating */
+typedef Grating<Poly1D,Sphere> SphericalPoly1DGrating;  /**< \brief implements a spherical polynomial grating */
+typedef Grating<Poly1D,Cylinder> CylindricalPoly1DGrating; /**< \brief implements a cylindrical polynomial grating */
+typedef Grating<Poly1D,Toroid> ToroidalPoly1DGrating;      /**< \brief implements a toroidal polynomial grating */
 
 /** \brief  Creates a new element of the given type and returns it as a pointer to the base class  ElementBase
  *  \ingroup GlobalCpp
@@ -142,15 +152,20 @@ typedef Grating<Poly1D,Toroid> ToroidalPoly1DGrating;
  *  \ingroup GlobalCpp
  *
  * \param pelem ElementBase* a pointer to the grating to modify (will fail if element is not a grating)
+ * \param trans = true to define a transmission grating and false for a reflection grating
  * \return true for success , false for failure
  *
+ * by default gratings are created reflective
  */
-inline  bool MakeGratingTransmissive(ElementBase* pelem)
+inline  bool MakeGratingTransmissive(ElementBase* pelem, bool trans=true )
 {
    if(pelem->getRuntimeClass().compare(0,8,"Grating<" )!=0)
         return false;
-   pelem->setTransmissive(true);
+   pelem->setTransmissive(trans);
    return true;
 }
+
+ElementBase* ElementCopy(ElementBase* source);
+bool DuplicateChain(ElementBase * source, ChainCopy& newChain);
 
 #endif // OPTICALELEMENTS_H_INCLUDED

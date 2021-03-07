@@ -104,7 +104,7 @@ int Surface::getImpacts(vector<RayType> &impacts, FrameID frame)
     return lostCount;
 }
 
-int Surface::getSpotDiagram(SpotDiagram& spotDiagram, double distance)
+int Surface::getSpotDiagram(SpotDiagramExt& spotDiagram, double distance)
 {
     if(spotDiagram.m_spots)
         delete[] spotDiagram.m_spots;
@@ -118,23 +118,24 @@ int Surface::getSpotDiagram(SpotDiagram& spotDiagram, double distance)
         return 0;
     }
     else
-        spotDiagram.m_spots=new double[4*spotDiagram.m_count];
+        spotDiagram.m_spots=new double[spotDiagram.m_dim *spotDiagram.m_count];
 
-    Map<Matrix<double,4, Dynamic> > spotMat(spotDiagram.m_spots, 4,  spotDiagram.m_count);
-    Map<Vector4d> vMean(spotDiagram.m_mean),vSigma(spotDiagram.m_sigma);
-    Map<Vector4d> vMin(spotDiagram.m_min), vMax(spotDiagram.m_max);
+    Map<Matrix<double,Dynamic, Dynamic> > spotMat(spotDiagram.m_spots, spotDiagram.m_dim,  spotDiagram.m_count);
+    Map<VectorXd> vMean(spotDiagram.m_mean, spotDiagram.m_dim),vSigma(spotDiagram.m_sigma,spotDiagram.m_dim);
+    Map<VectorXd> vMin(spotDiagram.m_min,spotDiagram.m_dim), vMax(spotDiagram.m_max,spotDiagram.m_dim);
 
     vector<RayType>::iterator pRay;
 
     RayType::PlaneType obsPlane(VectorType::UnitZ(), -distance);  // equation UnitZ*X - distance =0
     Index ip;
-    for(ip=0, pRay=impacts.begin(); pRay!=impacts.end(); ++pRay)  /// \todo Gérer la validité des rayons dans getSpotDiagram()
+    for(ip=0, pRay=impacts.begin(); pRay!=impacts.end(); ++pRay)
     {
         if(pRay->m_alive)
         {
             pRay->moveToPlane(obsPlane);
             spotMat.block<2,1>(0,ip)=pRay->position().segment(0,2).cast<double>();
             spotMat.block<2,1>(2,ip)=pRay->direction().segment(0,2).cast<double>();
+            spotMat(4,ip)=pRay->m_wavelength;
             ++ip;
         }
     }
@@ -160,7 +161,7 @@ int Surface::getCaustic(CausticDiagram& causticData)
         return 0;
     }
 
-    Array3Xd causticMat(3,impacts.size() );
+    ArrayXXd causticMat(causticData.m_dim,impacts.size() );
 
     //  minimum de distance à l'axe oz   param t= (DP.U0 + DP.U U0.U) (1-U0.U^2)  avec U0=UnitZ DP =(P-P0)= P
     //              donc t=(Pz+ P.U Uz  )(1-Uz^2)
@@ -176,17 +177,18 @@ int Surface::getCaustic(CausticDiagram& causticData)
             ++causticData.m_dropped;
             continue;   //skip too small angles
         }
-        // clacule l'éloignement du point où le rayon est le plus proche de l'axe d'alignement (OZ dans le repère local)
+        // calcule l'éloignement du point où le rayon est le plus proche de l'axe d'alignement (OZ dans le repère local)
         long double t=(pRay->position()[2] +  pRay->position().dot(pRay->direction())* pRay->direction()[2])/ Ut2;
-        causticMat.col(ip)=pRay->position(t).cast<double>();
+        causticMat.block<3,1>(0,ip)=pRay->position(t).cast<double>();
+        causticMat(3,ip)=pRay->m_wavelength;
         ++ip;
     }
     causticData.m_count=ip;
     causticMat.conservativeResize(NoChange, ip);
-    causticData.m_spots=new double[3*ip];
-    Map<Array<double,3, Dynamic> > spotMat(causticData.m_spots, 3,  ip);
-    Map<Vector3d> vMean(causticData.m_mean),vSigma(causticData.m_sigma);
-    Map<Vector3d> vMin(causticData.m_min), vMax(causticData.m_max);
+    causticData.m_spots=new double[causticData.m_dim*ip];
+    Map<Array<double,Dynamic, Dynamic> > spotMat(causticData.m_spots, causticData.m_dim,  ip);
+    Map<VectorXd> vMean(causticData.m_mean, causticData.m_dim),vSigma(causticData.m_sigma, causticData.m_dim);
+    Map<VectorXd> vMin(causticData.m_min,causticData.m_dim), vMax(causticData.m_max, causticData.m_dim);
 
     vMin=causticMat.rowwise().minCoeff();
     vMax=causticMat.rowwise().maxCoeff();
@@ -199,7 +201,7 @@ int Surface::getCaustic(CausticDiagram& causticData)
 }
 
 
-int Surface::getWavefrontData(SpotDiagram& WFdata, double distance)
+int Surface::getWavefrontData(SpotDiagramExt& WFdata, double distance)
 {
     if(WFdata.m_spots)
     delete[] WFdata.m_spots;
@@ -214,17 +216,20 @@ int Surface::getWavefrontData(SpotDiagram& WFdata, double distance)
     }
 
     VectorType referencePoint= VectorType::UnitZ()*distance;
-    Array4Xd WFmat(4,impacts.size() );
+    Array4Xd WFmat(WFdata.m_dim, impacts.size() );
 
     vector<RayType>::iterator pRay;
     Index ip;
     for(ip=0, pRay=impacts.begin(); pRay!=impacts.end(); ++pRay, ++ip)
     {
-
+        //On calcule la projectiondu point de référence sur chaque rayon. C'est l'écart aberrant.
+        // celui-ci est ensuite projeté sur les deux directions de référence du plan normal à chaque rayon,
+        // pour être ensuite égalées au dérivées du front d'onde par rapport aux angles d'ouverture
         VectorType delta=pRay->projection(referencePoint)-referencePoint;
         WFmat(0,ip)= (delta(0)*pRay->direction()(2)- delta(2)*pRay->direction()(0) ) /sqrtl(1.L-pRay->direction()(1)*pRay->direction()(1));
         WFmat(1,ip)= (delta(1)*pRay->direction()(2)- delta(2)*pRay->direction()(1) ) /sqrtl(1.L-pRay->direction()(0)*pRay->direction()(0));
         WFmat.block<2,1>(2,ip)= pRay->direction().segment(0,2).cast<double>();
+        WFmat(4,ip)=pRay->m_wavelength;
     }
     return ip;
 }
@@ -243,7 +248,7 @@ EIGEN_DEVICE_FUNC MatrixXd Surface::getWavefontExpansion(double distance, Index 
 
     vector<RayType>::iterator pRay;
     Index ip;
-    // on charge dans le tableau slope mat
+    // on charge dans le tableau slope mat (cf GetWavefrontData mais attention c'est la transposée de la fonction précédente)
     // dans les colonnes 0 et 1, l'aberration transverse selon x et y (dans le plan perpendiculaire au rayon)
     // dans les colonnes 2 et 4 les coefficient directeur de la direction du rayon
     for(ip=0, pRay=impacts.begin(); pRay!=impacts.end(); ++pRay, ++ip)
@@ -254,7 +259,7 @@ EIGEN_DEVICE_FUNC MatrixXd Surface::getWavefontExpansion(double distance, Index 
         slopeMat(ip,1)= (delta(1)*pRay->direction()(2)- delta(2)*pRay->direction()(1) ) /sqrtl(1.L-pRay->direction()(0)*pRay->direction()(0));
         slopeMat.block<1,2>(ip,2)= pRay->direction().segment(0,2).cast<double>();
     }
-    XYbounds.row(0)=slopeMat.block(0,2,ip,2).colwise().minCoeff(); // ici il est permis de faire min max sur les bvaleurs passées dans XY bounds
+    XYbounds.row(0)=slopeMat.block(0,2,ip,2).colwise().minCoeff(); // ici il est permis de faire min max sur les valeurs passées dans XY bounds
     XYbounds.row(1)=slopeMat.block(0,2,ip,2).colwise().maxCoeff();
 
     cout << "bounds\n" <<XYbounds.col(0).transpose() << endl<< XYbounds.col(1).transpose() << endl;
@@ -264,32 +269,5 @@ EIGEN_DEVICE_FUNC MatrixXd Surface::getWavefontExpansion(double distance, Index 
     return LegendreCoefs;
 }
 
-// supprimée car fait double embloi avec la meme fonction dans ElementBase
-//
-//TextFile& operator<<(TextFile& file,  Surface& surface)
-//{
-//    file << surface.getRuntimeClass(); // <<'\0';
-//    file << surface.m_name;
-//    if(surface.m_previous)
-//        file << surface.m_previous->getName() ;
-//    else
-//        file << string();
-//
-//
-//    if(surface.m_next)
-//        file << surface.m_next->getName();
-//    else
-//        file << string();
-////    file << '\0';
-//
-//
-//    map<string,Parameter>::iterator it;
-//    for(it=surface.m_parameters.begin(); it != surface.m_parameters.end(); ++it)
-//    {
-//        file << it->first  ;
-//        file << it->second;
-//    }
-//    file << '\0' << '\n';
-//    return file;
-//}
+
 

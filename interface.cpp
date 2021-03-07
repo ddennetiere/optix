@@ -80,7 +80,7 @@ public:
 } ;
 
 
-/** \brief class managing a vector of C_strings
+/** \brief class managing a vector of C_strings (unused)
  */
 class StringVector:public vector<char*>
 {
@@ -280,12 +280,12 @@ extern "C"
         if(!elprev)
         {
             if(elnext)
-                elnext->setPrevious(NULL);
+                elnext->chainPrevious(NULL);
             else
                 return false;
         }
         else
-            elprev->setNext(elnext);
+            elprev->chainNext(elnext);
         return true;
     }
 
@@ -295,7 +295,7 @@ extern "C"
         {
             if(nextID!=0 && IsValidID(nextID))
             {
-                ((ElementBase*)nextID)->setPrevious(NULL);
+                ((ElementBase*)nextID)->chainPrevious(NULL);
                 return true;
             }
             else
@@ -305,9 +305,9 @@ extern "C"
             return false;
 
         if(nextID==0)
-            ((ElementBase*)prevID)->setNext(NULL);
+            ((ElementBase*)prevID)->chainNext(NULL);
         else
-            ((ElementBase*)prevID)->setNext((ElementBase*)nextID);
+            ((ElementBase*)prevID)->chainNext((ElementBase*)nextID);
 
         return true;
 
@@ -571,7 +571,7 @@ extern "C"
             if(file.fail())
                 { SetOptiXLastError("File reading error",__FILE__,__func__);  return false; }
             if(!sNext.empty() )   // inutile d'agir si sNext empty; les nouvelles surfaces ont tous leurs liens nuls
-                System.find(sName)->second->setNext(System.find(sNext)->second); // ces deux ElementBases existent; elles viennent d'être créées.
+                System.find(sName)->second->chainNext(System.find(sNext)->second); // ces deux ElementBases existent; elles viennent d'être créées.
 
             file.ignore('\n'); // skip prameters
         }

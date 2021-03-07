@@ -21,23 +21,23 @@
 
 #include "ray.h"
 
-typedef long double FloatType ;
-typedef Ray<FloatType>  RayType;
-typedef RayBase<FloatType>  RayBaseType;
+typedef long double FloatType ;/**< \brief the base type of all floating type ray tracing computation of the library */
+typedef Ray<FloatType>  RayType;/**< \brief Complete ray with wavelength and metadata (photometric and polar weights) */
+typedef RayBase<FloatType>  RayBaseType;  /**< \brief base  class of rays for intercept and propagation computations  */
 
 /**
 *   \ingroup enums
 *   \brief Unit category
  */
 enum UnitType:int32_t{
-    Dimensionless =0,   /**< dparameter is dimensionless  */
+    Dimensionless =0,   /**< parameter is dimensionless  */
     Angle =1,           /**< parameter is an angle  */
     Distance=2,         /**< parameter is a distance  */
-    InverseDistance=-1,  /**< parameter is the inverse of a distance */
-    DistanceMoins1=-1,
-    DistanceMoins2=-2,
-    DistanceMoins3=-3,
-    DistanceMoinsN=-4
+    InverseDistance=-1, /**< parameter is the inverse of a distance */
+    DistanceMoins1=-1,  /**< parameter is the inverse of a distance (line density of poly gratings)*/
+    DistanceMoins2=-2,  /**< parameter is the inverse of a squared distance (poly gratings) */
+    DistanceMoins3=-3,  /**< parameter is the inverse of a cubed distance (poly gratings) */
+    DistanceMoinsN=-4   /**< parameter is the inverse of the Nth power of a distance (poly gratings) */
 };
 
 /** \ingroup enums
@@ -107,21 +107,21 @@ public:
 
 /** \brief Structure to hold spot and caustic diagrams
  *
- * For spot diagrams, each spot records the ray position and dircetion with 4 numers X, Y, dX/dZ, dY/dZ
- * \n For caustic diagrams, each spot records
+ * For spot diagrams (\ref SpotDiagram) each spot records the ray position and direction with 4 numers X, Y, dX/dZ, dY/dZ
+ * \n For caustic diagrams (\ref CausticDiagram), each spot records the position on the ray (X,Y,Z) which has the minimum distance to the alignment chief ray
  */
 template<int Vsize>
 class DiagramType{  // if this structure is changed, mind it is aligned on 8 byte boundaries
 public:
-    int m_dim=Vsize; /**<  number of components stored in each spot vector */
-    int m_count;    /**< number of point in the spot diagram */
-    int m_lost=0;  /**< Number of ray lost in propagation from source */
-    int m_dropped=0;   /**< Number of ray dropped in caustic evaluation when angle is too small (caustic data only) */
-    double m_min[Vsize];    /**< minimum values of the 4 components X, Y, dX/dZ, dY/dZ */
-    double m_max[Vsize];    /**< maximum values of the 4 components  */
-    double m_mean[Vsize];   /**< average value of each of the 4 components */
-    double m_sigma[Vsize];  /**< RMS value of each of the 4 components */
-    double* m_spots;    /**<  The  4 x m_count  array of the spot vectors (in component major order) */
+    const int m_dim=Vsize; /**< \brief number of components stored in each spot vector */
+    int m_count;    /**< \brief number of point in the spot diagram */
+    int m_lost=0;  /**< \brief number of ray lost in propagation from source */
+    int m_dropped=0;   /**< \brief number of ray dropped in caustic evaluation when angle is too small (caustic data only) */
+    double m_min[Vsize];    /**< \brief minimum values of the (Vsize) components (X, Y, dX/dZ, dY/dZ  or X, Y Z) */
+    double m_max[Vsize];    /**< \brief maximum values of the (Vsize) components  */
+    double m_mean[Vsize];   /**< \brief average value of each of the (Vsize) components */
+    double m_sigma[Vsize];  /**< \brief RMS value of each of the (Vsize) components */
+    double* m_spots;    /**<  \brief The   (Vsize) x m_count  array of the spot vectors (in component major order) */
 // methods
     DiagramType():m_count(0),m_spots(NULL){}
     DiagramType(int n):m_count(n), m_spots(new double[Vsize*n]){}
@@ -142,7 +142,22 @@ struct C_WFtype{
   size_t m_dataSize[2];     /**< dimensions of the mapped array in order nX, nY */
 };
 
-typedef DiagramType<4> SpotDiagram;
-typedef DiagramType<3> CausticDiagram;
+struct C_DiagramStruct
+{
+    static const int m_dim; /**< \brief number of components stored in each spot vector. Must be set by the calling program*/
+    int m_count;    /**< \brief number of point in the spot diagram */
+    int m_lost=0;  /**< \brief number of ray lost in propagation from source */
+    int m_dropped=0;   /**< \brief number of ray dropped in caustic evaluation when angle is too small (caustic data only) */
+    double* m_min;    /**< \brief minimum values of the (Vsize) components (X, Y, dX/dZ, dY/dZ  or X, Y Z) */
+    double* m_max;    /**< \brief maximum values of the (Vsize) components  */
+    double* m_mean;   /**< \brief average value of each of the (Vsize) components */
+    double* m_sigma;  /**< \brief RMS value of each of the (Vsize) components */
+    double* m_spots;    /**<  \brief The   (Vsize) x m_count  array of the spot vectors (in component major order) */
+};
+
+
+typedef DiagramType<4> SpotDiagram;  /**< \brief Storage data structure of spot-diagrams */
+typedef DiagramType<5> SpotDiagramExt;  /**< \brief Storage data structure of spot-diagrams + wavelength*/
+typedef DiagramType<4> CausticDiagram; /**< \brief Storage data structure of caustic diagrams */
 
 #endif // TYPES_H_INCLUDED

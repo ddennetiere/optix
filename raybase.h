@@ -1,3 +1,6 @@
+#ifndef HEADER_E50CE6B62C615030
+#define HEADER_E50CE6B62C615030
+
 ////////////////////////////////////////////////////////////////////////////////
 /**
 *      \file           raybase.h
@@ -30,7 +33,7 @@ using namespace Eigen;
 
 /** \brief  base class for rays and ray propagation
  *
- */
+ *  This is a specialization of Eigen::Parametrizedline defining an origin and a currentpoint */
 template <typename scalar>
 class RayBase : protected ParametrizedLine<scalar,3>
 {
@@ -334,3 +337,5 @@ typedef RayBase<long double> Rayld;
 typedef RayBase<double> Rayd;
 
 #endif // RAYBASE_H
+#endif // header guard 
+

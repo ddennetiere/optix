@@ -104,15 +104,15 @@ public:
 
     /** \brief virtual destructor
      *
-     *  Clears the links of neighboring elements
+     *  Clears the links of neighboring and parent elements
      */
     virtual ~ElementBase()
     {
      //   cout << "destroying element " << m_name << endl;
         if(m_next)
-            setNext(NULL);
+            chainNext(NULL);
         if(m_previous)
-            setPrevious(NULL);
+            chainPrevious(NULL);
     }
 
     virtual inline string getRuntimeClass(){return "Surface";}/**< \brief return the derived class name of this object */
@@ -136,10 +136,14 @@ public:
     inline void setName(string&& name ){m_name=name;} /**< \brief sets the element name for scripting */
     inline string getName(){ return m_name;}    /**<  \brief retrieves the element name for scripting */
 
+    inline void setPrevious(ElementBase* previous) {m_previous=previous;}
+    inline void setNext(ElementBase* next){m_next=next;}
+    inline void setParent(ElementBase* parent){m_parent=parent;}
+
     /** \brief defines the preceeding element in the active chain
     *
     *  \param previous pointer to the previous element; if NULL  the element should be a  source otherwise the chain will not be activable */
-     inline void setPrevious(ElementBase* previous)  { // virtual qualifier withdrawn //  sources need a special treatment
+     inline void chainPrevious(ElementBase* previous)  { // virtual qualifier withdrawn //  sources need a special treatment
         if(m_previous == previous) return;
         if(m_previous) m_previous->m_next=NULL;
         if(previous)
@@ -156,7 +160,7 @@ public:
     /** \brief defines the next element in the active chain
     *
     *  \param next pointer to the next element; if  left NULL  the element will be the last of the active chain*/
-    inline void setNext(ElementBase* next)
+    inline void chainNext(ElementBase* next)
     {
         if(m_next == next) return;
         if(m_next)  m_next->m_previous=NULL;
@@ -169,7 +173,18 @@ public:
         m_next=next;
     }
 
-      inline ElementBase* getNext(){ return m_next;}
+    /** \brief Retrieves the next element in the active chain
+     *
+     * \return a pointer toe the element following this one in the chain, or 0 if this is the last one.
+     */
+    inline ElementBase* getNext(){ return m_next;}
+
+    /** \brief Retrieves the parent element
+     *
+     * \return a pointer to the parent element which must be a group (not yet implemented, or 0 if this element is not part of a group
+     *
+     */
+    inline ElementBase* getParent(){ return m_parent;}
 
 
     /** \brief removes this element- from the active chain
@@ -302,6 +317,7 @@ protected:
     string m_name;   /**< \brief  an identification name for calling this surface from scripts  */
     ElementBase* m_previous; /**<  \brief the previous element in the surface chain */
     ElementBase* m_next; /**<  \brief the next element in the surface chain */
+    ElementBase* m_parent;
     map<string,Parameter> m_parameters;   /**<  \brief tagged parameters of the surface.  */
 
 // surface secondary parameters build during alignment

@@ -3,7 +3,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 /**
-*      \file           gridSource.h
+*      \file           sources.h
 *
 *      \brief         sources emitting a limited number of drays on a prededined grid
 *

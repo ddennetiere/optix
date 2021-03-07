@@ -29,7 +29,7 @@ bool OptiXError=false;
 
 
 ElementBase::ElementBase(bool transparent, string name, ElementBase* previous):m_name(name), m_previous(previous), m_next(NULL),
-                    m_transmissive(transparent),m_isaligned(false)
+                    m_parent(NULL), m_transmissive(transparent), m_isaligned(false)
 {
     Parameter param;
     param.type=Angle;

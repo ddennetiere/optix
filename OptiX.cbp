@@ -86,8 +86,6 @@
 		<Unit filename="files.h" />
 		<Unit filename="gratingbase.cpp" />
 		<Unit filename="gratingbase.h" />
-		<Unit filename="gridSource.cpp" />
-		<Unit filename="gridSource.h" />
 		<Unit filename="include/Poly1D.h" />
 		<Unit filename="include/holo.h" />
 		<Unit filename="interface.cpp" />
@@ -106,6 +104,8 @@
 		<Unit filename="raybase.h" />
 		<Unit filename="sourcebase.cpp" />
 		<Unit filename="sourcebase.h" />
+		<Unit filename="sources.cpp" />
+		<Unit filename="sources.h" />
 		<Unit filename="sphere.cpp" />
 		<Unit filename="sphere.h" />
 		<Unit filename="src/Poly1D.cpp" />

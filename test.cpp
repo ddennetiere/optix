@@ -183,7 +183,7 @@ int main()
 
     {
         fstream spotfile("Spotdiag.sdg", ios::out | ios::binary);
-        SpotDiagram spotDg;
+        SpotDiagramExt spotDg;
        // PlaneFilm screenCopy(film2);
         film2.getSpotDiagram(spotDg,0.00);
         spotfile << spotDg;
@@ -200,7 +200,7 @@ int main()
     }
     if(0){
         fstream WfFile("wavederiv.sdg", ios::out | ios::binary);
-        SpotDiagram WFdata;
+        SpotDiagramExt WFdata;
         int n= film2.getWavefrontData(WFdata) ;
         cout << " WF deriv  of " << n << " points\n";
         WfFile << WFdata;
@@ -241,26 +241,38 @@ int main()
         GaussianSource gSource("GaussSource") ;
 
         source.clearImpacts();
-        source.setPrevious(&gSource);
+        source.chainPrevious(&gSource);
 
         cout << "  added " << gSource.getName() << endl;
 
-//        source.getParameter("distance",param);
-//        param.value=0.;
-//        mirror1.setParameter("distance", param);
+        gSource.getParameter("nRays",param);
+        param.value=5000.;
+        gSource.setParameter("nRays", param);
 
         gSource.alignFromHere(wavelength);
         gSource.generate(wavelength);
         gSource.radiate();
 
         fstream spotfile("Spotdiag2.sdg", ios::out | ios::binary);
-        SpotDiagram spotDg;
+        SpotDiagramExt spotDg;
        // PlaneFilm screenCopy(film2);
         film2.getSpotDiagram(spotDg,0.00);
         spotfile << spotDg;
         spotfile.close();
 
         cout << "Spotdiag2.sdg saved \n";
+
+        ChainCopy tempChain;
+        if(DuplicateChain(&source, tempChain))
+            cout << "chaine duplicated OK\n";
+        else
+            cout << "chain duplication failed\n";
+        ElementBase* elem=tempChain.First;
+        while(elem)
+        {
+            cout << elem->getName() << " " << elem->getRuntimeClass() <<endl;
+            elem=elem->getNext();
+        }
 
     }
 

@@ -146,7 +146,7 @@ public:
      * \param distance the distance from this surface along the alignment ray where the observation plane is located
      * \return the number of stored impacts
      */
-    int getSpotDiagram(SpotDiagram& spotDiagram, double distance=0);
+    int getSpotDiagram(SpotDiagramExt& spotDiagram, double distance=0);
 
     /** \brief Computes and fills-up a CausticDiagram object from the internally stored impact collection
      *
@@ -155,7 +155,22 @@ public:
      * \return the number of stored impacts
      */    int getCaustic(CausticDiagram& causticData);
 
-     int getWavefrontData(SpotDiagram& WFdata, double distance=0);
+     /** \brief return in a SpotDiagram structure the transverse aberrant distances from a given reference point and the direction coefficients of each ray
+      *
+      * \param[out] WFdata a SpotDiagram structure to reteur the narmal distance in the X and Y planes and the X and Y components of the normalized direction vector
+      * \param[in] distance la distance du point de référence au plan d'enregistrement des rayons
+      * \return the number of rays in the wFdata structure
+      */
+     int getWavefrontData(SpotDiagramExt& WFdata, double distance=0);
+
+     /** \brief
+      *
+      * \param distance double
+      * \param Nx Index
+      * \param Ny Index
+      * \param XYbounds Array22d&
+      * \return EIGEN_DEVICE_FUNC MatrixXd
+      */
      EIGEN_DEVICE_FUNC MatrixXd getWavefontExpansion(double distance, Index Nx, Index Ny, Array22d& XYbounds);
 
 //    friend TextFile& operator<<(TextFile& file,  Surface& surface);  /**< \brief Duf this Surface object to a TextFile, in a human readable format  */
