@@ -45,7 +45,7 @@ class Sphere :  virtual public Surface, public Quadric
         /** \brief Change parameters and recaculate the surface if needed
          * \param name parameter name
          * \param param parameter
-         * \return ParamRef a pointer to parameterentry in parameter map
+         * \return true if parameter name is valid for this object and was set; false otherwise
          */
         inline bool setParameter(string name, Parameter& param)
         {

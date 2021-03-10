@@ -7,7 +7,7 @@
 *
 *      \brief         Text and binary files types for saving data
 *
-*      \author         FranÃ§ois Polack <francois.polack@synchroton-soleil.fr>
+*      \author         François Polack <francois.polack@synchroton-soleil.fr>
 *      \date        2020-11-10  Creation
 *      \date         Last update
 *
@@ -23,6 +23,7 @@
 #include <limits>
 #include <iomanip>
 #include "types.h"
+
 
 using namespace std;
 
@@ -276,6 +277,13 @@ inline TextFile& operator>>( TextFile& file,  Parameter& param)
 class SolemioFile:public fstream
 {
 public:
+    struct Linkage{
+        string name;
+        uint32_t prev;
+        uint32_t next;
+    };
+
+    typedef map<uint32_t, Linkage> LinkMap;
   //  SolemioFile(){}
     ~SolemioFile(){fstream::close();}/**< \brief close the file and delete the file object */
     SolemioFile(string filename);   /**< \brief open the file in read-only mode */     //  :fstream(filename,  ios::in ){} // ouverture en lecture seule
@@ -283,12 +291,19 @@ public:
     void getPrefixedString(string& str);/**< \brief gets a length prefixed string */
     void getScript(string& str);/**< \brief gets a length and 's' prefixed string */
     bool check_comment(const string comment);/**< \brief assert that thee next item in the stream is a comment of given content*/
-    bool get_element();/**< \brief reads the next solemio surface element and dump its content to  cout. Not all elemnts types are implemented yet*/
+
+    /** \brief reads the next solemio surface element and dump its content to  cout. Not all elemnts types are implemented yet
+     *
+     * \param[in,out] pelemID if not NULL, an equivalent OptiX element will be created. The Handle  the created element or NULL if none was created, will be written at address pointed by pelemID
+     * \return false in case of a reading error; true otherwise
+     */
+    bool get_element(size_t* pelemID=NULL);
     inline SolemioFile& operator>>(int& i) {*((fstream*)this)>>i; return *this;}/**< \brief read an integer value */
     inline SolemioFile& operator>>(uint32_t& i) {*((fstream*)this)>>i; return *this;}/**< \brief read an unsigned integer value */
     inline SolemioFile& operator>>(double& i) {*((fstream*)this)>>i; return *this;}/**< \brief reads a double floating point value */
     SolemioFile& operator>>(ArrayXd&  darray);/**< \brief reads an array of double of known size */
     int version;
+    LinkMap iconTable, elemTable;
 };
 
 

@@ -107,7 +107,7 @@ public:
     GaussianSource(string name="" ,Surface * previous=NULL);
     /** Default destructor */
     virtual ~GaussianSource(){}
-    virtual inline string getRuntimeClass(){return "Source<Gaussian>";}/**< return the derived class name ie. Source<XYGrid> */
+    virtual inline string getRuntimeClass(){return "Source<Gaussian>";}/**< return the derived class name ie. Source<Gaussian> */
     virtual int generate(double wavelength);    /**< implementation of SourceBase::generate for GaussianSource() */
     //public members
 

@@ -5,10 +5,12 @@
 /**
 *      \file           gratingbase.h
 *
-*      \brief         GratingBase class declarations
-*      \todo         Derived classes RuledGrating and HoloGrating vith specific implementation of (should be) virtual function gratingVector()
+*      \brief         GratingBase and Pattern class declarations
 *
-*      \author         FranÃ§ois Polack <francois.polack@synchroton-soleil.fr>
+*      GratingBase defines alignment and propagation function common to optical elements
+*   \n Pattern is a virtual class defining the GratingVector() function and is derived in HOlo and Poly1D classes according to the ruling type
+*
+*      \author         François Polack <francois.polack@synchroton-soleil.fr>
 *      \date         2020-10-22  Creation
 *      \date         Last update 2020-10-30
 *
@@ -26,7 +28,9 @@
 #include "OptixException.h"
 
 /** \brief Describes the grating line spacing
- * This class only provides the gratingVector() function which need to be overriden by actual implementation classes
+ *
+ * This class  provides the gratingVector() function which need to be overridden by actual implementation classes
+ *
  */
 class Pattern
 {
@@ -43,14 +47,24 @@ class Pattern
 };
 
 /** \brief Base class for all gratings
+ *
+ *     Parameters defined  by the GratingBase class
+ *     -----------------------------------------
+ *
+ *   Name of parameter | UnitType | Description
+ *   ----------------- | -------- | --------------
+ *   \b order_align | Dimensionless | The alignment order
+ *   \b order_use   | Dimensionless | The utilization order (normally same as order_align)
+ *
+ * these parameters belong to the GratingGroup and cannot be optimized (flags set to 1)
  */
 class GratingBase :  virtual public Surface, virtual public Pattern
 {
     public:
-        /** Default constructor */
-        GratingBase();
+        /** \brief constructor overrides Surface constructor and sets the diffraction order parameters*/
+        GratingBase(bool transparent=false, string name="" ,Surface * previous=NULL);
 
-        /** Default destructor */
+        /** \brief Default destructor */
         virtual ~GratingBase();
         virtual  inline string getRuntimeClass(){return "GratingBase";}/**< return the derived class name ie. GratingBase */
 
@@ -72,7 +86,7 @@ class GratingBase :  virtual public Surface, virtual public Pattern
     protected:
         int m_alignmentOrder;
         int m_useOrder;
-        IsometryType psiTransform;/**< transformation incluant la rotation psi autour de la normale et le passage de la reprÃ©sentation surface Ã  la reprÃ©sentation espace */
+        IsometryType psiTransform;/**< transformation incluant la rotation psi autour de la normale et le passage de la représentation surface à la représentation espace */
     private:
 };
 

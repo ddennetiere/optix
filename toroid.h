@@ -51,7 +51,7 @@ class Toroid : virtual public Surface
          * * \b minor_curvature The inverse of the radius (r) of the generating circle (minor radius at apex)
          * * \b major_curvature The inverse of the major radius (R) at apex. The axis of the generating rotation is located at R from apex and oriented along Y.
          * \param param parameter parameter value and properties
-         * \return ParamRef a pointer to parameterentry in parameter map
+         * \return true if parameter name is valid for a toroid bjecr and was set; false otherwise
          *
          *  Curvature can be positive (concave) or négative (convex). No assumption is made on which curvature is the largest in absolute value.
          */

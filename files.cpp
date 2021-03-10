@@ -12,6 +12,8 @@
  ***************************************************************************/
 
  #include "files.h"
+ #include "interface.h"
+ #include "elementbase.h"
 
  #define   TAILLEPARAMETRES 20
  #define   NOMBRETAGS 16
@@ -142,6 +144,8 @@ struct SolemioSurface
 
  SolemioFile::SolemioFile(string filename):fstream(filename,  ios::in ) // ouverture en lecture seule
  {
+    iconTable.clear();
+    elemTable.clear();
     *this >> version;
     skipline(1);
  }
@@ -229,7 +233,7 @@ struct SolemioSurface
      return assert;
  }
 
- bool  SolemioFile::get_element()
+ bool  SolemioFile::get_element(size_t * pelemID)
  {
      int i, type, inpruntPol, imprunt, auxset, XYZalign=0, clipping=0, activeFilm=0,
             unit[NOMBRETAGS], unitmin[NOMBRETAGS], unitmax[NOMBRETAGS],
@@ -240,11 +244,14 @@ struct SolemioSurface
                pElem, previousElem, nextElem ;
      double clipX1=0, clipX2=0, clipY1=0, clipY2=0, sigmaslopeLong, sigmaslopeTrans,
             elemParam[TAILLEPARAMETRES], elemParamin[TAILLEPARAMETRES], elemParamax[TAILLEPARAMETRES];
+    Linkage iconLink, elemLink;
 
      // les rayons sont stockés dans l'ordre X, X', Y, Y', Z, Z', lambda
      ArrayXd axein(7), axeout(7),planelem(7), rotaxe(7), aux(7), poleNormal(7), yaxe(7);
 
      string name, tclScript;
+
+     ElementBase* elem=NULL; // no object created
 
      skipline(3); // saute le positionnement sur le plan de travail
 
@@ -278,6 +285,12 @@ struct SolemioSurface
      *this >> previousElemIcon >> nextElemIcon;
      cout << "Element object " <<pElemIcon  << " linked from "  << previousElemIcon << " to " << nextElemIcon << endl;
 
+     iconLink.name=name;
+     iconLink.prev=previousElemIcon;
+     iconLink.next=nextElemIcon;
+     iconTable.insert(pair<int32_t,Linkage>(pElemIcon, iconLink));
+
+
      for(i=0; i<TAILLEPARAMETRES; ++i)
         *this >> elemParam[i] >> elemParamvar[i] >> elemParamax[i] >> elemParamin[i];
 //     {
@@ -294,6 +307,12 @@ struct SolemioSurface
      if(!check_comment(" sono_in_element  "))
             return false;
      *this >> auxset >> previousElem >> nextElem;
+
+     elemLink.name=name;
+     elemLink.prev=previousElem;
+     elemLink.next=nextElem;
+     elemTable.insert(pair<int32_t,Linkage>(pElem, elemLink));
+
 
       cout << "Surface " << pElem  << " linked from " << previousElem << " to " <<nextElem << endl;
 
@@ -326,13 +345,19 @@ struct SolemioSurface
                 return false;
             if(version >19)
             {
+                // introduit une distorsion d'ordre 3 en X et 2 en Y. by2 et by4 ne sont pas utilisés et tjs nuls
                 *this >> ax2 >> ax3 >> ay2 >> by2 >> by4;
                 if(SSurf.option)
-                    cout << "polynomial surface\n";
+                    cout << "polynomial surface - conversion NOT implemented\n";
             }
             cout << "\nPole Normal\n" << poleNormal.transpose() <<endl;
             cout << "Auxiliary axis \n" << aux.transpose() <<endl;
             cout << "Yaxe " << (yaxeset  ? "set\n" :"not set\n" )<< yaxe.transpose() <<endl;
+            if(pelemID)
+            {
+                *pelemID=CreateElement("Film<Plane>",name.c_str());
+                elem=(ElementBase*)*pelemID;
+            }
         }
         break;
      case PLAN:     //  2
@@ -343,6 +368,11 @@ struct SolemioSurface
             cout << "\nPole Normal\n" << poleNormal.transpose() <<endl;
             cout << "Auxiliary axis \n" << aux.transpose() <<endl;
             cout << "Slope  sigmas    tang. " << sigmaslopeLong << " sag. " << sigmaslopeTrans << endl;
+            if(pelemID)
+            {
+                *pelemID=CreateElement("Mirror<Plane>",name.c_str());
+                elem=(ElementBase*)*pelemID;
+            }
         }
         break;
      case   CILYNDRE:    //  3
@@ -369,6 +399,17 @@ struct SolemioSurface
             cout << "Center "  << centro.transpose() <<endl;
             cout << "Radius inverse  " << SSurf.param[0] << "   radius "<< 1./SSurf.param[0] << endl;
             cout << "Slope  sigmas    tang. " << SSurf.param[1] << " sag. " << SSurf.param[2] << endl;
+            if(pelemID)
+            {
+                *pelemID=CreateElement("Mirror<Sphere>",name.c_str());
+                elem=(ElementBase*)*pelemID;
+                Parameter param;
+                elem->getParameter("curvature", param); //="Radius inverse  "
+                param.value=SSurf.param[0];
+                param.bounds[0]=SSurf.varparamin[0];
+                param.bounds[1]=SSurf.varparamax[0];
+                elem->setParameter("curvature", param);
+            }
         }
         break;
      case   ELLIPSE:    //  6
@@ -397,6 +438,30 @@ struct SolemioSurface
                             SSurf.varparamin[j] <<" "<< SSurf.varparamax[j] << "]\n";
             for(j=maxmodifiable; j< numParameters[type]; ++j)
                 cout << nom[j] << " " <<SSurf.param[j] << " not variable\n";
+
+            if(pelemID)
+            {
+                *pelemID=CreateElement("Grating<Holo,Plane>",name.c_str());
+                elem=(ElementBase*)*pelemID;
+                Parameter param;
+                elem->getParameter("order_align", param); //=ordrealign
+                param.value=SSurf.param[6]; // should not be allowed to vary
+                elem->setParameter("order_align", param);
+                elem->getParameter("order_use", param); //=ordreout
+                param.value=SSurf.param[7]; // should not be allowed to vary
+                elem->setParameter("order_use", param);
+                elem->getParameter("recordingWavelength", param); //=lambdaLaser
+                param.value=SSurf.param[1]; // should not be allowed to vary
+                elem->setParameter("recordingWavelength", param);
+
+                elem->getParameter("constructionP1_Y", param);
+                param.value=param.bounds[0]=param.bounds[1]=param.flags=0;
+                elem->setParameter("constructionP1_Y",param);
+                elem->getParameter("constructionP2_Y", param);
+                param.value=param.bounds[0]=param.bounds[1]=param.flags=0;
+                elem->setParameter("constructionP2_Y",param);
+
+            }
         }
         break;
      case   RESEAUXVLSPLANDEVCONST:    // 8
@@ -593,6 +658,58 @@ struct SolemioSurface
         if( !SSurf.ReadFromFile(*this))
             return false;
      }
+     // set Current parameters : Omega=0,Theta=1,dOmega=2,dTheta=3,Spin=4,dX=5,dY=6,dZ=7,distback=8,
+     //                          distfor=9, algtLambda=10,OsloBack=11,clipX1=12,clipX2=13,clipY1=14,clipY2=15
+     if(elem)
+     {
+         Parameter param;
+         elem->getParameter("distance", param); //=distBackward
+         param.value=elemParam[8];
+         param.bounds[0]=elemParamin[8];
+         param.bounds[1]=elemParamax[8];
+         elem->setParameter("distance", param);
+         elem->getParameter("theta", param); //(Pi -Theta)/2.
+         param.value=(M_PI -elemParam[1])/2.;
+         param.bounds[0]=(M_PI-elemParamax[1])/2.;
+         param.bounds[1]=(M_PI-elemParamin[1])/2.;
+         elem->setParameter("theta", param);
+         elem->getParameter("phi", param);  // Omega
+         param.value=elemParam[0];
+         param.bounds[0]=elemParamin[0];
+         param.bounds[1]=elemParamax[0];
+         elem->setParameter("phi", param);
+         elem->getParameter("psi", param); // Spin
+         param.value=elemParam[4];
+         param.bounds[0]=elemParamin[4];
+         param.bounds[1]=elemParamax[4];
+         elem->setParameter("psi", param);
+         elem->getParameter("Dtheta", param); //-dTheta)/2.
+         param.value=-elemParam[3]/2.;
+         param.bounds[0]=-elemParamax[3]/2.;
+         param.bounds[1]=-elemParamin[3]/2.;
+         elem->setParameter("Dtheta", param);
+         elem->getParameter("Dphi", param);  // dOmega
+         param.value=elemParam[2];
+         param.bounds[0]=elemParamin[2];
+         param.bounds[1]=elemParamax[2];
+         elem->setParameter("Dphi", param);
+         elem->getParameter("Dx", param);  // dX
+         param.value=elemParam[5];
+         param.bounds[0]=elemParamin[5];
+         param.bounds[1]=elemParamax[5];
+         elem->setParameter("Dx", param);
+         elem->getParameter("Dy", param);  // dX
+         param.value=elemParam[6];
+         param.bounds[0]=elemParamin[6];
+         param.bounds[1]=elemParamax[6];
+         elem->setParameter("Dy", param);
+         elem->getParameter("Dz", param);  // dZ
+         param.value=elemParam[7];
+         param.bounds[0]=elemParamin[7];
+         param.bounds[1]=elemParamax[7];
+         elem->setParameter("Dz", param);
+        //dPsi non defini dans Solemio & clipping not yet implemented in OptiX
+     }
 
      *this  >> imprunt >> sourcePol ;
      cout <<"imprunt " << imprunt <<  "  source Poly " << sourcePol << endl;
@@ -606,7 +723,7 @@ struct SolemioSurface
      if(version > 14)
         *this >>XYZalign;
 
-     if(version >21)
+     if(version >21)  // redondant mais coherent avec les pvaleurs des paramètres courants
          *this >> clipX1 >> clipX2 >>clipY1 >> clipY2 >> clipping >> activeFilm ;
 
      cout << "X bounds " << clipX1 <<"  " << clipX2 <<endl;
@@ -651,6 +768,55 @@ struct SolemioSurface
 
         cout << "\n-------------------------------------------------------------------------------------\n\n";
     }
+    cout << "LINKAGE SOLEMIO\n\n";
+    SolemioFile::LinkMap::iterator it, itl;
+    string sprev, snext;
+    for(it= Sfile.iconTable.begin(); it !=Sfile.iconTable.end();++it)
+    {
+        sprev=snext="NONE";
+        if(it->second.prev)
+        {
+            itl=Sfile.iconTable.find(it->second.prev);
+            if(itl==Sfile.iconTable.end())
+                sprev="NOT_FOUND";
+            else
+                sprev=itl->second.name;
+        }
+        if(it->second.next)
+        {
+            itl=Sfile.iconTable.find(it->second.next);
+            if(itl==Sfile.iconTable.end())
+                snext="NOT_FOUND";
+            else
+                snext=itl->second.name;
+        }
+        cout << it->second.name << "  linked from " << sprev << " to "<< snext << endl;
+    }
+    cout << "\nLINKAGE BEAMLINE\n\n";
+
+    for(it= Sfile.elemTable.begin(); it !=Sfile.elemTable.end();++it)
+    {
+        sprev=snext="NONE";
+        if(it->second.prev)
+        {
+            itl=Sfile.elemTable.find(it->second.prev);
+            if(itl==Sfile.elemTable.end())
+                sprev="NOT_FOUND";
+            else
+                sprev=itl->second.name;
+        }
+        if(it->second.next)
+        {
+            itl=Sfile.elemTable.find(it->second.next);
+            if(itl==Sfile.elemTable.end())
+                snext="NOT_FOUND";
+            else
+                snext=itl->second.name;
+        }
+        cout << it->second.name << "  linked from " << sprev << " to "<< snext << endl;
+    }
+
+    cout << "\n-------------------------------------------------------------------------------------\n\n";
 
    // Sfile.skipline(1);
     if(! Sfile.check_comment(" numero_minimizzatori  "))
@@ -681,6 +847,24 @@ struct SolemioSurface
             break;
         Sfile >> pMinimobj >> pMinimsource >> pMinimout ;
         cout  << "object "  << pMinimobj << " source "  << pMinimsource << " image " << pMinimout << endl;
+
+        sprev=snext="NONE";
+
+        itl=Sfile.iconTable.find(pMinimsource);
+        if(itl==Sfile.iconTable.end())
+            sprev="NOT_FOUND";
+        else
+            sprev=itl->second.name;
+
+        itl=Sfile.iconTable.find(pMinimout);
+        if(itl==Sfile.iconTable.end())
+            snext="NOT_FOUND";
+        else
+            snext=itl->second.name;
+
+        cout << "Minimizer  " <<  name << "  linked from " << sprev << " to "<< snext << endl;
+
+
         Sfile.skipline(1);
         Sfile >> option;
         switch (option)

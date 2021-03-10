@@ -37,6 +37,17 @@ template class Grating<Poly1D,Cylinder>;
 template class Grating<Poly1D,Toroid>;
 
 
+ChainCopy::~ChainCopy()
+{
+    ElementBase *elem=First, *next=NULL;
+    while (elem)
+    {
+        next=elem->getNext();
+        delete elem;
+        elem=next;
+    }
+}
+
 ElementBase* CreateElementObject(string s_type, string name)
 {
     ElementBase*  elem=NULL;
@@ -144,10 +155,10 @@ ElementBase * ElementCopy(ElementBase* source)
     else if (s_type=="Grating<Poly1D,Toroid>" || s_type=="ToroidalPoly1DGrating")
         Copy= new Grating<Poly1D,Toroid>(*dynamic_cast<Grating<Poly1D,Toroid>*>(source));
 
-    else
-        return NULL; // creation failed bad type
-
-    // reset the link pointers
+//    else
+//        return NULL; // creation failed bad type
+//
+//    // reset the link pointers
     Copy->setPrevious(NULL);
     Copy->setNext(NULL);
     Copy->setParent(NULL);
@@ -158,8 +169,8 @@ ElementBase * ElementCopy(ElementBase* source)
 bool DuplicateChain(ElementBase * source, ChainCopy& newChain)
 {
     typedef pair<ElementBase*, ElementBase*> ElemPair;
-    string stype=source->getRuntimeClass();
-    cout << "S: " << source << " < " << source->getPrevious() << ", " << source->getNext() << ">  " << stype <<endl;
+//    string stype=source->getRuntimeClass();
+//    cout << "S: " << source << " < " << source->getPrevious() << ", " << source->getNext() << ">  " << stype <<endl;
     ElementBase* elemCopy=ElementCopy(source);
 //    stype=elemCopy->getRuntimeClass();
     if(elemCopy==NULL)
@@ -184,10 +195,10 @@ bool DuplicateChain(ElementBase * source, ChainCopy& newChain)
         it->second->setNext(elemCopy);
         cout << "S: " << source << " < " << source->getPrevious() << ", " << source->getNext() <<endl;
     }
-  //  elemCopy->setNext(NULL);
+
     newChain.copyMap.insert(ElemPair(source,elemCopy));
-    cout << "S: " << source << " < " << source->getPrevious() << ", " << source->getNext() ;
-    cout << ">    C: " << elemCopy << " < " << elemCopy->getPrevious() << ", " << elemCopy->getNext() << ">\n";
+//    cout << "S: " << source << " < " << source->getPrevious() << ", " << source->getNext() ;
+//    cout << ">    C: " << elemCopy << " < " << elemCopy->getPrevious() << ", " << elemCopy->getNext() << ">\n";
 
     if(source->getNext()==NULL)
         return true;
@@ -195,13 +206,45 @@ bool DuplicateChain(ElementBase * source, ChainCopy& newChain)
     return DuplicateChain(source->getNext(),newChain);
 }
 
-ChainCopy::~ChainCopy()
+ElementBase* ChangeElementType(ElementBase* elem, string newType)
 {
-    ElementBase *elem=First, *next=NULL;
-    while (elem)
+    ElementBase* newElem=NULL;
+    try
     {
-        next=elem->getNext();
-        delete elem;
-        elem=next;
+        newElem=CreateElementObject(newType,elem->getName());
     }
+    catch (ElementException& ex)
+    {
+        cout <<"invalid element type \n" ;
+        return NULL;
+    }
+
+//    cout << newElem->getName() <<" created as " << newElem->getRuntimeClass() << endl;
+
+    // copie les paramètres communs
+    ElementBase::ParamIterator newElemIt;
+    for(newElemIt=newElem->parameterBegin(); newElemIt!=newElem->parameterEnd(); ++newElemIt)
+    {
+        Parameter param;
+        if(elem->getParameter(newElemIt->first,param))  // le même paramètre existe dans l'élément original
+        {
+           newElem->setParameter(newElemIt->first, param);
+        }
+    }
+    cout << "A: " << elem << " < " << elem->getPrevious() << ", " << elem->getNext()  <<endl;
+
+    //copie les liens
+    newElem->chainNext(elem->getNext());
+    newElem->chainPrevious(elem->getPrevious());
+    newElem->setParent(elem->getParent());
+//    // raz lien de elem pour éviter es à c^oté à la destruction
+//    elem->setNext(NULL);
+//    elem->setPrevious(NULL);
+//    elem->setParent(NULL);
+//    cout << "S: " << elem << " < " << elem->getPrevious() << ", " << elem->getNext() ;
+//    cout << ">    C: " << newElem << " < " << newElem->getPrevious() << ", " << newElem->getNext() << ">\n";
+
+    delete elem;
+    return newElem;
+
 }

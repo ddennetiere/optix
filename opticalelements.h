@@ -30,11 +30,15 @@
 
 
 typedef map<ElementBase *, ElementBase*> ElementCopyMap;
+
+/** \brief Structure maintaining an equivalence between a duplicated element chain and the original one.
+ *  \n This structure is intended for computing propagation in parallel through different alignment conditions while optimizing
+ */
 struct ChainCopy
 {
-    ElementBase * First=NULL;
-    ElementCopyMap copyMap;
-    ~ChainCopy();
+    ElementBase * First=NULL; /**< the first element of the chain */
+    ElementCopyMap copyMap;/**< mapping  original element pointers to copied element pointers */
+    ~ChainCopy();   /**<  structure destructor: deletes all the copied elements */
 };
 
 
@@ -107,7 +111,7 @@ template<class PatternType, class SShape>
 class Grating: public GratingBase, public PatternType, public SShape
 {
 public:
-    Grating(string name="" ,Surface * previous=NULL):Surface(false,name, previous){}
+    Grating(string name="" ,Surface * previous=NULL):GratingBase(false,name, previous){}
     virtual ~Grating(){}
     virtual inline string  getRuntimeClass(){return string("Grating<")+PatternType::getRuntimeClass()+
                         ","+SShape::getRuntimeClass()+">"; }
@@ -144,7 +148,7 @@ typedef Grating<Poly1D,Toroid> ToroidalPoly1DGrating;      /**< \brief implement
  *  \ingroup GlobalCpp
  * \param s_type The composite type of the element to be created
  * \param name The name of the element
- * \return  pointer to the base class  ElementBase; Throw ElementException id s_type is invalid
+ * \return  pointer to the base class  ElementBase; Throw ElementException if s_type is invalid
  */
  ElementBase* CreateElementObject(string s_type, string name);
 
@@ -165,7 +169,37 @@ inline  bool MakeGratingTransmissive(ElementBase* pelem, bool trans=true )
    return true;
 }
 
+/** \brief makes a deep copy of the source element
+ *  \ingroup GlobalCpp
+ * \param source a pointer to the element to copy
+ * \return a pointer to the new created  copy
+ *
+ *   The new element is created on the heap. Links to previous, next and parent elements are set to NULL. The original source element is left unchanged.
+ */
 ElementBase* ElementCopy(ElementBase* source);
+
+/** \brief Duplicate all the elements of a chain with proper linkage
+ *  \ingroup GlobalCpp
+ * \param source a pointer to he first element of the chain to duplicate
+ * \param newChain reference to a ChainCopy structure
+ * \return true if copy was successful; false if an error occurred before all elements were copied.
+ *
+ * Duplicate creates an image of the chained optical system, which can be used for parallel computation  during optimization for instance.
+ * \n This image is deleted, with all elements,  when the returned ChainCopy structure is deleted. If creation fails, some element copies may have been created.
+ *  They  will be recorded into the  newChain ChainCopy object,and deleted with it.
+ */
 bool DuplicateChain(ElementBase * source, ChainCopy& newChain);
+
+/** \brief Replace an element of an optical system chain by an element of another optical type
+ *  \ingroup GlobalCpp
+ * \param elem a pointer to the original element to be replaced
+ * \param newType the runtime class of the replacing element.
+ * \return a pointer to a new element of the requested type, created on the heap (must be explicitly deleted).
+ *
+ * A new element is created and replace the original one in the element chain to which it belonged. The new element will have the name of the original one.
+ * The original element is destroyed.
+ * \n This operation is only possible on element created on the heap (new operator or CreateElementObject())
+ */
+ElementBase* ChangeElementType(ElementBase* elem, string newType);
 
 #endif // OPTICALELEMENTS_H_INCLUDED

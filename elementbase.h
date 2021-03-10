@@ -10,7 +10,7 @@
 *
 *
 *
-*   \author             FranÃ§ois Polack  <francois.polack@synchroton-soleil.fr>
+*   \author             François Polack  <francois.polack@synchroton-soleil.fr>
 *   \date               Creation : 2021-02-02
 *   \date               Last update:
 *
@@ -89,15 +89,16 @@ inline void ClearOptiXError() {OptiXError=false;}
 *   - <em> All parameters are in \b BasicGroup </em>
 *   - If element is first (previous==0) the incident chief ray is along Z, with an origin at 0 in absolute frame .
 *   The element distance is counted from this absolute origin.
+*   \todo Clipping is not yet implemented, but it could be done at the ElementBase level where the transform matrix are defined
  */
 class ElementBase {
-protected:
-    typedef map<string,Parameter>::iterator ParamRef;
-    typedef map<string, string>::iterator HelpstrRef;
 public:
+    typedef map<string,Parameter>::iterator ParamIterator;
+    typedef map<string, string>::iterator HelpstrIterator;
+
    // typedef Matrix<FloatType,3,1> VectorType;
     typedef RayBaseType::VectorType VectorType;
-    typedef Matrix<FloatType,3,3> RotationType;  // peut-Ãªtre Ã  dÃ©placer dans le namespace Element (public)
+    typedef Matrix<FloatType,3,3> RotationType;  // peut-être à déplacer dans le namespace Element (public)
     typedef Transform<FloatType,3,Affine> IsometryType;  // c'est quandmeme une isometrie
 
     ElementBase(bool transparent=true, string name="", ElementBase* previous=NULL); /**< \brief default  constructor (Film) with explicit chaining to previous */
@@ -205,7 +206,7 @@ public:
     */
     inline virtual  bool setParameter(string name, Parameter& param)
     {
-        ParamRef it=m_parameters.find(name);
+        ParamIterator it=m_parameters.find(name);
         if (it !=m_parameters.end())
         {
             param.type=it->second.type; // type and group of a parameter must not be modified
@@ -222,7 +223,7 @@ public:
     */
     inline bool getParameter(string name, Parameter& param)
     {
-        ParamRef it=m_parameters.find(name);
+        ParamIterator it=m_parameters.find(name);
         if (it !=m_parameters.end())
         {
             param=it->second;
@@ -232,14 +233,14 @@ public:
             return false;
     }
 
-    inline map<string,Parameter>::iterator parameterBegin(){return m_parameters.begin();}/**< \brief return an iterator positionned on the first element of the parameter list of this surface*/
-    inline map<string,Parameter>::iterator parameterEnd(){return m_parameters.end();}  /**< \brief return an iterator positionned after the last element of the parameter list of this surface*/
+    inline ParamIterator parameterBegin(){return m_parameters.begin();}/**< \brief return an iterator positionned on the first element of the parameter list of this surface*/
+    inline ParamIterator parameterEnd(){return m_parameters.end();}  /**< \brief return an iterator positionned after the last element of the parameter list of this surface*/
 
     /** \brief return true if inserted returne false if helpstring is already existing
     */
     static inline bool setHelpstring(string paramName, string helpstring)
     {
-        pair<HelpstrRef,bool> result=m_helpstrings.insert(make_pair(paramName, helpstring));
+        pair<HelpstrIterator,bool> result=m_helpstrings.insert(make_pair(paramName, helpstring));
         return result.second;
     }
 
@@ -247,7 +248,7 @@ public:
     */
     static inline void getHelpstring(string paramName, string& helpstring)
     {
-        HelpstrRef it=m_helpstrings.find(paramName);
+        HelpstrIterator it=m_helpstrings.find(paramName);
         if(it !=m_helpstrings.end())
             helpstring=it->second;
         else
@@ -297,8 +298,8 @@ protected:
 
     /** \brief Creates and sets a new named numeric parameter
     */
-    inline ParamRef defineParameter(string name, Parameter& param)    {
-        pair<ParamRef,bool> result= m_parameters.insert(make_pair(name,param));
+    inline ParamIterator defineParameter(string name, Parameter& param)    {
+        pair<ParamIterator,bool> result= m_parameters.insert(make_pair(name,param));
         if(!result.second)
           result.first->second=param;
         m_isaligned=false;  //maybe some changes do not require this
@@ -330,8 +331,8 @@ protected:
     *   in an local straighten frame ie. non rotated with respect to lab frame, with origin at the alignment rays intersection.
     * \n The transformation from previous to this, is a pure translation of chief ray direction and distanceToPrevious  */
 
-    IsometryType m_surfaceDirect; /**<  \brief fait passer la surface du repÃ¨re surface (= de dÃ©finition ie.normale selonZ ) au repÃ¨re local redressÃ© */
-    IsometryType m_surfaceInverse;  /**<  \brief ramÃ¨ne  du repÃ¨re local redressÃ©  au  repÃ¨re surface ( normale Ã  S selon Z) */
+    IsometryType m_surfaceDirect; /**<  \brief fait passer la surface du repère surface (= de définition ie.normale selonZ ) au repère local redressé */
+    IsometryType m_surfaceInverse;  /**<  \brief ramène  du repère local redressé  au  repère surface ( normale à S selon Z) */
     VectorType m_translationFromPrevious;   /**< \brief Translation  from previous local fraee to this local frame */
     RotationType m_frameDirect;  /**<  \brief rotation part of the transform expressing absolute frame coordinates from local frame ccordinates
     *

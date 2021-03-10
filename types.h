@@ -7,7 +7,7 @@
 *
 *      \brief         basic types used thoughout OptiX
 *                      Surface types are defined in opticalelements.h
-*      \author         FranÃ§ois Polack <francois.polack@synchroton-soleil.fr>
+*      \author         François Polack <francois.polack@synchroton-soleil.fr>
 *      \date        2020-11-13  Creation
 *      \date         Last update
 *
@@ -75,7 +75,7 @@ enum ParameterGroup:uint32_t{
 
 /** \ingroup enums
  * \brief modifier flags applicable to parameters
- *
+ * only NotPtimizable used presently
  *  Range   | applies to | description
  *  ------- | ---------- | ------------
  * 0 - 0xF  | any object |  optimization and computation modifiers
@@ -83,7 +83,7 @@ enum ParameterGroup:uint32_t{
  * flag > 0xF  | none     | reserved for future use
  */
 enum ParameterFlags:uint32_t{
-    Optimizable=1, /**< The parameter can be optimized */
+    NotOptimizable=1, /**< The parameter cannnot be optimized */
     Uniform=0x10,  /**< Uniform random generator (value=0)*/
     Gaussian=0x20, /**< Gaussian random (value=sigma) */
     Grided=0x80    /**< Grided (value=stepsize) */

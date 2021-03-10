@@ -51,6 +51,7 @@ int main()
     cout << endl;
 
 
+
     Vector3d pos={0,0,0}, dir={1,0,-1}, pZ={0,0,1};
 //    Matrix<long double,3,1> Trans={1,-1,3};
 
@@ -267,13 +268,36 @@ int main()
             cout << "chaine duplicated OK\n";
         else
             cout << "chain duplication failed\n";
-        ElementBase* elem=tempChain.First;
+        ElementBase *elem, *psrc=elem=tempChain.First;
         while(elem)
         {
             cout << elem->getName() << " " << elem->getRuntimeClass() <<endl;
             elem=elem->getNext();
         }
 
+        cout <<psrc <<  " " << psrc->getRuntimeClass() << "  " << psrc->getNext() <<endl;
+
+        elem=tempChain.First=ChangeElementType(psrc, "GaussianSource");
+        if(elem)
+            cout << "source type successfully changed to GaussianSource\n";
+        else
+            cout << "source could not be changed to GaussianSource\n";
+        cout <<elem <<  " " << elem->getRuntimeClass() << "  " << elem->getNext() <<endl;
+
+        while(elem)
+        {
+            cout << elem->getName() << " " << elem->getRuntimeClass() <<endl;
+
+            for(ElementBase::ParamIterator it=elem->parameterBegin(); it!=elem->parameterEnd(); ++it)
+            {
+
+                cout << it->first << "  " << it->second.value <<" [" << it->second.bounds[0] <<", "<< it->second.bounds[1] <<"] x " << it->second.multiplier <<
+                        " T:" << it->second.type << " G:" << it->second.group << " F:0x"<< cout.hex << it->second.flags << cout.dec << endl;
+            }
+
+            elem=elem->getNext();
+
+        }
     }
 
     string strHelp, name;
@@ -315,7 +339,7 @@ int main()
         {
 
             infile >> sClass;
-            cout << sClass  <<endl;
+    //        cout << sClass  <<endl;
             if(sClass.empty())
                 break;
             infile >>sName >> sPrev >> sNext;
@@ -339,8 +363,9 @@ int main()
     else
         cout << "could not open file for output\n";
 
-    if(0)
+    if(1)
     {
+      cout << "\n---------------------------------------------------------------------------\n\n";
 
  //   Parameter param;
 //    ReadSolemioFile("R:\\Partage\\SOLEMIO\\DEIMOS-cpy.txt");
