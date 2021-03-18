@@ -47,10 +47,12 @@ class Poly1D : virtual public Surface, virtual public Pattern
          *  \param degree the degree of the line density polynomial default is 3*/
         virtual ~Poly1D(){}
 
-        /** \brief record pattern definition parameters. This function \b must be overridden in derived class and call after the Surface::SetParameter() function was called.
+        /** \brief Filters Pattern relevant parameters and modifies internal properties appropriately
+         *  \b must be overridden in derived class and called after the appropriate  SShape::SetParameter() function was called.
          * \param name parameter name
          * \param param Parameter object
-         * \return true if the parameter was recognized and properly set, false otherwise
+         * \return true if the parameter is active on the Poly1D Pattern  and successfully applied, or is inactive and ignored.
+         * False if an error occured while trying to apply the value
          */
         virtual  bool setParameter(string name, Parameter& param);
         virtual  inline string getRuntimeClass(){return "Poly1D";}/**< return the derived class name ie. Poly1D */

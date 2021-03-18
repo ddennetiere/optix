@@ -76,8 +76,13 @@
 			<Add directory="D:/projets/projetsCB/OptiX/include" />
 		</Compiler>
 		<Unit filename="OptixException.h" />
+		<Unit filename="SolemioTest.cpp">
+			<Option target="test" />
+			<Option target="Test(release)" />
+		</Unit>
 		<Unit filename="ToroidComplexSolver.cpp" />
 		<Unit filename="ToroidSolver.cpp" />
+		<Unit filename="collections.h" />
 		<Unit filename="cylinder.cpp" />
 		<Unit filename="cylinder.h" />
 		<Unit filename="elementbase.cpp" />

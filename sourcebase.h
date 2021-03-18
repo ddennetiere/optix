@@ -1,5 +1,5 @@
-#ifndef HEADER_8E1A0D821BB07443
-#define HEADER_8E1A0D821BB07443
+#ifndef SOURCEBASE_H
+#define SOURCEBASE_H
 
 ////////////////////////////////////////////////////////////////////////////////
 /**
@@ -18,8 +18,7 @@
 //             REVISIONS
 //
 ////////////////////////////////////////////////////////////////////////////////////
-#ifndef SOURCEBASE_H
-#define SOURCEBASE_H
+
 
 #include "Surface.h"
 
@@ -101,5 +100,5 @@ class SourceBase : public virtual Surface
 
 
 #endif // SOURCEBASE_H
-#endif // header guard
+
 

@@ -4,7 +4,7 @@
 *
 *      \brief         implements the base mechanisms for sources
 *
-*      \author         FranÃ§ois Polack <francois.polack@synchroton-soleil.fr>
+*      \author         François Polack <francois.polack@synchroton-soleil.fr>
 *      \date        2020-10-30  Creation
 *      \date        Last update
 *
@@ -19,14 +19,14 @@
 
 //   ----------------   XYGridSource implementation   --------------------------
 
-XYGridSource::XYGridSource(string name ,Surface * previous):Surface(true,name, previous)  // surface non rÃ©flÃ©chissante
+XYGridSource::XYGridSource(string name ,Surface * previous):Surface(true,name, previous)  // surface non réfléchissante
 {
     Parameter param;
     param.type=Angle;
     param.group=SourceGroup;
     param.value=5.e-4;
-    defineParameter("divX", param);  // 1/2 divergence Y par dÃ©faut 500 Âµrad
-    defineParameter("divY", param);   // 1/2 divergence Z par dÃ©faut 500 Âµrad
+    defineParameter("divX", param);  // 1/2 divergence Y par défaut 500 µrad
+    defineParameter("divY", param);   // 1/2 divergence Z par défaut 500 µrad
 
     param.type=Distance;
     param.value=0;
@@ -116,7 +116,7 @@ RadialGridSource::RadialGridSource(string name ,Surface * previous):Surface(true
     param.type=Angle;
     param.group=SourceGroup;
     param.value=5.e-4;
-    defineParameter("divR", param);  // 1/2 divergence Y par dÃ©faut 500 Âµrad
+    defineParameter("divR", param);  // 1/2 divergence Y par défaut 500 µrad
 
     param.type=Distance;
     param.value=0;
@@ -205,10 +205,12 @@ GaussianSource::GaussianSource(string name ,Surface * previous):Surface(true,nam
     param.type=Dimensionless;
     param.group=SourceGroup;
     param.value=1000.;
-    defineParameter("nRays", param);  // 1000 points par dÃ©faut
+    param.flags=NotOptimizable;
+    defineParameter("nRays", param);  // 1000 points par défaut
 
     param.type=Distance;
     param.value=0;
+    param.flags=0;
     defineParameter("sigmaX", param);  //
     defineParameter("sigmaY", param);  // default sigma source = 0 (source ponctuelle)
 
@@ -216,7 +218,7 @@ GaussianSource::GaussianSource(string name ,Surface * previous):Surface(true,nam
     param.type=Angle ;
     param.value=0.35e-3;
     defineParameter("sigmaXdiv", param); //
-    defineParameter("sigmaYdiv", param); // default round source dsigma div = 500 Âµrad
+    defineParameter("sigmaYdiv", param); // default round source dsigma div = 500 µrad
 
 
     setHelpstring("nRays", " number of rays to be generated");  // complete la liste de infobulles de la classe Surface

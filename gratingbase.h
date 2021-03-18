@@ -84,9 +84,10 @@ class GratingBase :  virtual public Surface, virtual public Pattern
 
 
     protected:
-        int m_alignmentOrder;
-        int m_useOrder;
-        IsometryType psiTransform;/**< transformation incluant la rotation psi autour de la normale et le passage de la représentation surface à la représentation espace */
+        int m_alignmentOrder;/**< \brief order to be used for aligning*/
+        int m_useOrder;/**< \brief order to be used for propagation */
+        IsometryType psiTransform;/**< \brief transform from surface space to propagation space
+            *   this transform combines the psi rotation around the surface Z axis and the axis permutation between surface and propagation space representations */
     private:
 };
 

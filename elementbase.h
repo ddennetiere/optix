@@ -134,14 +134,25 @@ public:
 /** \brief  call transmit or reflect according to surface type ray and iterate to the next surface*/
     virtual void propagate(RayType& ray)=0 ;/**< \param ray the propagated ray */
 
-    inline void setName(string&& name ){m_name=name;} /**< \brief sets the element name for scripting */
-    inline string getName(){ return m_name;}    /**<  \brief retrieves the element name for scripting */
+    inline void setName(string&& name ){m_name=name;} /**< \brief sets the element name for scripting  \param name new name of the element*/
+    inline string getName(){ return m_name;}    /**<  \brief retrieves the element name for scripting \return the name of the element as string*/
 
+    /** \brief  set or reset the pointer to the previous element without taking care of the old or new linked elements
+     * \param previous a pointer to the new previous element
+     */
     inline void setPrevious(ElementBase* previous) {m_previous=previous;}
+
+    /** \brief set or reset the pointer the next element without taking care of the old or new linked elements
+     * \param next a pointer to the new next element
+     */
     inline void setNext(ElementBase* next){m_next=next;}
+
+    /** \brief set a reference to the group which the element belongs to
+     * \param parent the parent group of this element
+     */
     inline void setParent(ElementBase* parent){m_parent=parent;}
 
-    /** \brief defines the preceeding element in the active chain
+    /** \brief set or reset the preceeding element in the active chain and update all linked elements (old and new)
     *
     *  \param previous pointer to the previous element; if NULL  the element should be a  source otherwise the chain will not be activable */
      inline void chainPrevious(ElementBase* previous)  { // virtual qualifier withdrawn //  sources need a special treatment
@@ -156,9 +167,12 @@ public:
         m_previous=previous;
     }
 
+    /** \brief retrieves a pointer to the previous element of the active chain
+     * \return a pointer to the previous element
+     */
     inline ElementBase* getPrevious()  { return m_previous;}
 
-    /** \brief defines the next element in the active chain
+    /** \brief  set or reset the following element in the active chain and update all linked elements (old and new)
     *
     *  \param next pointer to the next element; if  left NULL  the element will be the last of the active chain*/
     inline void chainNext(ElementBase* next)
@@ -257,8 +271,9 @@ public:
 
     static void setHelpstrings();  /**< \brief sets help strings all alignment parameters */
 
-    inline void setTransmissive(bool trans=true) {m_transmissive=trans;}
-    inline bool getTransmissive(){return m_transmissive;}
+    inline void setTransmissive(bool trans=true) {m_transmissive=trans;}/**< \brief Change the transmissive flag (most objects are created reflective)
+                        *        \param trans new value of the transmissive flag*/
+    inline bool getTransmissive(){return m_transmissive;}/**< \brief retrieve the value of the transmissive flag \return the value of the transmissive flag*/
 
     /** \brief setFrameTransforms defines the geometric space transforms related to the position of an element in the various frames
     *       \param wavelength the alignment wavelength (used by chromatic elements only)

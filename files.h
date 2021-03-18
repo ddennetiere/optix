@@ -277,13 +277,8 @@ inline TextFile& operator>>( TextFile& file,  Parameter& param)
 class SolemioFile:public fstream
 {
 public:
-    struct Linkage{
-        string name;
-        uint32_t prev;
-        uint32_t next;
-    };
 
-    typedef map<uint32_t, Linkage> LinkMap;
+    typedef map<uint32_t, C_LinkType> LinkMap;
   //  SolemioFile(){}
     ~SolemioFile(){fstream::close();}/**< \brief close the file and delete the file object */
     SolemioFile(string filename);   /**< \brief open the file in read-only mode */     //  :fstream(filename,  ios::in ){} // ouverture en lecture seule
@@ -309,6 +304,6 @@ public:
 
 
 void ReadSolemioFile(string filename);/**< dumps the content of a Solemio file to cout */
-
+void SolemioImport(string filename);    /**< import the elements of the Solemio file in the current system */
 
 #endif // FILES_H_INCLUDED

@@ -2,11 +2,11 @@
 /**
 *      \file           test.cpp
 *
-*      \brief         TODO  fill in file purpose
+*      \brief         Various tests on the OptiX library
 *
 *      \author         François Polack <francois.polack@synchroton-soleil.fr>
 *      \date        2020-10-05  Creation
-*      \date        Last update
+*      \date        2021-03-15  scission in 2 files
 *
 */
 ///////////////////////////////////////////////////////////////////////////////////
@@ -33,7 +33,15 @@
 
 
 using namespace std;
+int OriginalTest();
+int SolemioTest();
+
 int main()
+{
+    return SolemioTest();
+//    return OriginalTest();
+}
+int OriginalTest()
 {
 
 //    double d_Pi=3.1415926535897932384626433832795;
@@ -292,7 +300,7 @@ int main()
             {
 
                 cout << it->first << "  " << it->second.value <<" [" << it->second.bounds[0] <<", "<< it->second.bounds[1] <<"] x " << it->second.multiplier <<
-                        " T:" << it->second.type << " G:" << it->second.group << " F:0x"<< cout.hex << it->second.flags << cout.dec << endl;
+                        " T:" << it->second.type << " G:" << it->second.group << " F:0x"<< hex << it->second.flags << dec << endl;
             }
 
             elem=elem->getNext();
@@ -354,7 +362,7 @@ int main()
             {
                 infile >> param;
                 cout << paramName << "  " << param.value <<" [" << param.bounds[0] <<", "<< param.bounds[1] <<"] x " << param.multiplier <<
-                        " T:" << param.type << " G:" << param.group << " F:0x"<< cout.hex << param.flags << cout.dec << endl;
+                        " T:" << param.type << " G:" << param.group << " F:0x"<< hex << param.flags << dec << endl;
                infile >> paramName;
             }
             infile.ignore('\n');

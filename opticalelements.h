@@ -52,9 +52,24 @@ template<class SShape>   // pour ne pas confondre avec Eigen::Shape
 class Mirror: public SShape
 {
 public:
+    /** \brief Constructor and default constructor
+     * \param name name of the new element (empty name by default)
+     * \param previous pointer to the previous element (NULL by default)
+     */
     Mirror(string name="" ,Surface * previous=NULL):Surface(false,name, previous) {}
-    virtual ~Mirror(){}
+    virtual ~Mirror(){}  /**< \brief destructor */
+
+    /** \brief \brief reimplemented from ElementBase
+     *  retrieves the class of the template implementation namely MirrorM<SShape>
+    */
     virtual inline string  getRuntimeClass(){return string("Mirror<")+SShape::getRuntimeClass()+">"; }
+
+    /** \brief reimplemented from ElementBase
+     *
+     *  align the element by setting the associated space transforms, then defining the appropriate surface equation of SShape class
+     * \param wavelength the alignment wavelength
+     * \return int 0 if successful; an error code otherwise
+     */
     inline int align(double wavelength)
     {
         int rcode= SShape::setFrameTransforms(wavelength);  // this call defines the space transforms
@@ -82,9 +97,21 @@ template<class SShape>
 class Film: public SShape
 {
 public:
+    /** \brief Constructor and default constructor
+     * \param name name of the new element (empty name by default)
+     * \param previous pointer to the previous element (NULL by default)
+     */
     Film(string name="" ,Surface * previous=NULL):Surface(true,name, previous){SShape::setRecording(RecordInput);}
-    virtual ~Film(){}
-    virtual inline string  getRuntimeClass(){return string("Film<")+SShape::getRuntimeClass()+">"; }
+    virtual ~Film(){}   /**< \brief destructor */
+    virtual inline string  getRuntimeClass(){return string("Film<")+SShape::getRuntimeClass()+">"; }/**< \brief reimplemented from ElementBase
+            * retrieves the class of the template implementation namely Film<SShape>  */
+
+    /** \brief reimplemented from ElementBase
+     *
+     *  align the element by setting the associated space transforms, then defining the appropriate surface equation of SShape class
+     * \param wavelength the alignment wavelength
+     * \return int 0 if successful; an error code otherwise
+     */
     inline int align(double wavelength)
     {
         int rcode= SShape::setFrameTransforms(wavelength);  // this call defines the space transforms
@@ -111,7 +138,7 @@ template<class PatternType, class SShape>
 class Grating: public GratingBase, public PatternType, public SShape
 {
 public:
-    Grating(string name="" ,Surface * previous=NULL):GratingBase(false,name, previous){}
+    Grating(string name="" ,Surface * previous=NULL):Surface(false,name, previous){}
     virtual ~Grating(){}
     virtual inline string  getRuntimeClass(){return string("Grating<")+PatternType::getRuntimeClass()+
                         ","+SShape::getRuntimeClass()+">"; }
@@ -122,14 +149,21 @@ public:
           return SShape::align(wavelength); // this call transforms the surface equation
         else return rcode;
     }
+    /** \brief Change the parameter and modifies the SShape or Pattern internal parameters if needed
+     *
+     * \param name parameter name
+     * \param param Parameter data
+     * \return true if success; false if failure; Last error is set in this case
+     * \todo catch parameter error
+     */
     inline bool setParameter(string name, Parameter& param)
     {
         bool result;
         result=SShape::setParameter(name, param);
         if(result)
-            result=PatternType::setParameter(name,param);
-        if(!result)
-            SetOptiXLastError("invalid grating parameter",__FILE__,__func__);
+            result=PatternType::setParameter(name,param);  // thow Parameter error
+//        if(!result)   Error must be set by the Pattern subclasses
+//            SetOptiXLastError("invalid grating parameter",__FILE__,__func__);
         return result;
     }
 

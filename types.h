@@ -84,9 +84,10 @@ enum ParameterGroup:uint32_t{
  */
 enum ParameterFlags:uint32_t{
     NotOptimizable=1, /**< The parameter cannnot be optimized */
-    Uniform=0x10,  /**< Uniform random generator (value=0)*/
-    Gaussian=0x20, /**< Gaussian random (value=sigma) */
-    Grided=0x80    /**< Grided (value=stepsize) */
+
+//    Uniform=0x10,  /**< Uniform random generator (value=0)*/
+//    Gaussian=0x20, /**< Gaussian random (value=sigma) */
+//    Grided=0x80    /**< Grided (value=stepsize) */
 };
 
 /** \brief Keyed access class for the numeric parameters of an optical surface
@@ -103,6 +104,14 @@ public:
     Parameter(){}
     inline Parameter(double newvalue, UnitType newtype, double newmultiplier=1.):/**<  \brief standard constructor sets optimization bounds to  parameter value */
         value(newvalue), multiplier(newmultiplier), type(newtype){bounds[0]=bounds[1]=value;}
+};
+
+struct C_LinkType
+{
+        string name;
+        uint32_t parent=0;
+        uint32_t prev=0;
+        uint32_t next=0;
 };
 
 /** \brief Structure to hold spot and caustic diagrams
