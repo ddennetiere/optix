@@ -42,7 +42,7 @@ class SourceBase : public virtual Surface
          *
          *  Generate() can be call several times with different wavelength since each rays carries its wavelength.
          *  Radiate() will propagate all ray impacts accumulated in the source since the last clearImpacts() call. */
-        virtual int generate(double wavelength)=0;  /**<  \todo should be made pure virtual later*/
+        virtual int generate(double wavelength){cout <<"errorBase class\n";return -1;};  /**<  \todo should be made pure virtual later*/
 
         /** \brief implements the required pure virtual intercept() function of the base class,
          *  so that the element is completely transparent
@@ -89,9 +89,12 @@ class SourceBase : public virtual Surface
          */
         inline void radiate()
         {
+            if(m_next==0)
+                return;
             vector<RayType>::iterator it;
+            RayType propRay;
             for(it=m_impacts.begin(); it != m_impacts.end(); ++it)
-                m_next->propagate(*it);
+                m_next->propagate(propRay=*it);
         }
     protected:
 

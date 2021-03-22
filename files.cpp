@@ -14,6 +14,7 @@
  #include "files.h"
  #include "interface.h"
  #include "elementbase.h"
+ #include "surface.h"
  #include "collections.h"
 
  #define   TAILLEPARAMETRES 20
@@ -462,26 +463,38 @@ struct SolemioSurface
 
                 // other parameters from HOLO
                 elem->getParameter("inverseDist1", param);
-                param.value=SSurf.param[2];
-                param.bounds[0]=SSurf.varparamin[2];
-                param.bounds[1]=SSurf.varparamax[2];
+                param.value=-SSurf.param[2];
+                double signdist1= copysign(1., param.value);
+                param.bounds[0]=-SSurf.varparamax[2];
+                param.bounds[1]=-SSurf.varparamin[2];
                 elem->setParameter("inverseDist1",param);
                 elem->getParameter("inverseDist2", param);
-                param.value=SSurf.param[4];
-                param.bounds[0]=SSurf.varparamin[4];
-                param.bounds[1]=SSurf.varparamax[4];
+                param.value=-SSurf.param[4];
+                param.bounds[0]=-SSurf.varparamax[4];
+                param.bounds[1]=-SSurf.varparamin[4];
                 elem->setParameter("inverseDist2",param);
 
                 elem->getParameter("azimuthAngle1", param);
                 param.value=param.bounds[0]=param.bounds[1]=0;
                 elem->setParameter("azimuthAngle1",param);
+                elem->getParameter("azimuthAngle2", param);   // parameter passé par adresse et susceptible d'être modifié
+                param.value=param.bounds[0]=param.bounds[1]=0;
                 elem->setParameter("azimuthAngle2",param);
 
                 elem->getParameter("elevationAngle1", param);
-                param.value=acos(SSurf.param[3]);
-                param.bounds[0]=SSurf.varparamin[3];
-                param.bounds[1]=SSurf.varparamax[2];
-                elem->setParameter("elevationAngle1",param);
+                param.value=signdist1*acos(SSurf.param[3]);  // convention de direction des sources différente de Solemio
+                if(signdist1 >0)
+                {
+                    param.bounds[0]=SSurf.varparamin[3];
+                    param.bounds[1]=SSurf.varparamax[3];
+                }
+                else
+                {
+                    param.bounds[0]=-SSurf.varparamax[3];
+                    param.bounds[1]=-SSurf.varparamin[3];
+                }
+                if(!elem->setParameter("elevationAngle1",param))
+                    cout << "cannot find a second constrution point with this elevation angle " << param.value << endl;
             }
         }
         break;
@@ -888,6 +901,8 @@ struct SolemioSurface
      if(XYZalign) cout << "alignement XYZ  " ; else  cout << "alignement relatif  " ;
      if(clipping) cout << "clipping actif  " ; else  cout << "clipping inactif  ";
      if(activeFilm) cout << "recording impacts\n"; else cout << "not recording impacts\n";
+     if(elem && activeFilm)
+            dynamic_cast<Surface*>(elem)->setRecording(RecordOutput);
 
      skipline(1);
 

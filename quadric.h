@@ -47,7 +47,7 @@ class Quadric : virtual public Surface
 
 //        virtual int align(double wavelength=0)=0;/**< \brief  align <b> must be implemented </b> in derived class*/
 
-        virtual inline string getRuntimeClass(){return "Quadric";}/**< return the derived class name ie. Quadric */
+        virtual inline string getOptixClass(){return "Quadric";}/**< return the derived class name ie. Quadric */
 
         /** \brief computes the intercept of ray with this quadric surface in the surface local absolute frame and sets the new origin at the intercept
         *

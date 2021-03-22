@@ -66,7 +66,7 @@ class GratingBase :  virtual public Surface, virtual public Pattern
 
         /** \brief Default destructor */
         virtual ~GratingBase();
-        virtual  inline string getRuntimeClass(){return "GratingBase";}/**< return the derived class name ie. GratingBase */
+        virtual  inline string getOptixClass(){return "GratingBase";}/**< return the derived class name ie. GratingBase */
 
 
         /** \brief Orients the grating on the given order and wavelength and defines the related geometric space transforms

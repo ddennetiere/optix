@@ -106,7 +106,7 @@ ElementBase* CreateElementObject(string s_type, string name)
 ElementBase * ElementCopy(ElementBase* source)
 {
     ElementBase* Copy=NULL;
-    string s_type=source->getRuntimeClass();
+    string s_type=source->getOptixClass();
 
     if (s_type=="Source<XYGrid>" || s_type=="XYGridSource")
         Copy=new XYGridSource(*dynamic_cast<XYGridSource*> (source));
@@ -169,10 +169,10 @@ ElementBase * ElementCopy(ElementBase* source)
 bool DuplicateChain(ElementBase * source, ChainCopy& newChain)
 {
     typedef pair<ElementBase*, ElementBase*> ElemPair;
-//    string stype=source->getRuntimeClass();
+//    string stype=source->getOptixClass();
 //    cout << "S: " << source << " < " << source->getPrevious() << ", " << source->getNext() << ">  " << stype <<endl;
     ElementBase* elemCopy=ElementCopy(source);
-//    stype=elemCopy->getRuntimeClass();
+//    stype=elemCopy->getOptixClass();
     if(elemCopy==NULL)
         return false;   // Classtype invalid  -should not happen
     if(newChain.copyMap.empty())
@@ -219,7 +219,7 @@ ElementBase* ChangeElementType(ElementBase* elem, string newType)
         return NULL;
     }
 
-//    cout << newElem->getName() <<" created as " << newElem->getRuntimeClass() << endl;
+//    cout << newElem->getName() <<" created as " << newElem->getOptixClass() << endl;
 
     // copie les paramètres communs
     ElementBase::ParamIterator newElemIt;

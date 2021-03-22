@@ -1,3 +1,6 @@
+#ifndef HEADER_5989607AD2A40F7E
+#define HEADER_5989607AD2A40F7E
+
 ////////////////////////////////////////////////////////////////////////////////
 /**
 *      \file           plane.h
@@ -45,7 +48,7 @@ class Plane : virtual public Surface
         }
 //        virtual int align(double wavelength=0)=0;/**< \brief Pure virtual function <b> must be implemented </b> in derived class*/
 
-        virtual inline string getRuntimeClass(){return "Plane";}/**< return the derived class name ie. Plane */
+        virtual inline string getOptixClass(){return "Plane";}/**< return the derived class name ie. Plane */
 
         /** \brief computes the intercept of ray with this plane surface  in the surface local absolute frame and sets the new origin at the intercept
         *
@@ -72,3 +75,5 @@ class Plane : virtual public Surface
 };
 
 #endif // PLANE_H
+#endif // header guard 
+

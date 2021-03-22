@@ -148,8 +148,8 @@ extern "C"
             SetOptiXLastError("invalid element ID", __FILE__, __func__);
             return false;
         }
-        strncpy(strBuffer,((ElementBase*)elementID)->getRuntimeClass().c_str(), bufSize);
-        if(bufSize <(int)((ElementBase*)elementID)->getRuntimeClass().size()+1)
+        strncpy(strBuffer,((ElementBase*)elementID)->getOptixClass().c_str(), bufSize);
+        if(bufSize <(int)((ElementBase*)elementID)->getOptixClass().size()+1)
         {
             SetOptiXLastError("Buffer too small, type was truncated", __FILE__, __func__);
             return false;
@@ -344,7 +344,7 @@ extern "C"
             return false;
         }
 
-            return ((SourceBase*)elementID)->generate(wavelength);
+            return dynamic_cast<SourceBase*>((ElementBase*)elementID)->generate(wavelength);
     }
 
     DLL_EXPORT bool Radiate(size_t elementID)
@@ -360,7 +360,7 @@ extern "C"
             SetOptiXLastError("Element is not a source", __FILE__, __func__);
             return false;
         }
-        ((SourceBase*)elementID)->radiate();
+        dynamic_cast<SourceBase*>((ElementBase*)elementID)->radiate();
         return true;
     }
 
@@ -382,8 +382,8 @@ extern "C"
             SetOptiXLastError("Invalid wavelength", __FILE__, __func__);
             return false;
         }
-        ((SourceBase*)elementID)->setWavelength(wavelength);
-        ((SourceBase*)elementID)->radiate();
+        dynamic_cast<SourceBase*>((ElementBase*)elementID)->setWavelength(wavelength);
+        dynamic_cast<SourceBase*>((ElementBase*)elementID)->radiate();
         return true;
     }
 

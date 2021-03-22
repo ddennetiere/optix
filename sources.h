@@ -47,7 +47,7 @@ public:
     XYGridSource(string name="" ,Surface * previous=NULL);
     /** Default destructor */
     virtual ~XYGridSource(){}
-    virtual inline string getRuntimeClass(){return "Source<XYGrid>";}/**< return the derived class name ie. Source<XYGrid> */
+    virtual inline string getOptixClass(){return "Source<XYGrid>";}/**< return the derived class name ie. Source<XYGrid> */
     virtual int generate(double wavelength);    /**< implementation of SourceBase::generate for XYGridSource() */
     //public members
     int nXprim, nYprim,nX,nY;
@@ -75,7 +75,7 @@ public:
     RadialGridSource(string name="" ,Surface * previous=NULL);
     /** Default destructor */
     virtual ~RadialGridSource(){}
-    virtual inline string getRuntimeClass(){return "Source<RadialGrid>";}/**< return the derived class name ie. Source<RadialGrid> */
+    virtual inline string getOptixClass(){return "Source<RadialGrid>";}/**< return the derived class name ie. Source<RadialGrid> */
     virtual int generate(double wavelength);    /**< implementation of SourceBase::generate for RadialGridSource() */
     // public members
     int nRprim, nTprim,nR,nT;
@@ -107,7 +107,7 @@ public:
     GaussianSource(string name="" ,Surface * previous=NULL);
     /** Default destructor */
     virtual ~GaussianSource(){}
-    virtual inline string getRuntimeClass(){return "Source<Gaussian>";}/**< return the derived class name ie. Source<Gaussian> */
+    virtual inline string getOptixClass(){return "Source<Gaussian>";}   /**< return the derived class name ie. Source<Gaussian> */
     virtual int generate(double wavelength);    /**< implementation of SourceBase::generate for GaussianSource() */
     //public members
 

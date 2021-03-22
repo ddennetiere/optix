@@ -116,7 +116,7 @@ public:
             chainPrevious(NULL);
     }
 
-    virtual inline string getRuntimeClass(){return "Surface";}/**< \brief return the derived class name of this object */
+    virtual inline string getOptixClass(){return "Surface";}/**< \brief return the derived class name of this object */
 
     /** \brief Align this surface with respect to the main incident ray according to the parameters,
     *       \param wavelength the alignment wavelength (used by chromatic elements only)
@@ -188,7 +188,7 @@ public:
         m_next=next;
     }
 
-    /** \brief Retrieves the next element in the active chain
+    /** \brief Retrieves the next element in the activfe chain
      *
      * \return a pointer toe the element following this one in the chain, or 0 if this is the last one.
      */

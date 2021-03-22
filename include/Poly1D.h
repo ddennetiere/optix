@@ -55,7 +55,7 @@ class Poly1D : virtual public Surface, virtual public Pattern
          * False if an error occured while trying to apply the value
          */
         virtual  bool setParameter(string name, Parameter& param);
-        virtual  inline string getRuntimeClass(){return "Poly1D";}/**< return the derived class name ie. Poly1D */
+        virtual  inline string getOptixClass(){return "Poly1D";}/**< return the derived class name ie. Poly1D */
 
 
 

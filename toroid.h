@@ -42,7 +42,7 @@ class Toroid : virtual public Surface
         /** Default destructor */
         virtual ~Toroid(){}
 
-        virtual inline string getRuntimeClass(){return "Toroid";}/**< \brief return the derived class name ie. Toroid */
+        virtual inline string getOptixClass(){return "Toroid";}/**< \brief return the derived class name ie. Toroid */
 
         /** \brief Change parameters and recaculate the surface if needed
 

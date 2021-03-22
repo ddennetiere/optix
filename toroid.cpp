@@ -17,7 +17,7 @@
 #include "toroid.h"
 //#include <chrono>
 //using namespace chrono;
-
+// #define DIAG_OUTPUT
 #include <windows.h>
 
 //Matrix<FloatType,2,2>  ComplexVpSolver(Matrix<complex<FloatType>,3,3> &matSys);
@@ -67,13 +67,14 @@ EIGEN_DEVICE_FUNC  RayBaseType::VectorType Toroid::intercept(RayType& ray, Vecto
 
     if(!ray.m_alive)
         return ray.position();
-
+#ifdef DIAG_OUTPUT
     LARGE_INTEGER StartingTime, EndingTime, ElapsedMicroseconds;
     LARGE_INTEGER Frequency;
 
     QueryPerformanceFrequency(&Frequency);
     QueryPerformanceCounter(&StartingTime);
 
+#endif // DIAG_OUTPUT
 
     ray.moveTo(-ray.direction().dot(ray.origin()) ).rebase();   // move and rebase close to the nearest of quadric apex  (0 point)
 //    cout << "input point " << ray.position() << endl;
@@ -127,14 +128,16 @@ EIGEN_DEVICE_FUNC  RayBaseType::VectorType Toroid::intercept(RayType& ray, Vecto
 
 //    cout << "intercept computation time :" << duration_cast<microseconds>(clock.now()-start).count() << " usec\n" ;
 
-
+#ifdef DIAG_OUTPUT
     QueryPerformanceCounter(&EndingTime);
     ElapsedMicroseconds.QuadPart = (EndingTime.QuadPart - StartingTime.QuadPart)*1000000;
+
     cout << "intercept computation time :" << ElapsedMicroseconds.QuadPart/Frequency.QuadPart << " usec\n" ;
 
     cout << "Intercept " <<  ray.position().transpose() << endl;
     if(normal)
         cout << "Normal    " <<  normal->transpose() << endl;
+#endif // DIAG_OUTPUT
 
     return ray.position();
 }

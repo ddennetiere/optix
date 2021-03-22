@@ -108,7 +108,7 @@ int Surface::getSpotDiagram(SpotDiagramExt& spotDiagram, double distance)
 {
     if(spotDiagram.m_spots)
         delete[] spotDiagram.m_spots;
-
+    cout << "getting diagram of  "  << m_name <<  " n " << m_impacts.size() << "  mem " << &m_impacts[0] << endl;
     vector<RayType> impacts;
     spotDiagram.m_lost=getImpacts(impacts,AlignedLocalFrame);
     spotDiagram.m_count=impacts.size();

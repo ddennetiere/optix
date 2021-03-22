@@ -40,7 +40,7 @@ class Sphere :  virtual public Surface, public Quadric
         Sphere();
         /** Default destructor */
         virtual ~Sphere(){}
-        virtual inline string getRuntimeClass(){return "Sphere";}
+        virtual inline string getOptixClass(){return "Sphere";}
 
         /** \brief Change parameters and recaculate the surface if needed
          * \param name parameter name

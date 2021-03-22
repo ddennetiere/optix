@@ -63,7 +63,7 @@ class Holo :   virtual public Surface, virtual public Pattern
     public:
         Holo();
         virtual ~Holo(){}
-        virtual  inline string getRuntimeClass(){return "Holo";}/**< return the derived class name ie. Holo */
+        virtual  inline string getOptixClass(){return "Holo";}/**< return the derived class name ie. Holo */
 
         /** \brief record pattern definition parameters. This function \b must be overridden in derived class and call after the Sureface::SetParameter() function was called.
          * \param name parameter name

@@ -62,7 +62,7 @@ public:
     /** \brief \brief reimplemented from ElementBase
      *  retrieves the class of the template implementation namely MirrorM<SShape>
     */
-    virtual inline string  getRuntimeClass(){return string("Mirror<")+SShape::getRuntimeClass()+">"; }
+    virtual inline string  getOptixClass(){return string("Mirror<")+SShape::getOptixClass()+">"; }
 
     /** \brief reimplemented from ElementBase
      *
@@ -103,7 +103,7 @@ public:
      */
     Film(string name="" ,Surface * previous=NULL):Surface(true,name, previous){SShape::setRecording(RecordInput);}
     virtual ~Film(){}   /**< \brief destructor */
-    virtual inline string  getRuntimeClass(){return string("Film<")+SShape::getRuntimeClass()+">"; }/**< \brief reimplemented from ElementBase
+    virtual inline string  getOptixClass(){return string("Film<")+SShape::getOptixClass()+">"; }/**< \brief reimplemented from ElementBase
             * retrieves the class of the template implementation namely Film<SShape>  */
 
     /** \brief reimplemented from ElementBase
@@ -140,12 +140,12 @@ class Grating: public GratingBase, public PatternType, public SShape
 public:
     Grating(string name="" ,Surface * previous=NULL):Surface(false,name, previous){}
     virtual ~Grating(){}
-    virtual inline string  getRuntimeClass(){return string("Grating<")+PatternType::getRuntimeClass()+
-                        ","+SShape::getRuntimeClass()+">"; }
+    virtual inline string  getOptixClass(){return string("Grating<")+PatternType::getOptixClass()+
+                        ","+SShape::getOptixClass()+">"; }
     inline int align(double wavelength)
     {
         int rcode= GratingBase::setFrameTransforms(wavelength);  // this call defines the space transforms and should call PatternType::GratingVector()
-        if(rcode)
+        if(rcode==0)
           return SShape::align(wavelength); // this call transforms the surface equation
         else return rcode;
     }
@@ -197,7 +197,7 @@ typedef Grating<Poly1D,Toroid> ToroidalPoly1DGrating;      /**< \brief implement
  */
 inline  bool MakeGratingTransmissive(ElementBase* pelem, bool trans=true )
 {
-   if(pelem->getRuntimeClass().compare(0,8,"Grating<" )!=0)
+   if(pelem->getOptixClass().compare(0,8,"Grating<" )!=0)
         return false;
    pelem->setTransmissive(trans);
    return true;

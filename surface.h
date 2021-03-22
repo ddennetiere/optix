@@ -76,7 +76,7 @@ public:
 
     virtual ~Surface(){}    /**< \brief virtual destructor */
 
-    virtual inline string getRuntimeClass(){return "Surface";}/**< \brief return the derived class name of this object */
+    virtual inline string getOptixClass(){return "Surface";}/**< \brief return the derived class name of this object */
 
     /** \brief pure virtual defined in derived class Align this surface with respect to the main incident ray according to the parameters,
     *        and defines the related geometric space transforms

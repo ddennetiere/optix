@@ -259,7 +259,7 @@ int GaussianSource::generate(double wavelength)
 
 
     random_device rd;
-    // if no clean enough use a mMersenne twister as mt19937 gen{rd()};
+    // if no clean enough use a Mersenne twister as mt19937 gen{rd()};
     for(int i=0; i<nRays; ++ i)
     {
         org <<0, 0, 0;
@@ -272,8 +272,17 @@ int GaussianSource::generate(double wavelength)
             dir(0)=gaussXprim(rd);
         if(sigmaYprim > 0)
             dir(1)=gaussYprim(rd);
-        m_impacts.emplace_back(RayBaseType(org,dir),wavelength); // amplitude set to 1 and S polar
+        dir.normalize();
+        m_impacts.push_back(RayType(RayBaseType(org,dir),wavelength)); // amplitude set to 1 and S polar
+        if(i==0)
+        {
+            cout << "source generation \n";
+            cout << org.transpose() << "         " << dir .transpose() << endl;
+        }
+
     }
+
+    cout << m_impacts[0].position().transpose() << "          " << m_impacts[0].direction().transpose() << endl;
 
     return nRays;
 }

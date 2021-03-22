@@ -205,7 +205,7 @@ ElementBase* ElementBase::getSource()
 TextFile& operator<<(TextFile& file,  ElementBase& elem)
 {
     string namestr;
-    file << elem.getRuntimeClass(); // <<'\0';
+    file << elem.getOptixClass(); // <<'\0';
     file << elem.m_name;
 
     if(elem.m_previous)

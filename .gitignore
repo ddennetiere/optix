@@ -1,8 +1,10 @@
 # skip doxygen generated html files
 doxygen/html/
 doxygen/latex/
+
 html
 doxygen*
+~$*
 *.o
 *.a
 *.exe
@@ -16,6 +18,6 @@ doxygen*
 # not maintained directories
 removed/
 bin/
-
+solemio/
 
 

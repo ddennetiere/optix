@@ -40,7 +40,7 @@ class Cylinder : public Quadric
         Cylinder();
         /** Default destructor */
         virtual ~Cylinder(){}
-        virtual inline string getRuntimeClass(){return "Cylinder";}
+        virtual inline string getOptixClass(){return "Cylinder";}
 
         /** \brief Change parameters and recaculate the surface if needed
          * \param name parameter name

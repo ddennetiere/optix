@@ -279,22 +279,22 @@ int OriginalTest()
         ElementBase *elem, *psrc=elem=tempChain.First;
         while(elem)
         {
-            cout << elem->getName() << " " << elem->getRuntimeClass() <<endl;
+            cout << elem->getName() << " " << elem->getOptixClass() <<endl;
             elem=elem->getNext();
         }
 
-        cout <<psrc <<  " " << psrc->getRuntimeClass() << "  " << psrc->getNext() <<endl;
+        cout <<psrc <<  " " << psrc->getOptixClass() << "  " << psrc->getNext() <<endl;
 
         elem=tempChain.First=ChangeElementType(psrc, "GaussianSource");
         if(elem)
             cout << "source type successfully changed to GaussianSource\n";
         else
             cout << "source could not be changed to GaussianSource\n";
-        cout <<elem <<  " " << elem->getRuntimeClass() << "  " << elem->getNext() <<endl;
+        cout <<elem <<  " " << elem->getOptixClass() << "  " << elem->getNext() <<endl;
 
         while(elem)
         {
-            cout << elem->getName() << " " << elem->getRuntimeClass() <<endl;
+            cout << elem->getName() << " " << elem->getOptixClass() <<endl;
 
             for(ElementBase::ParamIterator it=elem->parameterBegin(); it!=elem->parameterEnd(); ++it)
             {
