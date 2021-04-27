@@ -131,7 +131,7 @@ public:
 
     void reserveImpacts(int n); /**< \brief  reserve space for élements in the impact vector of all elements of the surface chain starting from this element to avoid reallocations
                                 *    \param  n the  number of elements to reserve t*/
-
+    inline int sizeImpacts(){return m_impacts.size();}
 
     /** \brief get the impacts and directions of the set of of rays propagated from the source
      *

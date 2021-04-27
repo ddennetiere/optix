@@ -106,19 +106,27 @@ int Surface::getImpacts(vector<RayType> &impacts, FrameID frame)
 
 int Surface::getSpotDiagram(SpotDiagramExt& spotDiagram, double distance)
 {
-    if(spotDiagram.m_spots)
-        delete[] spotDiagram.m_spots;
+//    if(spotDiagram.m_spots)
+//        delete[] spotDiagram.m_spots;
     cout << "getting diagram of  "  << m_name <<  " n " << m_impacts.size() << "  mem " << &m_impacts[0] << endl;
+
     vector<RayType> impacts;
     spotDiagram.m_lost=getImpacts(impacts,AlignedLocalFrame);
+
     spotDiagram.m_count=impacts.size();
-    if(! spotDiagram.m_count)
-    {
-        spotDiagram.m_spots=NULL;
+    if(spotDiagram.m_count==0)
         return 0;
-    }
-    else
+    if(spotDiagram.m_spots)  // buffer is allocated
+        if(spotDiagram.m_reserved < spotDiagram.m_count) // too small ?
+        {
+            delete [] spotDiagram.m_spots;
+            spotDiagram.m_spots=0;
+        }
+    if(! spotDiagram.m_spots)
+    {
         spotDiagram.m_spots=new double[spotDiagram.m_dim *spotDiagram.m_count];
+        spotDiagram.m_reserved = spotDiagram.m_count;
+    }
 
     Map<Matrix<double,Dynamic, Dynamic> > spotMat(spotDiagram.m_spots, spotDiagram.m_dim,  spotDiagram.m_count);
     Map<VectorXd> vMean(spotDiagram.m_mean, spotDiagram.m_dim),vSigma(spotDiagram.m_sigma,spotDiagram.m_dim);
@@ -150,16 +158,16 @@ int Surface::getSpotDiagram(SpotDiagramExt& spotDiagram, double distance)
 
 int Surface::getCaustic(CausticDiagram& causticData)
 {
-    if(causticData.m_spots)
-        delete[] causticData.m_spots;
+//    if(causticData.m_spots)
+//        delete[] causticData.m_spots;
 
     vector<RayType> impacts;
     causticData.m_lost=getImpacts(impacts,AlignedLocalFrame);
-    if(impacts.size()==0)
-    {
-        causticData.m_spots=NULL;
-        return 0;
-    }
+//    if(impacts.size()==0)
+//    {
+//        causticData.m_spots=NULL;
+//        return 0;
+//    }
 
     ArrayXXd causticMat(causticData.m_dim,impacts.size() );
 
@@ -167,14 +175,14 @@ int Surface::getCaustic(CausticDiagram& causticData)
     //              donc t=(Pz+ P.U Uz  )(1-Uz^2)
 
     vector<RayType>::iterator pRay;
-    causticData.m_dropped=0;
+//    causticData.m_dropped=0;
     Index ip;
     for(ip=0, pRay=impacts.begin(); pRay!=impacts.end(); ++pRay)
     {
         long double Ut2 = pRay->direction()[0]*pRay->direction()[0] + pRay->direction()[1]*pRay->direction()[1];
         if(Ut2 < 1e-12)
         {
-            ++causticData.m_dropped;
+//            ++causticData.m_dropped;
             continue;   //skip too small angles
         }
         // calcule l'éloignement du point où le rayon est le plus proche de l'axe d'alignement (OZ dans le repère local)
@@ -183,9 +191,25 @@ int Surface::getCaustic(CausticDiagram& causticData)
         causticMat(3,ip)=pRay->m_wavelength;
         ++ip;
     }
-    causticData.m_count=ip;
+
     causticMat.conservativeResize(NoChange, ip);
-    causticData.m_spots=new double[causticData.m_dim*ip];
+
+    causticData.m_count=ip;
+
+    if(ip==0)
+        return 0;
+    if(causticData.m_spots)  // buffer is allocated
+        if(causticData.m_reserved < ip) // too small ?
+        {
+            delete [] causticData.m_spots;
+            causticData.m_spots=0;
+        }
+    if(! causticData.m_spots)
+    {
+        causticData.m_spots=new double[causticData.m_dim*ip];
+        causticData.m_reserved = ip;
+    }
+
     Map<Array<double,Dynamic, Dynamic> > spotMat(causticData.m_spots, causticData.m_dim,  ip);
     Map<VectorXd> vMean(causticData.m_mean, causticData.m_dim),vSigma(causticData.m_sigma, causticData.m_dim);
     Map<VectorXd> vMin(causticData.m_min,causticData.m_dim), vMax(causticData.m_max, causticData.m_dim);

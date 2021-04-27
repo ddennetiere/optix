@@ -789,6 +789,12 @@ struct SolemioSurface
                 }
                 cout << endl;
             }
+                        if(pelemID)
+            {
+                *pelemID=CreateElement("Film<Plane>",name.c_str());
+                elem=(ElementBase*)*pelemID;
+                cout << "Parameter list " <<  name <<  " remplaced by a film\n";
+            }
 
         }
         break;
@@ -1115,15 +1121,16 @@ struct SolemioSurface
 
 
 
- void SolemioImport(string filename)
+ bool SolemioImport(string filename)
  {
     int i, numElem=0 ;    //   ,numMinim=0, numPoly=0, numInteg=0, numHistory=0;
-    string comment , titre, author, contactComment, projectComment, date, sourcefile, savedfile;
+    string errstr, comment , titre, author, contactComment, projectComment, date, sourcefile, savedfile;
     SolemioFile Sfile(filename.c_str());
     if(!Sfile.is_open())
     {
-         cout << "can't open the file\n";
-         return;
+         errstr="can't open the file " + filename;
+         SetOptiXLastError(errstr, __FILE__, __func__);
+         return false;
     }
     cout << "\n-------------------------------------------------------------------------------------\n\n";
 
@@ -1131,7 +1138,11 @@ struct SolemioSurface
 
     Sfile.skipline(4);  // skip main window size
     if(! Sfile.check_comment(" numero_elementivirtuali  "))
-        return;
+    {
+         errstr="Format error  while reading file  " + filename;
+         SetOptiXLastError(errstr, __FILE__, __func__);
+         return false;
+    }
     Sfile >> numElem  ;
     cout << "number of elements " << numElem << endl;
 
@@ -1142,7 +1153,12 @@ struct SolemioSurface
     {
         cout << "ELEMENT " << i <<endl << endl;
         if (!Sfile.get_element((size_t*) &pelement))
-            break;
+        {
+             errstr="Format error  while getting  an element in file  " + filename + " loading stopped";
+             SetOptiXLastError(errstr, __FILE__, __func__);
+             break;
+        }
+
         if(pelement)
             cout << pelement->getName()  << " Created as " << pelement << endl;
         else
@@ -1223,5 +1239,5 @@ struct SolemioSurface
     }  // next elem in linktable
 
     Sfile.close();
-
+    return true;
  }

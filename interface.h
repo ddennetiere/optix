@@ -114,19 +114,19 @@ extern "C"
      */
     DLL_EXPORT bool GetElementType(size_t elementID, char* strBuffer, int bufSize);
 
-    /** \brief  removes an element by its name
+    /** \brief  delete an element by its name and remove its reference from the system
      *
      * \param name name of the element to delete
      * \return false if the element was not found; true otherwise
      */
-    DLL_EXPORT bool RemoveElement_byName(const char* name);
+    DLL_EXPORT bool DeleteElement_byName(const char* name);
 
-    /** \brief removes an element by its  ID
+    /** \brief delete an element by its  ID and remove its reference from the system
      *
      * \param elementID the ID of the element to delete
      * \return false if the element was not found; true otherwise
      */
-    DLL_EXPORT bool RemoveElement_byID(size_t elementID);
+    DLL_EXPORT bool DeleteElement_byID(size_t elementID);
 
     /** \brief Chain two elements by their names
      *
@@ -161,6 +161,36 @@ extern "C"
      * \return the ID of the next element, or 0 if the element either is the last of the link chain either is invalid
      */
     DLL_EXPORT size_t GetNextElement(size_t elementID);
+
+    /** \brief Check if element is used in transmission rather than reflexion mode (mainly useful for gratings)
+     *
+     * \param elementID the Id of the element to inquire of
+     * \return true if the element is transmissive ; false otherwise
+     */
+    DLL_EXPORT bool GetTransmissive(size_t elementID);
+
+    /** \brief Set the transmission or reflexion mode of the element. (only available for gratings)
+     *
+     * \param elementID the ID of the element to chang
+     * \param transmit true value to make the element transmissive, false if the element is reflective
+     * \return true if the element is a grating and transmission mode was set, false otherwise and the element is unchanged
+     */
+    DLL_EXPORT bool SetTransmissive(size_t elementID, bool transmit);
+
+    /** \brief retrieves the impact recording mode of an element
+     *
+     * \param elementID the Id of the element to inquire of
+     * \return the recording mode which is a value of the RecordMode enumeration
+     */
+    DLL_EXPORT int GetRecording(size_t elementID);
+
+    /** \brief sets the impact recording mode of an element
+     *
+     * \param elementID the Id of the element to modify
+     * \param recordingMode the  new recording mode which must be a value of the RecordMode enumeration
+     * \return true if the element can record and the recording mode is valid; false if the element cannot record impacts (groups) or mode is invalid
+     */
+    DLL_EXPORT bool SetRecording(size_t elementID, int recordingMode);
 
     /** \brief Modifies an element parameter
      *
@@ -258,6 +288,27 @@ extern "C"
      *   Loads a complete system discarding the old one if any.
      */
     DLL_EXPORT bool LoadSystem(const char* filename);
+
+    /** \brief Load a new system from a Solemio file
+     *
+     *  All Solemio elements are not exactly converted
+     * \param filename the full path of the file to load
+     * \return true  if loading was complete, false otherwise and OptixLastError is set
+     */
+    DLL_EXPORT bool LoadSolemioFile(char * filename);
+
+    /** \brief Evaluates a spot diagram at a given distance from an element and returns it in a C_DiagramStruct
+     *
+     * \param elemId The ID of the element in the space of which the spot diagram must be evaluated. Impact recording must be active on this object
+     * \param diagram  the address of a prefilled C_DiagramStruct to receive the data. The m_dim member <b> must  have the value of 5 </b>, and the statistics buffers
+     * must be already allocated with enough space for 5 int int values each. The m_reserved field <b> must be set </b> and the  m_spots buffer must be preallocated
+     * with enough space to accommodate m_reserved spot vectors of 5 double values. The calling function is responsible for initializing and deleting this structure
+     * in the appropriate manner.
+     * \param  distance (optional) The distance from the element where the spot diagram is evaluated. Default value is 0
+     * \return a boolean value, true for success, false for failure and OptixLastError is set.
+     *
+     */
+    DLL_EXPORT bool GetSpotDiagram(size_t elemId, C_DiagramStruct * diagram, double distance=0);
 
 }
 /** \} */  //end of globalc group

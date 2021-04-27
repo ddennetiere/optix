@@ -29,11 +29,11 @@ using namespace std;
 
 //class SourceBase;
 
-/** \brief series developpement of \f$ \sqrt{1-x} \f$ for small \f$ x \f$
+/** \brief series developpement of \f$ 1-\sqrt{1-x} \f$ for small \f$ x \f$
  *  \ingroup GlobalCpp
  *
  * \param x  the value of x
- * \return \f$ \sqrt{1-x} \f$
+ * \return \f$ 1-\sqrt{1-x} \f$
  *
  */
 inline double oneMinusSqrt1MinusX(double x)

@@ -50,7 +50,7 @@
  *   ----------------- | -------- | --------------
  *   \b recordingWavelength | Distance | Recording wavelength of the holographic pattern
  *   \b lineDensity     | Inverse Distance  | Central line density of the grating
- *   \b inverseDist\e n  | Inverse Distance  | reciprocal distance of construction point P\e n (a signed value se diagram below)
+ *   \b inverseDist\e n  | Inverse Distance  | reciprocal distance of construction point P\e n (a signed value see diagram below)
  *   \b azimuthAngle\e n  | Angle  | azimuth angle ( \f$ \psi \f$) of construction point P\e n  [\f$ - \pi/2, \pi/2 \f$]
  *   \b elevationAngle1  | Angle | elevation angle ( \f$ \theta \f$) of the first construction point P1  [\f$ - \pi/2, \pi/2 \f$]
  * <em> with  n  = 1 or 2,  example:</em> inverseDist1

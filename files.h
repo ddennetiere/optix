@@ -218,7 +218,12 @@ inline fstream& operator<<(fstream& file, DiagramType<Vsize>& diagram )
     streamsize bytes=Vsize*sizeof(double)*diagram.m_count;
 //    int vecSize=Vsize;
 //    file.write((char*)&vecSize, sizeof(int));
-    file.write((char*)&diagram, 4*sizeof(int)+ 4*Vsize*sizeof(double));
+    file.write((char*)&diagram, 4*sizeof(int));
+    file.write((char*) diagram.m_min, Vsize*sizeof(double));
+    file.write((char*) diagram.m_max, Vsize*sizeof(double));
+    file.write((char*) diagram.m_mean, Vsize*sizeof(double));
+    file.write((char*) diagram.m_sigma, Vsize*sizeof(double));
+
     file.write((char*)diagram.m_spots, bytes);
     return file;
 }
@@ -304,6 +309,14 @@ public:
 
 
 void ReadSolemioFile(string filename);/**< dumps the content of a Solemio file to cout */
-void SolemioImport(string filename);    /**< import the elements of the Solemio file in the current system */
+
+
+/** \brief import the elements of the Solemio file in the current system
+ *
+ * \param filename full path of the Solemio file
+ * \return false if an error occurred and set the OptixLastError, return true otherwise
+ *
+ */
+bool SolemioImport(string filename);
 
 #endif // FILES_H_INCLUDED

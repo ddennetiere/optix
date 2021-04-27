@@ -94,7 +94,7 @@ class SourceBase : public virtual Surface
             vector<RayType>::iterator it;
             RayType propRay;
             for(it=m_impacts.begin(); it != m_impacts.end(); ++it)
-                m_next->propagate(propRay=*it);
+                m_next->propagate(propRay=*it);   // on propage une cope de *it. La propagation modifie directement le rayon propagé
         }
     protected:
 

@@ -12,15 +12,20 @@
  ***************************************************************************/
 
  #include <iostream>
+ #include <chrono>
+using namespace std::chrono;
+
  #include "files.h"
  #include "interface.h"
  #include  "surface.h"  // temporaire avant de créer le fcts d'interface
  #include "gratingbase.h"
 
+
+
  int SolemioTest()
  {
     //ReadSolemioFile("R:\\Partage\\SOLEMIO\\CASSIOPEE");
-    SolemioImport("D:\\projets\\projetsCB\\OptiX\\solemio\\CASSIO");
+    SolemioImport("D:\\projets\\projetsCB\\OptiX\\solemio\\CASSIOPEE");
     size_t hSys=0, hParm=0, elemID=0;
     char elname[32], name2[32],parmname[48], errBuf[256];
     Parameter param;
@@ -56,6 +61,10 @@
         elemID =GetNextElement(elemID);
     }
 
+    GetParameter(sourceID,"nRays", &param);
+    param.value=50000;
+    SetParameter(sourceID,"nRays",param);
+
     if(Align(sourceID,2.5e-8))
     {
        GetOptiXLastError(errBuf,256);
@@ -82,12 +91,16 @@
             cout << x << "   " << grating->gratingVector(pos).transpose() << endl;
         }
 
+        high_resolution_clock clock;
+        high_resolution_clock::time_point start(clock.now());
+
         if(!Radiate(sourceID))
         {
            GetOptiXLastError(errBuf,256);
            cout << "Radiation error : " << errBuf << endl;
            return -1;
         }
+        cout << "propagation computation time :" << duration_cast<milliseconds>(clock.now()-start).count() << " msec\n" ;
 
          cout << "\nIMPACTS\n";
 
@@ -95,7 +108,7 @@
 
         SpotDiagramExt spotDg;
 
-        int ncounts=screen->getSpotDiagram(spotDg,-0.);
+        int ncounts=screen->getSpotDiagram(spotDg,-0.002);
         if(ncounts)
         {
             for(int i=0; i<5 ; ++i)
@@ -105,10 +118,39 @@
             spotfile << spotDg;
             spotfile.close();
 
+            {
+                CausticDiagram caustic;
+                int n= screen->getCaustic(caustic) ;
+                cout << " caustic of " << n << " points\n";
+                fstream causticFile("SMcaustic.cdg", ios::out | ios::binary);
+                causticFile << caustic;
+                causticFile.close();
+            }
+
             cout << endl << endl;
             vector<RayType> impacts;
             screen->getImpacts(impacts, SurfaceFrame);
             cout << impacts[0].position().transpose() <<  "      " << impacts[0].direction().transpose() << endl;
+
+            C_DiagramStruct cdiagram={5,5000,0,0};
+
+            cdiagram.m_min=new double[cdiagram.m_dim];
+            cdiagram.m_max=new double[cdiagram.m_dim];
+            cdiagram.m_mean=new double[cdiagram.m_dim];
+            cdiagram.m_sigma=new double[cdiagram.m_dim];
+            cdiagram.m_spots= new double[cdiagram.m_dim*cdiagram.m_reserved];
+            cout << hex << cdiagram.m_min << " " << cdiagram.m_max << " " << cdiagram.m_mean << " " << cdiagram.m_sigma << dec << endl;
+
+           if(!GetSpotDiagram(GetElementID("EXP1"), &cdiagram, 0))
+                cout << "GetSpotDiagram failed\n";
+            else
+                cout  <<  "GetSpotDiagram succeeded\n";
+
+            delete [] cdiagram.m_min;
+            delete [] cdiagram.m_max;
+            delete [] cdiagram.m_mean;
+            delete [] cdiagram.m_sigma;
+            delete [] cdiagram.m_spots;
         }
 
         else cout <<" No spot on screen\n";

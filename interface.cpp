@@ -157,7 +157,7 @@ extern "C"
        return true;
     }
 
-    DLL_EXPORT bool RemoveElement_byName(const char* name)
+    DLL_EXPORT bool DeleteElement_byName(const char* name)
     {
         map<string,ElementBase*>:: iterator it= System.find(name);
         if(it==System.end())
@@ -168,13 +168,13 @@ extern "C"
         return true;
     }
 
-    DLL_EXPORT bool RemoveElement_byID(size_t elementID)
+    DLL_EXPORT bool DeleteElement_byID(size_t elementID)
     {
         set<size_t>::iterator it=ValidIDs.find(elementID);
         if(it==ValidIDs.end())
             return false;
         string name= ((ElementBase*)elementID)->getName();
-        return RemoveElement_byName(name.c_str());
+        return DeleteElement_byName(name.c_str());
     }
 
     DLL_EXPORT bool ChainElement_byName(const char* previous, const char* next)
@@ -247,6 +247,33 @@ extern "C"
             return (size_t) ((ElementBase*)elementID)->getNext();
         else
             return 0;
+    }
+
+    DLL_EXPORT bool GetTransmissive(size_t elementID)
+    {
+        return ((ElementBase*) elementID)->getTransmissive();
+    }
+
+    DLL_EXPORT bool SetTranmissive(size_t elementID, bool transmit)
+    {
+        if(!dynamic_cast<GratingBase*>((ElementBase*) elementID))
+            return false;
+
+        ((ElementBase*) elementID)->setTransmissive(transmit);
+        return true;
+    }
+
+    DLL_EXPORT int GetRecording(size_t elementID)
+    {
+        return dynamic_cast<Surface*>((ElementBase*)elementID)->getRecording();
+    }
+
+    DLL_EXPORT bool SetRecording(size_t elementID, int recordingMode)
+    {
+        if(!dynamic_cast<Surface*>((ElementBase*)elementID) || recordingMode <RecordNone || recordingMode > RecordOutput)
+            return false ;
+        dynamic_cast<Surface*>((ElementBase*)elementID)->setRecording( (RecordMode) recordingMode);
+        return true;
     }
 
     DLL_EXPORT bool SetParameter(size_t elementID, const char* paramTag, Parameter paramData)
@@ -387,6 +414,40 @@ extern "C"
         return true;
     }
 
+    DLL_EXPORT bool GetSpotDiagram(size_t elementID, C_DiagramStruct * diagram, double distance)
+    {
+        if(diagram->m_dim != 5)
+        {
+            SetOptiXLastError("m_dim must be 5 for spotdiagrams", __FILE__, __func__);
+            return false;
+        }
+
+        char errstr[64];
+        SpotDiagramExt* spotdiag= (SpotDiagramExt*)diagram;
+        Surface * surf=dynamic_cast<Surface*>((ElementBase*)elementID);
+
+        if(surf)
+        {
+            if(surf->getRecording()==0)
+            {
+                SetOptiXLastError("Element is not recording impacts", __FILE__, __func__);
+                return false;
+            }
+
+            if(diagram->m_reserved < surf->sizeImpacts())
+            {
+                sprintf(errstr,"Diagram storage space is too small to host %d impacts", surf->sizeImpacts());
+                SetOptiXLastError(errstr, __FILE__, __func__);
+                return false;
+            }
+            surf->getSpotDiagram(*spotdiag, distance);
+            spotdiag=NULL;
+            return true;
+        }
+        SetOptiXLastError("Element cannot record impacts (not a surface) ", __FILE__, __func__);
+        return false;
+    }
+
     DLL_EXPORT bool ClearImpacts(size_t elementID)
     {
         ClearOptiXError();
@@ -498,4 +559,14 @@ extern "C"
         return true;
     }
 
-}
+
+    DLL_EXPORT bool LoadSolemioFile(char * filename)
+    {
+        System.clear();
+        return SolemioImport(filename);
+
+    }
+
+
+
+} // extern C

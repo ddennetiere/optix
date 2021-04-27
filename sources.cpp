@@ -274,15 +274,15 @@ int GaussianSource::generate(double wavelength)
             dir(1)=gaussYprim(rd);
         dir.normalize();
         m_impacts.push_back(RayType(RayBaseType(org,dir),wavelength)); // amplitude set to 1 and S polar
-        if(i==0)
-        {
-            cout << "source generation \n";
-            cout << org.transpose() << "         " << dir .transpose() << endl;
-        }
+//        if(i==0)
+//        {
+//            cout << "source generation \n";
+//            cout << org.transpose() << "         " << dir .transpose() << endl;
+//        }
 
     }
 
-    cout << m_impacts[0].position().transpose() << "          " << m_impacts[0].direction().transpose() << endl;
+   // cout << m_impacts[0].position().transpose() << "          " << m_impacts[0].direction().transpose() << endl;
 
     return nRays;
 }
