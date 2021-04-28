@@ -1,9 +1,12 @@
-# skip doxygen generated html files
+# skip doxygen generated  files
 doxygen/html/
 doxygen/latex/
 
 html
-doxygen*
+# in doxygen dir track only doxyfile and the hand maintained Zip file
+doxygen/*
+!doxygen/doxyfile
+!doxygen/html.zip
 ~$*
 *.o
 *.a
