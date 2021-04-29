@@ -6,7 +6,7 @@ html
 # in doxygen dir track only doxyfile and the hand maintained Zip file
 doxygen/*
 !doxygen/doxyfile
-!doxygen/html.zip
+!doxygen/OptiX.chm
 ~$*
 *.o
 *.a
