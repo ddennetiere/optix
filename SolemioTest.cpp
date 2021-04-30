@@ -130,21 +130,28 @@ using namespace std::chrono;
             cout << endl << endl;
             vector<RayType> impacts;
             screen->getImpacts(impacts, SurfaceFrame);
-            cout << impacts[0].position().transpose() <<  "      " << impacts[0].direction().transpose() << endl;
+            cout << impacts[0].position().transpose() <<  "      " << impacts[0].direction().transpose() << endl<< endl;
 
-            C_DiagramStruct cdiagram={5,5000,0,0};
+            C_DiagramStruct cdiagram={5,50000,0,0};
 
             cdiagram.m_min=new double[cdiagram.m_dim];
             cdiagram.m_max=new double[cdiagram.m_dim];
             cdiagram.m_mean=new double[cdiagram.m_dim];
             cdiagram.m_sigma=new double[cdiagram.m_dim];
             cdiagram.m_spots= new double[cdiagram.m_dim*cdiagram.m_reserved];
-            cout << hex << cdiagram.m_min << " " << cdiagram.m_max << " " << cdiagram.m_mean << " " << cdiagram.m_sigma << dec << endl;
+            cout << "cdiag struct "<< hex << cdiagram.m_min << " " << cdiagram.m_max << " " << cdiagram.m_mean << " " << cdiagram.m_sigma << dec << endl;
 
-           if(!GetSpotDiagram(GetElementID("EXP1"), &cdiagram, 0))
-                cout << "GetSpotDiagram failed\n";
+            if(!GetSpotDiagram(GetElementID("EXP1"), &cdiagram, 0))
+            {
+                char errbuf[256];
+                GetOptiXLastError(errbuf, 256);
+                cout << "GetSpotDiagram failed :  "<< errbuf << endl;
+            }
             else
+            {
                 cout  <<  "GetSpotDiagram succeeded\n";
+                DiagramToFile("cSpotDiag.sdg", &cdiagram);
+            }
 
             delete [] cdiagram.m_min;
             delete [] cdiagram.m_max;

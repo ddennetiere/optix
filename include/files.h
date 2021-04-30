@@ -216,8 +216,7 @@ template<int Vsize>
 inline fstream& operator<<(fstream& file, DiagramType<Vsize>& diagram )
 {
     streamsize bytes=Vsize*sizeof(double)*diagram.m_count;
-//    int vecSize=Vsize;
-//    file.write((char*)&vecSize, sizeof(int));
+
     file.write((char*)&diagram, 4*sizeof(int));
     file.write((char*) diagram.m_min, Vsize*sizeof(double));
     file.write((char*) diagram.m_max, Vsize*sizeof(double));
@@ -225,6 +224,19 @@ inline fstream& operator<<(fstream& file, DiagramType<Vsize>& diagram )
     file.write((char*) diagram.m_sigma, Vsize*sizeof(double));
 
     file.write((char*)diagram.m_spots, bytes);
+    return file;
+}
+inline fstream& operator<<(fstream& file, C_DiagramStruct& cdiagram )
+{
+    streamsize bytes=cdiagram.m_dim*sizeof(double)*cdiagram.m_count;
+
+    file.write((char*)&cdiagram, 4*sizeof(int));
+    file.write((char*) cdiagram.m_min, cdiagram.m_dim*sizeof(double));
+    file.write((char*) cdiagram.m_max, cdiagram.m_dim*sizeof(double));
+    file.write((char*) cdiagram.m_mean, cdiagram.m_dim*sizeof(double));
+    file.write((char*) cdiagram.m_sigma, cdiagram.m_dim*sizeof(double));
+
+    file.write((char*)cdiagram.m_spots, bytes);
     return file;
 }
 /** \brief Write a WavefrontData  object to a file in binary format
@@ -283,7 +295,7 @@ class SolemioFile:public fstream
 {
 public:
 
-    typedef map<uint32_t, C_LinkType> LinkMap;
+    typedef map<uint32_t, SolemioLinkType> LinkMap;
   //  SolemioFile(){}
     ~SolemioFile(){fstream::close();}/**< \brief close the file and delete the file object */
     SolemioFile(string filename);   /**< \brief open the file in read-only mode */     //  :fstream(filename,  ios::in ){} // ouverture en lecture seule

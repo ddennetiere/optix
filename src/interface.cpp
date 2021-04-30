@@ -37,8 +37,10 @@ inline bool IsValidID(size_t ID)
     return it!=ValidIDs.end();
 }
 
+#ifdef __cplusplus
 extern "C"
 {
+#endif
     DLL_EXPORT bool IsElementValid(size_t  ID){return IsValidID(ID);}
 
     DLL_EXPORT bool GetOptiXLastError(char* buffer, int bufferSize)
@@ -567,6 +569,18 @@ extern "C"
 
     }
 
-
-
+    DLL_EXPORT bool DiagramToFile(const char*filename, C_DiagramStruct* cdiagram)
+    {
+        fstream spotfile(filename, ios::out | ios::binary);
+        if(!spotfile.is_open())
+        {
+            SetOptiXLastError("Can't open the file for writing",__FILE__,__func__);
+            return false;
+        }
+        spotfile << *cdiagram;
+        spotfile.close();
+        return true;
+    }
+#ifdef __cplusplus
 } // extern C
+#endif

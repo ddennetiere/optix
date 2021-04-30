@@ -246,7 +246,7 @@ struct SolemioSurface
                pElem, previousElem, nextElem ;
      double clipX1=0, clipX2=0, clipY1=0, clipY2=0, sigmaslopeLong, sigmaslopeTrans,
             elemParam[TAILLEPARAMETRES], elemParamin[TAILLEPARAMETRES], elemParamax[TAILLEPARAMETRES];
-    C_LinkType iconLink, elemLink;
+    SolemioLinkType iconLink, elemLink;
 
      // les rayons sont stockés dans l'ordre X, X', Y, Y', Z, Z', lambda
      ArrayXd axein(7), axeout(7),planelem(7), rotaxe(7), aux(7), poleNormal(7), yaxe(7);
@@ -290,7 +290,7 @@ struct SolemioSurface
      iconLink.name=name;
      iconLink.prev=previousElemIcon;
      iconLink.next=nextElemIcon;
-     iconTable.insert(pair<int32_t,C_LinkType>(pElemIcon, iconLink));
+     iconTable.insert(pair<int32_t,SolemioLinkType>(pElemIcon, iconLink));
 
 
      for(i=0; i<TAILLEPARAMETRES; ++i)
@@ -313,7 +313,7 @@ struct SolemioSurface
      elemLink.name=name;
      elemLink.prev=previousElem;
      elemLink.next=nextElem;
-     elemTable.insert(pair<int32_t,C_LinkType>(pElem, elemLink));
+     elemTable.insert(pair<int32_t,SolemioLinkType>(pElem, elemLink));
 
 
       cout << "Surface " << pElem  << " linked from " << previousElem << " to " <<nextElem << endl;
@@ -1169,7 +1169,7 @@ struct SolemioSurface
     SolemioFile::LinkMap::iterator it, itl;
     map<string,ElementBase*>:: iterator elit, pointedElemIt;
     string sprev, snext;
-    C_LinkType curlink;
+    SolemioLinkType curlink;
     int32_t prevptr, nextptr;
     for(it= Sfile.iconTable.begin(); it !=Sfile.iconTable.end();++it)
     {
