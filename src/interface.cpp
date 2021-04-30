@@ -256,7 +256,7 @@ extern "C"
         return ((ElementBase*) elementID)->getTransmissive();
     }
 
-    DLL_EXPORT bool SetTranmissive(size_t elementID, bool transmit)
+    DLL_EXPORT bool SetTransmissive(size_t elementID, bool transmit)
     {
         if(!dynamic_cast<GratingBase*>((ElementBase*) elementID))
             return false;

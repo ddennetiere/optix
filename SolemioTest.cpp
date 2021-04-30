@@ -29,6 +29,7 @@ using namespace std::chrono;
     size_t hSys=0, hParm=0, elemID=0;
     char elname[32], name2[32],parmname[48], errBuf[256];
     Parameter param;
+
     do
     {
         EnumerateElements(&hSys,&elemID, elname,32);
