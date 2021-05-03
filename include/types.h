@@ -7,7 +7,7 @@
 *
 *      \brief         basic types used throughout OptiX
 *                     Surface types are defined in opticalelements.h
-*      \author         François Polack <francois.polack@synchroton-soleil.fr>
+*      \author         FranÃ§ois Polack <francois.polack@synchroton-soleil.fr>
 *      \date        2020-11-13  Creation
 *      \date         Last update
 *

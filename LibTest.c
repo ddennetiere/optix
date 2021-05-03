@@ -6,7 +6,7 @@
 *
 *
 *
-*   \author             François Polack  <francois.polack@synchroton-soleil.fr>
+*   \author             FranÃ§ois Polack  <francois.polack@synchroton-soleil.fr>
 *   \date               Creation: 2021-04-30
 *   \date               Last update: 2021-04-30
  ***************************************************************************/
@@ -105,7 +105,7 @@ int main()
                                           //  For films there is no difference between the two recording modes
 
 
-    if(Align(sourceID,2.5e-8)) // aligne le système à partir de la source pour la longueur d'on 25 nm (lambda utilisé seulement par les réseaux)
+    if(Align(sourceID,2.5e-8)) // aligne le systÃ¨me Ã  partir de la source pour la longueur d'on 25 nm (lambda utilisÃ© seulement par les rÃ©seaux)
     {
        GetOptiXLastError(errBuf,ERROR_BUFLEN);
         printf("Alignment error: %s\n",errBuf);
@@ -170,6 +170,6 @@ int main()
         free(cdiagram.m_spots);
     }
 
-
+    SaveSystem("Cassioptix.dat");  // Save the  system in the compact text format
     return 0;
 }

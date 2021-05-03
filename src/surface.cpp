@@ -6,7 +6,7 @@
 *
 *
 *
-*   \author             François Polack  <francois.polack@synchroton-soleil.fr>
+*   \author             FranÃ§ois Polack  <francois.polack@synchroton-soleil.fr>
 *   \date               Creation: 2020-10-05
 *   \date               Last update: 2021-02-03
  ***************************************************************************/
@@ -20,7 +20,7 @@
 RayType& Surface::transmit(RayType& ray)
 {
 
-    intercept(ray); // intercept effectue le changement de repère previous to this
+    intercept(ray); // intercept effectue le changement de repÃ¨re previous to this
     if(m_recording!=RecordNone)
             m_impacts.push_back(ray);
     return ray;
@@ -171,7 +171,7 @@ int Surface::getCaustic(CausticDiagram& causticData)
 
     ArrayXXd causticMat(causticData.m_dim,impacts.size() );
 
-    //  minimum de distance à l'axe oz   param t= (DP.U0 + DP.U U0.U) (1-U0.U^2)  avec U0=UnitZ DP =(P-P0)= P
+    //  minimum de distance Ã  l'axe oz   param t= (DP.U0 + DP.U U0.U) (1-U0.U^2)  avec U0=UnitZ DP =(P-P0)= P
     //              donc t=(Pz+ P.U Uz  )(1-Uz^2)
 
     vector<RayType>::iterator pRay;
@@ -185,7 +185,7 @@ int Surface::getCaustic(CausticDiagram& causticData)
 //            ++causticData.m_dropped;
             continue;   //skip too small angles
         }
-        // calcule l'éloignement du point où le rayon est le plus proche de l'axe d'alignement (OZ dans le repère local)
+        // calcule l'Ã©loignement du point oÃ¹ le rayon est le plus proche de l'axe d'alignement (OZ dans le repÃ¨re local)
         long double t=(pRay->position()[2] +  pRay->position().dot(pRay->direction())* pRay->direction()[2])/ Ut2;
         causticMat.block<3,1>(0,ip)=pRay->position(t).cast<double>();
         causticMat(3,ip)=pRay->m_wavelength;
@@ -246,9 +246,9 @@ int Surface::getWavefrontData(SpotDiagramExt& WFdata, double distance)
     Index ip;
     for(ip=0, pRay=impacts.begin(); pRay!=impacts.end(); ++pRay, ++ip)
     {
-        //On calcule la projectiondu point de référence sur chaque rayon. C'est l'écart aberrant.
-        // celui-ci est ensuite projeté sur les deux directions de référence du plan normal à chaque rayon,
-        // pour être ensuite égalées au dérivées du front d'onde par rapport aux angles d'ouverture
+        //On calcule la projectiondu point de rÃ©fÃ©rence sur chaque rayon. C'est l'Ã©cart aberrant.
+        // celui-ci est ensuite projetÃ© sur les deux directions de rÃ©fÃ©rence du plan normal Ã  chaque rayon,
+        // pour Ãªtre ensuite Ã©galÃ©es au dÃ©rivÃ©es du front d'onde par rapport aux angles d'ouverture
         VectorType delta=pRay->projection(referencePoint)-referencePoint;
         WFmat(0,ip)= (delta(0)*pRay->direction()(2)- delta(2)*pRay->direction()(0) ) /sqrtl(1.L-pRay->direction()(1)*pRay->direction()(1));
         WFmat(1,ip)= (delta(1)*pRay->direction()(2)- delta(2)*pRay->direction()(1) ) /sqrtl(1.L-pRay->direction()(0)*pRay->direction()(0));
@@ -272,7 +272,7 @@ EIGEN_DEVICE_FUNC MatrixXd Surface::getWavefontExpansion(double distance, Index 
 
     vector<RayType>::iterator pRay;
     Index ip;
-    // on charge dans le tableau slope mat (cf GetWavefrontData mais attention c'est la transposée de la fonction précédente)
+    // on charge dans le tableau slope mat (cf GetWavefrontData mais attention c'est la transposÃ©e de la fonction prÃ©cÃ©dente)
     // dans les colonnes 0 et 1, l'aberration transverse selon x et y (dans le plan perpendiculaire au rayon)
     // dans les colonnes 2 et 4 les coefficient directeur de la direction du rayon
     for(ip=0, pRay=impacts.begin(); pRay!=impacts.end(); ++pRay, ++ip)
@@ -283,7 +283,7 @@ EIGEN_DEVICE_FUNC MatrixXd Surface::getWavefontExpansion(double distance, Index 
         slopeMat(ip,1)= (delta(1)*pRay->direction()(2)- delta(2)*pRay->direction()(1) ) /sqrtl(1.L-pRay->direction()(0)*pRay->direction()(0));
         slopeMat.block<1,2>(ip,2)= pRay->direction().segment(0,2).cast<double>();
     }
-    XYbounds.row(0)=slopeMat.block(0,2,ip,2).colwise().minCoeff(); // ici il est permis de faire min max sur les valeurs passées dans XY bounds
+    XYbounds.row(0)=slopeMat.block(0,2,ip,2).colwise().minCoeff(); // ici il est permis de faire min max sur les valeurs passÃ©es dans XY bounds
     XYbounds.row(1)=slopeMat.block(0,2,ip,2).colwise().maxCoeff();
 
     cout << "bounds\n" <<XYbounds.col(0).transpose() << endl<< XYbounds.col(1).transpose() << endl;

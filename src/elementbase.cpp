@@ -6,7 +6,7 @@
 *
 *
 *
-*   \author             François Polack  <francois.polack@synchroton-soleil.fr>
+*   \author             FranÃ§ois Polack  <francois.polack@synchroton-soleil.fr>
 *   \date               Creation: 2021-02-02
 *   \date               Last update: 2021-02-02
  ***************************************************************************/
@@ -64,7 +64,7 @@ ElementBase::ElementBase(bool transparent, string name, ElementBase* previous):m
 
 int ElementBase::setFrameTransforms(double wavelength)
 {
-    // retrouve ou définit l'orientation absolue du trièdre d'entrée
+    // retrouve ou dÃ©finit l'orientation absolue du triÃ¨dre d'entrÃ©e
     RotationType inputFrameRot; // rotation part
     VectorType inputFrameTranslation;  // translation part
     if (m_previous==NULL)
@@ -78,14 +78,14 @@ int ElementBase::setFrameTransforms(double wavelength)
          inputFrameTranslation=m_previous->m_exitFrame.translation();
     }
 
-    // NB pour calculer la position de l'optique dans le repère absolu local on utilise les desaxements Rx(phi+Dphi)*Ry(-theta-Dtheta), Rz(psi+Dpsi)
+    // NB pour calculer la position de l'optique dans le repÃ¨re absolu local on utilise les desaxements Rx(phi+Dphi)*Ry(-theta-Dtheta), Rz(psi+Dpsi)
     // mais pas pour calculer le le reference frame sortant Rx(phi)*Ry(-2*theta)
 
-    // positionne la surface par rapport à la précédente
+    // positionne la surface par rapport Ã  la prÃ©cÃ©dente
     Parameter param;
     RayBaseType inRay=(m_previous==NULL)?RayBaseType::OZ() : RayBaseType(VectorType::Zero(), inputFrameRot.col(2) ) ;  // alignment exit Ray is normalized and its position is at previous optics
     getParameter("distance", param);
-    (inRay+=param.value).rebase();  // inray a maintenant son origine à la position absolue de la surface
+    (inRay+=param.value).rebase();  // inray a maintenant son origine Ã  la position absolue de la surface
     m_translationFromPrevious=inRay.position();
 
 
@@ -100,14 +100,14 @@ int ElementBase::setFrameTransforms(double wavelength)
 
     getParameter("theta",param);
     angle=param.value;
-    if(!m_transmissive) // si la surface est transmissive l'axe d'alignement de sortie reste celui d'entrée mais la rotation phi change
-                // le trièdre.   La normale pointe vers l'aval et theta donne le désalignement de la surface / l'axe d'entrée autour de OX
+    if(!m_transmissive) // si la surface est transmissive l'axe d'alignement de sortie reste celui d'entrÃ©e mais la rotation phi change
+                // le triÃ¨dre.   La normale pointe vers l'aval et theta donne le dÃ©salignement de la surface / l'axe d'entrÃ©e autour de OX
         m_exitFrame*=AngleAxis<FloatType>(-2.*angle,VectorType::UnitX()) ; // axe X nouveau
 
     getParameter("Dtheta",param);
     angle+=param.value;
     /** \todo Should we keep the same sign convention on theta angle for transmissive and reflective elements ? */
-    m_surfaceDirect*=AngleAxis<FloatType>(-angle, VectorType::UnitX()) ;  // convention déviation vers le haut si phi=0, vers l'extérieur anneau si phi=Pi/2 (M_PI_2)
+    m_surfaceDirect*=AngleAxis<FloatType>(-angle, VectorType::UnitX()) ;  // convention dÃ©viation vers le haut si phi=0, vers l'extÃ©rieur anneau si phi=Pi/2 (M_PI_2)
 
    // m_frameDirect=rayTransform;
     m_exitFrame.translation()=inputFrameTranslation+m_translationFromPrevious;
@@ -121,7 +121,7 @@ int ElementBase::setFrameTransforms(double wavelength)
     angle+=param.value;
     if(!m_transmissive)// si reflection
     {
-        m_surfaceDirect*= Matrix<FloatType,4,4>(m_FlipSurfCoefs); // la surface est basculée normale vers Y
+        m_surfaceDirect*= Matrix<FloatType,4,4>(m_FlipSurfCoefs); // la surface est basculÃ©e normale vers Y
     }
 
     m_surfaceDirect*=AngleAxis<FloatType>(angle, VectorType::UnitZ()) ; // rotation psi
@@ -168,7 +168,7 @@ int ElementBase::alignFromHere(double wavelength)
     return 0;
 }
 
-bool ElementBase::isAligned()/**< Eventuellement retourner le pointeur du 1er élément non aligné et NULL si OK */
+bool ElementBase::isAligned()/**< Eventuellement retourner le pointeur du 1er Ã©lÃ©ment non alignÃ© et NULL si OK */
 {
     if(! m_isaligned )
         return false;

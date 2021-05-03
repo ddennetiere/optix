@@ -4,7 +4,7 @@
 *
 *      \brief         TODO  fill in file purpose
 *
-*      \author         François Polack <francois.polack@synchroton-soleil.fr>
+*      \author         FranÃ§ois Polack <francois.polack@synchroton-soleil.fr>
 *      \date        2020-11-12  Creation
 *      \date        Last update
 *
@@ -550,11 +550,11 @@ extern "C"
                 { SetOptiXLastError("File reading error",__FILE__,__func__);  return false; }
             if(sClass.empty())
                 break;
-            file >> sName >> sNext ; //>> sPrev ;   // On peut se contenter d'appeler seulement set next qui se chargera de mettre à jour les 2 elements connectés
+            file >> sName >> sNext ; //>> sPrev ;   // On peut se contenter d'appeler seulement set next qui se chargera de mettre Ã  jour les 2 elements connectÃ©s
             if(file.fail())
                 { SetOptiXLastError("File reading error",__FILE__,__func__);  return false; }
             if(!sNext.empty() )   // inutile d'agir si sNext empty; les nouvelles surfaces ont tous leurs liens nuls
-                System.find(sName)->second->chainNext(System.find(sNext)->second); // ces deux ElementBases existent; elles viennent d'être créées.
+                System.find(sName)->second->chainNext(System.find(sNext)->second); // ces deux ElementBases existent; elles viennent d'Ãªtre crÃ©Ã©es.
 
             file.ignore('\n'); // skip prameters
         }

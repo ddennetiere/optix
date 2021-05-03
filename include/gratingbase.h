@@ -10,7 +10,7 @@
 *      GratingBase defines alignment and propagation function common to optical elements
 *   \n Pattern is a virtual class defining the GratingVector() function and is derived in HOlo and Poly1D classes according to the ruling type
 *
-*      \author         François Polack <francois.polack@synchroton-soleil.fr>
+*      \author         FranÃ§ois Polack <francois.polack@synchroton-soleil.fr>
 *      \date         2020-10-22  Creation
 *      \date         Last update 2020-10-30
 *

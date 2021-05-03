@@ -4,7 +4,7 @@
 *
 *      \brief         TODO  fill in file purpose
 *
-*      \author         François Polack <francois.polack@synchroton-soleil.fr>
+*      \author         FranÃ§ois Polack <francois.polack@synchroton-soleil.fr>
 *      \date        2020-11-29  Creation
 *      \date        Last update
 *
@@ -42,7 +42,7 @@ EIGEN_DEVICE_FUNC ArrayXXd Legendre(int Norder, const Ref<ArrayXd>& Xpos, ArrayX
         c2=double(icol-1)/icol;
         fvalue.col(icol)=c1* Xpos*fvalue.col(icol-1)-c2*fvalue.col(icol-2);
         derivative.col(icol)=c1*(Xpos*derivative.col(icol-1)+fvalue.col(icol-1))-c2*derivative.col(icol-2);
-  //      second.col(icol)=c1*(Xpos*second.col(icol-1)+ 2.*derivative.col(icol-1))-c2*second.col(icol-2);  // si dérivée seconde utile (col 0 et 1 == zero)
+  //      second.col(icol)=c1*(Xpos*second.col(icol-1)+ 2.*derivative.col(icol-1))-c2*second.col(icol-2);  // si dÃ©rivÃ©e seconde utile (col 0 et 1 == zero)
     }
     return fvalue;
 }
@@ -63,7 +63,7 @@ EIGEN_DEVICE_FUNC ArrayXXd LegendreIntegrateSlopes(int Nx, int Ny, const Ref<Arr
     double Y0=(Yaperture(1)+Yaperture(0))/2.;
     ArrayXXd Zcoefs=ArrayXXd::Zero(Nx,Ny);
     ArrayXXd Lx, Ly, LPx, LPy;
-    ArrayXd Xnormed=Kx*(WFdata.col(2)-X0), Ynormed=Ky*(WFdata.col(3)-Y0);  // ccordonnées normalisés
+    ArrayXd Xnormed=Kx*(WFdata.col(2)-X0), Ynormed=Ky*(WFdata.col(3)-Y0);  // ccordonnÃ©es normalisÃ©s
 
     MatrixXd Mat(nlines, Nx*Ny), A;
     VectorXd Vprim(nlines), Rhs;
@@ -79,7 +79,7 @@ EIGEN_DEVICE_FUNC ArrayXXd LegendreIntegrateSlopes(int Nx, int Ny, const Ref<Arr
         }
     Vprim.segment(0, numData)=WFdata.col(0);
     Vprim.segment(numData, numData)=WFdata.col(1);
-    // On construit la matrice en supprimant la colonne 0 (facteur constant qui n'a pas d'incidence sur les aberrations transverses à fitter)
+    // On construit la matrice en supprimant la colonne 0 (facteur constant qui n'a pas d'incidence sur les aberrations transverses Ã  fitter)
     A=Mat.block(0,1,nlines,nvars).transpose()*Mat.block(0,1,nlines,nvars);
     Rhs=Mat.block(0,1,nlines,nvars).transpose()*Vprim;
 

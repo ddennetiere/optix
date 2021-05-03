@@ -11,7 +11,7 @@
 *
 *
 *
-*   \author             François Polack  <francois.polack@synchroton-soleil.fr>
+*   \author             FranÃ§ois Polack  <francois.polack@synchroton-soleil.fr>
 *   \date               Creation : 2021-02-23
 
 *   \date               Last update: 2021-02-23
@@ -71,7 +71,7 @@ class Holo :   virtual public Surface, virtual public Pattern
          * \return true if the parameter is active on the Poly1D Pattern  and successfully applied, or is inactive and ignored.
          * False if an error occured while trying to apply the value
          */
-        virtual  bool setParameter(string name, Parameter& param); // cette fonction est susceptible de créer une ambiguité avec cele des classes de forme elle doit donc être réimplémenté dans les classes dérivées
+        virtual  bool setParameter(string name, Parameter& param); // cette fonction est susceptible de crÃ©er une ambiguitÃ© avec cele des classes de forme elle doit donc Ãªtre rÃ©implÃ©mentÃ© dans les classes dÃ©rivÃ©es
 
         /** \brief compute the local line density vector
          *

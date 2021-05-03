@@ -11,7 +11,7 @@
 *
 *
 *
-*   \author             François Polack  <francois.polack@synchroton-soleil.fr>
+*   \author             FranÃ§ois Polack  <francois.polack@synchroton-soleil.fr>
 *   \date               Creation : 2021-04-30
 
 *   \date               Last update: 2021-04-30

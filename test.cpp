@@ -4,7 +4,7 @@
 *
 *      \brief         Various tests on the OptiX library
 *
-*      \author         François Polack <francois.polack@synchroton-soleil.fr>
+*      \author         FranÃ§ois Polack <francois.polack@synchroton-soleil.fr>
 *      \date        2020-10-05  Creation
 *      \date        2021-03-15  scission in 2 files
 *
@@ -117,7 +117,7 @@ int OriginalTest()
     param.value=1./80.;
     Tmir.setParameter("major_curvature",param);
     Tmir.getParameter("theta",param);
-    param.value=0.08; // 0.707; // env 4°
+    param.value=0.08; // 0.707; // env 4Â°
     Tmir.setParameter("theta",param);
 
     Tmir.alignFromHere(0);

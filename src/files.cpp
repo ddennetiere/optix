@@ -6,7 +6,7 @@
 *
 *
 *
-*   \author             François Polack  <francois.polack@synchroton-soleil.fr>
+*   \author             FranÃ§ois Polack  <francois.polack@synchroton-soleil.fr>
 *   \date               Creation: 2021-02-10
 *   \date               Last update: 2021-02-10
  ***************************************************************************/
@@ -59,12 +59,12 @@ vector<string> SolemioElements={ "invalide",
     "Film", "Plan", "Cylindre", "Tore", "Sphere",
     "Ellipse", "Reseau holo. plan cst dev def delta cos", "Reseau VLS plan cst. dev. def delta cos",
     "Source simple", "Fente", "Source aleatoire gaussienne", "Tore deforme",
-    "Source aleatoire gaussienn a divergence linéaire", "Surface Poly",
+    "Source aleatoire gaussienn a divergence linÃ©aire", "Surface Poly",
     "Reseau holo. plan cst dev def angles", "Reseau holo. sphere cst dev def angles",
     "Reseau VLS. sphere cst dev def angles", "film sphere", "Reseau holo VLS sphere cst. dev. def delta cos",
     "Reseau holo. tore cst dev def angles",  "Reseau holo. sphere transmission", "Copie surface",
     "Reseau holo. VLS Sphere transmission", "Cone", "Source Onduleur gaussienne",
-    "Systeme de paramètres globaux", "Source aimant"
+    "Systeme de paramÃ¨tres globaux", "Source aimant"
 };
 
 vector<int> numParameters={
@@ -116,7 +116,7 @@ struct SolemioSurface
 
 	bool ReadFromFile(SolemioFile& Sfile)
 	{
-        if(Sfile.version < 19)  // la version minimale archivée ssemble être 20 (juin 2000 APE)
+        if(Sfile.version < 19)  // la version minimale archivÃ©e ssemble Ãªtre 20 (juin 2000 APE)
         {
             cout<< "file version not implemented\n";
             return false;
@@ -248,7 +248,7 @@ struct SolemioSurface
             elemParam[TAILLEPARAMETRES], elemParamin[TAILLEPARAMETRES], elemParamax[TAILLEPARAMETRES];
     SolemioLinkType iconLink, elemLink;
 
-     // les rayons sont stockés dans l'ordre X, X', Y, Y', Z, Z', lambda
+     // les rayons sont stockÃ©s dans l'ordre X, X', Y, Y', Z, Z', lambda
      ArrayXd axein(7), axeout(7),planelem(7), rotaxe(7), aux(7), poleNormal(7), yaxe(7);
 
      string name, tclScript;
@@ -347,7 +347,7 @@ struct SolemioSurface
                 return false;
             if(version >19)
             {
-                // introduit une distorsion d'ordre 3 en X et 2 en Y. by2 et by4 ne sont pas utilisés et tjs nuls
+                // introduit une distorsion d'ordre 3 en X et 2 en Y. by2 et by4 ne sont pas utilisÃ©s et tjs nuls
                 *this >> ax2 >> ax3 >> ay2 >> by2 >> by4;
                 if(SSurf.option)
                     cout << "polynomial surface - conversion NOT implemented\n";
@@ -477,12 +477,12 @@ struct SolemioSurface
                 elem->getParameter("azimuthAngle1", param);
                 param.value=param.bounds[0]=param.bounds[1]=0;
                 elem->setParameter("azimuthAngle1",param);
-                elem->getParameter("azimuthAngle2", param);   // parameter passé par adresse et susceptible d'être modifié
+                elem->getParameter("azimuthAngle2", param);   // parameter passÃ© par adresse et susceptible d'Ãªtre modifiÃ©
                 param.value=param.bounds[0]=param.bounds[1]=0;
                 elem->setParameter("azimuthAngle2",param);
 
                 elem->getParameter("elevationAngle1", param);
-                param.value=signdist1*acos(SSurf.param[3]);  // convention de direction des sources différente de Solemio
+                param.value=signdist1*acos(SSurf.param[3]);  // convention de direction des sources diffÃ©rente de Solemio
                 if(signdist1 >0)
                 {
                     param.bounds[0]=SSurf.varparamin[3];
@@ -529,7 +529,7 @@ struct SolemioSurface
                 param.value=3;
                 elem->setParameter("degree", param);
                 elem->getParameter("lineDensity", param);
-                param.value=SSurf.param[1]*1.e3;   // unité line/mm
+                param.value=SSurf.param[1]*1.e3;   // unitÃ© line/mm
                 elem->setParameter("lineDensity", param);
 
                 char namebuf[32];
@@ -729,7 +729,7 @@ struct SolemioSurface
      case   SORGENTEONDULEURGAUSSIANA:    // 25
         {
              vector<string> nom={"nombre de points", "lambda", "sigmaY", "sigmaZ", "WaistY", "WaistZ", "sigma Yp",  "sigmaZp", "sensibilitapente"};
-            // Attn la position du waist n'est pas sur le fichier mais définie par le script TCL
+            // Attn la position du waist n'est pas sur le fichier mais dÃ©finie par le script TCL
             memset(SSurf.param,0, numParameters[type] );
             *this >> aux >> poleNormal ;
             for(int j=0; j < 4; ++j )
@@ -812,7 +812,7 @@ struct SolemioSurface
 
         }
         break;
-    default:  // cas d'appel à serializza() de la classe de base Surface
+    default:  // cas d'appel Ã  serializza() de la classe de base Surface
         if( !SSurf.ReadFromFile(*this))
             return false;
      }
@@ -826,7 +826,7 @@ struct SolemioSurface
          param.bounds[0]=elemParamin[8];
          param.bounds[1]=elemParamax[8];
          elem->setParameter("distance", param);
-         elem->getParameter("theta", param); //(Pi -Theta)/2. déviation si reflechissant Theta sinon
+         elem->getParameter("theta", param); //(Pi -Theta)/2. dÃ©viation si reflechissant Theta sinon
          if(elem->getTransmissive())
          {
              param.value=elemParam[1];
@@ -850,7 +850,7 @@ struct SolemioSurface
          param.bounds[0]=elemParamin[4];
          param.bounds[1]=elemParamax[4];
          elem->setParameter("psi", param);
-         elem->getParameter("Dtheta", param); //-dTheta)/2. Déviation si réfléchssant
+         elem->getParameter("Dtheta", param); //-dTheta)/2. DÃ©viation si rÃ©flÃ©chssant
          if(elem->getTransmissive())
          {
              param.value=elemParam[3];
@@ -899,7 +899,7 @@ struct SolemioSurface
      if(version > 14)
         *this >>XYZalign;
 
-     if(version >21)  // redondant mais coherent avec les pvaleurs des paramètres courants
+     if(version >21)  // redondant mais coherent avec les pvaleurs des paramÃ¨tres courants
          *this >> clipX1 >> clipX2 >>clipY1 >> clipY2 >> clipping >> activeFilm ;
 
      cout << "X bounds " << clipX1 <<"  " << clipX2 <<endl;

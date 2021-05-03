@@ -7,7 +7,7 @@
 *
 *      \brief         Text and binary files types for saving data
 *
-*      \author         François Polack <francois.polack@synchroton-soleil.fr>
+*      \author         FranÃ§ois Polack <francois.polack@synchroton-soleil.fr>
 *      \date        2020-11-10  Creation
 *      \date         Last update
 *

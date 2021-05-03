@@ -6,7 +6,7 @@
 *
 *
 *
-*   \author             François Polack  <francois.polack@synchroton-soleil.fr>
+*   \author             FranÃ§ois Polack  <francois.polack@synchroton-soleil.fr>
 *   \date               Creation: 2021-03-15
 *   \date               Last update: 2021-03-15
  ***************************************************************************/
@@ -17,7 +17,7 @@ using namespace std::chrono;
 
  #include "files.h"
  #include "interface.h"
- #include  "surface.h"  // temporaire avant de créer le fcts d'interface
+ #include  "surface.h"  // temporaire avant de crÃ©er le fcts d'interface
  #include "gratingbase.h"
 
 
