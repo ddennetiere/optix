@@ -20,7 +20,7 @@ using namespace std::chrono;
  #include  "surface.h"  // temporaire avant de créer le fcts d'interface
  #include "gratingbase.h"
 
-
+#include "xmlfile.h"
 
  int SolemioTest()
  {
@@ -163,7 +163,8 @@ using namespace std::chrono;
 
         else cout <<" No spot on screen\n";
     }
-
+     SaveSystemAsXml("system.xml");
+     DumpXmlSys("system.xml");
 
     return 0;
  }

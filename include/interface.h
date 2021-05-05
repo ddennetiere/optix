@@ -322,6 +322,30 @@ extern "C"
      */
     DLL_EXPORT bool DiagramToFile(const char* filename, struct C_DiagramStruct* cdiagram);
 
+    /** \brief Save the system in memory to a file in XML format
+     *
+     * \param filename Name of the output file
+     * \return false in case of error and the OptiXLastError will be set.  true otherwise
+     */
+    DLL_EXPORT bool SaveSystemAsXml(const char * filename);
+
+    /** \brief Clear previous system and load a new one from an XML file <i>(not yet tested)</i>
+     *
+     * \param filename Name of the input file
+     * \return false in case of error and the OptiXLastError will be set.  true otherwise
+     */
+    DLL_EXPORT bool LoadSystemFromXml(const char * filename);
+
+  //  DLL_EXPORT bool AddElementsFromXml(const char * filename);  la gestion des nom en double doit être testée
+
+    /** \brief Dump the content of an XML system file to stdout (given for convenience)
+     *
+     * \param filename Name of the input file
+     * \return false in case of error and the OptiXLastError will be set.  true otherwise
+     */
+    DLL_EXPORT bool DumpXML(const char* filename);
+
+
 #ifdef __cplusplus
 }
 #endif

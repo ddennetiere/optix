@@ -171,5 +171,8 @@ int main()
     }
 
     SaveSystem("Cassioptix.dat");  // Save the  system in the compact text format
+
+    SaveSystemAsXml("Cassiosys.xml");
+    DumpXML("Cassiosys.xml");
     return 0;
 }

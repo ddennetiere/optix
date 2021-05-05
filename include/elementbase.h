@@ -27,6 +27,7 @@
 
 using namespace std;
 
+class ElementCollection;
 //class SourceBase;
 
 /** \brief series developpement of \f$ 1-\sqrt{1-x} \f$ for small \f$ x \f$
@@ -213,7 +214,7 @@ public:
 
     /** \brief Modifies an existing  named numeric parameter
     *
-    * The type and group of a parameter are internally defined and cannot be changed. Their actual values will be reflected in param on returning
+    * The type, group and flags of a parameter are internally defined and cannot be changed. Their actual values will be reflected in param on returning
     * \param name the name of parameter to set
     * \param param the new parameter  object
     * \return  true if parameters was changed , false if parameter doesn't belong to the object
@@ -223,8 +224,9 @@ public:
         ParamIterator it=m_parameters.find(name);
         if (it !=m_parameters.end())
         {
-            param.type=it->second.type; // type and group of a parameter must not be modified
+            param.type=it->second.type; // type, flags and group of a parameter must not be modified
             param.group=it->second.group;
+            param.flags=it->second.flags;
             it->second=param;
             m_isaligned=false;
             return true;
@@ -309,6 +311,7 @@ public:
 
     friend TextFile& operator>>(TextFile& file,  ElementBase* elem);  /**< \brief Retrieves a Element object from a TextFile  \todo call interface::createElementObject(type) */
 
+    friend bool SaveElementsAsXml(const char * filename, ElementCollection &system);
 protected:
 
     /** \brief Creates and sets a new named numeric parameter

@@ -96,9 +96,9 @@ struct Parameter{
     double value=0; /**< \brief the internal value for in internal unit (m, rad, etc)*/
     double bounds[2]={0,0};/**< \brief  boundary value for optimization */
     double multiplier=1.; /**< \brief multiplier for display */
-    UnitType type=Dimensionless;  /**< \brief type of unit. This field is read-only outside Surface class*/
-    ParameterGroup group=BasicGroup; /**< \brief parameter group. This field is read-only outside Surface class*/
-    uint32_t flags=0; /**< \brief is this an optimization parameter ?*/
+    UnitType type=Dimensionless;  /**< \brief type of unit. This field is read-only outside ElementBase class*/
+    ParameterGroup group=BasicGroup; /**< \brief parameter group. This field is read-only outside ElementBase class*/
+    uint32_t flags=0; /**< \brief non null if parameter is not optimizable. This field is read-only outside ElementBase class */
 // methods:
     Parameter(){}
     inline Parameter(double newvalue, UnitType newtype, double newmultiplier=1.):/**<  \brief standard constructor sets optimization bounds to  parameter value */

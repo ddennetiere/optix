@@ -23,7 +23,7 @@
 #include "sources.h"
 #include "opticalelements.h"
 #include "files.h"
-#include "collections.h"
+#include "xmlfile.h"
 
 
 
@@ -581,6 +581,19 @@ extern "C"
         spotfile.close();
         return true;
     }
+
+    DLL_EXPORT bool SaveSystemAsXml(const char * filename){ return SaveElementsAsXml(filename, System);}
+
+    DLL_EXPORT bool LoadSystemFromXml(const char * filename)
+    {
+
+        System.clear(); // destroys all elements
+        ValidIDs.clear();
+        return LoadElementsFromXml(filename,System);
+    }
+
+    DLL_EXPORT bool DumpXML(const char* filename) {return DumpXmlSys(filename);}
+
 #ifdef __cplusplus
 } // extern C
 #endif

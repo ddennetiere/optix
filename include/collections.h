@@ -20,6 +20,7 @@
 *
  ***************************************************************************/
 
+#include "elementbase.h"
 
 
 /** \brief a class implementing a dictionary of optical elements from the library  which is a specialization of the map<string, ElementBase*>  class
