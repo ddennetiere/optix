@@ -35,7 +35,6 @@ class ElementCollection;
  *
  * \param x  the value of x
  * \return \f$ 1-\sqrt{1-x} \f$
- *
  */
 inline double oneMinusSqrt1MinusX(double x)
 {
@@ -60,6 +59,9 @@ inline void SetOptiXLastError(string what, const char* filename, const char* fun
 
 }
 
+/** \brief Reset the internal error
+ *  \ingroup GlobalCpp
+ */
 inline void ClearOptiXError() {OptiXError=false;}
 
 

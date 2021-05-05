@@ -52,11 +52,14 @@ bool SaveElementsAsXml(const char * filename, ElementCollection &system)
             if(rec)
                 xmlNewProp (elemnode, XMLSTR "rec", XMLSTR to_string(rec).c_str());
         }
+        if(elem.getTransmissive() && elem.getOptixClass().compare(0,8,"Grating<" )!=0 ) //gratings are reflective by default
+            xmlNewProp (elemnode, XMLSTR "trans", XMLSTR "true");
+
 
         map<string,Parameter>::iterator it;
         for(it=elem.m_parameters.begin(); it != elem.m_parameters.end(); ++it)  // protected but function is declared friend of OpticalElement
         {
-            parmnode=xmlNewTextChild(elemnode,NULL,XMLSTR "parm", XMLSTR it->first.c_str());
+            parmnode=xmlNewTextChild(elemnode,NULL,XMLSTR "param", XMLSTR it->first.c_str());
             Parameter &param=it->second;
             sprintf(cvbuf,"%.8g",param.value);
             xmlNewProp (parmnode, XMLSTR "val", XMLSTR cvbuf);
@@ -84,12 +87,13 @@ bool SaveElementsAsXml(const char * filename, ElementCollection &system)
     return true;
 }
 
+/** \brief auxiliary function for DumpXmlSys */
 void PrintParameters(xmlDocPtr doc, xmlNodePtr cur)
 {
 	xmlChar *att, *name;
     cur = cur->xmlChildrenNode;
 	while (cur != NULL) {
-	    if ((!xmlStrcmp(cur->name, XMLSTR "parm")))
+	    if ((!xmlStrcmp(cur->name, XMLSTR "param")))
         {
             name = xmlNodeListGetString(doc, cur->xmlChildrenNode, 1);
 		    printf("parameter: %s",name);
@@ -155,6 +159,12 @@ bool DumpXmlSys(const char* filename)
             xmlFree(attrStr);
             xmlFree(nameStr);
             xmlFree(nextelem);
+            attrStr= xmlGetProp(curnode, XMLSTR "trans");
+            if(attrStr)
+            {
+                printf("  transmissive: %d\n", (char*)attrStr);
+                xmlFree(attrStr);
+            }
             attrStr= xmlGetProp(curnode, XMLSTR "rec");
             if(attrStr)
             {
@@ -175,7 +185,14 @@ bool DumpXmlSys(const char* filename)
     return true;
 }
 
-bool SetParameters(xmlDocPtr doc, size_t elemID, xmlNodePtr cur)
+/** \brief auxiliary fonction for loading parameter from XML. Iterates on the XML doc and sets the parameters a new element as they are read.
+ * \ingroup GlobalCpp
+ * \param doc Thee open XML document
+ * \param elem pointer to the newly created element
+ * \param[in] cur the current element node
+ * \return bool
+ */
+bool SetXmlParameters(xmlDocPtr doc, ElementBase* elem, xmlNodePtr cur)
 {
 	xmlChar *att, *name;
     cur = cur->xmlChildrenNode;
@@ -183,11 +200,11 @@ bool SetParameters(xmlDocPtr doc, size_t elemID, xmlNodePtr cur)
     bool success=true;
 	while (cur != NULL)
 	{
-	    if ((!xmlStrcmp(cur->name, XMLSTR "parm")))
+	    if ((!xmlStrcmp(cur->name, XMLSTR "param")))
         {
             name = xmlNodeListGetString(doc, cur->xmlChildrenNode, 1);
-            // initialise param avec les valeurs défaut du constructeur de elemID
-		    if(GetParameter(elemID, (char*) name, &param))
+            // initialise param avec les valeurs défaut du constructeur de elem
+		    if(elem->getParameter((char*) name, param))
             {
                 att= xmlGetProp(cur, XMLSTR "val");
                 param.value=atof((char*)att);
@@ -212,12 +229,12 @@ bool SetParameters(xmlDocPtr doc, size_t elemID, xmlNodePtr cur)
                     xmlFree(att);
                 }
 
-                SetParameter(elemID, (char*) name, param) ;
+                elem->setParameter((char*) name, param) ;
             }
             else
             {
-                cout << "Parameter " << (char*) name << " is not valid for object " << ((ElementBase*)elemID)->getName() <<
-                        " of class " << ((ElementBase*)elemID)->getOptixClass() << endl;
+                cout << "Parameter " << (char*) name << " is not valid for object " << elem->getName() <<
+                        " of class " << elem->getOptixClass() << endl;
                 success=false; // ce parametre n'existe pas dans cet objet : on signale
             }
             xmlFree(name);
@@ -233,9 +250,10 @@ bool LoadElementsFromXml(const char * filename, ElementCollection &system)
 {
     xmlDocPtr doc;
     xmlNodePtr sysnode, curnode;
-    xmlChar *sclass, *sname, *nextelem, *srec;
-    size_t elemID;
-    map<size_t, string> chaining;
+    xmlChar *sclass, *sname, *nextelem, *srec, *trans;
+    //size_t elemID;
+    ElementBase *elem;
+    map<ElementBase*, string> chaining;
     bool exitcode=true;
 
 
@@ -265,8 +283,8 @@ bool LoadElementsFromXml(const char * filename, ElementCollection &system)
 			sclass= xmlGetProp(curnode, XMLSTR "class");
 			nextelem=xmlGetProp(curnode, XMLSTR "next");
 
-            elemID=CreateElement((char*) sclass, (char*) sname );
-            if(elemID==0)
+            elem= system.createElement((char*) sclass, (char*) sname );
+            if(elem==NULL)
             {
                 char errstr[128];
                 sprintf(errstr, "Cannot create element %s of type %s", sname, sclass);
@@ -274,23 +292,30 @@ bool LoadElementsFromXml(const char * filename, ElementCollection &system)
                 // do the cleanup before leaving
             }
             else
-                chaining.insert(pair<size_t,string>(elemID,(char*)nextelem));
+                chaining.insert(pair<ElementBase*,string>(elem,(char*)nextelem));
 
             xmlFree(sclass);
             xmlFree(sname);
             xmlFree(nextelem);
 
-            if(elemID==0)   // now we can leave
+            if(elem==NULL)   // now we can leave
                 return false;
 
-            srec= xmlGetProp(curnode, XMLSTR "rec");
-            if(srec)
+            trans= xmlGetProp(curnode, XMLSTR "trans");
+            if(trans)
             {
-                SetRecording(elemID, atoi((char*)srec));
+                elem->setTransmissive(true); //Value false is not stored in the XML
+                xmlFree(trans);
+            }
+
+            srec= xmlGetProp(curnode, XMLSTR "rec");
+            if(srec && dynamic_cast<Surface*>(elem))
+            {
+                dynamic_cast<Surface*>(elem)->setRecording((RecordMode)atoi((char*)srec));
                 xmlFree(srec);
             }
 
-            if(! SetParameters(doc, elemID, curnode))
+            if(! SetXmlParameters(doc, elem , curnode))
             {
                // au moins un paramètre invalide, le signaler
                exitcode=false;
@@ -298,8 +323,8 @@ bool LoadElementsFromXml(const char * filename, ElementCollection &system)
 		}
         curnode = curnode->next;
 	}
-	for(map<size_t,string>::iterator it=chaining.begin(); it!=chaining.end(); ++it)
-        ((ElementBase*)it->first)->chainNext(system.find(it->second)->second);
+	for(map<ElementBase*,string>::iterator it=chaining.begin(); it!=chaining.end(); ++it)
+        (it->first)->chainNext(system.find(it->second)->second);
 
     return exitcode;
 }

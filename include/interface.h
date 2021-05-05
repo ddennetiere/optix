@@ -312,7 +312,7 @@ extern "C"
      */
     DLL_EXPORT bool GetSpotDiagram(size_t elemId, struct C_DiagramStruct * diagram, double distance);
 
-    /** \brief Write a C_DiagramStruct to a file in binary format
+    /** \brief Write a C_DiagramStruct to a file in binary format <i>(it is questionnable whether it should be maintained as is,in the interface)</i>
      *
      *  The format follows closely the structure pattern. 4 int32 with the nthe dimension m_dim of the arrays, maximum capacity, spot count, and lost rays,
      *  4 arrays of  m_dim doubles with the statistics (min, max, mean, sigma), then the array of m_dim * m_count  doubles

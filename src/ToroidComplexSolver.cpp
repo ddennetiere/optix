@@ -2,7 +2,7 @@
 /**
 *      \file        ToroidComplexSolver.cpp
 *
-*      \brief       Computational part of the intercept function of toroid class when degenerated conics are imaginary 2 intercepts instead of 4 .
+*      \brief       Computational part of the intercept function of toroid class when degenerated conics have imaginary 2 intercepts instead of 4 .
 *
 *                   Computations are placed in two separate cpp files for linkage performance issues mainly in debug modes
 *                   \relates Toroid::intercept() and ToroidSolver.cpp

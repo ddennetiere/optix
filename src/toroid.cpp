@@ -22,7 +22,18 @@
 
 //Matrix<FloatType,2,2>  ComplexVpSolver(Matrix<complex<FloatType>,3,3> &matSys);
 //int RealVpSolver(Matrix<FloatType,2,Dynamic> &solutions, Matrix<FloatType,3,3> & Mat1, Matrix<FloatType,3,3> & Mat2, Matrix<FloatType,3,1> Ev);
+
+/** \brief Computes the intersections of two conics
+ *  \ingroup GlobalCpp
+ * \param[out] solutions  The returned intersections
+ * \param[in] Mat1 the matrix of the first conic
+ * \param[in] Mat2 the matrix of the second conic
+ * \return The number of intersection points
+ *
+ *  This is part of  the intercept function of toroid class. The problem of intersection of a  toroid by a straight line can be
+ *     translated into the intersection of two conics  */
 int ToroidSolver(Matrix<FloatType,2,Dynamic> &solutions, Matrix<FloatType,3,3> & Mat1, Matrix<FloatType,3,3> & Mat2);
+
 
 
 Toroid::Toroid(string name, Surface *previous):Surface(false,name, previous)  //{Surface::m_transmissive=false;}

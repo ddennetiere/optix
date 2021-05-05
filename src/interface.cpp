@@ -28,20 +28,20 @@
 
 
 ElementCollection System;/**< \brief dictionary of all elements created through this interface  */
-set<size_t> ValidIDs;
+//set<size_t> ValidIDs;
 StringVector stringData; /**< \todo seem unused*/
 
-inline bool IsValidID(size_t ID)
-{
-    set<size_t>::iterator it=ValidIDs.find(ID);
-    return it!=ValidIDs.end();
-}
+//inline bool IsValidID(size_t ID)
+//{
+//    set<size_t>::iterator it=System.ValidIDs.find(ID);
+//    return it!=System.ValidIDs.end();
+//}
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
-    DLL_EXPORT bool IsElementValid(size_t  ID){return IsValidID(ID);}
+    DLL_EXPORT bool IsElementValid(size_t  ID){return System.isValidID(ID);}
 
     DLL_EXPORT bool GetOptiXLastError(char* buffer, int bufferSize)
     {
@@ -62,26 +62,30 @@ extern "C"
 
     DLL_EXPORT size_t CreateElement(const char* type, const char* name)
     {
-        ClearOptiXError();
-        if(System.find(name)!=System.end())
-        {
-            SetOptiXLastError("Name already exists in the current system", __FILE__, __func__);
-            return 0;
-        }
-        ElementBase * elem=0;
-        try {
-                elem=(ElementBase*)CreateElementObject(type,name);
-            }
-            catch(ElementException& ex)
-            {
-                 SetOptiXLastError( "Invalid element type", __FILE__,__func__);
-                 return 0;
-            }
-
-        System.insert(pair<string, ElementBase*>(name, elem) );
-        ValidIDs.insert((size_t) elem);
-        return (size_t)elem;
+        return (size_t) System.createElement(type,name);
     }
+
+//    {
+//        ClearOptiXError();
+//        if(System.find(name)!=System.end())
+//        {
+//            SetOptiXLastError("Name already exists in the current system", __FILE__, __func__);
+//            return 0;
+//        }
+//        ElementBase * elem=0;
+//        try {
+//                elem=(ElementBase*)CreateElementObject(type,name);
+//            }
+//            catch(ElementException& ex)
+//            {
+//                 SetOptiXLastError( "Invalid element type", __FILE__,__func__);
+//                 return 0;
+//            }
+//
+//        System.insert(pair<string, ElementBase*>(name, elem) );
+//        System.ValidIDs.insert((size_t) elem);
+//        return (size_t)elem;
+//    }
 
     DLL_EXPORT bool EnumerateElements(size_t * pHandle, size_t* elemID, char * nameBuffer, const int bufSize)
     {
@@ -129,7 +133,7 @@ extern "C"
 
     DLL_EXPORT bool GetElementName(size_t elementID, char* strBuffer, int bufSize)
     {
-        if(!IsValidID(elementID))
+        if(!System.isValidID(elementID))
         {
             SetOptiXLastError("invalid element ID", __FILE__, __func__);
             return false;
@@ -145,7 +149,7 @@ extern "C"
 
     DLL_EXPORT bool GetElementType(size_t elementID, char* strBuffer, int bufSize)
     {
-        if(!IsValidID(elementID))
+        if(!System.isValidID(elementID))
         {
             SetOptiXLastError("invalid element ID", __FILE__, __func__);
             return false;
@@ -165,15 +169,15 @@ extern "C"
         if(it==System.end())
             return false ;
 
-        ValidIDs.erase( (size_t) it->second );
+        //ValidIDs.erase( (size_t) it->second );
         System.erase(it);
         return true;
     }
 
     DLL_EXPORT bool DeleteElement_byID(size_t elementID)
     {
-        set<size_t>::iterator it=ValidIDs.find(elementID);
-        if(it==ValidIDs.end())
+        set<size_t>::iterator it=System.ValidIDs.find(elementID);
+        if(it==System.ValidIDs.end())
             return false;
         string name= ((ElementBase*)elementID)->getName();
         return DeleteElement_byName(name.c_str());
@@ -215,7 +219,7 @@ extern "C"
     {
         if(prevID==0)
         {
-            if(nextID!=0 && IsValidID(nextID))
+            if(nextID!=0 && System.isValidID(nextID))
             {
                 ((ElementBase*)nextID)->chainPrevious(NULL);
                 return true;
@@ -223,7 +227,7 @@ extern "C"
             else
                 return false;
         }
-        else if(!IsValidID(prevID))
+        else if(!System.isValidID(prevID))
             return false;
 
         if(nextID==0)
@@ -237,7 +241,7 @@ extern "C"
 
     DLL_EXPORT size_t GetPreviousElement(size_t elementID)
     {
-        if(IsValidID(elementID))
+        if(System.isValidID(elementID))
             return (size_t) ((ElementBase*)elementID)->getPrevious();
         else
             return 0;
@@ -245,7 +249,7 @@ extern "C"
 
     DLL_EXPORT size_t GetNextElement(size_t elementID)
     {
-        if(IsValidID(elementID))
+        if(System.isValidID(elementID))
             return (size_t) ((ElementBase*)elementID)->getNext();
         else
             return 0;
@@ -267,7 +271,10 @@ extern "C"
 
     DLL_EXPORT int GetRecording(size_t elementID)
     {
-        return dynamic_cast<Surface*>((ElementBase*)elementID)->getRecording();
+        if(!dynamic_cast<Surface*>((ElementBase*)elementID) )
+            return 0;
+        else
+            return dynamic_cast<Surface*>((ElementBase*)elementID)->getRecording();
     }
 
     DLL_EXPORT bool SetRecording(size_t elementID, int recordingMode)
@@ -278,9 +285,9 @@ extern "C"
         return true;
     }
 
-    DLL_EXPORT bool SetParameter(size_t elementID, const char* paramTag, Parameter paramData)
+    DLL_EXPORT bool SetParameter(size_t elementID, const char* paramTag, struct Parameter paramData)
     {
-        if(IsValidID(elementID))
+        if(System.isValidID(elementID))
             return ((ElementBase*)elementID)->setParameter(paramTag, paramData);
         else
             return false;
@@ -288,15 +295,15 @@ extern "C"
 
     DLL_EXPORT bool GetParameter(size_t elementID, const char* paramTag, Parameter* paramData)
     {
-        if(IsValidID(elementID))
+        if(System.isValidID(elementID))
             return ((ElementBase*)elementID)->getParameter(paramTag, *paramData);
             else
                 return false;
     }
 
-    DLL_EXPORT bool EnumerateParameters(size_t elementID, size_t * pHandle, char* tagBuffer, const int bufSize , Parameter* paramData)
+    DLL_EXPORT bool EnumerateParameters(size_t elementID, size_t * pHandle, char* tagBuffer, const int bufSize , struct Parameter* paramData)
     {
-        if(!IsValidID(elementID))
+        if(!System.isValidID(elementID))
         {
             SetOptiXLastError("Invalid element ID", __FILE__, __func__);
             return false;
@@ -343,7 +350,7 @@ extern "C"
             SetOptiXLastError("Invalid wavelength", __FILE__, __func__);
             return -2;
         }
-        if(IsValidID(elementID))
+        if(System.isValidID(elementID))
             return ((ElementBase*)elementID)->alignFromHere(wavelength);
         else
         {
@@ -357,7 +364,7 @@ extern "C"
     DLL_EXPORT bool Generate(size_t elementID, double wavelength)
     {
         ClearOptiXError();
-        if(!IsValidID(elementID))
+        if(!System.isValidID(elementID))
         {
             SetOptiXLastError("Invalid element ID", __FILE__, __func__);
             return false;
@@ -379,7 +386,7 @@ extern "C"
     DLL_EXPORT bool Radiate(size_t elementID)
     {
         ClearOptiXError();
-        if(!IsValidID(elementID))
+        if(!System.isValidID(elementID))
         {
             SetOptiXLastError("Invalid element ID", __FILE__, __func__);
             return false;
@@ -396,7 +403,7 @@ extern "C"
     DLL_EXPORT bool RadiateAt(size_t elementID, double wavelength)
     {
         ClearOptiXError();
-        if(!IsValidID(elementID))
+        if(!System.isValidID(elementID))
         {
             SetOptiXLastError("Invalid element ID", __FILE__, __func__);
             return false;
@@ -453,7 +460,7 @@ extern "C"
     DLL_EXPORT bool ClearImpacts(size_t elementID)
     {
         ClearOptiXError();
-        if(!IsValidID(elementID))
+        if(!System.isValidID(elementID))
         {
             SetOptiXLastError("Invalid element ID", __FILE__, __func__);
             return false;
@@ -505,7 +512,7 @@ extern "C"
         size_t ElementBaseID;
 
         System.clear(); // destroys all elements
-        ValidIDs.clear();
+       // ValidIDs.clear();
         while(!file.eof()) // loop of ElementBase creation
         {
             file >> sClass;
@@ -561,7 +568,6 @@ extern "C"
         return true;
     }
 
-
     DLL_EXPORT bool LoadSolemioFile(char * filename)
     {
         System.clear();
@@ -569,7 +575,8 @@ extern "C"
 
     }
 
-    DLL_EXPORT bool DiagramToFile(const char*filename, C_DiagramStruct* cdiagram)
+
+    DLL_EXPORT bool DiagramToFile(const char* filename, struct C_DiagramStruct* cdiagram)
     {
         fstream spotfile(filename, ios::out | ios::binary);
         if(!spotfile.is_open())
@@ -588,7 +595,7 @@ extern "C"
     {
 
         System.clear(); // destroys all elements
-        ValidIDs.clear();
+       // ValidIDs.clear();
         return LoadElementsFromXml(filename,System);
     }
 

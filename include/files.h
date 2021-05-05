@@ -206,7 +206,7 @@ protected:
 
 
 /** \brief Write a SpotDiagram object to a file in binary format
- *
+ * \ingroup GlobalCpp
  * \param file  output binary file
  * \param spotDiag spot diagram data
  * \return the file reference
@@ -226,6 +226,14 @@ inline fstream& operator<<(fstream& file, DiagramType<Vsize>& diagram )
     file.write((char*)diagram.m_spots, bytes);
     return file;
 }
+
+/** \brief Write a Spot-diagram contained in a C_DiagramStructto a file in binary format
+ * \ingroup GlobalCpp
+ * \param file  output binary file
+ * \param cdiagram spot diagram data
+ * \return the file reference
+ * \relates SpotDiagram
+ */
 inline fstream& operator<<(fstream& file, C_DiagramStruct& cdiagram )
 {
     streamsize bytes=cdiagram.m_dim*sizeof(double)*cdiagram.m_count;
@@ -324,7 +332,7 @@ void ReadSolemioFile(string filename);/**< dumps the content of a Solemio file t
 
 
 /** \brief import the elements of the Solemio file in the current system
- *
+ * \ingroup GlobalCpp
  * \param filename full path of the Solemio file
  * \return false if an error occurred and set the OptixLastError, return true otherwise
  *
