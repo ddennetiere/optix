@@ -160,9 +160,9 @@ bool DumpXmlSys(const char* filename)
             xmlFree(nameStr);
             xmlFree(nextelem);
             attrStr= xmlGetProp(curnode, XMLSTR "trans");
-            if(attrStr)
+            if(attrStr)  // if defined, value is 'true'. Value false is not written to XML
             {
-                printf("  transmissive: %d\n", (char*)attrStr);
+                printf("  transmissive\n");
                 xmlFree(attrStr);
             }
             attrStr= xmlGetProp(curnode, XMLSTR "rec");

@@ -26,6 +26,8 @@ using namespace Eigen;
 
 /** \brief Computes the Legendre polynomials and its first derivative values for a given set of points inside the [-1,+1] range
  * \ingroup GlobalCpp
+ *
+ *   \f$ P_n \f$ and \f$ P'_n \f$  are computed iteratively with Bonnet's recursion formula \see e.g. https://mathworld.wolfram.com/LegendrePolynomial.html, eq.(43,44)
  * \param[in] Norder number of Legendre \f$ P_n \f$ returned [0 < n < Norder-1]
  * \param[in] Xpos an Array[size] of abscissas, [ -1 < Xpos < 1], where \f$ P_n \f$ and \f$ P'_n \f$ will be computed.
  * \param[out] derivative an Array to receive the derivatives \f$ P'_n \f$. It will be resized to [size, Norder]  on return
@@ -33,7 +35,7 @@ using namespace Eigen;
  */
  EIGEN_DEVICE_FUNC ArrayXXd Legendre(int Norder, const Ref<ArrayXd>& Xpos, ArrayXXd& derivative );
 
-/** \brief Computes a wavefront interpolation by 2D legendre polynomials on the given aperture from  a set of aperure points and transverse aberrations
+/** \brief Computes a wavefront interpolation by 2D legendre polynomials on the given aperture from  a set of aperture points and transverse aberrations
  * \ingroup GlobalCpp
  * \param Nx number of polynomials of the X basis (degree <Nx)
  * \param Ny number of polynomials of the Y basis (degree <Ny)
