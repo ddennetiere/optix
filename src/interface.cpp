@@ -24,6 +24,7 @@
 #include "opticalelements.h"
 #include "files.h"
 #include "xmlfile.h"
+#include "version.h"
 
 
 
@@ -41,6 +42,10 @@ StringVector stringData; /**< \todo seem unused*/
 extern "C"
 {
 #endif
+
+    DLL_EXPORT void Version(){printf("SR_Source library %s realease %s build %s-%s-%s\n", AutoVersion::STATUS, AutoVersion::FULLVERSION_STRING,
+                                       AutoVersion::YEAR, AutoVersion::MONTH, AutoVersion::DATE);}
+
     DLL_EXPORT bool IsElementValid(size_t  ID){return System.isValidID(ID);}
 
     DLL_EXPORT bool GetOptiXLastError(char* buffer, int bufferSize)

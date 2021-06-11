@@ -45,6 +45,11 @@ extern "C"
 #else
 #include <stdbool.h>
 #endif
+
+    /** \brief Dumps the version number and compilation date of the library to the console
+     */
+    DLL_EXPORT void Version();
+
     /** \brief Create an optical element (or group)
      *
      * \param type  runtime class of the new element
