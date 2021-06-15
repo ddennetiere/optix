@@ -55,7 +55,7 @@ extern bool OptiXError;
 inline void SetOptiXLastError(string what, const char* filename, const char* funcname )
 {
     OptiXError=true;
-    sprintf(LastError, "%s in function %s of file %s", what.c_str(), funcname,funcname);
+    sprintf(LastError, "%s in function %s of file %s", what.c_str(), funcname, filename);
 
 }
 

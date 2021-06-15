@@ -30,7 +30,7 @@ void Sphere::createSurface()
     Parameter cv;
     if(!getParameter("curvature", cv) )
        throw ParameterException("Curvature parameter not found", __FILE__, __func__, __LINE__);
-    if(cv.value==0)  //sphère degénéré en plan Z=0
+    if(cv.value==0)  //sphère degénérée en plan Z=0
     {
         m_localQuadric.setZero();
         m_localQuadric(2,2)=1.L;
