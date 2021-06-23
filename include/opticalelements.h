@@ -23,6 +23,8 @@
 #include "sphere.h"
 #include "cylinder.h"
 #include "toroid.h"
+#include "ConicBaseCylinder.h"
+#include "RevolutionQuadric.h"
 #include "gratingbase.h"
 #include "Poly1D.h"
 #include "holo.h"
@@ -83,6 +85,8 @@ typedef Mirror<Plane> PlaneMirror;          /**< \brief implements a reflective 
 typedef Mirror<Sphere> SphericalMirror ;    /**< \brief implements a reflective spherical surface */
 typedef Mirror<Cylinder> CylindricalMirror; /**< \brief implements a reflective cylindrical surface */
 typedef Mirror<Toroid> ToroidalMirror;      /**< \brief implements a reflective toroidal surface */
+typedef Mirror<ConicBaseCylinder> ConicBaseCylindricalMirror; /**< \brief implements a reflective cylindrical surface the directrix of which is an conic*/
+typedef Mirror<RevolutionQuadric> RevolutionQuadricMirror; /**< \brief implements a reflective cylindrical surface the directrix of which is an conic*/
 
 
 

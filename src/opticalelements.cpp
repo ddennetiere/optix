@@ -21,6 +21,8 @@ template class Mirror<Plane>;
 template class Mirror<Sphere>;
 template class Mirror<Cylinder>;
 template class Mirror<Toroid>;
+template class Mirror<ConicBaseCylinder>;
+template class Mirror<RevolutionQuadric>;
 
 template class Film<Plane>;
 template class Film<Sphere>;
@@ -69,6 +71,10 @@ ElementBase* CreateElementObject(string s_type, string name)
         elem= new Mirror<Cylinder>(name);
     else if (s_type=="Mirror<Toroid>" || s_type=="ToroidalMirror")
         elem= new Mirror<Toroid>(name);
+    else if (s_type=="Mirror<ConicBaseCylinder>" || s_type=="ConicBaseCylindricalMirror")
+        elem= new Mirror<ConicBaseCylinder>(name);
+    else if (s_type=="Mirror<RevolutionQuadric>" || s_type=="RevolutionQuadricMirror")
+        elem= new Mirror<RevolutionQuadric>(name);
 
     else if (s_type=="Film<Plane>" || s_type=="PlaneFilm")
         elem= new Film<Plane>(name);
@@ -127,6 +133,10 @@ ElementBase * ElementCopy(ElementBase* source)
         Copy= new Mirror<Cylinder>(*dynamic_cast<Mirror<Cylinder>*>(source));
     else if (s_type=="Mirror<Toroid>" || s_type=="ToroidalMirror")
         Copy= new Mirror<Toroid>(*dynamic_cast<Mirror<Toroid>*>(source));
+    else if (s_type=="Mirror<ConicBaseCylinder>" || s_type=="ConicBaseCylindricalMirror")
+        Copy= new Mirror<ConicBaseCylinder>(*dynamic_cast<Mirror<ConicBaseCylinder>*>(source));
+    else if (s_type=="Mirror<RevolutionQuadric>" || s_type=="RevolutionQuadricMirror")
+        Copy= new Mirror<RevolutionQuadric>(*dynamic_cast<Mirror<RevolutionQuadric>*>(source));
 
     else if (s_type=="Film<Plane>" || s_type=="PlaneFilm")
         Copy= new Film<Plane>(*dynamic_cast<Film<Plane>*>(source));
