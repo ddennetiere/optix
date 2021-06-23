@@ -1,6 +1,14 @@
 This is a ray-tracer library for X-ray optics.
 All function are exposed in C form, thow it is internally written in C++
 
+June 23, 2021:
+New surface shape classes have been added: 
+ConicBaseCylinder  implements any conic based cylinder (elliptical, hyperbolic, and parabolic cylinders)
+RevolutionQuadric implements  revolution quadrics (ellipsoid, hyperboloid, a paraboloid).
+These shapes are only available with mirrors but could be used with gratings or films if really needed. 
+
+Compilation requires that ConicBaseCylinder.cpp and RevolutionQuadric.cpp are added to project configuration files for targets debug, release, test, and test(release)
+
 WARNING - Starting from May 5, 2021  system can be saved in XML text format
  For this aim, it must now be linked to libxml2-2
  You can add libxml2.a to the linked libraries and addd path to libxml2-2\include\libxml2 for compilation, 
