@@ -40,6 +40,7 @@ class Sphere :  virtual public Surface, public Quadric
         Sphere();
         /** Default destructor */
         virtual ~Sphere(){}
+        /**< \brief return the derived class name ie. Sphere */
         virtual inline string getOptixClass(){return "Sphere";}
 
         /** \brief Change parameters and recaculate the surface if needed
