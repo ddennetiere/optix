@@ -56,7 +56,7 @@ class Sphere :  virtual public Surface, public Quadric
             return true;
         }
     protected:
-        void createSurface(); /**< \brief Inilialize the local equation. Called when curvature is changed  */
+        void createSurface(); /**< \brief Initialize the local equation. Called when curvature is changed  */
     private:
 };
 
