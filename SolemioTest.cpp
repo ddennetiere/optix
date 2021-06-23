@@ -166,6 +166,8 @@ using namespace std::chrono;
      SaveSystemAsXml("system.xml");
      DumpXmlSys("system.xml");
 
+     LoadSystemFromXml("system.xml");
+
     return 0;
  }
 

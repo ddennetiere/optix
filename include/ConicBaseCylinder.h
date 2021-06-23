@@ -25,7 +25,15 @@
 
 #include "quadric.h"
 
-
+/** \brief Describes a cylindrical surface the base of which is a conic
+ *
+ *    The class has 3 specific parameters belonging to the ShapeGroup
+ *     -----------------------------------------
+ *
+ *   Name of parameter | UnitType | Description
+ *   ----------------- | -------- | --------------
+ *   \b curvature | InverseDistance | Curvature (1/Rc) of the sphere
+ */
 class ConicBaseCylinder : virtual public Surface, public Quadric
 {
     public:

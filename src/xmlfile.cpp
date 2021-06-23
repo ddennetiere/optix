@@ -264,6 +264,9 @@ bool LoadElementsFromXml(const char * filename, ElementCollection &system)
 		xmlFreeDoc(doc);
 		return false;
 	}
+    else
+        cout << filename << " successfully parsed\n";
+
     sysnode = xmlDocGetRootElement(doc);
 
 	if (sysnode == NULL)
@@ -283,6 +286,7 @@ bool LoadElementsFromXml(const char * filename, ElementCollection &system)
 			sclass= xmlGetProp(curnode, XMLSTR "class");
 			nextelem=xmlGetProp(curnode, XMLSTR "next");
 
+
             elem= system.createElement((char*) sclass, (char*) sname );
             if(elem==NULL)
             {
@@ -292,7 +296,17 @@ bool LoadElementsFromXml(const char * filename, ElementCollection &system)
                 // do the cleanup before leaving
             }
             else
-                chaining.insert(pair<ElementBase*,string>(elem,(char*)nextelem));
+            {
+                cout << "element "<<sname<<" of type "<<sclass<<"created.";
+                if( nextelem)
+                {
+                    cout << " Will be linked to "<< nextelem << endl;
+                    string nextname=(char*)nextelem;
+                    chaining.insert(pair<ElementBase*,string>(elem,nextname));
+                }
+                else
+                    cout << " Not further linked\n";
+            }
 
             xmlFree(sclass);
             xmlFree(sname);

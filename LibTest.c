@@ -170,9 +170,17 @@ int main()
         free(cdiagram.m_spots);
     }
 
-    SaveSystem("Cassioptix.dat");  // Save the  system in the compact text format
+    SaveSystem("Cassioptix.dat");  // Save the  system in the compact text forma
 
     SaveSystemAsXml("Cassiosys.xml");
     DumpXML("Cassiosys.xml");
+
+    if(!LoadSystemFromXml("Cassiosys.xml"))
+    {
+        GetOptiXLastError(errBuf,ERROR_BUFLEN);
+        printf("Source generation error: %s\n",errBuf);
+        return -1;
+    }
+
     return 0;
 }
