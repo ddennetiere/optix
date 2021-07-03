@@ -347,20 +347,25 @@ extern "C"
     }
 
 
-    DLL_EXPORT int Align(size_t elementID, double wavelength)
+    DLL_EXPORT bool Align(size_t elementID, double wavelength)
     {
         ClearOptiXError();
         if(wavelength <0)
         {
             SetOptiXLastError("Invalid wavelength", __FILE__, __func__);
-            return -2;
+            return false;
         }
         if(System.isValidID(elementID))
-            return ((ElementBase*)elementID)->alignFromHere(wavelength);
+        { //  returns 0 if alignment is OK ; -1 if a grating can't be aligned and OptiXLastError is set with the grating name
+            if(((ElementBase*)elementID)->alignFromHere(wavelength))
+                return false;  // last error will be set by grating align
+            else
+                return true;
+        }
         else
         {
             SetOptiXLastError("Invalid element ID", __FILE__, __func__);
-            return 2;
+            return false;
         }
 
     }

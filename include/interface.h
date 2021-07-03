@@ -243,10 +243,10 @@ extern "C"
      *
      * \param elementID first element of the chain to align
      * \param wavelength alignment wavelength (for gratings). It can be 0.
-     * \return 0 if aligned or an error code which can be -1 if a grating cannot be aligned with the given parameters, -2 if bad parameters were passed. (OptiXLastError set)
+     * \return true if alignment was successful, false otherwise and OptiXLastError is et
      *
      */
-    DLL_EXPORT int Align(size_t elementID, double wavelength);
+    DLL_EXPORT bool Align(size_t elementID, double wavelength);
 
     /** \brief generate source rays of the given wavelength but do not run the ray tracing, (only valid for sources).
      *

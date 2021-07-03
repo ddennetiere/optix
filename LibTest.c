@@ -96,6 +96,7 @@ int main()
 */
 
     GetParameter(sourceID,"nRays", &param); // initialize the parameter struct to be properly configured for the requested property
+    printf ("ORIGINAL nRays VALUE %f \n\n" , param.value );
     param.value=numrays;               // modify value
     SetParameter(sourceID,"nRays",param); // set the parameter
 
@@ -105,7 +106,7 @@ int main()
                                           //  For films there is no difference between the two recording modes
 
 
-    if(Align(sourceID,2.5e-8)) // aligne le système à partir de la source pour la longueur d'on 25 nm (lambda utilisé seulement par les réseaux)
+    if(!Align(sourceID,2.5e-8)) // aligne le système à partir de la source pour la longueur d'on 25 nm (lambda utilisé seulement par les réseaux)
     {
        GetOptiXLastError(errBuf,ERROR_BUFLEN);
         printf("Alignment error: %s\n",errBuf);
