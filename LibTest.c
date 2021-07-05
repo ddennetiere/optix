@@ -27,7 +27,7 @@ int main()
 {
 
     size_t hSys=0, hParm=0, elemID=0; // Handles used to access internal objects
-    char elname[ELEM_NAMELEN], elname2[ELEM_NAMELEN],parmname[PARAM_NAMELEN], errBuf[ERROR_BUFLEN];  // Sting variables
+    char elname[ELEM_NAMELEN], elname2[ELEM_NAMELEN],classname[ELEM_NAMELEN],parmname[PARAM_NAMELEN], errBuf[ERROR_BUFLEN];  // Sting variables
     struct Parameter param; // structure holding the definition of a parameter
     int numrays=5000;  // number of random rays to issued by the source
     char * title[5]={"X   ", "Y   ", "X'  ", "Y'  ", "lmda" };
@@ -183,5 +183,51 @@ int main()
         return -1;
     }
 
+    elemID= CreateElement("PlaneFilm", "screen" );
+    if(!elemID)
+    {
+        printf("\nfailed to create element \"screen\" \n");
+        return -1;
+    }
+    GetElementName(elemID, elname,ELEM_NAMELEN);
+    printf("\n new element %llX created as %s\n", elemID, elname);
+
+
+    printf("Dump of the new system\n");
+    hSys=0;
+    do
+    {
+        EnumerateElements(&hSys,&elemID, elname,ELEM_NAMELEN); // Get the next element in the system. To initializ the enumeration function is called with null sys and elem  handles
+        GetElementName(elemID, elname2,ELEM_NAMELEN); // another means to retrieve the element name from an elem ID
+        GetElementType(elemID,classname,ELEM_NAMELEN);
+
+        printf("#%llX: %s [%s] (%s)\n", elemID, elname, classname, elname2);
+
+    }while(hSys);  // Release the handle if the enumeration must be terminated early
+    printf("\n\n");
+
+
+    elemID= CreateElement("PlaneFilm", "screen2" );
+    if(!elemID)
+    {
+        printf("\nfailed to create element \"screen2\" \n");
+        return -1;
+    }
+    GetElementName(elemID, elname,ELEM_NAMELEN);
+    printf("\n new element %llX created as %s\n", elemID, elname);
+
+
+    printf("Dump of the new system\n");
+    hSys=0;
+    do
+    {
+        EnumerateElements(&hSys,&elemID, elname,ELEM_NAMELEN); // Get the next element in the system. To initializ the enumeration function is called with null sys and elem  handles
+        GetElementName(elemID, elname2,ELEM_NAMELEN); // another means to retrieve the element name from an elem ID
+        GetElementType(elemID,classname,ELEM_NAMELEN);
+
+        printf("#%llX: %s [%s] (%s)\n", elemID, elname, classname, elname2);
+
+    }while(hSys);  // Release the handle if the enumeration must be terminated early
+    printf("\n\n");
     return 0;
 }
