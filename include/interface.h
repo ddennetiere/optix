@@ -252,12 +252,13 @@ extern "C"
      *
      * \param elementID ID of the element which must be of source type
      * \param wavelength  the radiation wavelength (must be  >0)
-     * \return false if element is invalid or is not a source, or wavelength <0; return true otherwise
+     * \return the number of generated rays. It will be 0 if elementID is invalid or is not a source, or wavelength <0 and OptiXLastError is set,
+     *      otherwise GetOptiXLastError will return NoError even if 0 rays were created
      *
      * ClearImpact() is not called before executing Generate(). Therefore ray congruences with different wavelengths can be superimposed.
      * Also note the that Radiate() is not either executed,  but must be called independantly.
      */
-    DLL_EXPORT bool Generate(size_t elementID, double wavelength);
+    DLL_EXPORT int Generate(size_t elementID, double wavelength);
 
     /** \brief Propagate all rays generated in the source through the element chain
      *

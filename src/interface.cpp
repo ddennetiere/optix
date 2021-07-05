@@ -382,23 +382,23 @@ extern "C"
     }
 
 
-    DLL_EXPORT bool Generate(size_t elementID, double wavelength)
+    DLL_EXPORT int Generate(size_t elementID, double wavelength)
     {
         ClearOptiXError();
         if(!System.isValidID(elementID))
         {
             SetOptiXLastError("Invalid element ID", __FILE__, __func__);
-            return false;
+            return 0;
         }
         if( !((ElementBase*)elementID)->isSource())
         {
             SetOptiXLastError("Element is not a source", __FILE__, __func__);
-            return false;
+            return 0;
         }
         if(wavelength <0)
         {
             SetOptiXLastError("Invalid wavelength", __FILE__, __func__);
-            return false;
+            return 0;
         }
 
             return dynamic_cast<SourceBase*>((ElementBase*)elementID)->generate(wavelength);
