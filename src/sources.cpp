@@ -237,6 +237,8 @@ int GaussianSource::generate(double wavelength)
     Parameter param;
     getParameter("nRays",param);
     nRays=lround(param.value);
+    if(nRays<1)
+        nRays=1;
     getParameter("sigmaX", param);
     sigmaX=param.value;
     getParameter("sigmaY", param);
@@ -257,9 +259,15 @@ int GaussianSource::generate(double wavelength)
     reserveImpacts(m_impacts.size() + nRays);
     VectorType org=VectorType::Zero(),dir=VectorType::Zero();
 
-
+    if(nRays==1) // retourne le rayon axial
+    {
+        org <<0, 0, 0;
+        dir << 0, 0, 1.L;
+        m_impacts.push_back(RayType(RayBaseType(org,dir),wavelength)); // amplitude set to 1 and S polar
+        return nRays;
+    }
     random_device rd;
-    // if no clean enough use a Mersenne twister as mt19937 gen{rd()};
+    // if not clean enough use a Mersenne twister as mt19937 gen{rd()};
     for(int i=0; i<nRays; ++ i)
     {
         org <<0, 0, 0;

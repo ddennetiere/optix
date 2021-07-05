@@ -119,8 +119,8 @@ public:
             chainPrevious(NULL);
     }
 
-    virtual inline string getOptixClass(){return "Surface";}/**< \brief return the derived class name of this object */
-
+    virtual inline string getOptixClass() =0;/**< \brief return the derived class name of this object */
+        //{return "Surface";}
     /** \brief Align this surface with respect to the main incident ray according to the parameters,
     *       \param wavelength the alignment wavelength (used by chromatic elements only)
     *       \return  0 if alignment  is OK ; -1 if a grating can't be aligned and OptiXLastError is set with the grating name

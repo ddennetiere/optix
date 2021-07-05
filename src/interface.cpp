@@ -284,8 +284,19 @@ extern "C"
 
     DLL_EXPORT bool SetRecording(size_t elementID, int recordingMode)
     {
-        if(!dynamic_cast<Surface*>((ElementBase*)elementID) || recordingMode <RecordNone || recordingMode > RecordOutput)
+        if(recordingMode <RecordNone || recordingMode > RecordOutput)
+        {
+            SetOptiXLastError("Invalid recording mode",__FILE__, __func__);
             return false ;
+        }
+        if(!dynamic_cast<Surface*>((ElementBase*)elementID) )
+        {
+            char what[256];
+            sprintf(what,"The element %llX is not an optical surface", elementID);
+            SetOptiXLastError(what,__FILE__, __func__);
+            return false;
+        }
+
         dynamic_cast<Surface*>((ElementBase*)elementID)->setRecording( (RecordMode) recordingMode);
         return true;
     }
