@@ -136,6 +136,16 @@ extern "C"
         return (size_t) it->second;
     }
 
+    DLL_EXPORT void FindElementID(const char* elementName, size_t * elemID)
+    {
+
+        map<string,ElementBase*>:: iterator it= System.find(elementName);
+        if(it==System.end())
+            *elemID=0;
+        else
+            *elemID=(size_t) it->second;
+    }
+
     DLL_EXPORT bool GetElementName(size_t elementID, char* strBuffer, int bufSize)
     {
         if(!System.isValidID(elementID))
@@ -252,12 +262,28 @@ extern "C"
             return 0;
     }
 
+    DLL_EXPORT void FindPreviousElement(size_t elementID, size_t * previousID )
+    {
+        if(System.isValidID(elementID))
+            *previousID = (size_t) ((ElementBase*)elementID)->getPrevious();
+        else
+            *previousID = 0;
+    }
+
     DLL_EXPORT size_t GetNextElement(size_t elementID)
     {
         if(System.isValidID(elementID))
             return (size_t) ((ElementBase*)elementID)->getNext();
         else
             return 0;
+    }
+
+    DLL_EXPORT void FindNextElement(size_t elementID,size_t * nextID)
+    {
+        if(System.isValidID(elementID))
+            *nextID = (size_t) ((ElementBase*)elementID)->getNext();
+        else
+            *nextID = 0;
     }
 
     DLL_EXPORT bool GetTransmissive(size_t elementID)

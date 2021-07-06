@@ -104,6 +104,14 @@ extern "C"
      */
     DLL_EXPORT size_t GetElementID(const char* elementName);
 
+    /** \brief retrieves the unique ID of an element from its name
+     *
+     * \param elementName name of the searched element
+     * \param elemID The address of a location to return the ID
+     * \return the unique ID of the element having this name if it exists, 0 otherwise
+     */
+    DLL_EXPORT void FindElementID(const char* elementName, size_t * elemID);
+
     /** \brief retrieves the name of an element from its ID
      *
      * \param[in] elementID unique ID of the searched element
@@ -169,6 +177,22 @@ extern "C"
      * \return the ID of the next element, or 0 if the element either is the last of the link chain either is invalid
      */
     DLL_EXPORT size_t GetNextElement(size_t elementID);
+
+    /** \brief Gets the element immediately upstream of the given one in the link chain
+     *
+     * \param elementID the ID of the given element
+     * \param previousID The address of a location to return the previous ID
+     * \return the ID of the previous element, or 0 if the element either is the first of the link chain either is invalid
+     */
+    DLL_EXPORT void FindPreviousElement(size_t elementID, size_t * previousID );
+
+    /** \brief Gets the element immediately downstream of the given one in the link chain
+     *previousID
+     * \param elementID the ID of the given element
+     * \param nextID The address of a location to return the next ID
+     * \return the ID of the next element, or 0 if the element either is the last of the link chain either is invalid
+     */
+    DLL_EXPORT void FindNextElement(size_t elementID,size_t * nextID);
 
     /** \brief Check if element is used in transmission rather than reflexion mode (mainly useful for gratings)
      *
