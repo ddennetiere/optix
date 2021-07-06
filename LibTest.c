@@ -86,7 +86,7 @@ int main()
     while(elemID) // calling GetNextElement on the last element of the chain will bring-up NULL
     {
         GetElementName(elemID, elname,ELEM_NAMELEN);  // obtains the name from the current ID
-        printf("  %s   %X\n",elname, elemID );
+        printf("  %s   %llX\n",elname, elemID );
         elemID =GetNextElement(elemID);  // get next element ID (element ID should of course never be released
     }
     printf("\n\n");
