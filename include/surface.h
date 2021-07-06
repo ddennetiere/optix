@@ -125,7 +125,8 @@ public:
         }
         catch( EigenException & excpt)
         {
-            throw (EigenException(excpt.what()+ " re-thrown from",__FILE__, __func__, __LINE__));
+
+            throw (EigenException(excpt.what()+ " in element " + getName() +"\nre-thrown from",__FILE__, __func__, __LINE__));
         }
     }
 
