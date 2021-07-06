@@ -26,6 +26,8 @@
 int main()
 {
 
+    printf( "Sizeof void* %d ; sizeof size_t %d \n", sizeof(void*), sizeof(size_t));
+
     size_t hSys=0, hParm=0, elemID=0; // Handles used to access internal objects
     char elname[ELEM_NAMELEN], elname2[ELEM_NAMELEN],classname[ELEM_NAMELEN],parmname[PARAM_NAMELEN], errBuf[ERROR_BUFLEN];  // Sting variables
     struct Parameter param; // structure holding the definition of a parameter

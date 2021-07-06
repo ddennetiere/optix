@@ -1230,7 +1230,7 @@ struct SolemioSurface
                 break;
             }
 
-            cout << it->second.name << "  linked from " << sprev << " to "<< snext << endl;
+            cout << elit->second << ": " << it->second.name << "  linked from " << sprev << " to "<< snext << endl;
         }
         else
         {
