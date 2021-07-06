@@ -115,12 +115,18 @@ public:
 /** \brief  call transmit or reflect according to surface type ray and iterate to the next surface*/
     inline  void propagate(RayType& ray) /**< the propagated ray */
     {
-        if(m_transmissive)
-            transmit(ray);
-        else
-            reflect(ray);
-        if(m_next!=NULL)
-            m_next->propagate(ray);
+        try{
+            if(m_transmissive)
+                transmit(ray);
+            else
+                reflect(ray);
+            if(m_next!=NULL)
+                m_next->propagate(ray);
+        }
+        catch( EigenException & excpt)
+        {
+            throw (EigenException(excpt.what()+ " re-thrown from",__FILE__, __func__, __LINE__));
+        }
     }
 
     inline void setRecording(RecordMode rflag){m_recording=rflag;} /**< \brief Sets the impact recording mode for the surface */

@@ -40,6 +40,21 @@ public:
     string what_str;
 };
 
+/** \brief Exception notifying he occurence of an error in an Eigen library call*/
+class EigenException:public runtime_error
+{
+public:
+    EigenException(string what ="", string file="", string callingFunction="", int line=-1 ):runtime_error("EigenException")
+    {
+        char str[256];
+        sprintf(str, "%s in %s  %s line %d", what.empty()?"EigenException":what.c_str(), file.c_str(), callingFunction.c_str(), line);
+        what_str=str;
+    }
+    virtual ~EigenException() {}
+    virtual string  what(){return what_str;}
+    string what_str;
+};
+
 /** \brief Tagged parameter setting or recovering error
  */
 class ParameterException:public runtime_error

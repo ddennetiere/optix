@@ -21,11 +21,18 @@
 #ifndef RAYBASE_H
 #define RAYBASE_H
 
+
 #include <Eigen/Eigen>
 //#include <Eigen/ParametrizedLine.h>
 #include <fstream>
 #include <iostream>
 #include "OptixException.h"
+
+#include <stdexcept>
+#undef eigen_assert
+#define eigen_assert(x) \
+  if (!(x)) { throw (EigenException("Eigen_assert ",__FILE__, __func__, __LINE__)); }
+
 
 //#define _USE_MATH_DEFINES
 #include <cmath>
@@ -337,5 +344,5 @@ typedef RayBase<long double> Rayld;
 typedef RayBase<double> Rayd;
 
 #endif // RAYBASE_H
-#endif // header guard 
+#endif // header guard
 
