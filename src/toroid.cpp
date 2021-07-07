@@ -101,9 +101,9 @@ EIGEN_DEVICE_FUNC  RayBaseType::VectorType Toroid::intercept(RayType& ray, Vecto
     Matrix<FloatType,3,3> Mat2= rayMat.transpose()* m_alignedMat2 *rayMat;
 
     Matrix<FloatType,2,Dynamic> sols;
-    cout << "calling toroid solver\n";
+  //  cout << "calling toroid solver\n";
     int nsols= ToroidSolver(sols, Mat1, Mat2);
-    cout <<"solver has " << nsols << " solution\n";
+  //  cout <<"solver has " << nsols << " solution\n";
     int minNormIndex;
     switch (nsols)
     {
@@ -129,7 +129,7 @@ EIGEN_DEVICE_FUNC  RayBaseType::VectorType Toroid::intercept(RayType& ray, Vecto
     sols.colwise().squaredNorm().minCoeff(&minNormIndex);
     ray.moveTo(sols(0,minNormIndex));
 
-    cout << "toroid intercept OK\n";
+  //  cout << "toroid intercept OK\n";
 
     // calcul de la normale
     if(normal)
@@ -141,7 +141,7 @@ EIGEN_DEVICE_FUNC  RayBaseType::VectorType Toroid::intercept(RayType& ray, Vecto
         Matrix<FloatType,3,1> NN= (N2*N1(3)-N1*N2(3)).segment(0,3);
         *normal=NN.normalized();
     }
-    cout << "toroid normal OK\n";
+ //   cout << "toroid normal OK\n";
 //    cout << "intercept computation time :" << duration_cast<microseconds>(clock.now()-start).count() << " usec\n" ;
 
 #ifdef DIAG_OUTPUT

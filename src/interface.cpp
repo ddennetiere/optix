@@ -394,6 +394,7 @@ extern "C"
         }
         if(System.isValidID(elementID))
         { //  returns 0 if alignment is OK ; -1 if a grating can't be aligned and OptiXLastError is set with the grating name
+            printf("aligning from %s  at WL %f \n", ((ElementBase*)elementID)->getName().c_str(),wavelength );
             if(((ElementBase*)elementID)->alignFromHere(wavelength))
                 return false;  // last error will be set by grating align
             else
@@ -426,7 +427,7 @@ extern "C"
             SetOptiXLastError("Invalid wavelength", __FILE__, __func__);
             return 0;
         }
-
+             printf("generating rays in %s  at WL %f \n", ((ElementBase*)elementID)->getName().c_str(),wavelength );
             return dynamic_cast<SourceBase*>((ElementBase*)elementID)->generate(wavelength);
     }
 
