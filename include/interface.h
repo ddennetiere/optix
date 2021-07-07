@@ -106,9 +106,8 @@ extern "C"
 
     /** \brief retrieves the unique ID of an element from its name
      *
-     * \param elementName name of the searched element
-     * \param elemID The address of a location to return the ID
-     * \return the unique ID of the element having this name if it exists, 0 otherwise
+     * \param[in] elementName name of the searched element
+     * \param[out] elemID The address of a location to return the ID
      */
     DLL_EXPORT void FindElementID(const char* elementName, size_t * elemID);
 
@@ -180,17 +179,15 @@ extern "C"
 
     /** \brief Gets the element immediately upstream of the given one in the link chain
      *
-     * \param elementID the ID of the given element
-     * \param previousID The address of a location to return the previous ID
-     * \return the ID of the previous element, or 0 if the element either is the first of the link chain either is invalid
+     * \param[in] elementID the ID of the given element
+     * \param[out] previousID The address of a location to return the previous ID
      */
     DLL_EXPORT void FindPreviousElement(size_t elementID, size_t * previousID );
 
     /** \brief Gets the element immediately downstream of the given one in the link chain
      *previousID
-     * \param elementID the ID of the given element
-     * \param nextID The address of a location to return the next ID
-     * \return the ID of the next element, or 0 if the element either is the last of the link chain either is invalid
+     * \param[in] elementID the ID of the given element
+     * \param[out] nextID The address of a location to return the next ID
      */
     DLL_EXPORT void FindNextElement(size_t elementID,size_t * nextID);
 
@@ -279,8 +276,10 @@ extern "C"
      * \return the number of generated rays. It will be 0 if elementID is invalid or is not a source, or wavelength <0 and OptiXLastError is set,
      *      otherwise GetOptiXLastError will return NoError even if 0 rays were created
      *
+     * This function initiates the rays which will be propagated from the source by populating the source "impact" list.
      * ClearImpact() is not called before executing Generate(). Therefore ray congruences with different wavelengths can be superimposed.
-     * Also note the that Radiate() is not either executed,  but must be called independantly.
+     * ClearImpacts() should be called previously if a new set of rays must be created.
+     * Also note the that Radiate() is not either executed,  but must be called independently.
      */
     DLL_EXPORT int Generate(size_t elementID, double wavelength);
 
@@ -288,6 +287,11 @@ extern "C"
      *
      * \param elementID ID of the element which must be of source type
      * \return false if element is invalid or is not a source; return true otherwise
+     *
+     *  This function propagates the set of rays defined in the source "impact" list though the elements linked from here.\n
+     *  For a new ray tracing ClearImpact should be previously called,\n
+     *  either from the next element if the source impacts need not be changed,\n
+     *  either from
      */
     DLL_EXPORT bool Radiate(size_t elementID);
 
@@ -296,11 +300,15 @@ extern "C"
      * \param elementID ID of the element which must be of source type
      * \param wavelength  the radiation wavelength (must be  >0)
      * \return false if element is invalid or is not a source, or wavelength <0; return true otherwise
+     *
+     *  \see Radiate, Generate
      */
     DLL_EXPORT bool RadiateAt(size_t elementID, double wavelength);
 
     /** \brief Clear impacts on this elements and all recording elements which follows in the link chain
      *
+     *  Note that Radiate use the source impact list to initiate the ray tracing. If the ray initialization is unchaged,
+     *  Do not call generate but clear the impact from the element following the source
      * \param elementID the starting element ID
      * \return false if elementId is not valid, true otherwise
      */

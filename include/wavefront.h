@@ -21,6 +21,13 @@
 #include <Eigen/Eigen>
 #include <iostream>
 
+#include "OptixException.h"
+
+#include <stdexcept>
+#undef eigen_assert
+#define eigen_assert(x) \
+  if (!(x)) { throw (EigenException("Eigen_assert ",__FILE__, __func__, __LINE__)); }
+
 using namespace Eigen;
 
 
