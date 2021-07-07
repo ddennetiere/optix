@@ -35,7 +35,8 @@ using namespace Eigen;
 
 #undef eigen_assert
 #define eigen_assert(x) \
-  if (!(x)) { throw (EigenException("Eigen_assert ",__FILE__, __func__, __LINE__)); }
+  if (!(x)) { throw (std::runtime_error("Eigen assertion error")); }
+    //{ throw (EigenException("Eigen_assert ",__FILE__, __func__, __LINE__)); }
 
 /** \brief  base class for rays and ray propagation
  *
