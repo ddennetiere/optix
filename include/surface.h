@@ -118,12 +118,12 @@ public:
         try{
             if(m_transmissive)
              {
-                 cout << m_name << " transmit\n";
+//                 cout << m_name << " transmit\n";
                  transmit(ray);
              }
             else
             {
-                cout << m_name << " reflect\n";
+//                cout << m_name << " reflect\n";
                 reflect(ray);
             }
 

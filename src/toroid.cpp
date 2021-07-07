@@ -126,6 +126,8 @@ EIGEN_DEVICE_FUNC  RayBaseType::VectorType Toroid::intercept(RayType& ray, Vecto
     sols.colwise().squaredNorm().minCoeff(&minNormIndex);
     ray.moveTo(sols(0,minNormIndex));
 
+    cout << "toroid intercept OK\n";
+
     // calcul de la normale
     if(normal)
     {
@@ -136,7 +138,7 @@ EIGEN_DEVICE_FUNC  RayBaseType::VectorType Toroid::intercept(RayType& ray, Vecto
         Matrix<FloatType,3,1> NN= (N2*N1(3)-N1*N2(3)).segment(0,3);
         *normal=NN.normalized();
     }
-
+    cout << "toroid normal OK\n";
 //    cout << "intercept computation time :" << duration_cast<microseconds>(clock.now()-start).count() << " usec\n" ;
 
 #ifdef DIAG_OUTPUT
