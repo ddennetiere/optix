@@ -117,9 +117,16 @@ public:
     {
         try{
             if(m_transmissive)
-                transmit(ray);
+             {
+                 cout << m_name << " transmit\n";
+                 transmit(ray);
+             }
             else
+            {
+                cout << m_name << " reflect\n";
                 reflect(ray);
+            }
+
             if(m_next!=NULL)
                 m_next->propagate(ray);
         }
