@@ -103,11 +103,12 @@ EIGEN_DEVICE_FUNC  RayBaseType::VectorType Toroid::intercept(RayType& ray, Vecto
     Matrix<FloatType,2,Dynamic> sols;
     cout << "calling toroid solver\n";
     int nsols= ToroidSolver(sols, Mat1, Mat2);
-    cout <<"solver has " << sols << " solution\n";
+    cout <<"solver has " << nsols << " solution\n";
     int minNormIndex;
     switch (nsols)
     {
     case 0 :
+        cout << "no solution found\n";
         ray.m_alive=false;
         return ray.position();
         break;
