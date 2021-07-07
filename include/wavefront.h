@@ -23,13 +23,12 @@
 
 #include "OptixException.h"
 
-#include <stdexcept>
-#undef eigen_assert
-#define eigen_assert(x) \
-  if (!(x)) { throw (EigenException("Eigen_assert ",__FILE__, __func__, __LINE__)); }
-
 using namespace Eigen;
 
+
+#undef eigen_assert
+#define eigen_assert(x) \
+  if (!(x)) { throw (EigenException("eigen_assert ",__FILE__, __func__, __LINE__)); }
 
 /** \brief Computes the Legendre polynomials and its first derivative values for a given set of points inside the [-1,+1] range
  * \ingroup GlobalCpp

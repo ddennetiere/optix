@@ -28,15 +28,14 @@
 #include <iostream>
 #include "OptixException.h"
 
-#include <stdexcept>
-#undef eigen_assert
-#define eigen_assert(x) \
-  if (!(x)) { throw (EigenException("Eigen_assert ",__FILE__, __func__, __LINE__)); }
-
 
 //#define _USE_MATH_DEFINES
 #include <cmath>
 using namespace Eigen;
+
+#undef eigen_assert
+#define eigen_assert(x) \
+  if (!(x)) { throw (EigenException("Eigen_assert ",__FILE__, __func__, __LINE__)); }
 
 /** \brief  base class for rays and ray propagation
  *
