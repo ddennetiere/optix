@@ -101,7 +101,9 @@ EIGEN_DEVICE_FUNC  RayBaseType::VectorType Toroid::intercept(RayType& ray, Vecto
     Matrix<FloatType,3,3> Mat2= rayMat.transpose()* m_alignedMat2 *rayMat;
 
     Matrix<FloatType,2,Dynamic> sols;
+    cout << "calling toroid solver\n";
     int nsols= ToroidSolver(sols, Mat1, Mat2);
+    cout <<"solver has " << sols << " solution\n";
     int minNormIndex;
     switch (nsols)
     {
