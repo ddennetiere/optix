@@ -22,6 +22,7 @@
 #define PARAM_NAMELEN 48
 #define ERROR_BUFLEN 256
 
+#define  LIMITED 1
 
 int main()
 {
@@ -47,67 +48,78 @@ int main()
     }
     printf("\n\n");
 
+    size_t sourceID;
+
+
+
 /* *********************************************************************************
 *    Enumerates the elements of the loaded system and list their OptiX properties
 *    A system is a collection of optical elements
 *    Active elements can linked to one another to form double linked chains
 *    An active chain must start with a source element
 */
-    do
+    if(!LIMITED)
     {
-        EnumerateElements(&hSys,&elemID, elname,ELEM_NAMELEN); // Get the next element in the system. To initializ the enumeration function is called with null sys and elem  handles
-        GetElementName(elemID, elname2,ELEM_NAMELEN); // another means to retrieve the element name from an elem ID
 
-        printf("%s  (%s)\n", elname, elname2);
-        hParm=0;
         do
         {
-            if(!EnumerateParameters(elemID, &hParm, parmname, PARAM_NAMELEN, &param)) // get the parameter list for element elemID. Enumeration is initialized with hParm = NULL
+            EnumerateElements(&hSys,&elemID, elname,ELEM_NAMELEN); // Get the next element in the system. To initializ the enumeration function is called with null sys and elem  handles
+            GetElementName(elemID, elname2,ELEM_NAMELEN); // another means to retrieve the element name from an elem ID
+
+            printf("%s  (%s)\n", elname, elname2);
+            hParm=0;
+            do
             {
-                GetOptiXLastError( errBuf,ERROR_BUFLEN); //  message if error
-                printf("ERROR: %s\n",errBuf);
-                ReleaseElementEnumHandle(hParm);     // Release the handle since the enumeration must be terminated early
-                break;
-            }
-            printf("%s  %f [%f, %f] x %f T:%d G%d F:%X\n", parmname, param.value, param.bounds[0], param.bounds[1],
-                   param.multiplier , param.type, param.group, param.flags);
+                if(!EnumerateParameters(elemID, &hParm, parmname, PARAM_NAMELEN, &param)) // get the parameter list for element elemID. Enumeration is initialized with hParm = NULL
+                {
+                    GetOptiXLastError( errBuf,ERROR_BUFLEN); //  message if error
+                    printf("ERROR: %s\n",errBuf);
+                    ReleaseElementEnumHandle(hParm);     // Release the handle since the enumeration must be terminated early
+                    break;
+                }
+                printf("%s  %f [%f, %f] x %f T:%d G%d F:%X\n", parmname, param.value, param.bounds[0], param.bounds[1],
+                       param.multiplier , param.type, param.group, param.flags);
 
-        }while(hParm);  // Terminating the enumeration with a non null handle value will result in memory leaks, unless ReleaseElementEnumHandle is call on the handle
+            }while(hParm);  // Terminating the enumeration with a non null handle value will result in memory leaks, unless ReleaseElementEnumHandle is call on the handle
 
-    }while(hSys);  // Release the handle if the enumeration must be terminated early
-    printf("\n\n");
+        }while(hSys);  // Release the handle if the enumeration must be terminated early
+        printf("\n\n");
 
-/* ******************************************************************************
-*        Displays the active chain from source "S_ONDUL1"
-*/
-    size_t sourceID=elemID=GetElementID("S_ONDUL1");  // Obtains the element handle
+    /* ******************************************************************************
+    *        Displays the active chain from source "S_ONDUL1"
+    */
+        sourceID=elemID=GetElementID("S_ONDUL1");  // Obtains the element handle
 
-    // iterate on elements of the chain and displays their names and id
-    while(elemID) // calling GetNextElement on the last element of the chain will bring-up NULL
-    {
-        GetElementName(elemID, elname,ELEM_NAMELEN);  // obtains the name from the current ID
-        printf("  %s   %llX\n",elname, elemID );
-        elemID =GetNextElement(elemID);  // get next element ID (element ID should of course never be released
+        // iterate on elements of the chain and displays their names and id
+        while(elemID) // calling GetNextElement on the last element of the chain will bring-up NULL
+        {
+            GetElementName(elemID, elname,ELEM_NAMELEN);  // obtains the name from the current ID
+            printf("  %s   %llX\n",elname, elemID );
+            elemID =GetNextElement(elemID);  // get next element ID (element ID should of course never be released
+        }
+        printf("\n\n");
+
+    /* ************************************************************************
+    *       Here we will initiate some ray tracing from S_ONDUL1 and get the spot diagram generated on EXP1
+    *
+    *       First set or update the required element parameters
+    */
+
+        GetParameter(sourceID,"nRays", &param); // initialize the parameter struct to be properly configured for the requested property
+        printf ("ORIGINAL nRays VALUE %f \n\n" , param.value );
+        param.value=numrays;               // modify value
+        SetParameter(sourceID,"nRays",param); // set the parameter
+
+    //  Make sure the object EXP1 is recording impacts
+        size_t targetID=GetElementID("EXP1");
+        SetRecording(targetID, RecordOutput); // possible values are RecordNone, RecordInput, and RecordOutput;
+                                              //  For films there is no difference between the two recording modes
     }
-    printf("\n\n");
+    else
+    {
+        sourceID=elemID=GetElementID("S_ONDUL1");  // Obtains the element handle
 
-/* ************************************************************************
-*       Here we will initiate some ray tracing from S_ONDUL1 and get the spot diagram generated on EXP1
-*
-*       First set or update the required element parameters
-*/
-
-    GetParameter(sourceID,"nRays", &param); // initialize the parameter struct to be properly configured for the requested property
-    printf ("ORIGINAL nRays VALUE %f \n\n" , param.value );
-    param.value=numrays;               // modify value
-    SetParameter(sourceID,"nRays",param); // set the parameter
-
-//  Make sure the object EXP1 is recording impacts
-    size_t targetID=GetElementID("EXP1");
-    SetRecording(targetID, RecordOutput); // possible values are RecordNone, RecordInput, and RecordOutput;
-                                          //  For films there is no difference between the two recording modes
-
-
+    }
     if(!Align(sourceID,2.5e-8)) // aligne le système à partir de la source pour la longueur d'on 25 nm (lambda utilisé seulement par les réseaux)
     {
        GetOptiXLastError(errBuf,ERROR_BUFLEN);
@@ -136,100 +148,105 @@ int main()
     }
     printf("propagation computation time : %f ms\n", 1000.*(clock()-start)/ CLOCKS_PER_SEC);
 
+    if(!LIMITED)
     {
-        struct C_DiagramStruct cdiagram={5,numrays,0,0}; // defines and initialize a new C_DiagramStruct
-                        // in order to record spot diagram the m_dim must be set to 5 and m_reserved should be at least the number of rays going through
 
-        cdiagram.m_min=malloc(cdiagram.m_dim*sizeof(double)); // Use m_dim and m_reserve to be sure initialization is consistent
-        cdiagram.m_max=malloc(cdiagram.m_dim*sizeof(double));
-        cdiagram.m_mean=malloc(cdiagram.m_dim*sizeof(double));
-        cdiagram.m_sigma=malloc(cdiagram.m_dim*sizeof(double));
-        cdiagram.m_spots= malloc(cdiagram.m_dim*cdiagram.m_reserved*sizeof(double));
+        {
+            struct C_DiagramStruct cdiagram={5,numrays,0,0}; // defines and initialize a new C_DiagramStruct
+                            // in order to record spot diagram the m_dim must be set to 5 and m_reserved should be at least the number of rays going through
 
-        if(!GetSpotDiagram(GetElementID("EXP1"), &cdiagram, 0))
-        {
-            GetOptiXLastError(errBuf, ERROR_BUFLEN);
-            printf("GetSpotDiagram failed: %s\n",errBuf);
-        }
-        else
-        {
-            if(cdiagram.m_count)
+            cdiagram.m_min=malloc(cdiagram.m_dim*sizeof(double)); // Use m_dim and m_reserve to be sure initialization is consistent
+            cdiagram.m_max=malloc(cdiagram.m_dim*sizeof(double));
+            cdiagram.m_mean=malloc(cdiagram.m_dim*sizeof(double));
+            cdiagram.m_sigma=malloc(cdiagram.m_dim*sizeof(double));
+            cdiagram.m_spots= malloc(cdiagram.m_dim*cdiagram.m_reserved*sizeof(double));
+
+            if(!GetSpotDiagram(GetElementID("EXP1"), &cdiagram, 0))
             {
-                DiagramToFile("cSpotDiag.sdg", &cdiagram);
-                printf("Spot-diagram with %d impacts dumped to file\n", cdiagram.m_count);
-                printf("        min         max        mean        sigma\n");
-                for (int i=0; i<5 ; ++i)
-                    printf("%s %10.3e  %10.3e  %10.3e  %10.3e\n",title[i], cdiagram.m_min[i], cdiagram.m_max[i], cdiagram.m_mean[i], cdiagram.m_sigma[i] );
+                GetOptiXLastError(errBuf, ERROR_BUFLEN);
+                printf("GetSpotDiagram failed: %s\n",errBuf);
             }
             else
-                printf("Spot-diagram contains no impact\n");
+            {
+                if(cdiagram.m_count)
+                {
+                    DiagramToFile("cSpotDiag.sdg", &cdiagram);
+                    printf("Spot-diagram with %d impacts dumped to file\n", cdiagram.m_count);
+                    printf("        min         max        mean        sigma\n");
+                    for (int i=0; i<5 ; ++i)
+                        printf("%s %10.3e  %10.3e  %10.3e  %10.3e\n",title[i], cdiagram.m_min[i], cdiagram.m_max[i], cdiagram.m_mean[i], cdiagram.m_sigma[i] );
+                }
+                else
+                    printf("Spot-diagram contains no impact\n");
 
+            }
+
+            free(cdiagram.m_min);   // Clean the structure before deletion since it belongs to the caller
+            free(cdiagram.m_max);
+            free(cdiagram.m_mean);
+            free(cdiagram.m_sigma);
+            free(cdiagram.m_spots);
         }
 
-        free(cdiagram.m_min);   // Clean the structure before deletion since it belongs to the caller
-        free(cdiagram.m_max);
-        free(cdiagram.m_mean);
-        free(cdiagram.m_sigma);
-        free(cdiagram.m_spots);
+        SaveSystem("Cassioptix.dat");  // Save the  system in the compact text forma
+
+        SaveSystemAsXml("Cassiosys.xml");
+      //  DumpXML("Cassiosys.xml");
+
+        if(!LoadSystemFromXml("Cassiosys.xml"))
+        {
+            GetOptiXLastError(errBuf,ERROR_BUFLEN);
+            printf("Source generation error: %s\n",errBuf);
+            return -1;
+        }
+
+        elemID= CreateElement("PlaneFilm", "screen" );
+        if(!elemID)
+        {
+            printf("\nfailed to create element \"screen\" \n");
+            return -1;
+        }
+        GetElementName(elemID, elname,ELEM_NAMELEN);
+        printf("\n new element %llX created as %s\n", elemID, elname);
+
+
+        printf("Dump of the new system\n");
+        hSys=0;
+        do
+        {
+            EnumerateElements(&hSys,&elemID, elname,ELEM_NAMELEN); // Get the next element in the system. To initializ the enumeration function is called with null sys and elem  handles
+            GetElementName(elemID, elname2,ELEM_NAMELEN); // another means to retrieve the element name from an elem ID
+            GetElementType(elemID,classname,ELEM_NAMELEN);
+
+            printf("#%llX: %s [%s] (%s)\n", elemID, elname, classname, elname2);
+
+        }while(hSys);  // Release the handle if the enumeration must be terminated early
+        printf("\n\n");
+
+
+        elemID= CreateElement("PlaneFilm", "screen2" );
+        if(!elemID)
+        {
+            printf("\nfailed to create element \"screen2\" \n");
+            return -1;
+        }
+        GetElementName(elemID, elname,ELEM_NAMELEN);
+        printf("\n new element %llX created as %s\n", elemID, elname);
+
+
+        printf("Dump of the new system\n");
+        hSys=0;
+        do
+        {
+            EnumerateElements(&hSys,&elemID, elname,ELEM_NAMELEN); // Get the next element in the system. To initializ the enumeration function is called with null sys and elem  handles
+            GetElementName(elemID, elname2,ELEM_NAMELEN); // another means to retrieve the element name from an elem ID
+            GetElementType(elemID,classname,ELEM_NAMELEN);
+
+            printf("#%llX: %s [%s] (%s)\n", elemID, elname, classname, elname2);
+
+        }while(hSys);  // Release the handle if the enumeration must be terminated early
+        printf("\n\n");
+        return 0;
     }
-
-    SaveSystem("Cassioptix.dat");  // Save the  system in the compact text forma
-
-    SaveSystemAsXml("Cassiosys.xml");
-  //  DumpXML("Cassiosys.xml");
-
-    if(!LoadSystemFromXml("Cassiosys.xml"))
-    {
-        GetOptiXLastError(errBuf,ERROR_BUFLEN);
-        printf("Source generation error: %s\n",errBuf);
-        return -1;
-    }
-
-    elemID= CreateElement("PlaneFilm", "screen" );
-    if(!elemID)
-    {
-        printf("\nfailed to create element \"screen\" \n");
-        return -1;
-    }
-    GetElementName(elemID, elname,ELEM_NAMELEN);
-    printf("\n new element %llX created as %s\n", elemID, elname);
-
-
-    printf("Dump of the new system\n");
-    hSys=0;
-    do
-    {
-        EnumerateElements(&hSys,&elemID, elname,ELEM_NAMELEN); // Get the next element in the system. To initializ the enumeration function is called with null sys and elem  handles
-        GetElementName(elemID, elname2,ELEM_NAMELEN); // another means to retrieve the element name from an elem ID
-        GetElementType(elemID,classname,ELEM_NAMELEN);
-
-        printf("#%llX: %s [%s] (%s)\n", elemID, elname, classname, elname2);
-
-    }while(hSys);  // Release the handle if the enumeration must be terminated early
-    printf("\n\n");
-
-
-    elemID= CreateElement("PlaneFilm", "screen2" );
-    if(!elemID)
-    {
-        printf("\nfailed to create element \"screen2\" \n");
-        return -1;
-    }
-    GetElementName(elemID, elname,ELEM_NAMELEN);
-    printf("\n new element %llX created as %s\n", elemID, elname);
-
-
-    printf("Dump of the new system\n");
-    hSys=0;
-    do
-    {
-        EnumerateElements(&hSys,&elemID, elname,ELEM_NAMELEN); // Get the next element in the system. To initializ the enumeration function is called with null sys and elem  handles
-        GetElementName(elemID, elname2,ELEM_NAMELEN); // another means to retrieve the element name from an elem ID
-        GetElementType(elemID,classname,ELEM_NAMELEN);
-
-        printf("#%llX: %s [%s] (%s)\n", elemID, elname, classname, elname2);
-
-    }while(hSys);  // Release the handle if the enumeration must be terminated early
-    printf("\n\n");
-    return 0;
+    Version();
 }

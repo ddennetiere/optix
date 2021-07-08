@@ -126,9 +126,13 @@ public:
 //                cout << m_name << " reflect\n";
                 reflect(ray);
             }
-
-            if(m_next!=NULL)
-                m_next->propagate(ray);
+            if(ray.m_alive)
+            {
+                if(m_next!=NULL )  // FP
+                    m_next->propagate(ray);
+            }
+            else
+                cout << m_name << " ray lost : " << "(" << ray.position().transpose() << ") (" << ray.direction().transpose() << ")\n";
         }
         catch( EigenException & excpt)
         {

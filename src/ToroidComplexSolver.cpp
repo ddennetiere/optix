@@ -40,7 +40,8 @@ int ComplexVpSolver(Matrix<FloatType,2,Dynamic> &solutions,Matrix<complex<FloatT
 
    if ( abs(ces.eigenvalues()[0] )  >  numeric_limits<FloatType>::epsilon() )
    {
-       cout << "La valeur propre 0 est non nulle \n";  // Todo gérer cette erreur
+       cout << "Cas complexe : La valeur propre 0 est non nulle \n";  // Todo gérer cette erreur
+       cout << "eigen value:" << ces.eigenvalues().transpose() << endl;
        return  -1;
    }
 

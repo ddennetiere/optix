@@ -61,7 +61,7 @@ int ToroidSolver(Matrix<FloatType,2,Dynamic> &solutions, Matrix<FloatType,3,3> &
     }
     if (i==2)  // toutes les valeurs propres sont réelles
     {
-
+//        cout << "all real eigen values\n";
         static Matrix<FloatType,2,2> SumDif ;
         SumDif << 1.L, 1.L, 1.L, -1.L;
         int i,j,k,s;
@@ -69,10 +69,11 @@ int ToroidSolver(Matrix<FloatType,2,Dynamic> &solutions, Matrix<FloatType,3,3> &
         SelfAdjointEigenSolver<Matrix<FloatType,3,3> > saes;  // ces matrices sont réelles et symétriques. Les vecteurs propres sont assy réels même si les types sont complexes
         for(i=0,k=0; i<2; ++i) // i<3 pour avoir toutes les paires
         {
-             MatS= Mat1 - Ev[i].real() *Mat2; // le Vps sont réelles
+             MatS= Mat1 - Ev[i].real() *Mat2; // le Vps sont réelles  Une de VPs de S doit être nulle
           //  saes.computeDirect(MatS);
             saes.compute(MatS);
-            FloatType ZeroTest=5*saes.eigenvalues().maxCoeff()* numeric_limits<FloatType>::epsilon();
+            FloatType ZeroTest=1000* numeric_limits<FloatType>::epsilon();
+//           FloatType ZeroTest=5*saes.eigenvalues().maxCoeff()* numeric_limits<FloatType>::epsilon();
     //        cout << "System " << i << "  eigen values  :" << saes.eigenvalues().transpose() << " // " <<  ZeroTest << endl;
     //        cout << "\t\t eigen vectors\n" << saes.eigenvectors() <<endl;
             // verification des signes pour factoriser la conique dégénerée en 2 droites réelles les val  propres doivent être de signes contraires
@@ -88,10 +89,30 @@ int ToroidSolver(Matrix<FloatType,2,Dynamic> &solutions, Matrix<FloatType,3,3> &
                     if(saes.eigenvalues()[j] < 0)
                     {
                         s=-s;
-                        Eigenvects.col(k++)=sqrt(-saes.eigenvalues()[j])*saes.eigenvectors().col(j);
+                        try {
+                            Eigenvects.col(k++)=sqrt(-saes.eigenvalues()[j])*saes.eigenvectors().col(j);
+                        } catch (EigenException & excpt)
+                        {
+                            cout << "Eigen exception case < 0 k=" << k << " j=" << j << endl << excpt.what() <<endl;
+                            cout << "Zero test value " << ZeroTest << endl;
+                            cout << "Eigen values :" << saes.eigenvalues().transpose()<< endl;
+                            cout << "Eigen vectors:\n" << saes.eigenvectors() <<endl;
+                            exit(-1);
+                        }
                     }
                     else
-                        Eigenvects.col(k++)=sqrt(saes.eigenvalues()[j])*saes.eigenvectors().col(j);
+                    {
+                        try{
+                            Eigenvects.col(k++)=sqrt(saes.eigenvalues()[j])*saes.eigenvectors().col(j);
+                        } catch (EigenException & excpt)
+                        {
+                            cout << "Eigen exception case  > 0 k=" << k << " j=" << j << endl << excpt.what() <<endl;
+                            cout << "Zero test value " << ZeroTest << endl;
+                            cout << "Eigen values :" << saes.eigenvalues().transpose()<< endl;
+                            cout << "Eigen vectors:\n" << saes.eigenvectors() <<endl;
+                            exit(-1);
+                        }
+                    }
                 }
             }
 
@@ -103,8 +124,10 @@ int ToroidSolver(Matrix<FloatType,2,Dynamic> &solutions, Matrix<FloatType,3,3> &
 
                 return  0;
             }
+//            cout << "blocking sumdif i="<< i <<endl;
             Eigenvects.block(0,2*i,3,2)*= SumDif; // compute sum and difference of the scaled eigenvectors
     //            cout << "Normalization\n" << saes.eigenvectors().real().transpose()*saes.eigenvectors().real()<<endl;
+//            cout << "blocked sumdif\n";
         }
     //    cout << "scaled useful VPs\n" << Eigenvects <<endl;
     //    for(i=0; i<3; ++i)
@@ -125,5 +148,8 @@ int ToroidSolver(Matrix<FloatType,2,Dynamic> &solutions, Matrix<FloatType,3,3> &
 
     }
     else
+    {
+        cout << "VPw of S : " << Ev.transpose() << endl;
         return -1; // code d'erreur
+    }
 }

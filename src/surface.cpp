@@ -28,22 +28,27 @@ RayType& Surface::transmit(RayType& ray)
 
 RayType& Surface::reflect(RayType& ray)    /**<  this implementation simply reflect the ray on the tangent plane */
 {
+    try{
+        VectorType normal;
 
-    VectorType normal;
+        intercept(ray, &normal);
+        if(ray.m_alive)
+        {
+            if(m_recording==RecordInput)
+                m_impacts.push_back(ray);
+            ray.direction()-=2.*ray.direction().dot(normal)*normal;
+            if(m_recording==RecordOutput)
+                m_impacts.push_back(ray);
+        }
+        else if(m_recording!=RecordNone)
+                m_impacts.push_back(ray);
 
-    intercept(ray, &normal);
-    if(ray.m_alive)
+        return ray;
+    } catch(exception & excpt)
     {
-        if(m_recording==RecordInput)
-            m_impacts.push_back(ray);
-        ray.direction()-=2.*ray.direction().dot(normal)*normal;
-        if(m_recording==RecordOutput)
-            m_impacts.push_back(ray);
+        cout << "Exception catched in " << m_name << " reflect \n" << excpt.what();
+        exit(-1);
     }
-    else if(m_recording!=RecordNone)
-            m_impacts.push_back(ray);
-
-    return ray;
 }
 
 

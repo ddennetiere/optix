@@ -25,7 +25,7 @@
 #include "files.h"
 #include "xmlfile.h"
 #include "version.h"
-
+#include <limits>  // pour epsilon
 
 
 ElementCollection System;/**< \brief dictionary of all elements created through this interface  */
@@ -43,8 +43,11 @@ extern "C"
 {
 #endif
 
-    DLL_EXPORT void Version(){printf("SR_Source library %s realease %s build %s-%s-%s\n", AutoVersion::STATUS, AutoVersion::FULLVERSION_STRING,
-                                       AutoVersion::YEAR, AutoVersion::MONTH, AutoVersion::DATE);}
+    DLL_EXPORT void Version(){
+        printf("SR_Source library %s release %s build %s-%s-%s\n", AutoVersion::STATUS, AutoVersion::FULLVERSION_STRING,
+                    AutoVersion::YEAR, AutoVersion::MONTH, AutoVersion::DATE);
+        printf( " FloatType size  %lld  Epsilon value= %Lg \n",sizeof(FloatType) , numeric_limits<FloatType>::epsilon() );
+    }
 
     DLL_EXPORT bool IsElementValid(size_t  ID){return System.isValidID(ID);}
 
