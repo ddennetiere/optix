@@ -70,7 +70,7 @@ bool SaveElementsAsXml(const char * filename, ElementCollection &system)
             }
             if(param.bounds[1]!=0)
             {
-                sprintf(cvbuf,"%.8g",param.bounds[0]);
+                sprintf(cvbuf,"%.8g",param.bounds[1]);
                 xmlNewProp (parmnode, XMLSTR "max", XMLSTR cvbuf);
             }
             if(param.multiplier!=1.)

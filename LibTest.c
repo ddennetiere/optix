@@ -22,7 +22,7 @@
 #define PARAM_NAMELEN 48
 #define ERROR_BUFLEN 256
 
-#define  LIMITED 1
+#define  LIMITED 0
 
 int main()
 {

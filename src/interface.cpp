@@ -46,7 +46,7 @@ extern "C"
     DLL_EXPORT void Version(){
         printf("SR_Source library %s release %s build %s-%s-%s\n", AutoVersion::STATUS, AutoVersion::FULLVERSION_STRING,
                     AutoVersion::YEAR, AutoVersion::MONTH, AutoVersion::DATE);
-        printf( " FloatType size  %lld  Epsilon value= %Lg \n",sizeof(FloatType) , numeric_limits<FloatType>::epsilon() );
+//        printf( " FloatType size  %lld  Epsilon value= %Lg \n",sizeof(FloatType) , numeric_limits<FloatType>::epsilon() );
     }
 
     DLL_EXPORT bool IsElementValid(size_t  ID){return System.isValidID(ID);}
