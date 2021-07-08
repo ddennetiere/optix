@@ -95,7 +95,7 @@ EIGEN_DEVICE_FUNC  RayBaseType::VectorType Toroid::intercept(RayType& ray, Vecto
     #endif // DIAG_OUTPUT
 
         ray.moveTo(-ray.direction().dot(ray.origin()) ).rebase();   // move and rebase close to the nearest of quadric apex  (0 point)
-        cout << m_name  <<": input point (" << ray.position().transpose() << ") (" << ray.direction().transpose() <<  ")\n";
+//        cout << m_name  <<": input point (" << ray.position().transpose() << ") (" << ray.direction().transpose() <<  ")\n";
     //    cout << "input direction " << ray.direction() << endl;
     //    Matrix<FloatType,5,3> rayMat=Matrix<FloatType,5,3>::Zero(); //  matrice
         Matrix<FloatType,5,3> rayMat;

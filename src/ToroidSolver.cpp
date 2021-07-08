@@ -32,7 +32,7 @@ using namespace std;
 int ComplexVpSolver(Matrix<FloatType,2,Dynamic> &solutions,Matrix<complex<FloatType>,3,3> &matSys);
 // in a separate  ToroidComplexSolver.cpp file for compilation performance issues
 
-
+int GetZeroVal(Array<FloatType,3,1> &vect, FloatType tol);
 
 
 
@@ -64,15 +64,25 @@ int ToroidSolver(Matrix<FloatType,2,Dynamic> &solutions, Matrix<FloatType,3,3> &
 //        cout << "all real eigen values\n";
         static Matrix<FloatType,2,2> SumDif ;
         SumDif << 1.L, 1.L, 1.L, -1.L;
-        int i,j,k,s;
+        int i,j,k,s, iv0;
         Matrix<FloatType,3,4> Eigenvects;  // Il y a 3 paires de  vecteurs propres significatifs  mais 2 paires suffisent à obtenir tous les points d'insersection. Pas trouvé de différence significative entre paires
         SelfAdjointEigenSolver<Matrix<FloatType,3,3> > saes;  // ces matrices sont réelles et symétriques. Les vecteurs propres sont assy réels même si les types sont complexes
+
+        Array<FloatType,3,1> absVp;
+
         for(i=0,k=0; i<2; ++i) // i<3 pour avoir toutes les paires
         {
              MatS= Mat1 - Ev[i].real() *Mat2; // le Vps sont réelles  Une de VPs de S doit être nulle
           //  saes.computeDirect(MatS);
             saes.compute(MatS);
-            FloatType ZeroTest=1000* numeric_limits<FloatType>::epsilon();
+            absVp = saes.eigenvalues().array().abs();
+            iv0=GetZeroVal(absVp, 1e-12);  // iv0 est la VP nulle sauf sit le ratio zeroVP/ next Vp est hors tolérance
+            if(iv0==-1) // hors tolérance
+            {
+                cout << "Toroid: zero eigen value tolerance not satisfied\n :" << saes.eigenvalues().transpose() << endl;
+                exit(-1);
+            }
+ //           FloatType ZeroTest=1000* numeric_limits<FloatType>::epsilon();
 //           FloatType ZeroTest=5*saes.eigenvalues().maxCoeff()* numeric_limits<FloatType>::epsilon();
     //        cout << "System " << i << "  eigen values  :" << saes.eigenvalues().transpose() << " // " <<  ZeroTest << endl;
     //        cout << "\t\t eigen vectors\n" << saes.eigenvectors() <<endl;
@@ -80,7 +90,8 @@ int ToroidSolver(Matrix<FloatType,2,Dynamic> &solutions, Matrix<FloatType,3,3> &
             //et stockage des vecteurs propres significataifs * par la racine due la valeur propre associée (en val abs)
             for(j=0,s=1;j<3;++j)
             {
-                if(abs((saes.eigenvalues()[j])) > ZeroTest)
+//                if(abs((saes.eigenvalues()[j])) > ZeroTest)
+                if(j != iv0)  // VP0 exclue
                 {
     //            cout <<"i j k "<<i <<"  " << j << " " << k  <<" EV(j) " <<saes.eigenvalues()[j]<<endl;
 
@@ -94,7 +105,8 @@ int ToroidSolver(Matrix<FloatType,2,Dynamic> &solutions, Matrix<FloatType,3,3> &
                         } catch (EigenException & excpt)
                         {
                             cout << "Eigen exception case < 0 k=" << k << " j=" << j << endl << excpt.what() <<endl;
-                            cout << "Zero test value " << ZeroTest << endl;
+  //                          cout << "Zero test value " << ZeroTest << endl;
+                            cout << " Zero VP is " << iv0 <<endl;
                             cout << "Eigen values :" << saes.eigenvalues().transpose()<< endl;
                             cout << "Eigen vectors:\n" << saes.eigenvectors() <<endl;
                             exit(-1);
@@ -107,7 +119,8 @@ int ToroidSolver(Matrix<FloatType,2,Dynamic> &solutions, Matrix<FloatType,3,3> &
                         } catch (EigenException & excpt)
                         {
                             cout << "Eigen exception case  > 0 k=" << k << " j=" << j << endl << excpt.what() <<endl;
-                            cout << "Zero test value " << ZeroTest << endl;
+//                            cout << "Zero test value " << ZeroTest << endl;
+                            cout << " Zero VP is " << iv0 <<endl;
                             cout << "Eigen values :" << saes.eigenvalues().transpose()<< endl;
                             cout << "Eigen vectors:\n" << saes.eigenvectors() <<endl;
                             exit(-1);

@@ -75,8 +75,8 @@ class Toroid : virtual public Surface
             toreTransform.block(0,0,3,3)=  m_surfaceInverse.matrix().block(0,0,3,3);
             m_alignedMat1 = toreTransform.transpose() * m_toreMat1 * toreTransform;
             m_alignedMat2 = toreTransform.transpose() * m_toreMat2 * toreTransform;
-            cout << "aligned Mat1 \n" << m_alignedMat1 << endl;
-            cout << "aligned Mat2 \n" << m_alignedMat2 << endl;
+//            cout << "aligned Mat1 \n" << m_alignedMat1 << endl;
+//            cout << "aligned Mat2 \n" << m_alignedMat2 << endl;
             return 0;
         }
 

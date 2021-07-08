@@ -22,6 +22,22 @@
 #include <limits>
 using namespace std;
 
+int GetZeroVal(Array<FloatType,3,1> &vect, FloatType tol)
+{
+    int m;
+    FloatType minV=vect.minCoeff(&m);
+    for(int i=0; i<vect.size(); ++i)
+    {
+        if(i!=m && minV/vect(i) >tol)
+        {
+            m=-1;
+            break;
+        }
+    }
+    return m;
+}
+
+
 int ComplexVpSolver(Matrix<FloatType,2,Dynamic> &solutions,Matrix<complex<FloatType>,3,3> &matSys)
 {
     static  Matrix<complex<FloatType>,2,2> SumDif;
@@ -37,12 +53,20 @@ int ComplexVpSolver(Matrix<FloatType,2,Dynamic> &solutions,Matrix<complex<FloatT
     }
 //    Matrix<complex<FloatType>,3,1> EigenVals=ces.eigenvalues();
 //    Matrix<complex<FloatType>,3,3> EigenVect=ces.eigenvectors();  //  .colwise().normalized();
+    Array<FloatType,3,1> absVp=ces.eigenvalues().array().abs() ;
+    int iv0=GetZeroVal(absVp, 1e-12);  // iv0 est la VP nulle sauf sit le ratio zeroVP/ next Vp est hors tolérance
+    if(iv0==-1) // hors tolérance
+    {
+        cout << "Toroid complex solver: zero eigen value tolerance not satisfied\n :" << ces.eigenvalues().transpose() << endl;
+        exit(-1);
+    }
 
-   if ( abs(ces.eigenvalues()[0] )  >  numeric_limits<FloatType>::epsilon() )
+//   if ( abs(ces.eigenvalues()[0] )  > 1000.* numeric_limits<FloatType>::epsilon() )
+    if(iv0!=0)
    {
-       cout << "Cas complexe : La valeur propre 0 est non nulle \n";  // Todo gérer cette erreur
+       cout << "Toroid complex solver:  La valeur propre 0 est non nulle \n";  // Todo gérer cette erreur
        cout << "eigen value:" << ces.eigenvalues().transpose() << endl;
-       return  -1;
+       exit (-1);
    }
 
 //    Matrix<complex<FloatType>,3,1> Mu,Nu;
