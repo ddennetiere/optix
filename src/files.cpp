@@ -735,7 +735,7 @@ struct SolemioSurface
             for(int j=0; j < 4; ++j )
                 *this >> SSurf.param[j];
             for(int j=6; j < numParameters[type]; ++j )
-                *this >> SSurf.param[j];
+                *this >> SSurf.param[j];    // bounds are saved in the file
             cout << "\nPole Normal\n" << poleNormal.transpose() <<endl;
             cout << "Auxiliary axis \n" << aux.transpose() <<endl;
             for(int j=0; j < numParameters[type]; ++j )
@@ -753,23 +753,23 @@ struct SolemioSurface
 
                 elem->getParameter("sigmaX", param);
                 param.value=SSurf.param[2];
-                param.bounds[0]=SSurf.varparamin[2];
-                param.bounds[1]=SSurf.varparamax[2];
+//                param.bounds[0]=SSurf.varparamin[2];  // 09/07/21 ces valeurs ne semblent fas figurer dans le fichier Solemio
+//                param.bounds[1]=SSurf.varparamax[2];
                 elem->setParameter("sigmaX", param);
                 elem->getParameter("sigmaY", param);
                 param.value=SSurf.param[3];
-                param.bounds[0]=SSurf.varparamin[3];
-                param.bounds[1]=SSurf.varparamax[3];
+//                param.bounds[0]=SSurf.varparamin[3];
+//                param.bounds[1]=SSurf.varparamax[3];
                 elem->setParameter("sigmaY", param);
                 elem->getParameter("sigmaXdiv", param);
                 param.value=SSurf.param[6];
-                param.bounds[0]=SSurf.varparamin[6];
-                param.bounds[1]=SSurf.varparamax[6];
+//                param.bounds[0]=SSurf.varparamin[6];
+//                param.bounds[1]=SSurf.varparamax[6];
                 elem->setParameter("sigmaXdiv", param);
                 elem->getParameter("sigmaYdiv", param);
                 param.value=SSurf.param[7];
-                param.bounds[0]=SSurf.varparamin[7];
-                param.bounds[1]=SSurf.varparamax[7];
+//                param.bounds[0]=SSurf.varparamin[7];
+//                param.bounds[1]=SSurf.varparamax[7];
                 elem->setParameter("sigmaYdiv", param);
             }
 
