@@ -60,14 +60,13 @@ int ComplexVpSolver(Matrix<FloatType,2,Dynamic> &solutions,Matrix<complex<FloatT
         cout << "Toroid complex solver: zero eigen value tolerance not satisfied\n :" << ces.eigenvalues().transpose() << endl;
         exit(-1);
     }
-
+// Eigen ne garantit pas  que les VPs soient triées
 //   if ( abs(ces.eigenvalues()[0] )  > 1000.* numeric_limits<FloatType>::epsilon() )
-    if(iv0!=0)
-   {
-       cout << "Toroid complex solver:  La valeur propre 0 est non nulle \n";  // Todo gérer cette erreur
-       cout << "eigen value:" << ces.eigenvalues().transpose() << endl;
-       exit (-1);
-   }
+//    if(iv0!=0)
+//       cout << "Toroid complex solver:  La valeur propre 0 est non nulle \n";  // Todo gérer cette erreur
+//       cout << "eigen value:" << ces.eigenvalues().transpose() << endl;
+//       exit (-1);
+//   }
 
 //    Matrix<complex<FloatType>,3,1> Mu,Nu;
 //
@@ -84,14 +83,17 @@ int ComplexVpSolver(Matrix<FloatType,2,Dynamic> &solutions,Matrix<complex<FloatT
     int i,j;
     FloatType s=1.L;
 
-    for(i=1,j=0 ; i <3; ++i)
+    for(i=0,j=0 ; i <3; ++i)
     {
-        Mu=ces.eigenvectors().col(i).transpose()*ces.eigenvectors().col(i);
-     //   Nu0=ces.eigenvalues()[i]/Mu0;
-//        cout << i << "Mu=" << Mu0 <<"  Nu=" << Nu0 << endl;
-//        scaledVP.col(j++)=sqrt(s*Nu[i])*ces.eigenvectors().col(i);
-        scaledVP.col(j++)=sqrt(s*ces.eigenvalues()[i]/Mu)*ces.eigenvectors().col(i);
-        s=-s;
+        if(i!=iv0)
+        {
+            Mu=ces.eigenvectors().col(i).transpose()*ces.eigenvectors().col(i);
+         //   Nu0=ces.eigenvalues()[i]/Mu0;
+    //        cout << i << "Mu=" << Mu0 <<"  Nu=" << Nu0 << endl;
+    //        scaledVP.col(j++)=sqrt(s*Nu[i])*ces.eigenvectors().col(i);
+            scaledVP.col(j++)=sqrt(s*ces.eigenvalues()[i]/Mu)*ces.eigenvectors().col(i);
+            s=-s;
+        }
     }
 //    cout << " scaled VPs\n" << scaledVP  << endl;
     scaledVP*=SumDif;
