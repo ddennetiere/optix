@@ -9,7 +9,7 @@
 *
 *      \author         François Polack <francois.polack@synchroton-soleil.fr>
 *      \date        2020-10-30  Creation
-*      \date         Last update
+*      \date        2021-08-04 Last update
 *
 
 */
@@ -164,7 +164,7 @@ public:
     {
         bool result;
         result=SShape::setParameter(name, param);
-        if(result)
+        if(!result)  // FP Erreur corrigée le 04/08/21  Tester la classe PatternType si le paramètre n'est pas valide pour SShape
             result=PatternType::setParameter(name,param);  // thow Parameter error
 //        if(!result)   Error must be set by the Pattern subclasses
 //            SetOptiXLastError("invalid grating parameter",__FILE__,__func__);

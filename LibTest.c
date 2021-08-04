@@ -94,7 +94,8 @@ int main()
         while(elemID) // calling GetNextElement on the last element of the chain will bring-up NULL
         {
             GetElementName(elemID, elname,ELEM_NAMELEN);  // obtains the name from the current ID
-            printf("  %s   %llX\n",elname, elemID );
+            GetParameter(elemID,"distance", &param);
+            printf("  %s   %llX  D=%g\n",elname, elemID,param.value );
             elemID =GetNextElement(elemID);  // get next element ID (element ID should of course never be released
         }
         printf("\n\n");
@@ -109,6 +110,13 @@ int main()
         printf ("ORIGINAL nRays VALUE %f \n\n" , param.value );
         param.value=numrays;               // modify value
         SetParameter(sourceID,"nRays",param); // set the parameter
+
+        size_t pupilleID=GetElementID("pupille");
+        GetParameter(pupilleID,"distance",&param);
+//        param.value-=.9;
+        printf ("source-pupil distance %f \n\n" , param.value );
+//        SetParameter(sourceID,"distance",param);
+
 
     //  Make sure the object EXP1 is recording impacts
         size_t targetID=GetElementID("EXP1");
@@ -161,7 +169,7 @@ int main()
             cdiagram.m_sigma=malloc(cdiagram.m_dim*sizeof(double));
             cdiagram.m_spots= malloc(cdiagram.m_dim*cdiagram.m_reserved*sizeof(double));
 
-            if(!GetSpotDiagram(GetElementID("EXP1"), &cdiagram, 0))
+            if(!GetSpotDiagram(GetElementID("f"), &cdiagram, .510))
             {
                 GetOptiXLastError(errBuf, ERROR_BUFLEN);
                 printf("GetSpotDiagram failed: %s\n",errBuf);
@@ -170,7 +178,7 @@ int main()
             {
                 if(cdiagram.m_count)
                 {
-                    DiagramToFile("cSpotDiag.sdg", &cdiagram);
+                    DiagramToFile("fSpotDiag.sdg", &cdiagram);
                     printf("Spot-diagram with %d impacts dumped to file\n", cdiagram.m_count);
                     printf("        min         max        mean        sigma\n");
                     for (int i=0; i<5 ; ++i)
@@ -181,6 +189,25 @@ int main()
 
             }
 
+            if(!GetSpotDiagram(GetElementID("planfocH"), &cdiagram, -.0))
+            {
+                GetOptiXLastError(errBuf, ERROR_BUFLEN);
+                printf("GetSpotDiagram failed: %s\n",errBuf);
+            }
+            else
+            {
+                if(cdiagram.m_count)
+                {
+                    DiagramToFile("focH_SpotDiag.sdg", &cdiagram);
+                    printf("Spot-diagram H with %d impacts dumped to file\n", cdiagram.m_count);
+                    printf("        min         max        mean        sigma\n");
+                    for (int i=0; i<5 ; ++i)
+                        printf("%s %10.3e  %10.3e  %10.3e  %10.3e\n",title[i], cdiagram.m_min[i], cdiagram.m_max[i], cdiagram.m_mean[i], cdiagram.m_sigma[i] );
+                }
+                else
+                    printf("Spot-diagram contains no impact\n");
+
+            }
             free(cdiagram.m_min);   // Clean the structure before deletion since it belongs to the caller
             free(cdiagram.m_max);
             free(cdiagram.m_mean);

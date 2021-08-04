@@ -30,13 +30,13 @@ typedef long double FloatType ;/**< \brief the base type of all floating type ra
  */
 enum UnitType/*:int32_t*/{
     Dimensionless =0,   /**< parameter is dimensionless  */
-    Angle =1,           /**< parameter is an angle  */
-    Distance=2,         /**< parameter is a distance  */
-    InverseDistance=-1, /**< parameter is the inverse of a distance */
-    DistanceMoins1=-1,  /**< parameter is the inverse of a distance (line density of poly gratings)*/
-    DistanceMoins2=-2,  /**< parameter is the inverse of a squared distance (poly gratings) */
-    DistanceMoins3=-3,  /**< parameter is the inverse of a cubed distance (poly gratings) */
-    DistanceMoinsN=-4   /**< parameter is the inverse of the Nth power of a distance (poly gratings) */
+    Angle =1,           /**< parameter is an angle in radians  */
+    Distance=2,         /**< parameter is a distance  in meters */
+    InverseDistance=-1, /**< parameter is the inverse of a distance \f$ in \ meter^{-1} \f$ */
+    DistanceMoins1=-1,  /**< parameter is the inverse of a distance \f$ in \ meter^{-1} \f$  (line density of poly gratings)*/
+    DistanceMoins2=-2,  /**< parameter is the inverse of a squared distance \f$ in \ meter^{-2} \f$ (poly gratings) */
+    DistanceMoins3=-3,  /**< parameter is the inverse of a cubed distance \f$ in \ meter^{-3} \f$ (poly gratings) */
+    DistanceMoinsN=-4   /**< parameter is the inverse of the Nth power of a distance \f$ in \ meter^{-N} \f$ (poly gratings) */
 };
 
 /** \ingroup enums
