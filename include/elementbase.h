@@ -12,7 +12,7 @@
 *
 *   \author             François Polack  <francois.polack@synchroton-soleil.fr>
 *   \date               Creation : 2021-02-02
-*   \date               Last update:
+*   \date               Last update: 2021-08-09
 *
 
  ***************************************************************************/
@@ -231,10 +231,14 @@ public:
             param.flags=it->second.flags;
             it->second=param;
             m_isaligned=false;
+       //     cout << "parameter "<< name <<  " set to " << param.value << endl;
             return true;
         }
         else
+        {
+            cout << "Parameter name "<< name << " is invalid\n";
             return false;
+        }
     }
 
     /** \brief retrieves a numeric parameter by its name

@@ -9,7 +9,7 @@
 *
 *      \author         François Polack <francois.polack@synchroton-soleil.fr>
 *      \date        2020-10-30  Creation
-*      \date        2021-08-04 Last update
+*      \date         Last update
 *
 
 */
@@ -163,11 +163,17 @@ public:
     inline bool setParameter(string name, Parameter& param)
     {
         bool result;
-        result=SShape::setParameter(name, param);
-        if(!result)  // FP Erreur corrigée le 04/08/21  Tester la classe PatternType si le paramètre n'est pas valide pour SShape
-            result=PatternType::setParameter(name,param);  // thow Parameter error
-//        if(!result)   Error must be set by the Pattern subclasses
-//            SetOptiXLastError("invalid grating parameter",__FILE__,__func__);
+        //Modif FP 2021-08-09
+        // la classe ElementBase qui contient la liste (seule et unique) des paramètres est commune à SShape et PatternType
+        //Mais les fonctions setParameter de chaque classe et non de ZlementBasee  doivent être appelées pour  définir correctement les variables membres
+        result=PatternType::setParameter(name, param);
+        if(!result)  // le paramètre n'appartient pas à la classe PatternType
+            result=SShape::setParameter(name,param);  // thow Parameter error
+        if(!result)
+        {
+            cout <<  "Parameter "<< name << " was not set \n";
+            SetOptiXLastError("invalid grating parameter",__FILE__,__func__);
+        }
         return result;
     }
 

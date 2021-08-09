@@ -8,7 +8,7 @@
 *
 *   \author             François Polack  <francois.polack@synchroton-soleil.fr>
 *   \date               Creation: 2021-02-21
-*   \date               Last update: 2021-02-23
+*   \date               Last update: 2021-08-09
  ***************************************************************************/#include "Poly1D.h"
 
 #include "Poly1D.h"
@@ -102,11 +102,10 @@ bool Poly1D::setParameter(string name, Parameter& param)
     }
     else
         success=false;
-
-    if (success)
-        return true;
-    SetOptiXLastError("invalid grating parameter",__FILE__,__func__);
-    return false;
+// Modif FP 2021-08-09
+//    if (!success)
+//        SetOptiXLastError("invalid grating parameter",__FILE__,__func__);
+    return success;
 
 }
 

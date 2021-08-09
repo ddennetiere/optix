@@ -8,7 +8,7 @@
 *
 *   \author             François Polack  <francois.polack@synchroton-soleil.fr>
 *   \date               Creation: 2021-02-23
-*   \date               Last update: 2021-02-23
+*   \date               Last update: 2021-08-09
  ***************************************************************************/#include "holo.h"
 
  #include "holo.h"
@@ -132,8 +132,8 @@ bool Holo::setParameter(string name, Parameter& param)
 
     else
         success=false;
-    if(!success)
-        SetOptiXLastError("invalid grating parameter",__FILE__,__func__);
+//    if(!success)// modif FP  09-08-21
+//        SetOptiXLastError("invalid grating parameter",__FILE__,__func__);
     return success;
  }
 

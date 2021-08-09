@@ -77,13 +77,15 @@ int main()
                     ReleaseElementEnumHandle(hParm);     // Release the handle since the enumeration must be terminated early
                     break;
                 }
-                printf("%s  %f [%f, %f] x %f T:%d G%d F:%X\n", parmname, param.value, param.bounds[0], param.bounds[1],
+                printf("%s  %g [%g, %g] x %g T:%d G%d F:%X\n", parmname, param.value, param.bounds[0], param.bounds[1],
                        param.multiplier , param.type, param.group, param.flags);
 
             }while(hParm);  // Terminating the enumeration with a non null handle value will result in memory leaks, unless ReleaseElementEnumHandle is call on the handle
 
         }while(hSys);  // Release the handle if the enumeration must be terminated early
         printf("\n\n");
+    if(0)
+        return 0;
 
     /* ******************************************************************************
     *        Displays the active chain from source "S_ONDUL1"

@@ -457,6 +457,7 @@ struct SolemioSurface
                 elem->getParameter("recordingWavelength", param); //=lambdaLaser
                 param.value=SSurf.param[1]; // should not be allowed to vary
                 elem->setParameter("recordingWavelength", param);
+
                 elem->getParameter("lineDensity", param);
                 param.value=-SSurf.param[5]/SSurf.param[1]; //- Deltacos2/wavelength
                 elem->setParameter("lineDensity", param);
@@ -869,21 +870,21 @@ struct SolemioSurface
          param.bounds[0]=elemParamin[2];
          param.bounds[1]=elemParamax[2];
          elem->setParameter("Dphi", param);
-         elem->getParameter("Dx", param);  // dX
+         elem->getParameter("DX", param);  // dX
          param.value=elemParam[5];
          param.bounds[0]=elemParamin[5];
          param.bounds[1]=elemParamax[5];
-         elem->setParameter("Dx", param);
-         elem->getParameter("Dy", param);  // dX
+         elem->setParameter("DX", param);
+         elem->getParameter("DY", param);  // dX
          param.value=elemParam[6];
          param.bounds[0]=elemParamin[6];
          param.bounds[1]=elemParamax[6];
-         elem->setParameter("Dy", param);
-         elem->getParameter("Dz", param);  // dZ
+         elem->setParameter("DY", param);
+         elem->getParameter("DZ", param);  // dZ
          param.value=elemParam[7];
          param.bounds[0]=elemParamin[7];
          param.bounds[1]=elemParamax[7];
-         elem->setParameter("Dz", param);
+         elem->setParameter("DZ", param);
         //dPsi non defini dans Solemio & clipping not yet implemented in OptiX
      }
 
