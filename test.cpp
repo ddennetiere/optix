@@ -38,8 +38,8 @@ int SolemioTest();
 
 int main()
 {
-    return SolemioTest();
-//    return OriginalTest();
+ //  return SolemioTest();
+    return OriginalTest();
 }
 int OriginalTest()
 {
@@ -241,7 +241,19 @@ int OriginalTest()
     cout << "     " << mirror2.getName() << endl;
     cout << "     " << film2.getName() << endl;
 
+    if(1)
+    {
+        Parameter param;
+        PlanePoly1DGrating testGrating("testGrating");
+        testGrating.getParameter("lineDensity", param);
+        cout << endl << "Default line density for test grating is " << param.value << endl ;
+        testGrating.getParameter("degree", param);
+        cout << "Default degree for test grating is " << param.value << endl ;
 
+        param.value=1e6;
+        testGrating.setParameter("lineDensity",param);
+        cout << endl << "Line density test grating set to "<< param.value << "m^-1 \n\n";
+    }
 
     if(1)
     {

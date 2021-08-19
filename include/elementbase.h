@@ -231,7 +231,7 @@ public:
             param.flags=it->second.flags;
             it->second=param;
             m_isaligned=false;
-       //     cout << "parameter "<< name <<  " set to " << param.value << endl;
+//            cout << "parameter "<< name <<  " set to " << param.value << endl;
             return true;
         }
         else

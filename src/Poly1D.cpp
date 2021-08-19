@@ -15,19 +15,22 @@
 
 Poly1D::Poly1D(int degree):m_degree(degree)
 {
+//    cout << "initializing PolyGrating with degree= " << degree << "\n";
     if(degree <1)
         degree=0;
-    m_coeffs.setZero(degree+1);
+    m_degree=degree;
+    m_coeffs.setZero(m_degree+1);
     Parameter param;
-    param.value=degree;
+    param.value=m_degree;
     param.type=Dimensionless;
     param.group=GratingGroup;
     defineParameter("degree", param);  // par défaut 0
     setHelpstring("degree", "Degree of the line density polynomial");
-    param.value=0;
+    param.value=1e6;
     param.type=DistanceMoins1;
-    defineParameter("lineDensity", param);  // par défaut 0
+    defineParameter("lineDensity", param);  // par défaut 1000 tpmm
     setHelpstring("lineDensity", "Central line density ");  // complete la liste de infobulles de la classe
+    m_coeffs(0)=param.value;
     if(degree >0)
     {
         param.value=0;
@@ -41,13 +44,14 @@ Poly1D::Poly1D(int degree):m_degree(degree)
             setHelpstring(namebuf, parminfo );  // complete la liste de infobulles de la classe
         }
     }
-
+//    cout << "initial coeffs :\n" << m_coeffs.transpose() << endl;
 }
 
 bool Poly1D::setParameter(string name, Parameter& param)
 {
+//    cout << "setting Poly1D parameter " << name << endl;
     bool success=true;
-    if(name.compare(0,6,"degree"))
+    if(name.compare(0,6,"degree")==0)
     {
         if(param.value <0)
             success= false;
@@ -89,8 +93,12 @@ bool Poly1D::setParameter(string name, Parameter& param)
     }
     else if(name.compare(0,11,"lineDensity")==0)
     {
+//        cout << "setting the line density coeffs\n";
         if(name.length()==11)
+        {
+//            cout << "setting central line density to " << param.value << " m^-1\n\n";
             m_coeffs(0)=param.value;
+        }
         else
         {
             int index;

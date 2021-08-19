@@ -167,8 +167,8 @@ public:
         // la classe ElementBase qui contient la liste (seule et unique) des paramètres est commune à SShape et PatternType
         //Mais les fonctions setParameter de chaque classe et non de ZlementBasee  doivent être appelées pour  définir correctement les variables membres
         result=PatternType::setParameter(name, param);
-        if(!result)  // le paramètre n'appartient pas à la classe PatternType
-            result=SShape::setParameter(name,param);  // thow Parameter error
+     //   if(!result)  // le paramètre n'appartient pas à la classe PatternType
+        result=SShape::setParameter(name,param);  // thow Parameter error
         if(!result)
         {
             cout <<  "Parameter "<< name << " was not set \n";
