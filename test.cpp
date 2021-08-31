@@ -35,12 +35,15 @@
 using namespace std;
 int OriginalTest();
 int SolemioTest();
+int SphereTest();
 
 int main()
 {
  //  return SolemioTest();
-    return OriginalTest();
+//    return OriginalTest();
+    return SphereTest();
 }
+
 int OriginalTest()
 {
 

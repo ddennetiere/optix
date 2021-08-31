@@ -66,7 +66,7 @@ using namespace std::chrono;
     param.value=50000;
     SetParameter(sourceID,"nRays",param);
 
-    if(Align(sourceID,2.5e-8))
+    if(!Align(sourceID,2.5e-8))
     {
        GetOptiXLastError(errBuf,256);
        cout << "Alignment error : " << errBuf << endl;
@@ -171,4 +171,101 @@ using namespace std::chrono;
     return 0;
  }
 
+ int SphereTest()
+ {
+    //ReadSolemioFile("R:\\Partage\\SOLEMIO\\CASSIOPEE");
+    if(!SolemioImport("D:\\projets\\projetsCB\\OptiX\\solemio\\SphereTest"))
+    {
+        cout << "An error occurred while loading Solemio file\n";
+        return -1;
+    }
+    size_t hSys=0, hParm=0, elemID=0;
+    char elname[32], name2[32],parmname[48], errBuf[256];
+    Parameter param;
 
+    do
+    {
+        EnumerateElements(&hSys,&elemID, elname,32);
+        GetElementName(elemID, name2,32);
+        cout << endl << elname <<  "   (" << name2 <<")\n";
+        hParm=0;
+        do
+        {
+            if(!EnumerateParameters(elemID, &hParm, parmname, 48, &param))
+            {
+                GetOptiXLastError( errBuf,256);
+                cout  << "ERROR : " << errBuf << endl;
+            }
+            cout << parmname << "  " << param.value <<" [" << param.bounds[0] <<", "<< param.bounds[1] <<"] x " << param.multiplier <<
+                        " T:" << param.type << " G:" << param.group << " F:0x"<< hex << param.flags << dec << endl;
+
+        }while(hParm);
+
+    }while(hSys);
+
+    size_t sourceID=elemID=GetElementID("source");
+
+    while(elemID)
+    {
+        GetElementName(elemID, elname,32);
+        cout << elname << "  " << hex << elemID << dec <<endl;
+        elemID =GetNextElement(elemID);
+    }
+
+    GetParameter(sourceID,"nRays", &param);
+    param.value=50000;
+    SetParameter(sourceID,"nRays",param);
+
+    if(!Align(sourceID,2.5e-8))
+    {
+       GetOptiXLastError(errBuf,256);
+       cout << "Alignment error : " << errBuf << endl;
+       return -1;
+    }
+    if(!Generate(sourceID, 2.5e-8))
+    {
+       GetOptiXLastError(errBuf,256);
+       cout << "Source generation error : " << errBuf << endl;
+       return -1;
+    }
+    cout << "getting screen \n";
+    Surface* screen=dynamic_cast<Surface*> ((ElementBase*)GetElementID("film-1")); //S_ONDUL1, pupille, Reseau_400H, Fente, planfocH
+    cout << screen << endl;
+    screen->setRecording(RecordOutput);
+    cout << "recording mode " << screen->getRecording() << endl;
+
+
+
+    high_resolution_clock clock;
+    high_resolution_clock::time_point start(clock.now());
+
+    if(!Radiate(sourceID))
+    {
+       GetOptiXLastError(errBuf,256);
+       cout << "Radiation error : " << errBuf << endl;
+       return -1;
+    }
+    cout << "propagation computation time :" << duration_cast<milliseconds>(clock.now()-start).count() << " msec\n" ;
+
+    cout << "\nIMPACTS\n";
+
+
+        SpotDiagramExt spotDg;
+
+    int ncounts=screen->getSpotDiagram(spotDg,-0.002);
+    if(ncounts)
+    {
+        for(int i=0; i<5 ; ++i)
+           cout << spotDg.m_min[i] << " \t" << spotDg.m_spots[i] << endl;
+
+        fstream spotfile("SphTestSpotdiag.sdg", ios::out | ios::binary);
+        spotfile << spotDg;
+        spotfile.close();
+
+
+        cout << endl << endl;
+    }
+
+
+  return 0;
+ }
