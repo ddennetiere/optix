@@ -379,12 +379,74 @@ struct SolemioSurface
         break;
      case   CILYNDRE:    //  3
         {
-            cout << "NOT IMPLEMENTED\n";
+            //  vector<string> nom={"Radius","sigmapentelong","sigmapentetransv"};
+            ArrayXd axe(7);
+            *this >> aux >> poleNormal >> axe;
+            for(int j=0; j < numParameters[type]; ++j )
+                *this >> SSurf.param[j];
+            if( !SSurf.ReadFromFile(*this))
+                return false;
+            cout << "\nPole Normal\n" << poleNormal.transpose() <<endl;
+            cout << "Auxiliary axis \n" << aux.transpose() <<endl;
+            cout << "Axe "  << axe.transpose() <<endl;
+            cout << "Radius " << SSurf.param[0]  <<  "  curvature " << 1./SSurf.param[0] <<endl;
+            cout << "Slope  sigmas    tang. " << SSurf.param[1] << " sag. " << SSurf.param[2] << endl;
+
+            if(pelemID)
+            {
+                *pelemID=CreateElement("Mirror<Cylinder>",name.c_str());
+                elem=(ElementBase*)*pelemID;
+                Parameter param;
+                elem->getParameter("curvature", param); //="Radius inverse  "
+                param.value=1./SSurf.param[0];
+                param.bounds[1]=1./SSurf.varparamin[0];
+                param.bounds[0]=1./SSurf.varparamax[0];
+                elem->setParameter("curvature", param);
+                elem->getParameter("psi",param);
+                param.value-=M_PI_2; // définition d'axe tournée de 90° dans Solemio
+                param.bounds[0]-=M_PI_2;
+                param.bounds[1]-=M_PI_2;
+                elem->setParameter("psi",param);
+            }
+
+            cout << "Implementation not tested\n";
         }
         break;
      case   TORUS:    //  4
         {
-            cout << "NOT IMPLEMENTED\n";
+            //  vector<string> nom={"Big_Radius","Small_Radius","sigmapentelong","sigmapentetransv"};
+
+            ArrayXd axe(7);
+            *this >> aux >> poleNormal >> axe;
+            for(int j=0; j < numParameters[type]; ++j )
+                *this >> SSurf.param[j];
+            if( !SSurf.ReadFromFile(*this))
+                return false;
+            cout << "\nPole Normal\n" << poleNormal.transpose() <<endl;
+            cout << "Auxiliary axis \n" << aux.transpose() <<endl;
+            cout << "Axe "  << axe.transpose() <<endl;
+            cout << "Big_Radius   " << SSurf.param[0] <<  "   major_curvature " << 1./SSurf.param[0] <<endl;
+            cout << "Small_Radius " << SSurf.param[1] <<  "   minor_curvature " << 1./SSurf.param[1] <<endl;
+            cout << "Slope  sigmas    tang. " << SSurf.param[1] << " sag. " << SSurf.param[2] << endl;
+
+            if(pelemID)
+            {
+                *pelemID=CreateElement("Mirror<Toroid>",name.c_str());
+                elem=(ElementBase*)*pelemID;
+                Parameter param;
+                elem->getParameter("major_curvature", param); //="Radius inverse  "
+                param.value=1./SSurf.param[0];
+                param.bounds[1]=1./SSurf.varparamin[0];
+                param.bounds[0]=1./SSurf.varparamax[0];
+                elem->setParameter("major_curvature", param);
+                elem->getParameter("minor_curvature", param); //="Radius inverse  "
+                param.value=1./SSurf.param[0];
+                param.bounds[1]=1./SSurf.varparamin[0];
+                param.bounds[0]=1./SSurf.varparamax[0];
+                elem->setParameter("minor_curvature", param);
+            }
+
+            cout << "Implementation not tested\n";
         }
         break;
       case   SPHERE:    //  5

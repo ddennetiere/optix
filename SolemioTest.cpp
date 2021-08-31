@@ -256,7 +256,7 @@ using namespace std::chrono;
     if(ncounts)
     {
         for(int i=0; i<5 ; ++i)
-           cout << spotDg.m_min[i] << " \t" << spotDg.m_spots[i] << endl;
+           cout << spotDg.m_min[i] << " \t" << spotDg.m_max[i] << endl;
 
         fstream spotfile("SphTestSpotdiag.sdg", ios::out | ios::binary);
         spotfile << spotDg;
