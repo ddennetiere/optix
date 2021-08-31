@@ -260,11 +260,11 @@ extern "C"
      */
     DLL_EXPORT void ReleaseParameterEnumHandle(size_t handle);
 
-    /** \brief Align the element chain sarting from the given element
+    /** \brief Align the element chain starting from the given element
      *
      * \param elementID first element of the chain to align
      * \param wavelength alignment wavelength (for gratings). It can be 0.
-     * \return true if alignment was successful, false otherwise and OptiXLastError is et
+     * \return true if alignment was successful, false otherwise and OptiXLastError is set
      *
      */
     DLL_EXPORT bool Align(size_t elementID, double wavelength);

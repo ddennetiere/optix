@@ -819,74 +819,77 @@ struct SolemioSurface
      }
      // set Current parameters : Omega=0,Theta=1,dOmega=2,dTheta=3,Spin=4,dX=5,dY=6,dZ=7,distback=8,
      //                          distfor=9, algtLambda=10,OsloBack=11,clipX1=12,clipX2=13,clipY1=14,clipY2=15
-     if(elem)
+     if(!elem)
      {
-         Parameter param;
-         elem->getParameter("distance", param); //=distBackward
-         param.value=elemParam[8];
-         param.bounds[0]=elemParamin[8];
-         param.bounds[1]=elemParamax[8];
-         elem->setParameter("distance", param);
-         elem->getParameter("theta", param); //(Pi -Theta)/2. déviation si reflechissant Theta sinon
-         if(elem->getTransmissive())
-         {
-             param.value=elemParam[1];
-             param.bounds[0]=elemParamin[1];
-             param.bounds[1]=elemParamax[1];
-         }
-         else
-         {
-             param.value=(M_PI -elemParam[1])/2.;
-             param.bounds[0]=(!elemParamvar[1]&& (elemParamax[1]==0))? 0 : (M_PI-elemParamax[1])/2.;
-             param.bounds[1]=(!elemParamvar[1]&& (elemParamax[1]==0))? 0 : (M_PI-elemParamin[1])/2.;
-         }
-         elem->setParameter("theta", param);
-         elem->getParameter("phi", param);  // Omega
-         param.value=elemParam[0];
-         param.bounds[0]=elemParamin[0];
-         param.bounds[1]=elemParamax[0];
-         elem->setParameter("phi", param);
-         elem->getParameter("psi", param); // Spin
-         param.value=elemParam[4];
-         param.bounds[0]=elemParamin[4];
-         param.bounds[1]=elemParamax[4];
-         elem->setParameter("psi", param);
-         elem->getParameter("Dtheta", param); //-dTheta)/2. Déviation si réfléchssant
-         if(elem->getTransmissive())
-         {
-             param.value=elemParam[3];
-             param.bounds[0]=elemParamin[3];
-             param.bounds[1]=elemParamax[3];
-         }
-         else
-         {
-             param.value=-elemParam[3]/2.;
-             param.bounds[0]=(!elemParamvar[3]&& (elemParamax[3]==0))? 0 : -elemParamax[3]/2.;
-             param.bounds[1]=(!elemParamvar[3]&& (elemParamax[3]==0))? 0 : -elemParamin[3]/2.;
-         }
-         elem->setParameter("Dtheta", param);
-         elem->getParameter("Dphi", param);  // dOmega
-         param.value=elemParam[2];
-         param.bounds[0]=elemParamin[2];
-         param.bounds[1]=elemParamax[2];
-         elem->setParameter("Dphi", param);
-         elem->getParameter("DX", param);  // dX
-         param.value=elemParam[5];
-         param.bounds[0]=elemParamin[5];
-         param.bounds[1]=elemParamax[5];
-         elem->setParameter("DX", param);
-         elem->getParameter("DY", param);  // dX
-         param.value=elemParam[6];
-         param.bounds[0]=elemParamin[6];
-         param.bounds[1]=elemParamax[6];
-         elem->setParameter("DY", param);
-         elem->getParameter("DZ", param);  // dZ
-         param.value=elemParam[7];
-         param.bounds[0]=elemParamin[7];
-         param.bounds[1]=elemParamax[7];
-         elem->setParameter("DZ", param);
-        //dPsi non defini dans Solemio & clipping not yet implemented in OptiX
+        // cout << "error return from get_element\n";
+         return false;
      }
+     Parameter param;
+     elem->getParameter("distance", param); //=distBackward
+     param.value=elemParam[8];
+     param.bounds[0]=elemParamin[8];
+     param.bounds[1]=elemParamax[8];
+     elem->setParameter("distance", param);
+     elem->getParameter("theta", param); //(Pi -Theta)/2. déviation si reflechissant Theta sinon
+     if(elem->getTransmissive())
+     {
+         param.value=elemParam[1];
+         param.bounds[0]=elemParamin[1];
+         param.bounds[1]=elemParamax[1];
+     }
+     else
+     {
+         param.value=(M_PI -elemParam[1])/2.;
+         param.bounds[0]=(!elemParamvar[1]&& (elemParamax[1]==0))? 0 : (M_PI-elemParamax[1])/2.;
+         param.bounds[1]=(!elemParamvar[1]&& (elemParamax[1]==0))? 0 : (M_PI-elemParamin[1])/2.;
+     }
+     elem->setParameter("theta", param);
+     elem->getParameter("phi", param);  // Omega
+     param.value=elemParam[0];
+     param.bounds[0]=elemParamin[0];
+     param.bounds[1]=elemParamax[0];
+     elem->setParameter("phi", param);
+     elem->getParameter("psi", param); // Spin
+     param.value=elemParam[4];
+     param.bounds[0]=elemParamin[4];
+     param.bounds[1]=elemParamax[4];
+     elem->setParameter("psi", param);
+     elem->getParameter("Dtheta", param); //-dTheta)/2. Déviation si réfléchssant
+     if(elem->getTransmissive())
+     {
+         param.value=elemParam[3];
+         param.bounds[0]=elemParamin[3];
+         param.bounds[1]=elemParamax[3];
+     }
+     else
+     {
+         param.value=-elemParam[3]/2.;
+         param.bounds[0]=(!elemParamvar[3]&& (elemParamax[3]==0))? 0 : -elemParamax[3]/2.;
+         param.bounds[1]=(!elemParamvar[3]&& (elemParamax[3]==0))? 0 : -elemParamin[3]/2.;
+     }
+     elem->setParameter("Dtheta", param);
+     elem->getParameter("Dphi", param);  // dOmega
+     param.value=elemParam[2];
+     param.bounds[0]=elemParamin[2];
+     param.bounds[1]=elemParamax[2];
+     elem->setParameter("Dphi", param);
+     elem->getParameter("DX", param);  // dX
+     param.value=elemParam[5];
+     param.bounds[0]=elemParamin[5];
+     param.bounds[1]=elemParamax[5];
+     elem->setParameter("DX", param);
+     elem->getParameter("DY", param);  // dX
+     param.value=elemParam[6];
+     param.bounds[0]=elemParamin[6];
+     param.bounds[1]=elemParamax[6];
+     elem->setParameter("DY", param);
+     elem->getParameter("DZ", param);  // dZ
+     param.value=elemParam[7];
+     param.bounds[0]=elemParamin[7];
+     param.bounds[1]=elemParamax[7];
+     elem->setParameter("DZ", param);
+    //dPsi non defini dans Solemio & clipping not yet implemented in OptiX
+
 
      *this  >> imprunt >> sourcePol ;
      cout <<"imprunt " << imprunt <<  "  source Poly " << sourcePol << endl;
@@ -1157,7 +1160,7 @@ struct SolemioSurface
         {
              errstr="Format error  while getting  an element in file  " + filename + " loading stopped";
              SetOptiXLastError(errstr, __FILE__, __func__);
-             break;
+             return false;
         }
 
         if(pelement)
