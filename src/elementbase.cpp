@@ -200,6 +200,15 @@ ElementBase* ElementBase::getSource()
     return pSource;
 }
 
+void ElementBase::dumpData()
+{
+    cout  <<  "m_exitFrame" << endl << m_exitFrame.matrix() << endl;
+    cout  <<  "m_surfaceDirect" << endl << m_surfaceDirect.matrix() << endl;
+    cout  <<  "m_surfaceInverse" << endl << m_surfaceInverse.matrix() << endl;
+    cout  <<  "m_translationFromPrevious" << endl << m_translationFromPrevious.transpose() << endl;
+    cout  <<  "m_frameDirect" << endl << m_frameDirect.matrix() << endl;
+    cout  <<  "m_frameInverse" << endl << m_frameInverse.matrix() << endl<<endl;
+}
 
 
 TextFile& operator<<(TextFile& file,  ElementBase& elem)

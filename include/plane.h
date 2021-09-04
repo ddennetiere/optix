@@ -69,11 +69,18 @@ class Plane : virtual public Surface
             return ray.position();  // == origin() puisque rebase
         }
 
+        virtual void dumpData()/**< \brief dump internal data to standard output */
+        {
+            cout  <<  "m_hyperplane" << endl << m_hyperplane.coeffs().transpose() << endl;
+            cout  <<  "normal" << endl << m_hyperplane.normal().transpose() << endl<<endl;
+            ElementBase::dumpData();
+        }
+
     protected:
         RayType::PlaneType m_hyperplane;
     private:
 };
 
 #endif // PLANE_H
-#endif // header guard 
+#endif // header guard
 

@@ -198,7 +198,7 @@ public:
 protected:
 
     vector<RayType> m_impacts; /**<  \brief the ray impacts on the surfaces in forward or backward element space */
-    RecordMode m_recording; /**<  \brief flag defining wether or not the ray impacts on this surace are recorded and in forward or backward space   */
+    RecordMode m_recording; /**<  \brief flag defining whether or not the ray impacts on this surface are recorded and in forward or backward space   */
 
 };
 

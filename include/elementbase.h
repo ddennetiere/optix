@@ -311,7 +311,7 @@ public:
      bool isSource();/**< \brief Checks whether this element is a source (i.e. has a radiate() function )*/
      ElementBase* getSource(); /**< \brief explore the element string to find the most upstream source from here  \return the most upstream source or NULL if there is none */
 
-
+    virtual void dumpData();/**< \brief dump internal data to standard output */
 
     friend TextFile& operator<<(TextFile& file,  ElementBase& elem);  /**< \brief Dump this Element object to a TextFile, in a human readable format  */
 

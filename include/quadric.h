@@ -57,6 +57,12 @@ class Quadric : virtual public Surface
         */
         EIGEN_DEVICE_FUNC virtual VectorType intercept(RayType& ray, VectorType * normal=NULL);
 
+        virtual void dumpData()/**< \brief dump internal data to standard output */
+        {
+            cout  <<  "m_alignedQuadric" << endl << m_alignedQuadric << endl;
+            cout  <<  "m_localQuadric" << endl << m_localQuadric << endl<<endl;
+            ElementBase::dumpData();
+        }
 
     protected:
         RayType::QuadricType m_alignedQuadric;
