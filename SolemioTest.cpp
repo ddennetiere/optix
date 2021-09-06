@@ -228,13 +228,22 @@ using namespace std::chrono;
        cout << "Source generation error : " << errBuf << endl;
        return -1;
     }
+
+    cout << "getting mirror surface  \n";
+    Surface* mir=dynamic_cast<Surface*> ((ElementBase*)GetElementID("M1")); //S_ONDUL1, pupille, Reseau_400H, Fente, planfocH
+    cout << mir << endl;
+    mir->setRecording(RecordOutput);
+    cout << "recording mode " << mir->getRecording() << endl <<endl;
+    mir->dumpData();
+    cout << endl ;
+
     cout << "getting screen \n";
     Surface* screen=dynamic_cast<Surface*> ((ElementBase*)GetElementID("film-1")); //S_ONDUL1, pupille, Reseau_400H, Fente, planfocH
     cout << screen << endl;
     screen->setRecording(RecordOutput);
-    cout << "recording mode " << screen->getRecording() << endl;
-
-
+    cout << "recording mode " << screen->getRecording() << endl <<endl;
+    screen->dumpData() ;
+    cout << endl;
 
     high_resolution_clock clock;
     high_resolution_clock::time_point start(clock.now());
@@ -250,15 +259,15 @@ using namespace std::chrono;
     cout << "\nIMPACTS\n";
 
 
-        SpotDiagramExt spotDg;
+    SpotDiagramExt spotDg;
 
-    int ncounts=screen->getSpotDiagram(spotDg,-0.002);
+    int ncounts=screen->getSpotDiagram(spotDg,0);
     if(ncounts)
     {
         for(int i=0; i<5 ; ++i)
            cout << spotDg.m_min[i] << " \t" << spotDg.m_max[i] << endl;
 
-        fstream spotfile("SphTestSpotdiag.sdg", ios::out | ios::binary);
+        fstream spotfile("SphTestScrSpotdiag.sdg", ios::out | ios::binary);
         spotfile << spotDg;
         spotfile.close();
 
@@ -267,5 +276,49 @@ using namespace std::chrono;
     }
 
 
+    ncounts=mir->getSpotDiagram(spotDg,0);
+    if(ncounts)
+    {
+        for(int i=0; i<5 ; ++i)
+           cout << spotDg.m_min[i] << " \t" << spotDg.m_max[i] << endl;
+
+        fstream spotfile("SphTestSphSpotdiag.sdg", ios::out | ios::binary);
+        spotfile << spotDg;
+        spotfile.close();
+
+
+        cout << endl << endl;
+    }
+
+    ImpactData impacts;
+
+    ncounts=screen->getImpactData(impacts);
+    if(ncounts)
+    {
+        for(int i=0; i<5 ; ++i)
+           cout << impacts.m_min[i] << " \t" << impacts.m_max[i] << endl;
+
+        fstream spotfile("SphTestScrImpacts.imp", ios::out | ios::binary);
+        spotfile << impacts;
+        spotfile.close();
+
+
+        cout << endl << endl;
+    }
+
+
+    ncounts=mir->getImpactData(impacts);
+    if(ncounts)
+    {
+        for(int i=0; i<5 ; ++i)
+           cout << impacts.m_min[i] << " \t" << impacts.m_max[i] << endl;
+
+        fstream spotfile("SphTestSphImpacts.imp", ios::out | ios::binary);
+        spotfile << impacts;
+        spotfile.close();
+
+
+        cout << endl << endl;
+    }
   return 0;
  }
