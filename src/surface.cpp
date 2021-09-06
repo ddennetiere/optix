@@ -80,7 +80,8 @@ int Surface::getImpacts(vector<RayType> &impacts, FrameID frame)
     vector<RayType>::iterator it;
     for(it=m_impacts.begin(); it != m_impacts.end(); ++it)
     {
-        RayType ray(*it);
+//        RayType ray(*it);
+        RayType ray=*it;
         if(!ray.m_alive)
         {
             ++lostCount;
@@ -158,6 +159,53 @@ int Surface::getSpotDiagram(SpotDiagramExt& spotDiagram, double distance)
 //        Array4d temp=spotMat.rowwise().squaredNorm()/spotDiagram.m_count;
 //        vSigma=(temp-vMean.array().square()).sqrt();
     vSigma=(spotMat.rowwise().squaredNorm().array()/spotDiagram.m_count-vMean.array().square()).sqrt();
+    return ip;
+}
+
+int Surface::getImpactData(ImpactData &impactData)
+{
+ //   cout << "getting diagram of  "  << m_name <<  " n " << m_impacts.size() << "  mem " << &m_impacts[0] << endl;
+
+//    vector<RayType> impacts;
+//    impactData.m_lost=getImpacts(impacts,LocalAbsoluteFrame);
+
+    impactData.m_count=m_impacts.size();
+    if(impactData.m_count==0)
+        return 0;
+    if(impactData.m_spots)  // buffer is allocated
+        if(impactData.m_reserved < impactData.m_count) // too small ?
+        {
+            delete [] impactData.m_spots;
+            impactData.m_spots=0;
+        }
+    if(! impactData.m_spots)
+    {
+        impactData.m_spots=new double[impactData.m_dim *impactData.m_count];
+        impactData.m_reserved = impactData.m_count;
+    }
+
+    Map<Matrix<double,Dynamic, Dynamic> > spotMat(impactData.m_spots, impactData.m_dim,  impactData.m_count);
+    Map<VectorXd> vMean(impactData.m_mean, impactData.m_dim),vSigma(impactData.m_sigma,impactData.m_dim);
+    Map<VectorXd> vMin(impactData.m_min,impactData.m_dim), vMax(impactData.m_max,impactData.m_dim);
+
+    vector<RayType>::iterator pRay;
+    Index ip;
+    for(ip=0, pRay=m_impacts.begin(); pRay!=m_impacts.end(); ++pRay)
+    {
+        if(pRay->m_alive)
+        {
+            spotMat.block<3,1>(0,ip)=pRay->position().cast<double>();
+            spotMat.block<3,1>(3,ip)=pRay->direction().cast<double>();
+            spotMat(6,ip)=pRay->m_wavelength;
+            ++ip;
+        }
+    }
+
+    vMin=spotMat.rowwise().minCoeff();
+    vMax=spotMat.rowwise().maxCoeff();
+    vMean=spotMat.rowwise().mean();
+
+    vSigma=(spotMat.rowwise().squaredNorm().array()/impactData.m_count-vMean.array().square()).sqrt();
     return ip;
 }
 

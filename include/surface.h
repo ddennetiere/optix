@@ -155,9 +155,15 @@ public:
      *
      * \param impacts a vector of  propagated rays rays in this object recording space. Ray position is the ray intercept with the surface
      * \param frame  The type of frame where impacts must be referred to. Can be *AlignedLocalFrame, *SurfaceFrame, *GeneralFrame or *LocalAbsoluteFrame
-     * \return int  The number of lost rays in propagation from source
+     * \return   The number of lost rays in propagation from source
      */
     int getImpacts(vector<RayType> &impacts, FrameID frame);
+
+    /** \brief get the 3D impacts as internally stored in a convenient shape for file output
+     *
+     * \param ImpactData a DiagramType object to fill with the internally stored data
+     * \return the number of stored impacts     */
+    int getImpactData(ImpactData &impactData);
 
     /** \brief Computes and fills-up a SpotDiagram object from the internally stored impact collection
      * \param spotDiagram a SpotDiagram object reference which wiill be uptated on return
