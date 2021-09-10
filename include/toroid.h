@@ -88,6 +88,16 @@ class Toroid : virtual public Surface
         */
         EIGEN_DEVICE_FUNC virtual VectorType intercept(RayType& ray, VectorType * normal=NULL);
 
+
+        virtual void dumpData()/**< \brief dump internal data to standard output */
+        {
+            cout  <<  "m_alignedMat1" << endl << m_alignedMat1 << endl;
+            cout  <<  "m_alignedMat2" << endl << m_alignedMat2 << endl;
+            cout  <<  "m_toreMat1" << endl << m_toreMat1 << endl<<endl;
+            cout  <<  "m_toreMat2" << endl << m_toreMat2 << endl<<endl;
+            ElementBase::dumpData();
+        }
+
     protected:
         void createSurface(); /**< \brief Initialize the local equation. Called when curvature is changed  */
 

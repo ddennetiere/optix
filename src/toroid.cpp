@@ -137,21 +137,23 @@ EIGEN_DEVICE_FUNC  RayBaseType::VectorType Toroid::intercept(RayType& ray, Vecto
             throw RayException("Abnormal intercept number", __FILE__, __func__, __LINE__);
         }
 
-        // ici je dois avoir retrouvé toutes les valeurs possibles de t et h
+        // ici je dois avoir retrouvé toutes les valeurs possibles de t et h  // le choix doit il porter sur la norme ou sur t ?
         sols.colwise().squaredNorm().minCoeff(&minNormIndex);
-        ray.moveTo(sols(0,minNormIndex));
+        ray.moveTo(sols(0,minNormIndex)).rebase();
 
       //  cout << "toroid intercept OK\n";
 
         // calcul de la normale
         if(normal)
         {
-            Matrix<FloatType,5,1> N1,N2,V= rayMat*sols.col(minNormIndex).homogeneous();
+            Matrix<FloatType,5,1> N1,N2,V= rayMat*sols.col(minNormIndex).homogeneous();  // V={t,h,1}
 
             N1 = m_alignedMat1 * V;
             N2 = m_alignedMat2 * V;
             Matrix<FloatType,3,1> NN= (N2*N1(3)-N1*N2(3)).segment(0,3);
             *normal=NN.normalized();
+
+
         }
      //   cout << "toroid normal OK\n";
     //    cout << "intercept computation time :" << duration_cast<microseconds>(clock.now()-start).count() << " usec\n" ;
