@@ -36,12 +36,14 @@ using namespace std;
 int OriginalTest();
 int SolemioTest();
 int SphereTest();
+int QuickTest();
 
 int main()
 {
  //  return SolemioTest();
 //    return OriginalTest();
-    return SphereTest();
+//    return SphereTest();
+    return QuickTest();
 }
 
 int OriginalTest()

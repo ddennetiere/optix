@@ -322,3 +322,135 @@ using namespace std::chrono;
     }
   return 0;
  }
+
+
+
+
+
+
+ int QuickTest()
+ {
+
+    double lambdatest=6.e-9;
+    string mirrorName="M1B";
+
+    if(!SolemioImport("D:\\projets\\projetsCB\\OptiX\\solemio\\Hermes-HeadV"))
+    {
+        cout << "An error occurred while loading Solemio file\n";
+        return -1;
+    }
+    size_t hSys=0, hParm=0, elemID=0;
+    char elname[32], name2[32],parmname[48], errBuf[256];
+    Parameter param;
+
+    do
+    {
+        EnumerateElements(&hSys,&elemID, elname,32);
+        GetElementName(elemID, name2,32);
+        cout << endl << elname <<  "   (" << name2 <<")\n";
+        hParm=0;
+        do
+        {
+            if(!EnumerateParameters(elemID, &hParm, parmname, 48, &param))
+            {
+                GetOptiXLastError( errBuf,256);
+                cout  << "ERROR : " << errBuf << endl;
+            }
+            cout << parmname << "  " << param.value <<" [" << param.bounds[0] <<", "<< param.bounds[1] <<"] x " << param.multiplier <<
+                        " T:" << param.type << " G:" << param.group << " F:0x"<< hex << param.flags << dec << endl;
+
+        }while(hParm);
+
+    }while(hSys);
+
+    size_t sourceID=elemID=GetElementID("source");
+
+    while(elemID)
+    {
+        GetElementName(elemID, elname,32);
+        cout << elname << "  " << hex << elemID << dec <<endl;
+        elemID =GetNextElement(elemID);
+    }
+
+
+    if(!Align(sourceID, lambdatest))
+    {
+       GetOptiXLastError(errBuf,256);
+       cout << "Alignment error : " << errBuf << endl;
+       return -1;
+    }
+    if(!Generate(sourceID, lambdatest))
+    {
+       GetOptiXLastError(errBuf,256);
+       cout << "Source generation error : " << errBuf << endl;
+       return -1;
+    }
+
+
+    cout << "getting mirror surface  \n";
+    Surface* mir=dynamic_cast<Surface*> ((ElementBase*)GetElementID(mirrorName.c_str())); //S_ONDUL1, pupille, Reseau_400H, Fente, planfocH
+    cout << mir << endl;
+    mir->setRecording(RecordOutput);
+    cout << "recording mode " << mir->getRecording() << endl <<endl;
+    mir->dumpData();
+    cout << endl ;
+
+    cout << "getting screen \n";
+    Surface* screen=dynamic_cast<Surface*> ((ElementBase*)GetElementID("screen")); //S_ONDUL1, pupille, Reseau_400H, Fente, planfocH
+    cout << screen << endl;
+    screen->setRecording(RecordOutput);
+    cout << "recording mode " << screen->getRecording() << endl <<endl;
+    screen->dumpData() ;
+    cout << endl;
+
+    high_resolution_clock clock;
+    high_resolution_clock::time_point start(clock.now());
+
+    if(!Radiate(sourceID))
+    {
+       GetOptiXLastError(errBuf,256);
+       cout << "Radiation error : " << errBuf << endl;
+       return -1;
+    }
+    cout << "propagation computation time :" << duration_cast<milliseconds>(clock.now()-start).count() << " msec\n" ;
+
+    cout << "\nIMPACTS\n";
+
+
+    SpotDiagramExt spotDg;
+
+    int ncounts=screen->getSpotDiagram(spotDg,0);
+    if(ncounts)
+    {
+        for(int i=0; i<5 ; ++i)
+           cout << spotDg.m_min[i] << " \t" << spotDg.m_max[i] << endl;
+
+        fstream spotfile("QTestScrSpotdiag.sdg", ios::out | ios::binary);
+        spotfile << spotDg;
+        spotfile.close();
+
+
+        cout << endl << endl;
+    }
+
+    if(1) return 0;
+
+    ImpactData impacts;
+
+    ncounts=screen->getImpactData(impacts);
+    if(ncounts)
+    {
+        for(int i=0; i<5 ; ++i)
+           cout << impacts.m_min[i] << " \t" << impacts.m_max[i] << endl;
+
+        fstream spotfile("QTestScrImpacts.imp", ios::out | ios::binary);
+        spotfile << impacts;
+        spotfile.close();
+
+
+        cout << endl << endl;
+    }
+
+
+  return 0;
+ }
