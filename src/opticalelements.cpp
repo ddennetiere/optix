@@ -8,6 +8,7 @@
 *      \date        2020-10-30  Creation
 *      \date        Last update
 *
+*
 */
 ///////////////////////////////////////////////////////////////////////////////////
 //
@@ -15,7 +16,7 @@
 //
 ////////////////////////////////////////////////////////////////////////////////////
 #include "opticalelements.h"
-#include "sources.h"   /**< \todo create a source.h file for including all sources at once */
+#include "sources.h"
 
 template class Mirror<Plane>;
 template class Mirror<Sphere>;
@@ -53,6 +54,7 @@ ChainCopy::~ChainCopy()
 ElementBase* CreateElementObject(string s_type, string name)
 {
     ElementBase*  elem=NULL;
+
 
     if (s_type=="Source<XYGrid>" || s_type=="XYGridSource")
         elem=new XYGridSource(name);

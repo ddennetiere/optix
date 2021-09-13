@@ -11,7 +11,11 @@
 *      \date        2020-10-30  Creation
 *      \date         Last update
 *
-
+*   \defgroup elemClasses Instanciable optical elements classes
+*      \brief  The limited list of class names which can be used to create optical elements in OptiX
+*
+*   The classes can be named by a template style name, Name<>,  which is returned by the getOptixClass() function or by a simple name.
+*   Equivalence between names is given by an alias or typedef depending on the actual class being or not templated.
 */
 ///////////////////////////////////////////////////////////////////////////////////
 //
@@ -81,13 +85,19 @@ public:
     }
 } ;
 
-typedef Mirror<Plane> PlaneMirror;          /**< \brief implements a reflective plane surface */
-typedef Mirror<Sphere> SphericalMirror ;    /**< \brief implements a reflective spherical surface */
-typedef Mirror<Cylinder> CylindricalMirror; /**< \brief implements a reflective cylindrical surface */
-typedef Mirror<Toroid> ToroidalMirror;      /**< \brief implements a reflective toroidal surface */
-typedef Mirror<ConicBaseCylinder> ConicBaseCylindricalMirror; /**< \brief implements a reflective cylindrical surface the directrix of which is an conic*/
-typedef Mirror<RevolutionQuadric> RevolutionQuadricMirror; /**< \brief implements a reflective cylindrical surface the directrix of which is an conic*/
+/** \ingroup elemClasses
+* \{
+*/
 
+typedef Mirror<Plane> PlaneMirror;          /**<  \brief Implements a Mirror the Surface of which has a Plane shape */
+typedef Mirror<Sphere> SphericalMirror ;    /**<  \brief Implements a Mirror the Surface of which has a Sphere shape */
+typedef Mirror<Cylinder> CylindricalMirror; /**<  \brief Implements a Mirror the Surface of which has a Cylinder shape \n The unrotated surface is curved in the tangential plane */
+typedef Mirror<Toroid> ToroidalMirror;      /**<  \brief Implements a Mirror the Surface of which has a Toroid shape \n The Major curvatur of the unrotated surface is in the tangential plane*/
+typedef Mirror<ConicBaseCylinder> ConicBaseCylindricalMirror; /**< \brief Implements a Mirror the Surface of which has a ConicBaseCylinder shape \n The directrix the unrotated surface is a conic in the tangential plane */
+typedef Mirror<RevolutionQuadric> RevolutionQuadricMirror; /**< \brief Implements a Mirror the Surface of which has a RevolutionQuadric shape \n The foci of the unrotated surface ly in the sagittal plane*/
+
+
+/** \} */  //end of ingroup bloc
 
 
 /** \class Film
@@ -125,11 +135,17 @@ public:
     }
 } ;
 
-typedef Film<Plane> PlaneFilm;           /**< \brief implements a plane film */
-typedef Film<Sphere> SphericalFilm ;     /**< \brief implements a spherical film*/
-typedef Film<Cylinder> CylindricalFilm;  /**< \brief implements a cylindrical film*/
-typedef Film<Toroid> ToroidalFilm;       /**< \brief implements a toroidal film */
 
+/** \ingroup elemClasses
+* \{
+*/
+
+typedef Film<Plane> PlaneFilm;           /**<  \brief Implements a Film the Surface of which has a Plane shape */
+typedef Film<Sphere> SphericalFilm ;     /**<  \brief Implements a Film the Surface of which has a Sphere shape */
+typedef Film<Cylinder> CylindricalFilm;  /**<  \brief Implements a Film the Surface of which has a Cylinder shape with generatrix in the Y direction*/
+typedef Film<Toroid> ToroidalFilm;       /**<  \brief Implements a Film the Surface of which has a Toroid shape and main curvature in X plane*/
+
+/** \} */  //end of group
 
 /** \class Grating
  *  \brief  Grating template class
@@ -179,14 +195,21 @@ public:
 
 } ;
 
-typedef Grating<Holo,Plane> PlaneHoloGrating;           /**< \brief implements a plane holographic grating */
-typedef Grating<Holo,Sphere> SphericalHoloGrating;      /**< \brief implements a spherical holographic grating */
-typedef Grating<Holo,Cylinder> CylindricalHoloGrating;  /**< \brief implements a cylindrical holographic grating */
-typedef Grating<Holo,Toroid> ToroidalHoloGrating;       /**< \brief implements a toroidal holographic grating */
-typedef Grating<Poly1D,Plane> PlanePoly1DGrating;       /**< \brief implements a plane polynomial grating */
-typedef Grating<Poly1D,Sphere> SphericalPoly1DGrating;  /**< \brief implements a spherical polynomial grating */
-typedef Grating<Poly1D,Cylinder> CylindricalPoly1DGrating; /**< \brief implements a cylindrical polynomial grating */
-typedef Grating<Poly1D,Toroid> ToroidalPoly1DGrating;      /**< \brief implements a toroidal polynomial grating */
+
+/** \ingroup elemClasses
+* \{
+*/
+
+typedef Grating<Holo,Plane> PlaneHoloGrating;           /**< \brief Implements a \ref Holo "holographic"  Grating drawn on a Plane surface*/
+typedef Grating<Holo,Sphere> SphericalHoloGrating;      /**< \brief implements a \ref Holo "holographic"  Grating drawn on a \ref Sphere "spherical" surface */
+typedef Grating<Holo,Cylinder> CylindricalHoloGrating;  /**< \brief implements a \ref Holo "holographic"  Grating drawn on a \ref  Cylinder "cylindrical" surface */
+typedef Grating<Holo,Toroid> ToroidalHoloGrating;       /**< \brief implements a \ref Holo "holographic"  Grating drawn on a \ref Toroid "toroidal" surface */
+typedef Grating<Poly1D,Plane> PlanePoly1DGrating;       /**< \brief implements a \ref Poly1D "1D polynomial"  Grating drawn on a Plane surface */
+typedef Grating<Poly1D,Sphere> SphericalPoly1DGrating;  /**< \brief implements a \ref Poly1D "1D polynomial"  Grating drawn on a \ref Sphere "spherical" surface */
+typedef Grating<Poly1D,Cylinder> CylindricalPoly1DGrating; /**< \brief implements a \ref Poly1D "1D polynomial"  Grating drawn on a \ref  Cylinder "cylindrical" surface */
+typedef Grating<Poly1D,Toroid> ToroidalPoly1DGrating;      /**< \brief implements a \ref Poly1D "1D polynomial"  Grating drawn on a \ref Toroid "toroidal" surface */
+
+/** \} */
 
 /** \brief  Creates a new element of the given type and returns it as a pointer to the base class  ElementBase
  *  \ingroup GlobalCpp

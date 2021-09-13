@@ -88,8 +88,8 @@ class Toroid : virtual public Surface
         */
         EIGEN_DEVICE_FUNC virtual VectorType intercept(RayType& ray, VectorType * normal=NULL);
 
-
-        virtual void dumpData()/**< \brief dump internal data to standard output */
+        /**< \brief dump internal data to standard output */
+        virtual void dumpData()
         {
             cout  <<  "m_alignedMat1" << endl << m_alignedMat1 << endl;
             cout  <<  "m_alignedMat2" << endl << m_alignedMat2 << endl;

@@ -22,7 +22,7 @@
 *   \defgroup enums  Enumeration list
 *      \brief  enumerated values used in the library
 *
-*   \defgroup GlobalCpp  Global internal C++ functons
+*   \defgroup GlobalCpp  Global internal C++ functions
 *      \brief  C++ functions defined at the OptiX library internal level
 *
  ***************************************************************************/
@@ -161,7 +161,7 @@ public:
 
     /** \brief get the 3D impacts as internally stored in a convenient shape for file output
      *
-     * \param ImpactData a DiagramType object to fill with the internally stored data
+     * \param impactData a DiagramType object to fill with the internally stored data
      * \return the number of stored impacts     */
     int getImpactData(ImpactData &impactData);
 

@@ -69,7 +69,8 @@ class Plane : virtual public Surface
             return ray.position();  // == origin() puisque rebase
         }
 
-        virtual void dumpData()/**< \brief dump internal data to standard output */
+        /** \brief Dumps internal data to standard output */
+        virtual void dumpData()
         {
             cout  <<  "m_hyperplane" << endl << m_hyperplane.coeffs().transpose() << endl;
             cout  <<  "normal" << endl << m_hyperplane.normal().transpose() << endl<<endl;

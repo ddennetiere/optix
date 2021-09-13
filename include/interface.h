@@ -52,7 +52,8 @@ extern "C"
 
     /** \brief Create an optical element (or group)
      *
-     * \param type  runtime class of the new element
+     * Th function calls the internal function CreateElementObject(type, name)
+     * \param type  runtime class of the new element must be one of the types accepted by the CreateElementObject function
      * \param name name of the new element
      * \return if success  a unique ID identifying the newly created element. Otherwise returns 0 and the OptiXError is set
      */

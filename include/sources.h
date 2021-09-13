@@ -23,7 +23,8 @@
 #include "sourcebase.h"
 
 
-/** \brief a source composed of points distributed on a regular Cartesian grid, radiating regularly spaced rays on a Cartesian angular grids
+/** \ingroup elemClasses
+ *  \brief alias Source<XYGrid> \n Implements a source composed of points distributed on a regular Cartesian grid, radiating regularly spaced rays on a Cartesian angular grids
  *
  *    The class has eight specific parameters belonging to the SourceGroup
  *     -----------------------------------------
@@ -53,7 +54,8 @@ public:
     int nXprim, nYprim,nX,nY;
 };
 
-/** \brief a source composed of points distributed on a regular polar grid, radiating regularly spaced rays on a polar angular grids
+/** \ingroup elemClasses
+ *  \brief alias Source<XYGrid> \n Implements a source composed of points distributed on a regular polar grid, radiating regularly spaced rays on a polar angular grids
  *
  *    The class has six specific parameters belonging to the SourceGroup
  *     -----------------------------------------
@@ -85,7 +87,8 @@ public:
 
 
 
-/** \brief an extended source radiating gaussian distributed ray in source size and aperture
+/** \ingroup elemClasses
+ *  \brief alias Source<XYGrid> \n Implements an extended source radiating gaussian distributed ray in source size and aperture
  *
  *    The class has five specific parameters belonging to the SourceGroup
  *     -----------------------------------------
