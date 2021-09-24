@@ -37,14 +37,14 @@
  *   ----------------- | -------- | --------------
  *   \b invp  | InverseDistance | reciprocal distance \f$ p^{-1} \f$ of "source" focus (P) from origin
  *   \b invq  | InverseDistance | reciprocal distance \f$ q^{-1} \f$ of "image" focus (Q) from origin*
- *   \b theta0 |     Angle      | angle \f$ \theta_0 \f$ between focal rays and X axis
+ *   \b theta0 |     Angle      | angle \f$ \theta_0 \f$ from surface center between focal rays and tangent plane
  *
  *  "source" focus \f$ P= ( \frac { cos \theta_0}{p^{-1}}, -\frac { sin \theta_0}{p^{-1}} )\f$ ;
  *  "image"  focus  \f$ Q= ( \frac { cos \theta_0}{q^{-1}},  \frac { sin \theta_0}{q^{-1}} )\f$
  *
  *  Due to this convention, the cylinder base (directrix) is
- *  -   an ellipse if \f$ p^{-1}   q^{-1} < 0\f$
- *  -   an hyperbola if \f$ p^{-1}   q^{-1} < 0\f$
+ *  -   an ellipse if the product \f$ p^{-1}   q^{-1} \f$ is negative
+ *  -   an hyperbola if the product \f$ p^{-1}   q^{-1} \f$ is positive
  *  -   a parabola if either \f$ p^{-1} =0 \f$ , either \f$ q^{-1} =0 \f$
  *  * Warning : \f$ p^{-1} =  q^{-1} \f$ is forbidden and will result as an error at any time.
  *
