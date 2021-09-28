@@ -331,10 +331,11 @@ using namespace std::chrono;
  int QuickTest()
  {
 
-    double lambdatest=6.e-9;
-    string mirrorName="M1B";
+    double lambdatest=6.e-9,  defoc=0;
+    string mirrorName="miroir", screenName="screen";
 
-    if(!SolemioImport("D:\\projets\\projetsCB\\OptiX\\solemio\\Hermes-HeadV"))
+
+    if(!SolemioImport("D:\\projets\\projetsCB\\OptiX\\solemio\\ellipse1"))
     {
         cout << "An error occurred while loading Solemio file\n";
         return -1;
@@ -396,7 +397,7 @@ using namespace std::chrono;
     cout << endl ;
 
     cout << "getting screen \n";
-    Surface* screen=dynamic_cast<Surface*> ((ElementBase*)GetElementID("screen")); //S_ONDUL1, pupille, Reseau_400H, Fente, planfocH
+    Surface* screen=dynamic_cast<Surface*> ((ElementBase*)GetElementID(screenName.c_str())); //S_ONDUL1, pupille, Reseau_400H, Fente, planfocH
     cout << screen << endl;
     screen->setRecording(RecordOutput);
     cout << "recording mode " << screen->getRecording() << endl <<endl;
@@ -419,7 +420,7 @@ using namespace std::chrono;
 
     SpotDiagramExt spotDg;
 
-    int ncounts=screen->getSpotDiagram(spotDg,0);
+    int ncounts=screen->getSpotDiagram(spotDg,defoc);
     if(ncounts)
     {
         for(int i=0; i<5 ; ++i)
