@@ -335,7 +335,7 @@ using namespace std::chrono;
     string mirrorName="miroir", screenName="screen";
 
 
-    if(!SolemioImport("D:\\projets\\projetsCB\\OptiX\\solemio\\ellipse1"))
+    if(!SolemioImport("D:\\projets\\projetsCB\\OptiX\\solemio\\ellipse30"))
     {
         cout << "An error occurred while loading Solemio file\n";
         return -1;
