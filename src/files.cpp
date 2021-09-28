@@ -498,8 +498,8 @@ struct SolemioSurface
             cout << "IMPLEMENTATION UNDER TEST\n";
             if(pelemID)
             {
-//                *pelemID=CreateElement("Mirror<RevolutionQuadric>",name.c_str());
-                *pelemID=CreateElement("Mirror<ConicBaseCylinder>",name.c_str());
+                *pelemID=CreateElement("Mirror<RevolutionQuadric>",name.c_str());
+//                *pelemID=CreateElement("Mirror<ConicBaseCylinder>",name.c_str());
                 elem=(ElementBase*)*pelemID;
                 Parameter param;
                 elem->getParameter("invp", param);
