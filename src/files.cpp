@@ -74,7 +74,7 @@ vector<int> numParameters={
 3, // 3 cilyndre.cpp
 4, // 4 torus.cpp
 3, // 5 sphere.cpp
-5, // 6 ellipse.cpp
+5, // 6 ellipse.cpp // le stockage des tagged parameters n'a pas l'air utilise donc 2 au lieu de 5
 14, // 7 reseauxolplandevconst.cpp
 9, // 8 reseauxVLSplandevconst.cpp
 12, // 9 sorgentesimp.cpp
@@ -478,7 +478,47 @@ struct SolemioSurface
         break;
      case   ELLIPSE:    //  6
         {
-            cout << "NOT IMPLEMENTED\n";
+            double theta0, sommeDist, dist[2];   // dist[0]= Distance au foyer forward et dist[1]= Distance au foyer backward
+            ArrayXd foyer0(7),foyer1(7);
+            *this >> aux >> poleNormal >>theta0 >>sommeDist >> foyer0 >>dist[0]>> foyer1 >>dist[1];
+            for(int j=3; j < numParameters[type]; ++j )    // seuls les parms de pente sont tockés en séquence
+                *this >> SSurf.param[j];
+            if( !SSurf.ReadFromFile(*this))
+                return false;
+            cout << "\nPole Normal\n" << poleNormal.transpose() <<endl;
+            cout << "Auxiliary axis \n" << aux.transpose() <<endl;
+            cout << "Theta0 "  << theta0 << " [" <<SSurf.varparamin[2] << ", " << SSurf.varparamax[2] << "]\n";
+            cout << "Object focus  " << foyer1.transpose() << endl;
+            cout << "Object focal distance " << dist[1] << " [" <<SSurf.varparamin[0] << ", " << SSurf.varparamax[0] << "]\n";  // les définition d'Alex sont toujours aussi cohérentes !!!
+            cout << "Image focus  " << foyer0.transpose() << endl;
+            cout << "Image focal distance "  << dist[0] << " [" <<SSurf.varparamin[1] << ", " << SSurf.varparamax[1] << "]\n";
+            cout << "Image focus  " << foyer0.transpose() << endl;
+
+            cout << "Slope  sigmas    tang. " << SSurf.param[3] << " sag. " << SSurf.param[4] << endl;
+            cout << "IMPLEMENTATION UNDER TEST\n";
+            if(pelemID)
+            {
+//                *pelemID=CreateElement("Mirror<RevolutionQuadric>",name.c_str());
+                *pelemID=CreateElement("Mirror<ConicBaseCylinder>",name.c_str());
+                elem=(ElementBase*)*pelemID;
+                Parameter param;
+                elem->getParameter("invp", param);
+                param.value=-1./dist[1];
+                param.bounds[0]=-1./SSurf.varparamin[0];
+                param.bounds[1]=-1./SSurf.varparamax[0];
+                elem->setParameter("invp", param);
+                elem->getParameter("invq", param);
+                param.value=1./dist[0];
+                param.bounds[1]=1./SSurf.varparamin[1];
+                param.bounds[0]=1./SSurf.varparamax[1];
+                elem->setParameter("invq", param);
+                elem->getParameter("theta0", param);
+                param.value=M_PI_2-theta0;
+                param.bounds[1]=M_PI_2-SSurf.varparamin[2];
+                param.bounds[0]=M_PI_2-SSurf.varparamax[2];
+                elem->setParameter("theta0", param);
+
+            }
         }
         break;
      case   RESEAUXOLPLANDEVCONST:    // 7

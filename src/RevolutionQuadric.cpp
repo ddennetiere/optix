@@ -41,17 +41,21 @@ void RevolutionQuadric::createSurface()
        throw ParameterException("theta0 parameter not found", __FILE__, __func__, __LINE__);
     if(abs(invp.value -invq.value) < numeric_limits<double>::epsilon())
        throw ParameterException("invp must not be equal to invq", __FILE__, __func__, __LINE__);
-    double phi, sintheta, dpq1;
+    double phi, sintheta, dpq1, sgnpq;
+    sgnpq=copysign(1., invp.value*invq.value);
     dpq1=invp.value - invq.value;
     sintheta=sin(theta0.value);
-    phi=atan2((invp.value + invq.value)*sintheta,dpq1*cos(theta0.value));
+    phi=atan2((invp.value + invq.value)*sgnpq*sintheta,dpq1*sgnpq*cos(theta0.value));
 
     IsometryType Rphi(AngleAxis<FloatType>(phi,VectorType::UnitY()));
     RayType::QuadricType tempQ;
     tempQ.setZero();
     tempQ(0,0)=4*invp.value*invq.value*sintheta*sintheta/dpq1;
-    tempQ(1,1)=tempQ(2,2)=dpq1;
-    tempQ(0,3)=tempQ(3,0)=-2.*sintheta*sin(phi);
-    tempQ(2,3)=tempQ(3,2)=-2.*sintheta*cos(phi);
-    m_localQuadric=Rphi.matrix()*tempQ*Rphi.matrix().transpose();
+    tempQ(2,2)=tempQ(1,1)=-dpq1;
+    tempQ(0,3)=tempQ(3,0)= -2.*sintheta*sin(phi);
+    tempQ(2,3)=tempQ(3,2)= -2.*sintheta*cos(phi);
+//    cout<< " invp " << invp.value << " invq " << invq.value << " tan theta0 " << tan(theta0.value)<< endl << "angle Phi " << phi << endl;
+//    cout << " Matrice Q sur axes " << endl << tempQ << endl;
+//    cout << " Matrice rotation " << endl << Rphi.matrix() << endl;
+    m_localQuadric=Rphi.matrix().transpose()*tempQ*Rphi.matrix();
 }
