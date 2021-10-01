@@ -24,7 +24,7 @@
 
 
 /** \ingroup elemClasses
- *  \brief alias Source<XYGrid> \n Implements a source composed of points distributed on a regular Cartesian grid, radiating regularly spaced rays on a Cartesian angular grids
+ *  \brief alias Source<XY,Grid> \n Implements a source composed of points distributed on a regular Cartesian grid, radiating regularly spaced rays on a Cartesian angular grids
  *
  *    The class has eight specific parameters belonging to the SourceGroup
  *     -----------------------------------------
@@ -48,14 +48,14 @@ public:
     XYGridSource(string name="" ,Surface * previous=NULL);
     /** Default destructor */
     virtual ~XYGridSource(){}
-    virtual inline string getOptixClass(){return "Source<XYGrid>";}/**< return the derived class name ie. Source<XYGrid> */
+    virtual inline string getOptixClass(){return "Source<XY,Grid>";}/**< return the derived class name ie. Source<XY,Grid> */
     virtual int generate(double wavelength);    /**< implementation of SourceBase::generate for XYGridSource() */
     //public members
     int nXprim, nYprim,nX,nY;
 };
 
 /** \ingroup elemClasses
- *  \brief alias Source<XYGrid> \n Implements a source composed of points distributed on a regular polar grid, radiating regularly spaced rays on a polar angular grids
+ *  \brief alias Source<Radial,Grid> \n Implements a source composed of points distributed on a regular polar grid, radiating regularly spaced rays on a polar angular grids
  *
  *    The class has six specific parameters belonging to the SourceGroup
  *     -----------------------------------------
@@ -77,7 +77,7 @@ public:
     RadialGridSource(string name="" ,Surface * previous=NULL);
     /** Default destructor */
     virtual ~RadialGridSource(){}
-    virtual inline string getOptixClass(){return "Source<RadialGrid>";}/**< return the derived class name ie. Source<RadialGrid> */
+    virtual inline string getOptixClass(){return "Source<Radial,Grid>";}/**< return the derived class name ie. Source<Radial,Grid> */
     virtual int generate(double wavelength);    /**< implementation of SourceBase::generate for RadialGridSource() */
     // public members
     int nRprim, nTprim,nR,nT;
@@ -88,7 +88,7 @@ public:
 
 
 /** \ingroup elemClasses
- *  \brief alias Source<XYGrid> \n Implements an extended source radiating gaussian distributed ray in source size and aperture
+ *  \brief alias Source<Gaussian> \n Implements an extended source radiating gaussian distributed rays in source size and aperture
  *
  *    The class has five specific parameters belonging to the SourceGroup
  *     -----------------------------------------
@@ -115,6 +115,43 @@ public:
     //public members
 
 };
+
+
+
+
+/** \ingroup elemClasses
+ *  \brief alias Source<Astigmatic,Gaussian> \n Implements an extended astigmatic source radiating gaussian distributed rays in source size and aperture
+ *
+ *  The gaussian source has  different positions along the radiation axis according to X and Y directions
+ *
+ *    The class has five specific parameters belonging to the SourceGroup
+ *     -----------------------------------------
+ *
+ *   Name of parameter | UnitType | Description
+ *   ----------------- | -------- | --------------
+ *   \b nRays | Dimensionless | number of rays to be generated
+ *   \b sigmaX | Distance | RMS source size in X direction
+ *   \b sigmaY | Distance | RMS source size in Y direction
+ *   \b sigmaXdiv | Angle | RMS source divergence in X direction
+ *   \b sigmaYdiv | Angle | RMS source divergence in Y direction
+ *   \b waistX | Distance | distance of X waist to the "source plane"
+ *   \b waistY | Distance | distance of Y waist to the "source plane"
+ *  \note
+ *  All parameters are defined and store as double. nRays will be rounded to the nearest integer
+ */
+class AstigmaticGaussianSource: public virtual SourceBase
+{
+public:
+    /** Default constructor */
+    AstigmaticGaussianSource(string name="" ,Surface * previous=NULL);
+    /** Default destructor */
+    virtual ~AstigmaticGaussianSource(){}
+    virtual inline string getOptixClass(){return "Source<Astigmatic,Gaussian>";}   /**< return the derived class name ie. Source<Astigmatic,Gaussian> */
+    virtual int generate(double wavelength);    /**< implementation of SourceBase::generate for an AstigmaticGaussianSource() */
+    //public members
+
+};
+
 
 
 

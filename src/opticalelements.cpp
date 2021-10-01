@@ -56,14 +56,17 @@ ElementBase* CreateElementObject(string s_type, string name)
     ElementBase*  elem=NULL;
 
 
-    if (s_type=="Source<XYGrid>" || s_type=="XYGridSource")
+    if (s_type=="Source<XY,Grid>" || s_type=="XYGridSource")
         elem=new XYGridSource(name);
 
-    else if (s_type=="Source<RadialGrid>" || s_type=="RadialGridSource")
+    else if (s_type=="Source<Radial,Grid>" || s_type=="RadialGridSource")
         elem= new RadialGridSource(name);
 
     else if (s_type=="Source<Gaussian>" || s_type=="GaussianSource")
         elem= new GaussianSource(name);
+
+    else if (s_type=="Source<Astigmatic,Gaussian>" || s_type=="AstigmaticGaussianSource")
+        elem= new AstigmaticGaussianSource(name);
 
     else if (s_type=="Mirror<Plane>" || s_type=="PlaneMirror")
         elem= new Mirror<Plane>(name);

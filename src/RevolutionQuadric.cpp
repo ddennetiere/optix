@@ -47,7 +47,7 @@ void RevolutionQuadric::createSurface()
     sintheta=sin(theta0.value);
     phi=atan2((invp.value + invq.value)*sgnpq*sintheta,dpq1*sgnpq*cos(theta0.value));
 
-    IsometryType Rphi(AngleAxis<FloatType>(phi,VectorType::UnitY()));
+    IsometryType Rphi(AngleAxis<FloatType>(phi,VectorType::UnitY()));  // c'est bien une rotation de -phi dans le plan XZ
     RayType::QuadricType tempQ;
     tempQ.setZero();
     tempQ(0,0)=4*invp.value*invq.value*sintheta*sintheta/dpq1;
@@ -57,5 +57,6 @@ void RevolutionQuadric::createSurface()
 //    cout<< " invp " << invp.value << " invq " << invq.value << " tan theta0 " << tan(theta0.value)<< endl << "angle Phi " << phi << endl;
 //    cout << " Matrice Q sur axes " << endl << tempQ << endl;
 //    cout << " Matrice rotation " << endl << Rphi.matrix() << endl;
+//    cout << "angle axis phi" <<endl << AngleAxis<FloatType>(phi,VectorType::UnitY()).matrix() << endl;
     m_localQuadric=Rphi.matrix().transpose()*tempQ*Rphi.matrix();
 }

@@ -282,15 +282,112 @@ int GaussianSource::generate(double wavelength)
             dir(1)=gaussYprim(rd);
         dir.normalize();
         m_impacts.push_back(RayType(RayBaseType(org,dir),wavelength)); // amplitude set to 1 and S polar
-//        if(i==0)
-//        {
-//            cout << "source generation \n";
-//            cout << org.transpose() << "         " << dir .transpose() << endl;
-//        }
-
     }
-
-   // cout << m_impacts[0].position().transpose() << "          " << m_impacts[0].direction().transpose() << endl;
-
     return nRays;
 }
+
+
+
+
+
+//   ----------------   AstigmaticGaussianSource implementation   --------------------------
+
+
+AstigmaticGaussianSource::AstigmaticGaussianSource(string name ,Surface * previous):Surface(true,name, previous)
+{
+    cout << "creating Astigmatic gaussian source " << name << endl;
+    Parameter param;
+    param.type=Dimensionless;
+    param.group=SourceGroup;
+    param.value=1000.;
+    param.flags=NotOptimizable;
+    defineParameter("nRays", param);  // 1000 points par défaut
+
+    param.type=Distance;
+    param.value=0;
+    param.flags=0;
+    defineParameter("sigmaX", param);  //
+    defineParameter("sigmaY", param);  // default sigma source = 0 (source ponctuelle)
+    defineParameter("waistX", param);  //
+    defineParameter("waistY", param);  // default sigma source = 0 (source ponctuelle)
+
+
+    param.type=Angle ;
+    param.value=0.35e-3;
+    defineParameter("sigmaXdiv", param); //
+    defineParameter("sigmaYdiv", param); // default round source dsigma div = 500 µrad
+
+
+    setHelpstring("nRays", " number of rays to be generated");  // complete la liste de infobulles de la classe Surface
+    setHelpstring("sigmaX", "RMS source size in X direction");
+    setHelpstring("sigmaY", "RMS source size in Y direction");
+    setHelpstring("waistX", "distance of X waist to the source plane");
+    setHelpstring("waistY", "distance of Y waist to the source plane");
+    setHelpstring("sigmaXdiv", "RMS source divergence in X direction");
+    setHelpstring("sigmaYdiv", "RMS source divergence in y direction");
+
+}
+
+int AstigmaticGaussianSource::generate(double wavelength)
+{
+    int nRays;
+    FloatType sigmaX, sigmaY, sigmaXprim, sigmaYprim, waistX, waistY;
+
+    Parameter param;
+    getParameter("nRays",param);
+    nRays=lround(param.value);
+    if(nRays<1)
+        nRays=1;
+    getParameter("sigmaX", param);
+    sigmaX=param.value;
+    getParameter("sigmaY", param);
+    sigmaY=param.value;
+    getParameter("sigmaXdiv", param);
+    sigmaXprim=param.value;
+    getParameter("sigmaYdiv", param);
+    sigmaYprim=param.value;
+    getParameter("waistX", param);
+    waistX=param.value;
+    getParameter("waistY", param);
+    waistY=param.value;
+
+        normal_distribution<FloatType> gaussX(0.,sigmaX);
+
+        normal_distribution<FloatType> gaussY(0., sigmaY);
+
+        normal_distribution<FloatType> gaussXprim(0., sigmaXprim);
+
+        normal_distribution<FloatType> gaussYprim(0., sigmaYprim);
+
+    reserveImpacts(m_impacts.size() + nRays);
+    VectorType org=VectorType::Zero(),dir=VectorType::Zero();
+
+    if(nRays==1) // retourne le rayon axial
+    {
+        org <<0, 0, 0;
+        dir << 0, 0, 1.L;
+        m_impacts.push_back(RayType(RayBaseType(org,dir),wavelength)); // amplitude set to 1 and S polar
+        return nRays;
+    }
+    random_device rd;
+    // if not clean enough use a Mersenne twister as mt19937 gen{rd()};
+    for(int i=0; i<nRays; ++ i)
+    {
+        dir << 0, 0, 1.L;
+        if(sigmaXprim > 0)
+            dir(0)=gaussXprim(rd);
+        if(sigmaYprim > 0)
+            dir(1)=gaussYprim(rd);
+        dir.normalize();
+
+        org <<0, 0, 0;
+        if(sigmaX > 0)
+            org(0)=gaussX(rd)-waistX*dir(0);
+        if(sigmaY >0)
+            org(1)=gaussY(rd)-waistY*dir(1);
+
+        m_impacts.push_back(RayType(RayBaseType(org,dir),wavelength)); // amplitude set to 1 and S polar
+    }
+    return nRays;
+}
+

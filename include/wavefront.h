@@ -50,7 +50,7 @@ using namespace Eigen;
  *      X component of transverse aberration, Y component of transverse aberration, X aperture angle, Y aperture angle,
  * \param Xaperture Bounds (Min, Max) of X aperture angle for Legendre definition along X
  * \param Yaperture Bounds of Y aperture angle for Legendre definition along Y
- * \return The Nx x Ny array of coefficients of Legendre polynomials describing the wavefront error to the given degrees and best fitting  the transverse aberration data
+ * \return The Nx x Ny (row,col) array of coefficients of Legendre polynomials describing the wavefront error to the given degrees and best fitting  the transverse aberration data
  */
 EIGEN_DEVICE_FUNC ArrayXXd LegendreIntegrateSlopes(int Nx, int Ny, const Ref<ArrayX4d>& WFdata,
                                                    const Ref<Array2d>& Xaperture, const Ref<Array2d>& Yaperture);
