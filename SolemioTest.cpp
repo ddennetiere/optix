@@ -332,10 +332,10 @@ using namespace std::chrono;
  {
 
     double lambdatest=6.e-9,  defoc=0;
-    string mirrorName="miroir", screenName="screen";
+    string sourceName="S_ONDUL_BE", mirrorName="M3tor", screenName="Fente";
 
 
-    if(!SolemioImport("D:\\projets\\projetsCB\\OptiX\\solemio\\ellipse30"))
+    if(!SolemioImport("D:\\projets\\projetsCB\\OptiX\\solemio\\Hermes-BEmono"))
     {
         cout << "An error occurred while loading Solemio file\n";
         return -1;
@@ -364,7 +364,7 @@ using namespace std::chrono;
 
     }while(hSys);
 
-    size_t sourceID=elemID=GetElementID("source");
+    size_t sourceID=elemID=GetElementID(sourceName.c_str());
 
     while(elemID)
     {

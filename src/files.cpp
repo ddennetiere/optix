@@ -194,28 +194,94 @@ struct SolemioSurface
         str=buf;
     }
  }
+int  getNextToken(const string &line, int pos, string &token)
+{
+    size_t index0, index1;
+    index0=line.find_first_not_of(" \t",pos);
+  //  cout << "GetToken:" <<line.substr(pos) << "  " << index0 <<endl;
+    if(index0==string::npos)
+        return index0;
+    index1=line.find_first_of(" \t",index0);
+    if(index1==string::npos)
+        token=line.substr(index0, line.size()-index0);
+    else
+        token=line.substr(index0, index1-index0);
+    return index1;
+}
 
-// void SolemioFile::getScript(string& str)
-// {
-//    int n;
-//    *this >> n;
-//    if((++n) >0)
-//    {
-//        char s,buf[n];
-//        *this >> s;
-//        if(s!='s')
-//        {
-//            cout << "invalid script prefix\n";
-//            return;
-//        }
-//        read(buf, n);
-//        buf[n]=0;
-//        str=buf;
-//    }
-//
-//    else
-//        str="";
-// }
+bool getTrimmedEnding(const string &line, size_t pos, string &token)
+{    size_t  index;
+     pos=line.find_first_not_of(" \t",pos);
+     index=line.find_last_not_of(" \t");
+     if(pos == string::npos || index == string::npos)
+        return false;
+     token=line.substr(pos,index-pos+1);
+     return true;
+}
+
+ void parseScriptVariables(const string &script, map<string,string> &dict)
+ {
+     size_t start=0, pos=0;
+     string line, verb, variable, value;
+     cout << "\nparsing TCL script  size=" << script.size() << endl;
+     while(start < script.size() )
+     {
+         pos=script.find('\n',start);
+         if(pos==string::npos)
+         {
+             line=script.substr(start);
+             start=script.size();
+         }
+         else
+         {
+             line=script.substr(start,pos-start);
+             start=pos+1;
+         }
+
+         while(line[line.size()-1]=='\\')
+         {
+             pos=script.find('\n',start);
+             if(pos==string::npos)
+             {
+                 line+=script.substr(start);
+                 start=script.size();
+             }
+             else
+             {
+                 line+=script.substr(start,pos-start);
+                 start=pos+1;
+             }
+
+         }
+
+//         cout << line.size() << " >>" << line << endl;
+//         continue;
+         //line.remove_prefix(std::min(line.find_first_not_of(" "), line.size()));
+         if(line.empty() || line[0]=='#')
+            continue;
+         pos=getNextToken(line,0, verb);
+         if(pos==string::npos)
+            continue;
+         if(verb=="set")
+         {
+             pos=getNextToken(line,pos,variable );
+             if(pos==string::npos)
+             {
+                cout << "no variable found after set\n";
+                continue;
+             }
+             if(! getTrimmedEnding(line, pos, value))
+             {
+                 cout << "no value found for variable\n";
+                 continue;
+             }
+             dict.insert(pair<string,string>(variable,value));
+             cout << variable <<" = "<< value << endl;
+         }
+
+     }
+     cout <<"END of TCL script\n\n";
+ }
 
  SolemioFile& SolemioFile::operator>>(ArrayXd&  darray)
  {
@@ -235,6 +301,8 @@ struct SolemioSurface
      return assert;
  }
 
+
+
  bool  SolemioFile::get_element(size_t * pelemID)
  {
      int i, type, inpruntPol, imprunt, auxset, XYZalign=0, clipping=0, activeFilm=0,
@@ -252,7 +320,7 @@ struct SolemioSurface
      ArrayXd axein(7), axeout(7),planelem(7), rotaxe(7), aux(7), poleNormal(7), yaxe(7);
 
      string name, tclScript;
-
+     map<string,string> tclDict;
      ElementBase* elem=NULL; // no object created
 
      skipline(3); // saute le positionnement sur le plan de travail
@@ -846,8 +914,8 @@ struct SolemioSurface
 
             if(pelemID)
             {
-                cout << "Waist Z shifts are not implemented under OptiX\n";
-                *pelemID=CreateElement("Source<Gaussian>",name.c_str());
+              //  cout << "Waist Z shifts are not implemented under OptiX\n";
+                *pelemID=CreateElement("Source<Astigmatic,Gaussian>",name.c_str());
                 elem=(ElementBase*)*pelemID;
                 Parameter param;
                 elem->getParameter("nRays", param);
@@ -896,7 +964,7 @@ struct SolemioSurface
             {
                 *pelemID=CreateElement("Film<Plane>",name.c_str());
                 elem=(ElementBase*)*pelemID;
-                cout << "Parameter list " <<  name <<  " remplaced by a film\n";
+                cout << "Parameter list " <<  name <<  " replaced by a film\n";
             }
 
         }
@@ -1002,6 +1070,62 @@ struct SolemioSurface
      getScript(tclScript);
    //  cout << " Script Tcl "  << endl << tclScript <<endl;
      cout << "TCL script " << tclScript.length() << "bytes\n";
+     if(tclScript.size() !=0)
+     {
+        parseScriptVariables(tclScript, tclDict );
+        if(type==SORGENTEONDULEURGAUSSIANA)
+        {
+            cout <<"add waist position from script variables\n";
+            double lambda= SSurf.param[1] ;
+            double centerOnd=stod(tclDict["Cond"]);
+            double longOnd=stod(tclDict["Lond"]);
+            double detuningFactor=stod(tclDict["Ka"]);
+            double sigmaH=stod(tclDict["Sh"]);
+            double sigmaV=stod(tclDict["Sv"]);
+            double sigmaPrimH=stod(tclDict["Sph"]);
+            double sigmaPrimV=stod(tclDict["Spv"]);
+            cout << "dist SD to ond= " << centerOnd << "  Long ond= " << longOnd <<endl;
+            cout << "sigmas H,V " << sigmaH << " " << sigmaV <<endl;
+            cout << "sigmaPrims H,V " << sigmaPrimH << " " << sigmaPrimV <<endl;
+            double diffSizeSquare=lambda*longOnd/(detuningFactor*8* M_PI*M_PI);
+            double diffDivSquare=lambda*detuningFactor/(longOnd*2);
+            double temp=sigmaPrimH*sigmaPrimH+diffDivSquare;
+            double waistH=centerOnd*diffDivSquare/ temp ;
+            double sigmaPrimTotH=  sqrt(temp)  ;
+            temp=sigmaPrimV*sigmaPrimV+diffDivSquare;
+            double waistV=centerOnd*diffDivSquare/temp ;
+            double sigmaPrimTotV=sqrt(temp);
+            temp=centerOnd*centerOnd;
+            double sigmaWidenH2=temp/(1./(sigmaPrimH*sigmaPrimH)+1./diffDivSquare);
+            double sigmaWidenV2=temp/(1./(sigmaPrimV*sigmaPrimV)+1./diffDivSquare);
+            double sigmaTotH=sqrt(sigmaH*sigmaH+diffSizeSquare+sigmaWidenH2);
+            double sigmaTotV=sqrt(sigmaV*sigmaV+diffSizeSquare+sigmaWidenV2);
+
+            cout << "waists H & V  " <<waistH << "  " << waistV <<endl;
+            cout << "Sigmas H & V  " <<sigmaTotH << "  " << sigmaTotV <<endl;
+            cout << "SigmaPrims  H & V  " <<sigmaPrimTotH << "  " << sigmaPrimTotV <<endl;
+
+                elem->getParameter("waistX", param);
+                param.value=waistH;
+                elem->setParameter("waistX", param);
+                elem->getParameter("waistY", param);
+                param.value=waistV;
+                elem->setParameter("waistY", param);
+                elem->getParameter("sigmaX", param);
+                param.value=sigmaTotH;
+                elem->setParameter("sigmaX", param);
+                elem->getParameter("sigmaY", param);
+                param.value=sigmaTotV;
+                elem->setParameter("sigmaY", param);
+                elem->getParameter("sigmaXdiv", param);
+                param.value=sigmaPrimTotH;
+                elem->setParameter("sigmaXdiv", param);
+                elem->getParameter("sigmaYdiv", param);
+                param.value=sigmaPrimTotV;
+                elem->setParameter("sigmaYdiv", param);
+
+        }
+     }
      if(version > 14)
         *this >>XYZalign;
 
