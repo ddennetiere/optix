@@ -19,6 +19,7 @@ using namespace std::chrono;
  #include "interface.h"
  #include  "surface.h"  // temporaire avant de créer le fcts d'interface
  #include "gratingbase.h"
+ #include "opticalelements.h"
 
 #include "xmlfile.h"
 
@@ -333,6 +334,7 @@ using namespace std::chrono;
 
     double lambdatest=6.e-9,  defoc=0;
     string sourceName="S_ONDUL_BE", mirrorName="M3tor", screenName="Fente";
+    string gratingName="Reseau_450";
 
 
     if(!SolemioImport("D:\\projets\\projetsCB\\OptiX\\solemio\\Hermes-BEmono"))
@@ -403,6 +405,24 @@ using namespace std::chrono;
     cout << "recording mode " << screen->getRecording() << endl <<endl;
     screen->dumpData() ;
     cout << endl;
+    if(!gratingName.empty())
+    {
+        cout << "getting grating "<<gratingName <<"\n";
+        Grating<Holo,Plane> *grating=dynamic_cast<Grating<Holo,Plane>*> ((ElementBase*)GetElementID(gratingName.c_str())); //S_ONDUL1, pupille, Reseau_400H, Fente, planfocH
+//        GratingBase *grating=dynamic_cast<GratingBase*> ((ElementBase*)GetElementID(gratingName.c_str())); //S_ONDUL1, pupille, Reseau_400H, Fente, planfocH
+        cout << grating << endl;
+        cout<< "Direction1  " << grating->m_direction1.transpose()<<endl;
+        cout<< "Direction2  " << grating->m_direction2.transpose()<<endl;
+        cout << "line density " << grating->m_lineDensity << endl;
+        cout << "Holo lambda " << grating->m_holoWavelength << endl;
+        for(double x=-2e-2; x  < 2.1e-2; x+=1e-2)
+        {
+            Surface::VectorType pos=Surface::VectorType::Zero();
+            pos(0)=x;
+            cout << x << "   " << grating->gratingVector(pos,Surface::VectorType::UnitZ()).transpose() << endl;
+        }
+
+    }
 
     high_resolution_clock clock;
     high_resolution_clock::time_point start(clock.now());

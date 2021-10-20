@@ -15,7 +15,7 @@
 //
 ////////////////////////////////////////////////////////////////////////////////////
 #include "gratingbase.h"
-EIGEN_DEVICE_FUNC  Surface::VectorType Pattern::gratingVector( Surface::VectorType position,  Surface::VectorType normal)
+EIGEN_DEVICE_FUNC  Surface::VectorType Pattern::gratingVector(const Surface::VectorType &position, const  Surface::VectorType &normal)
 {
     throw ElementException("Pattern base class virtual functions should never be called", __FILE__, __func__, __LINE__);
     return  Surface::VectorType::Zero();   // calcul dans le plan de description de la surface (XY), pas dans l'espace d propagation

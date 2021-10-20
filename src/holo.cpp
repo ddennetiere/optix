@@ -73,12 +73,16 @@ bool Holo::defineDirection2()
     dpsi=param.value;
     if(!getParameter("azimuthAngle2",param))
         cout << "azimuth angle 2 not defined\n";
-    dpsi-=psi2=param.value;
+    psi2=param.value;
+    dpsi-=psi2;
     cs=cost1*sin(dpsi);
     nl=m_lineDensity*m_holoWavelength;
     if(nl < abs(cs))
         return  false;
     cost2=cost1*cos(dpsi)-sqrt((nl+cs)*(nl-cs));   // cost1 > assumed  vrai si on suit les valeurs recommandées
+
+//    cout << "N lambda" <<nl << " cost1 " << cost1 << " cost2 " <<cost2 << " dpsi " << dpsi  <<  " cost1-nl "<<cost1-nl<<endl;
+
 
     m_direction2 << cost2*cos(psi2) , cost2*sin(psi2),  signElev*sqrt(1.-cost2*cost2);
 
@@ -92,8 +96,10 @@ bool Holo::defineDirection2()
 bool Holo::setParameter(string name, Parameter& param)
 {
   //  On suppose que  la fonction Surface::setParameter() a été appelée au préalable par la classe dérivée
+//    cout << "setting  " << name << endl;
     bool success=true;
     double psi=0, cost, sint;
+    Parameter auxParam;
     if(name.compare(0,19,"recordingWavelength")==0)
         m_holoWavelength=param.value;
     else if(name.compare(0,11,"lineDensity")==0)
@@ -112,17 +118,17 @@ bool Holo::setParameter(string name, Parameter& param)
     else if(name.compare(0,13,"azimuthAngle1")==0)
     {
         psi=param.value;
-        getParameter("elevationAngle1", param);
-        cost=cos(param.value);
-        m_direction1 << cost*cos(psi), cost*sin(psi),sin(param.value);
+        getParameter("elevationAngle1", auxParam);
+        cost=cos(auxParam.value);
+        m_direction1 << cost*cos(psi), cost*sin(psi),sin(auxParam.value);
         success=defineDirection2();  // pour garder la même densité de traits au centre
     }
     else if(name.compare(0,15,"elevationAngle1")==0)
     {
         cost=cos(param.value);
         sint=sin(param.value);
-        getParameter("azimuthAngle1", param);
-        m_direction1 << cost*cos(param.value), cost*sin(param.value), sint;
+        getParameter("azimuthAngle1", auxParam);
+        m_direction1 << cost*cos(auxParam.value), cost*sin(auxParam.value), sint;
         success=defineDirection2();
     }
     else if(name.compare(0,13,"azimuthAngle2")==0)
@@ -134,14 +140,22 @@ bool Holo::setParameter(string name, Parameter& param)
         success=false;
 //    if(!success)// modif FP  09-08-21
 //        SetOptiXLastError("invalid grating parameter",__FILE__,__func__);
+//        {
+//            Parameter tparam;
+//            getParameter("azimuthAngle1", tparam);
+//            cout << "Azimuth 1  "<< tparam.value << endl;
+//        }
+//
+//        cout<< "Direction1  " << m_direction1.transpose()<<endl;
+//        cout<< "Direction2  " << m_direction2.transpose()<<endl;
     return success;
  }
 
-EIGEN_DEVICE_FUNC  Surface::VectorType Holo::gratingVector(Surface::VectorType position, Surface::VectorType normal)
+EIGEN_DEVICE_FUNC  Surface::VectorType Holo::gratingVector(const Surface::VectorType &position, const Surface::VectorType &normal)
 {
  // le calcul est effectué dans le référentiel propre à la surface
     Surface::VectorType G, du;
-    du=(m_direction1-m_inverseDistance1*position).normalized();
+    du =(m_direction1-m_inverseDistance1*position).normalized();
     du-=(m_direction2-m_inverseDistance2*position).normalized();
     G=(du-du.dot(normal)*normal)/m_holoWavelength;  //  projection de "du" sur le plan tangent local-
  // densité de traits = delta cos(theta)

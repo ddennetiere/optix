@@ -16,6 +16,7 @@
  #include "elementbase.h"
  #include "surface.h"
  #include "collections.h"
+ #include "opticalelements.h"
 
  #define   TAILLEPARAMETRES 20
  #define   NOMBRETAGS 16
@@ -666,6 +667,13 @@ bool getTrimmedEnding(const string &line, size_t pos, string &token)
                 }
                 if(!elem->setParameter("elevationAngle1",param))
                     cout << "cannot find a second constrution point with this elevation angle " << param.value << endl;
+
+//                {
+//                    Grating<Holo,Plane> *grating=dynamic_cast<Grating<Holo,Plane>*>(elem);
+//                    cout<< "Direction1  " << grating->m_direction1.transpose()<<endl;
+//                    cout<< "Direction2  " << grating->m_direction2.transpose()<<endl;
+//                    cout << "line density " << grating->m_lineDensity << endl;
+//                }
             }
         }
         break;

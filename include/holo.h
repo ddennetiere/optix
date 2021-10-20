@@ -79,9 +79,9 @@ class Holo :   virtual public Surface, virtual public Pattern
          * \param[in] normal  vector normal to the surface at position (usually position and normal are provided by the Surface::intercept() function)
          * \return the line density vector at position. it is perpendicular to normal
          */
-        virtual EIGEN_DEVICE_FUNC Surface::VectorType gratingVector(Surface::VectorType position,
-                                Surface::VectorType normal);
-    protected:
+        virtual EIGEN_DEVICE_FUNC Surface::VectorType gratingVector(const Surface::VectorType &position, const
+                                Surface::VectorType &normal);
+ //   protected:
         double m_holoWavelength; /**< Holographic recording wavelength*/
 
 #ifdef HOLO_EULERIAN
