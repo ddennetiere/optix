@@ -37,18 +37,20 @@ int OriginalTest();
 int SolemioTest();
 int SphereTest();
 int QuickTest();
+int TestEllipse();
 
 int main()
 {
  //  return SolemioTest();
 //    return OriginalTest();
 //    return SphereTest();
-    return QuickTest();
+//    return QuickTest();
+    return TestEllipse();
 }
 
 int OriginalTest()
 {
-
+//
 //    double d_Pi=3.1415926535897932384626433832795;
 //    long double ld_Pi=3.1415926535897932384626433832795L;
 
@@ -404,6 +406,100 @@ int OriginalTest()
 //    ReadSolemioFile("R:\\Partage\\SOLEMIO\\AILES7");
 
     }
+
+    return 0;
+}
+
+inline void SetParamValue(size_t ID,string parmName, double value)
+{
+    Parameter parm;
+    if(!GetParameter(ID, parmName.c_str(),&parm) )
+        throw runtime_error("invalid object ID or parameter");
+    parm.value=value;
+    SetParameter(ID,parmName.c_str(),parm);
+}
+
+int TestEllipse()
+{
+    char errBuf[256];
+
+    size_t sourceID, hfmID, vfmID, screenID;
+    sourceID=CreateElement("Source<Gaussian>", "source");
+    hfmID=CreateElement("Mirror<ConicBaseCylinder>", "hfm");
+    vfmID=CreateElement("Mirror<ConicBaseCylinder>", "vfm");
+    screenID=CreateElement("Film<Plane>", "screen");
+    ChainElement_byID(sourceID, hfmID);
+    ChainElement_byID(hfmID,vfmID);
+    ChainElement_byID(vfmID,screenID);
+
+
+    SetParamValue(sourceID,"nRays", 50000.);
+    SetParamValue(sourceID,"sigmaX", 5.e-6);
+    SetParamValue(sourceID, "sigmaY", 5.e-6);
+    SetParamValue(sourceID, "sigmaXdiv", 1.e-3);
+    SetParamValue(sourceID, "sigmaYdiv", 1.e-3);
+
+    SetParamValue(hfmID, "distance", 5.);
+    SetParamValue(hfmID, "invp", -1./5.);
+    SetParamValue(hfmID, "invq",  1./2.3);
+    SetParamValue(hfmID, "theta0", 1.75*M_PI/180.);
+    SetParamValue(hfmID, "theta", 1.75*M_PI/180.);
+    SetParamValue(hfmID, "phi", - M_PI/2.);
+
+    SetParamValue(vfmID, "distance", .5);
+    SetParamValue(vfmID, "invp", -1./5.5);
+    SetParamValue(vfmID, "invq",  1./1.8);
+    SetParamValue(vfmID, "theta0", 1.75*M_PI/180.);
+    SetParamValue(vfmID, "theta", 1.75*M_PI/180.);
+    SetParamValue(vfmID, "phi", - M_PI/2.);
+
+    SetParamValue(screenID, "distance", 1.8);
+
+    double lambda=6.e-9;
+    if(!Align(sourceID, lambda))
+    {
+       GetOptiXLastError(errBuf,256);
+       cout << "Alignment error : " << errBuf << endl;
+       return -1;
+    }
+
+    if(!Generate(sourceID, lambda))
+    {
+       GetOptiXLastError(errBuf,256);
+       cout << "Source generation error : " << errBuf << endl;
+       return -1;
+    }
+
+    cout << "getting screen \n";
+    Surface* screen=dynamic_cast<Surface*> ((ElementBase*)GetElementID("screen"));
+    cout << screen << endl;
+
+    if(!Radiate(sourceID))
+    {
+       GetOptiXLastError(errBuf,256);
+       cout << "Radiation error : " << errBuf << endl;
+       return -1;
+    }
+
+    SpotDiagramExt spotDg;
+
+    cout << "\nIMPACTS\n";
+    int ncounts=screen->getSpotDiagram(spotDg,0);
+    if(ncounts)
+    {
+        for(int i=0; i<5 ; ++i)
+           cout << spotDg.m_min[i] << " \t" << spotDg.m_max[i] << endl;
+
+        fstream spotfile("EllipseSpotdiag.sdg", ios::out | ios::binary);
+        spotfile << spotDg;
+        spotfile.close();
+
+
+        cout << endl << endl;
+    }
+
+
+
 
     return 0;
 }

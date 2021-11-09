@@ -337,7 +337,7 @@ using namespace std::chrono;
     string gratingName="Reseau_450";
 
 
-    if(!SolemioImport("D:\\projets\\projetsCB\\OptiX\\solemio\\Hermes-BEmono"))
+    if(!SolemioImport("D:\\projets\\projetsCB\\OptiX\\solemio\\Hermes-BEmono-c0.2"))
     {
         cout << "An error occurred while loading Solemio file\n";
         return -1;
@@ -388,7 +388,7 @@ using namespace std::chrono;
        cout << "Source generation error : " << errBuf << endl;
        return -1;
     }
-
+  //  Generate(sourceID,lambdatest*1.002);
 
     cout << "getting mirror surface  \n";
     Surface* mir=dynamic_cast<Surface*> ((ElementBase*)GetElementID(mirrorName.c_str())); //S_ONDUL1, pupille, Reseau_400H, Fente, planfocH
@@ -408,13 +408,15 @@ using namespace std::chrono;
     if(!gratingName.empty())
     {
         cout << "getting grating "<<gratingName <<"\n";
-        Grating<Holo,Plane> *grating=dynamic_cast<Grating<Holo,Plane>*> ((ElementBase*)GetElementID(gratingName.c_str())); //S_ONDUL1, pupille, Reseau_400H, Fente, planfocH
+        size_t gratingID=GetElementID(gratingName.c_str());
+        Grating<Holo,Plane> *grating=dynamic_cast<Grating<Holo,Plane>*> ((ElementBase*)gratingID); //S_ONDUL1, pupille, Reseau_400H, Fente, planfocH
 //        GratingBase *grating=dynamic_cast<GratingBase*> ((ElementBase*)GetElementID(gratingName.c_str())); //S_ONDUL1, pupille, Reseau_400H, Fente, planfocH
         cout << grating << endl;
         cout<< "Direction1  " << grating->m_direction1.transpose()<<endl;
         cout<< "Direction2  " << grating->m_direction2.transpose()<<endl;
         cout << "line density " << grating->m_lineDensity << endl;
         cout << "Holo lambda " << grating->m_holoWavelength << endl;
+        AlignGrating4Cff(gratingID,0.2,lambdatest );
         for(double x=-2e-2; x  < 2.1e-2; x+=1e-2)
         {
             Surface::VectorType pos=Surface::VectorType::Zero();
