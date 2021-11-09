@@ -488,7 +488,7 @@ int TestEllipse()
     if(ncounts)
     {
         for(int i=0; i<5 ; ++i)
-           cout << spotDg.m_min[i] << " \t" << spotDg.m_max[i] << endl;
+           cout << spotDg.m_min[i] << " \t" << spotDg.m_max[i] << " \t" << spotDg.m_sigma[i] << endl;
 
         fstream spotfile("EllipseSpotdiag.sdg", ios::out | ios::binary);
         spotfile << spotDg;

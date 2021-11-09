@@ -295,7 +295,7 @@ extern "C"
      * \return true if elementID is a valid source and waists position and size were properly set; otherwise return false OptiXLastError is set
      */
     DLL_EXPORT bool EmulateUndulator(size_t elementID, double sigmaX, double sigmaY, double sigmaprimX, double sigmaprimY,
-                                     double undulatorLength,  double SD_UndulatorDistance, double wavelength, double detuning=1.4);
+                                     double undulatorLength,  double SD_UndulatorDistance, double wavelength, double detuning);
 
 
     /** \brief generate source rays of the given wavelength but do not run the ray tracing, (only valid for sources).

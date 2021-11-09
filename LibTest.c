@@ -16,15 +16,24 @@
 #include <stdlib.h>
 #include "ctypes.h"
 #include "interface.h"
-
+#include <math.h>
 
 #define ELEM_NAMELEN  32
 #define PARAM_NAMELEN 48
 #define ERROR_BUFLEN 256
 
 #define  LIMITED 0
+int CassioTest();
+int EllipticKB();
+
 
 int main()
+{
+   // return CassioTest();
+   return EllipticKB();
+}
+
+int CassioTest()
 {
 
     printf( "Sizeof void* %d ; sizeof size_t %d \n", sizeof(void*), sizeof(size_t));
@@ -184,7 +193,7 @@ int main()
                     printf("Spot-diagram with %d impacts dumped to file\n", cdiagram.m_count);
                     printf("        min         max        mean        sigma\n");
                     for (int i=0; i<5 ; ++i)
-                        printf("%s %10.3e  %10.3e  %10.3e  %10.3e\n",title[i], cdiagram.m_min[i], cdiagram.m_max[i], cdiagram.m_mean[i], cdiagram.m_sigma[i] );
+                        printf("%10.3e  %10.3e  %10.3e  %10.3e\n", cdiagram.m_min[i], cdiagram.m_max[i], cdiagram.m_mean[i], cdiagram.m_sigma[i] );
                 }
                 else
                     printf("Spot-diagram contains no impact\n");
@@ -278,4 +287,113 @@ int main()
         return 0;
     }
     Version();
+}
+
+ void SetParamValue(size_t ID,char* parmName, double value)
+{
+    struct Parameter parm;
+    if(!GetParameter(ID, parmName,&parm) )
+    {
+        printf("invalid object ID %d or invalid parameter %s\n", ID, parmName);
+        exit -1;
+    }
+    parm.value=value;
+    SetParameter(ID,parmName,parm);
+}
+
+int EllipticKB()
+{
+    Version();
+    char errBuf[256];
+
+    size_t sourceID, hfmID, vfmID, screenID;
+    sourceID=CreateElement("Source<Gaussian>", "source");
+    hfmID=CreateElement("Mirror<ConicBaseCylinder>", "hfm");
+    vfmID=CreateElement("Mirror<ConicBaseCylinder>", "vfm");
+    screenID=CreateElement("Film<Plane>", "screen");
+    ChainElement_byID(sourceID, hfmID);
+    ChainElement_byID(hfmID,vfmID);
+    ChainElement_byID(vfmID,screenID);
+
+    double numrays=50000.;
+    SetParamValue(sourceID,"nRays", numrays);
+    SetParamValue(sourceID,"sigmaX", 5.e-6);
+    SetParamValue(sourceID, "sigmaY", 5.e-6);
+    SetParamValue(sourceID, "sigmaXdiv", 1.e-3);
+    SetParamValue(sourceID, "sigmaYdiv", 1.e-3);
+
+    SetParamValue(hfmID, "distance", 5.);
+    SetParamValue(hfmID, "invp", -1./5.);
+    SetParamValue(hfmID, "invq",  1./2.3);
+    SetParamValue(hfmID, "theta0", 1.75*M_PI/180.);
+    SetParamValue(hfmID, "theta", 1.75*M_PI/180.);
+    SetParamValue(hfmID, "phi", - M_PI/2.);
+
+    SetParamValue(vfmID, "distance", .5);
+    SetParamValue(vfmID, "invp", -1./5.5);
+    SetParamValue(vfmID, "invq",  1./1.8);
+    SetParamValue(vfmID, "theta0", 1.75*M_PI/180.);
+    SetParamValue(vfmID, "theta", 1.75*M_PI/180.);
+    SetParamValue(vfmID, "phi", - M_PI/2.);
+
+    SetParamValue(screenID, "distance", 1.8);
+
+    double lambda=6.e-9;
+    if(!Align(sourceID, lambda))
+    {
+       GetOptiXLastError(errBuf,256);
+       printf( "Alignment error : %s \n" ,errBuf );
+       return -1;
+    }
+
+    if(!Generate(sourceID, lambda))
+    {
+       GetOptiXLastError(errBuf,256);
+       printf("Source generation error :%s \n" ,errBuf );
+       return -1;
+    }
+
+
+    if(!Radiate(sourceID))
+    {
+       GetOptiXLastError(errBuf,256);
+       printf("Radiation error :%s \n" ,errBuf );
+       return -1;
+    }
+
+
+    struct C_DiagramStruct cdiagram={5,numrays,0,0}; // defines and initialize a new C_DiagramStruct
+                    // in order to record spot diagram the m_dim must be set to 5 and m_reserved should be at least the number of rays going through
+
+    cdiagram.m_min=malloc(cdiagram.m_dim*sizeof(double)); // Use m_dim and m_reserve to be sure initialization is consistent
+    cdiagram.m_max=malloc(cdiagram.m_dim*sizeof(double));
+    cdiagram.m_mean=malloc(cdiagram.m_dim*sizeof(double));
+    cdiagram.m_sigma=malloc(cdiagram.m_dim*sizeof(double));
+    cdiagram.m_spots= malloc(cdiagram.m_dim*cdiagram.m_reserved*sizeof(double));
+
+    if(!GetSpotDiagram(screenID, &cdiagram, 0))
+    {
+        GetOptiXLastError(errBuf, ERROR_BUFLEN);
+        printf("GetSpotDiagram failed: %s\n",errBuf);
+    }
+    else
+    {
+        if(cdiagram.m_count)
+        {
+            DiagramToFile("EllipticKB.sdg", &cdiagram);
+            printf("Spot-diagram with %d impacts dumped to file\n", cdiagram.m_count);
+            printf("     min         max        mean        sigma\n");
+            for (int i=0; i<5 ; ++i)
+                printf("%10.3e  %10.3e  %10.3e  %10.3e\n", cdiagram.m_min[i], cdiagram.m_max[i], cdiagram.m_mean[i], cdiagram.m_sigma[i] );
+        }
+        else
+            printf("Spot-diagram contains no impact\n");
+
+    }
+
+
+
+
+
+    return 0;
 }

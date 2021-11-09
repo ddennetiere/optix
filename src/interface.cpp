@@ -455,7 +455,7 @@ extern "C"
     }
 
     DLL_EXPORT bool EmulateUndulator(size_t elementID, double sigmaX, double sigmaY, double sigmaprimX, double sigmaprimY,
-                                     double undulatorLength,  double SD_UndulatorDistance, double wavelength, double detuning)
+                                     double undulatorLength,  double SD_UndulatorDistance, double wavelength, double detuning=1.4)
     {
         ClearOptiXError();
         if(wavelength <0)
