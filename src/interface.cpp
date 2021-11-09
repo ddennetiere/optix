@@ -411,7 +411,120 @@ extern "C"
 
     }
 
+    DLL_EXPORT bool AlignGrating4Cff(size_t elementID, double Cff, double wavelength)
+    {
+        ClearOptiXError();
+        if(wavelength <0)
+        {
+            SetOptiXLastError("Invalid wavelength", __FILE__, __func__);
+            return false;
+        }
+        if (Cff <=0)
+                    {
+            SetOptiXLastError("Invalid negative or null Cff value", __FILE__, __func__);
+            return false;
+        }
+        if(!System.isValidID(elementID))
+        {
+            SetOptiXLastError("Invalid element ID", __FILE__, __func__);
+            return false;
+        }
+        GratingBase *pGrating= dynamic_cast<GratingBase*>((ElementBase*) elementID);
+        if( !pGrating)
+        {
+            SetOptiXLastError("Element is not a grating", __FILE__, __func__);
+            return false;
+        }
 
+
+        double lineDensity=pGrating->gratingVector(Surface::VectorType::Zero()).norm();
+        cout << "Central line density =" << lineDensity << endl;
+        Parameter theta;
+        pGrating->getParameter("theta", theta);
+        double alpha, beta, LLD=wavelength*lineDensity, C2=Cff*Cff;
+        double X,DC2=1-C2;
+        X=(sqrt(LLD*LLD*C2+DC2*DC2) -LLD)/DC2;
+        alpha=acos(X);
+       // beta=asin(Cff*sin(alpha));
+        beta=acos(X+LLD);
+        theta.value=(alpha+beta)/2.;
+        cout << "Half deviation angle " << theta.value << endl;
+        pGrating->setParameter("theta", theta);
+
+        return true;
+    }
+
+    DLL_EXPORT bool EmulateUndulator(size_t elementID, double sigmaX, double sigmaY, double sigmaprimX, double sigmaprimY,
+                                     double undulatorLength,  double SD_UndulatorDistance, double wavelength, double detuning)
+    {
+        ClearOptiXError();
+        if(wavelength <0)
+        {
+            SetOptiXLastError("Invalid wavelength", __FILE__, __func__);
+            return false;
+        }
+        if(!System.isValidID(elementID))
+        {
+            SetOptiXLastError("Invalid element ID", __FILE__, __func__);
+            return false;
+        }
+        if(undulatorLength <=0 ||detuning <=0)
+        {
+                SetOptiXLastError("Unduator length and detuning must be strictly positive numbers", __FILE__, __func__);
+                return false  ;
+        }
+        ElementBase * element=(ElementBase*) elementID;
+        if( element->getOptixClass()!="Source<Astigmatic,Gaussian>")
+        {
+            if(element->getOptixClass()!="Source<Gaussian>")
+            {
+                SetOptiXLastError("Element is not an astigmatic gaussian source", __FILE__, __func__);
+                return false  ;
+            }
+            else if(SD_UndulatorDistance!=0)
+            {
+                SetOptiXLastError("Element is a gaussian source but undulator centers are not in the same plane", __FILE__, __func__);
+                return false  ;
+            }
+        }
+        double sigmaprim2und =wavelength *detuning / (2. * undulatorLength);
+        double sigma2und= wavelength * undulatorLength / detuning/ (8 *  M_PI*M_PI);
+        double sigmaprim2=sigmaprimX*sigmaprimX;
+        double sigmaprimX2total=sigmaprim2 +sigmaprim2und;
+        double WaistX=sigmaprim2und/sigmaprimX2total*SD_UndulatorDistance;
+        double sigmaX2total=sigmaX*sigmaX+sigma2und+sigmaprim2*sigmaprim2und*SD_UndulatorDistance*SD_UndulatorDistance/sigmaprimX2total;
+
+        sigmaprim2=sigmaprimY*sigmaprimY;
+        double sigmaprimY2total=sigmaprim2 +sigmaprim2und;
+        double WaistY=sigmaprim2und/sigmaprimY2total*SD_UndulatorDistance;
+        double sigmaY2total=sigmaY*sigmaY+sigma2und+sigmaprim2*sigmaprim2und*SD_UndulatorDistance*SD_UndulatorDistance/sigmaprimY2total;
+        Parameter param;
+        element->getParameter("sigmaX", param);
+        param.value=sqrt(sigmaX2total);
+        element->setParameter("sigmaX", param);
+        element->getParameter("sigmaY", param);
+        param.value=sqrt(sigmaY2total);
+        element->setParameter("sigmaY", param);
+        element->getParameter("sigmaXdiv", param);
+        param.value=sqrt(sigmaprimX2total);
+        element->setParameter("sigmaXdiv", param);
+        element->getParameter("sigmaYdiv", param);
+        param.value=sqrt(sigmaprimY2total);
+        element->setParameter("sigmaYdiv", param);
+        if( element->getOptixClass()=="Source<Astigmatic,Gaussian>")
+        {
+            element->getParameter("waistX", param);
+            param.value=WaistX;
+            element->setParameter("waistX",param);
+            element->getParameter("waistY", param);
+            param.value=WaistY;
+            element->setParameter("waistY",param);
+
+        }
+
+
+        return true ;
+    }
     DLL_EXPORT int Generate(size_t elementID, double wavelength)
     {
         ClearOptiXError();

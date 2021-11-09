@@ -270,6 +270,34 @@ extern "C"
      */
     DLL_EXPORT bool Align(size_t elementID, double wavelength);
 
+    /** \brief Defines the deviation angle so that the Cff ratio is satisfied at the given wavelength
+     *
+     * \param elmentID ID of the element which must be of source type
+     * \param Cff The Cff ratio (i.e. output/input sine of grazing angle)  which should be achieved at the given xavelength
+     * \param wavelength the wavelength (m) at which alignment is sought
+     * \return true if elementID is a grating and was aligned ; false otherwise and OptiXLastError is set
+     */
+    DLL_EXPORT bool AlignGrating4Cff(size_t elementID, double Cff, double wavelength);
+
+
+
+    /** \brief Defines the size, divergence and waists position of a an astigmatic gaussian source emulating undulator radiation at the given wavelength
+     *
+     * \param elementID The sourcede be defined . It should be an astigmatic gaussian source, but a simple gaussian source may be used if the source is round or SD_UndulatorDistance == 0
+     * \param sigmaX The electron beam size (in m) in the X direction
+     * \param sigmaY The electron beam size (in m) in the Y direction
+     * \param sigmaprimX The electron beam divergence in (rad) in the X direction
+     * \param sigmaprimY The electron beam divergence in (rad) in the Y direction
+     * \param undulatorLength the undulator length (m)
+     * \param SD_UndulatorDistance distance of the center of the undulator from the Straight section center (in m)
+     * \param wavelength the undulator radiation wavelength (m)
+     * \param detuning divergence amplification factor to take detuning into account
+     * \return true if elementID is a valid source and waists position and size were properly set; otherwise return false OptiXLastError is set
+     */
+    DLL_EXPORT bool EmulateUndulator(size_t elementID, double sigmaX, double sigmaY, double sigmaprimX, double sigmaprimY,
+                                     double undulatorLength,  double SD_UndulatorDistance, double wavelength, double detuning=1.4);
+
+
     /** \brief generate source rays of the given wavelength but do not run the ray tracing, (only valid for sources).
      *
      * \param elementID ID of the element which must be of source type
