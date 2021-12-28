@@ -154,7 +154,7 @@ public:
     /** \brief get the impacts and directions of the set of of rays propagated from the source
      *
      * \param impacts a vector of  propagated rays rays in this object recording space. Ray position is the ray intercept with the surface
-     * \param frame  The type of frame where impacts must be referred to. Can be *AlignedLocalFrame, *SurfaceFrame, *GeneralFrame or *LocalAbsoluteFrame
+     * \param frame  The type of frame where impacts must be referred to. Can be: AlignedLocalFrame, SurfaceFrame, GeneralFrame or LocalAbsoluteFrame
      * \return   The number of lost rays in propagation from source
      */
     int getImpacts(vector<RayType> &impacts, FrameID frame);
@@ -162,8 +162,9 @@ public:
     /** \brief get the 3D impacts as internally stored in a convenient shape for file output
      *
      * \param impactData a DiagramType object to fill with the internally stored data
+     * \param frame  The type of frame where impacts must be referred to. Can be: AlignedLocalFrame, SurfaceFrame, GeneralFrame or LocalAbsoluteFrame
      * \return the number of stored impacts     */
-    int getImpactData(ImpactData &impactData);
+    int getImpactData(ImpactData &impactData, FrameID frame=LocalAbsoluteFrame);
 
     /** \brief Computes and fills-up a SpotDiagram object from the internally stored impact collection
      * \param spotDiagram a SpotDiagram object reference which wiill be uptated on return

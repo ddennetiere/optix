@@ -272,7 +272,7 @@ extern "C"
 
     /** \brief Defines the deviation angle so that the Cff ratio is satisfied at the given wavelength
      *
-     * \param elmentID ID of the element which must be of source type
+     * \param elementID ID of the element which must be of source type
      * \param Cff The Cff ratio (i.e. output/input sine of grazing angle)  which should be achieved at the given xavelength
      * \param wavelength the wavelength (m) at which alignment is sought
      * \return true if elementID is a grating and was aligned ; false otherwise and OptiXLastError is set

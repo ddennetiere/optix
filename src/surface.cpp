@@ -162,7 +162,7 @@ int Surface::getSpotDiagram(SpotDiagramExt& spotDiagram, double distance)
     return ip;
 }
 
-int Surface::getImpactData(ImpactData &impactData)
+int Surface::getImpactData(ImpactData &impactData, FrameID frame)
 {
  //   cout << "getting diagram of  "  << m_name <<  " n " << m_impacts.size() << "  mem " << &m_impacts[0] << endl;
 
@@ -194,8 +194,27 @@ int Surface::getImpactData(ImpactData &impactData)
     {
         if(pRay->m_alive)
         {
-            spotMat.block<3,1>(0,ip)=pRay->position().cast<double>();
-            spotMat.block<3,1>(3,ip)=pRay->direction().cast<double>();
+            switch(frame)
+            {
+            case AlignedLocalFrame:  // if impacts are correctly computed position is identical to origin (rebased on surface)
+                spotMat.block<3,1>(0,ip)=(m_frameInverse*pRay->origin()).cast<double>();
+                spotMat.block<3,1>(3,ip)=(m_frameInverse*pRay->direction()).cast<double>();
+                break;
+            case SurfaceFrame:
+                spotMat.block<3,1>(0,ip)=(m_surfaceInverse*pRay->origin()).cast<double>();
+                spotMat.block<3,1>(3,ip)=(m_surfaceInverse*pRay->direction()).cast<double>();
+                break;
+            case GeneralFrame:
+                spotMat.block<3,1>(0,ip)=(pRay->origin()+m_exitFrame.translation()).cast<double>();
+                spotMat.block<3,1>(3,ip)=pRay->direction().cast<double>();
+                break;
+            case LocalAbsoluteFrame:
+                spotMat.block<3,1>(0,ip)=pRay->origin().cast<double>();
+                spotMat.block<3,1>(3,ip)=pRay->direction().cast<double>();
+                break;
+            }
+
+
             spotMat(6,ip)=pRay->m_wavelength;
             ++ip;
         }
