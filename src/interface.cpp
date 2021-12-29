@@ -587,7 +587,7 @@ extern "C"
         return true;
     }
 
-    DLL_EXPORT bool GetSpotDiagram(size_t elementID, C_DiagramStruct * diagram, double distance)
+    DLL_EXPORT bool GetSpotDiagram(size_t elementID, struct C_DiagramStruct * diagram, double distance)
     {
         if(diagram->m_dim != 5)
         {
@@ -615,6 +615,39 @@ extern "C"
             }
             surf->getSpotDiagram(*spotdiag, distance);
             spotdiag=NULL;
+            return true;
+        }
+        SetOptiXLastError("Element cannot record impacts (not a surface) ", __FILE__, __func__);
+        return false;
+    }
+    DLL_EXPORT bool GetImpactsData(size_t elementID, struct C_DiagramStruct * diagram, FrameID frame)
+    {
+        if(diagram->m_dim != 7)
+        {
+            SetOptiXLastError("m_dim must be 7 for impact data", __FILE__, __func__);
+            return false;
+        }
+
+        char errstr[64];
+        ImpactData* impactData= (ImpactData*)diagram;
+        Surface * surf=dynamic_cast<Surface*>((ElementBase*)elementID);
+
+        if(surf)
+        {
+            if(surf->getRecording()==0)
+            {
+                SetOptiXLastError("Element is not recording impacts", __FILE__, __func__);
+                return false;
+            }
+
+            if(diagram->m_reserved < surf->sizeImpacts())
+            {
+                sprintf(errstr,"Diagram storage space is too small to host %d impacts", surf->sizeImpacts());
+                SetOptiXLastError(errstr, __FILE__, __func__);
+                return false;
+            }
+            surf->getImpactData(*impactData, frame);
+            impactData=NULL;
             return true;
         }
         SetOptiXLastError("Element cannot record impacts (not a surface) ", __FILE__, __func__);

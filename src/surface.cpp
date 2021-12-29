@@ -190,6 +190,7 @@ int Surface::getImpactData(ImpactData &impactData, FrameID frame)
 
     vector<RayType>::iterator pRay;
     Index ip;
+    impactData.m_lost=0;
     for(ip=0, pRay=m_impacts.begin(); pRay!=m_impacts.end(); ++pRay)
     {
         if(pRay->m_alive)
@@ -218,6 +219,8 @@ int Surface::getImpactData(ImpactData &impactData, FrameID frame)
             spotMat(6,ip)=pRay->m_wavelength;
             ++ip;
         }
+        else
+            ++impactData.m_lost;
     }
 
     vMin=spotMat.rowwise().minCoeff();

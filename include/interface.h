@@ -367,17 +367,30 @@ extern "C"
      */
     DLL_EXPORT bool LoadSolemioFile(char * filename);
 
-    /** \brief Evaluates a spot diagram at a given distance from an element and returns it in a C_DiagramStruct
+    /** \brief Evaluates a spot diagram at a given distance from an element and returns it in a C_DiagramStructof dimension 5
      *
-     * \param elemId The ID of the element in the space of which the spot diagram must be evaluated. Impact recording must be active on this object
+     * \param elementID The ID of the element in the space of which the spot diagram must be evaluated. Impact recording must be active on this object
      * \param diagram  the address of a prefilled C_DiagramStruct to receive the data. The m_dim member <b> must  have the value of 5 </b>, and the statistics buffers
-     * must be already allocated with enough space for 5 int int values each. The m_reserved field <b> must be set </b> and the  m_spots buffer must be preallocated
+     * must be already allocated with enough space for 5  int values each. The m_reserved field <b> must be set </b> and the  m_spots buffer must be preallocated
      * with enough space to accommodate m_reserved spot vectors of 5 double values. The calling function is responsible for initializing and deleting this structure
      * in the appropriate manner.
      * \param  distance (optional) The distance from the element where the spot diagram is evaluated. Default value is 0
      * \return a boolean value, true for success, false for failure and OptixLastError is set.
      */
-    DLL_EXPORT bool GetSpotDiagram(size_t elemId, struct C_DiagramStruct * diagram, double distance);
+    DLL_EXPORT bool GetSpotDiagram(size_t elementID, struct C_DiagramStruct * diagram, double distance);
+
+    /** \brief Evaluates the impacts stored in the given element in the chosen reference frame  returns it in a C_DiagramStruct of dimension7.
+     *
+     *
+     * \param elementID The ID of the element in the space of which the impacts must be evaluated. Impact recording must be active on this object
+     * \param diagram the address of a prefilled C_DiagramStruct to receive the data. The m_dim member <b> must  have the value of 7 </b>, and the statistics buffers
+     * must be already allocated with enough space for 7 int values each. The m_reserved field <b> must be set </b> and the  m_spots buffer must be preallocated
+     * with enough space to accommodate m_reserved spot vectors of 5 double values. The calling function is responsible for initializing and deleting this structure
+     * in the appropriate manner.
+     * \param frame the reference frame in which the impacts must be evaluated
+     * \return a boolean value, true for success, false for failure and OptixLastError is set.
+     */
+    DLL_EXPORT bool GetImpactsData(size_t elementID, struct C_DiagramStruct * diagram, FrameID frame);
 
     /** \brief Write a C_DiagramStruct to a file in binary format <i>(it is questionnable whether it should be maintained as is,in the interface)</i>
      *
