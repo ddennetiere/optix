@@ -81,6 +81,7 @@ class Holo :   virtual public Surface, virtual public Pattern
          */
         virtual EIGEN_DEVICE_FUNC Surface::VectorType gratingVector(const Surface::VectorType &position, const
                                 Surface::VectorType &normal);
+        double lineNumber(const Surface::VectorType &position);
  //   protected:
         double m_holoWavelength; /**< Holographic recording wavelength*/
 

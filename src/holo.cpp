@@ -161,7 +161,14 @@ EIGEN_DEVICE_FUNC  Surface::VectorType Holo::gratingVector(const Surface::Vector
  // densité de traits = delta cos(theta)
     return G;
 }
+double Holo::lineNumber(const Surface::VectorType &position)
+{
+    FloatType N1,N2;
+    N1=sqrtl(1.L-(m_direction1-m_inverseDistance1*position).norm())-1.L;
+    N2=sqrtl(1.L-(m_direction2-m_inverseDistance2*position).norm())-1.L;
 
+    return N2/(m_holoWavelength*m_inverseDistance2)-N1/(m_holoWavelength*m_inverseDistance1);
+}
 
  #else
   #ifdef HOLO_CARTESIAN
