@@ -89,6 +89,10 @@ ElementBase* CreateElementObject(string s_type, string name)
         elem= new Film<Cylinder>(name);
     else if (s_type=="Film<Toroid>" || s_type=="ToroidalFilm")
         elem= new Film<Toroid>(name);
+    else if (s_type=="Film<ConicBaseCylinder>" || s_type=="ConicBaseCylindricalFilm")
+        elem= new Film<ConicBaseCylinder>(name);
+    else if (s_type=="Film<RevolutionQuadric>" || s_type=="RevolutionQuadricFilm")
+        elem= new Film<RevolutionQuadric>(name);
 
     else if (s_type=="Grating<Holo,Plane>" || s_type=="PlaneHoloGrating")
         elem= new Grating<Holo,Plane>(name);
@@ -98,6 +102,10 @@ ElementBase* CreateElementObject(string s_type, string name)
         elem= new Grating<Holo,Cylinder>(name);
     else if (s_type=="Grating<Holo,Toroid>" || s_type=="ToroidalHoloGrating")
         elem= new Grating<Holo,Toroid>(name);
+    else if (s_type=="Grating<Holo,ConicBaseCylinder>" || s_type=="ConicBaseCylindricalHoloGrating")
+        elem= new Grating<Holo,ConicBaseCylinder>(name);
+    else if (s_type=="Grating<Holo,RevolutionQuadric>" || s_type=="RevolutionQuadricHoloGrating")
+        elem= new Grating<Holo,RevolutionQuadric>(name);
 
     else if (s_type=="Grating<Poly1D,Plane>" || s_type=="PlanePoly1DGrating")
         elem= new Grating<Poly1D,Plane>(name);
@@ -107,6 +115,10 @@ ElementBase* CreateElementObject(string s_type, string name)
         elem= new Grating<Poly1D,Cylinder>(name);
     else if (s_type=="Grating<Poly1D,Toroid>" || s_type=="ToroidalPoly1DGrating")
         elem= new Grating<Poly1D,Toroid>(name);
+    else if (s_type=="Grating<Poly1D,ConicBaseCylinder>" || s_type=="ConicBaseCylindricalPoly1DGrating")
+        elem= new Grating<Poly1D,ConicBaseCylinder>(name);
+    else if (s_type=="Grating<Poly1D,RevolutionQuadric>" || s_type=="RevolutionQuadricPoly1DGrating")
+        elem= new Grating<Poly1D,RevolutionQuadric>(name);
 
     else
        // cout << " Object not created:  invalid element class\n";

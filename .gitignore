@@ -22,6 +22,7 @@ doxygen/doxyfile
 solemio/CASSIO
 
 # not maintained directories
+bibliography/
 removed/
 bin/
 

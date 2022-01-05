@@ -183,7 +183,7 @@ public:
      /** \brief return in a SpotDiagram structure the transverse aberrant distances from a given reference point and the direction coefficients of each ray
       *
       *  The transverse aberrant distances can be identified as the derivative of the wavefront aberration  with respect to the aperture angles
-      * \param[out] WFdata a SpotDiagram structure to return the normal distance in the X and Y planes and the X and Y components of the normalized direction vector
+      * \param[out] WFdata a SpotDiagram structure to return the transverse aberrant distances in the X and Y planes and the X and Y components of the normalized direction vector
       * \param[in] distance the distance of the reference point from the recording plane of the rays
       * \return the number of rays in the wFdata structure
       */
@@ -192,9 +192,9 @@ public:
      /** \brief Get the wavefront expansion in Legendre Polynomial of aperture angle
       *
       * The surface must be recording impacts and the beam should be converging close to the specified position determined by distance
-      * \param distance of the surface where the reference is taken. This has an influence on the 2<sup>nd</sup> order terms (curvature) only
-      * \param Nx max order of Legendres in X direction
-      * \param Ny max order of Legendres in Y direction
+      * \param[in] distance of the surface where the reference is taken. This has an influence on the 2<sup>nd</sup> order terms (curvature) only
+      * \param[in] Nx max order of Legendres in X direction
+      * \param[in] Ny max order of Legendres in Y direction
       * \param[out] XYbounds the aperture limits in X and Y from the ray tracing impacts recorded on the surface.
       * \return The Nx x Ny (row,col) array of coefficients of Legendre polynomials describing the wavefront error to the given degrees and best fitting  the transverse aberration data
       */

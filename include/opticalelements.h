@@ -94,12 +94,12 @@ public:
 * \{
 */
 
-typedef Mirror<Plane> PlaneMirror;          /**<  \brief Implements a Mirror the Surface of which has a Plane shape */
-typedef Mirror<Sphere> SphericalMirror ;    /**<  \brief Implements a Mirror the Surface of which has a Sphere shape */
-typedef Mirror<Cylinder> CylindricalMirror; /**<  \brief Implements a Mirror the Surface of which has a Cylinder shape \n The unrotated surface is curved in the tangential plane */
-typedef Mirror<Toroid> ToroidalMirror;      /**<  \brief Implements a Mirror the Surface of which has a Toroid shape \n The Major curvatur of the unrotated surface is in the tangential plane*/
-typedef Mirror<ConicBaseCylinder> ConicBaseCylindricalMirror; /**< \brief Implements a Mirror the Surface of which has a ConicBaseCylinder shape \n The directrix the unrotated surface is a conic in the tangential plane */
-typedef Mirror<RevolutionQuadric> RevolutionQuadricMirror; /**< \brief Implements a Mirror the Surface of which has a RevolutionQuadric shape \n The foci of the unrotated surface ly in the sagittal plane*/
+typedef Mirror<Plane> PlaneMirror;          /**<  \brief Implements a Mirror, the Surface of which has a Plane shape */
+typedef Mirror<Sphere> SphericalMirror ;    /**<  \brief Implements a Mirror, the Surface of which has a Sphere shape */
+typedef Mirror<Cylinder> CylindricalMirror; /**<  \brief Implements a Mirror, the Surface of which has a Cylinder shape \n The unrotated surface is curved in the tangential plane */
+typedef Mirror<Toroid> ToroidalMirror;      /**<  \brief Implements a Mirror, the Surface of which has a Toroid shape \n The Major curvatur of the unrotated surface is in the tangential plane*/
+typedef Mirror<ConicBaseCylinder> ConicBaseCylindricalMirror; /**< \brief Implements a Mirror, the Surface of which has a ConicBaseCylinder shape \n The directrix the unrotated surface is a conic in the tangential plane */
+typedef Mirror<RevolutionQuadric> RevolutionQuadricMirror; /**< \brief Implements a Mirror, the Surface of which has a RevolutionQuadric shape \n The foci of the unrotated surface ly in the sagittal plane*/
 
 
 /** \} */  //end of ingroup bloc
@@ -145,10 +145,12 @@ public:
 * \{
 */
 
-typedef Film<Plane> PlaneFilm;           /**<  \brief Implements a Film the Surface of which has a Plane shape */
-typedef Film<Sphere> SphericalFilm ;     /**<  \brief Implements a Film the Surface of which has a Sphere shape */
-typedef Film<Cylinder> CylindricalFilm;  /**<  \brief Implements a Film the Surface of which has a Cylinder shape with generatrix in the Y direction*/
-typedef Film<Toroid> ToroidalFilm;       /**<  \brief Implements a Film the Surface of which has a Toroid shape and main curvature in X plane*/
+typedef Film<Plane> PlaneFilm;           /**<  \brief Implements a Film, the Surface of which has a Plane shape */
+typedef Film<Sphere> SphericalFilm ;     /**<  \brief Implements a Film, the Surface of which has a Sphere shape */
+typedef Film<Cylinder> CylindricalFilm;  /**<  \brief Implements a Film, the Surface of which has a Cylinder shape with generatrix in the Y direction*/
+typedef Film<Toroid> ToroidalFilm;       /**<  \brief Implements a Film, the Surface of which has a Toroid shape and main curvature in X plane*/
+typedef Film<ConicBaseCylinder> ConicBaseCylindricalFilm; /**< \brief Implements a Film, the Surface of which has a ConicBaseCylinder shape \n The directrix the unrotated surface is a conic in the tangential plane */
+typedef Film<RevolutionQuadric> RevolutionQuadricFilm; /**< \brief Implements a Film, the Surface of which has a RevolutionQuadric shape \n The foci of the unrotated surface ly in the sagittal plane*/
 
 /** \} */  //end of group
 
@@ -212,10 +214,14 @@ typedef Grating<Holo,Plane> PlaneHoloGrating;           /**< \brief Implements a
 typedef Grating<Holo,Sphere> SphericalHoloGrating;      /**< \brief implements a \ref Holo "holographic"  Grating drawn on a \ref Sphere "spherical" surface */
 typedef Grating<Holo,Cylinder> CylindricalHoloGrating;  /**< \brief implements a \ref Holo "holographic"  Grating drawn on a \ref  Cylinder "cylindrical" surface */
 typedef Grating<Holo,Toroid> ToroidalHoloGrating;       /**< \brief implements a \ref Holo "holographic"  Grating drawn on a \ref Toroid "toroidal" surface */
+typedef Grating<Holo,ConicBaseCylinder> ConicBaseCylinderHoloGrating;   /**< \brief implements a \ref Holo "holographic"  Grating drawn on a \ref ConicBaseCylinder "ConicBaseCylindrical" surface */
+typedef Grating<Holo, RevolutionQuadric> RevolutionQuadricHoloGrating;  /**< \brief implements a \ref Holo "holographic"  Grating drawn on a \ref RevolutionQuadric "RevolutionQuadric" surface */
 typedef Grating<Poly1D,Plane> PlanePoly1DGrating;       /**< \brief implements a \ref Poly1D "1D polynomial"  Grating drawn on a Plane surface */
 typedef Grating<Poly1D,Sphere> SphericalPoly1DGrating;  /**< \brief implements a \ref Poly1D "1D polynomial"  Grating drawn on a \ref Sphere "spherical" surface */
 typedef Grating<Poly1D,Cylinder> CylindricalPoly1DGrating; /**< \brief implements a \ref Poly1D "1D polynomial"  Grating drawn on a \ref  Cylinder "cylindrical" surface */
 typedef Grating<Poly1D,Toroid> ToroidalPoly1DGrating;      /**< \brief implements a \ref Poly1D "1D polynomial"  Grating drawn on a \ref Toroid "toroidal" surface */
+typedef Grating<Poly1D,ConicBaseCylinder> ConicBaseCylinderPoly1DGrating;  /**< \brief implements a \ref Poly1D "1D polynomial" Grating drawn on a \ref ConicBaseCylinder "ConicBaseCylindrical" surface */
+typedef Grating<Poly1D, RevolutionQuadric> RevolutionQuadricPoly1DGrating; /**< \brief implements a \ref Poly1D "1D polynomial" Grating drawn on a \ref RevolutionQuadric "RevolutionQuadric" surface */
 
 /** \} */
 

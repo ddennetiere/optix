@@ -323,7 +323,7 @@ int Surface::getWavefrontData(SpotDiagramExt& WFdata, double distance)
     {
         //On calcule la projectiondu point de référence sur chaque rayon. C'est l'écart aberrant.
         // celui-ci est ensuite projeté sur les deux directions de référence du plan normal à chaque rayon,
-        // pour être ensuite égalées au dérivées du front d'onde par rapport aux angles d'ouverture
+        // pour être ensuite égalées aux dérivées du front d'onde par rapport aux angles d'ouverture
         VectorType delta=pRay->projection(referencePoint)-referencePoint;
         WFmat(0,ip)= (delta(0)*pRay->direction()(2)- delta(2)*pRay->direction()(0) ) /sqrtl(1.L-pRay->direction()(1)*pRay->direction()(1));
         WFmat(1,ip)= (delta(1)*pRay->direction()(2)- delta(2)*pRay->direction()(1) ) /sqrtl(1.L-pRay->direction()(0)*pRay->direction()(0));
