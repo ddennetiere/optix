@@ -75,7 +75,11 @@ public:
     static const  int datasize=5*sizeof(double)+sizeof(bool);
     double m_wavelength;
     ComplexType m_amplitude_S, m_amplitude_P; // en attente d'une implémentation possible
-    bool m_alive;
+    bool m_alive;  /**<  a boolean value indicating that the ray is valid for further propagation
+                    *    (set to false when no intercept is found with or no diffraction is possible from a surface).
+                    *   If absorbed amplitudes are set to 0, but the ray is nevertheless propagated to enable wavefront interpolation  */
+
+
 };
 
 #endif // RAY_H_INCLUDED

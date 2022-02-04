@@ -6,15 +6,14 @@
 *   \file       collections.h
 
 *
-*   \brief     collections definition file
-*
+*   \brief     collection classes definition file
 *
 *
 *
 *   \author             François Polack  <francois.polack@synchroton-soleil.fr>
 *   \date               Creation : 2021-03-15
 
-*   \date               Last update: 2021-05-015
+*   \date               Last update: 2021-05-15
 
 *
 *

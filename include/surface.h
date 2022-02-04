@@ -5,7 +5,7 @@
 *************************************************************************
 *   \file       surface.h
 *
-*   \brief     Surface base class and surface parameter class definition file
+*   \brief Definition of Surface base class and surface parameter class definition file
 *
 *
 *
@@ -13,11 +13,12 @@
 *   \author             François Polack  <francois.polack@synchroton-soleil.fr>
 *   \date               Creation : 2020-10-05
 *   \date               Last update: 2021-02-26
-*
+**********************************************************************************/
+/**
 *   \mainpage   OptiX
 *       An X-ray optics librray
 *       this is an &alpha; version of the library
-*
+*   \date               Last update: 2022-02-05
 *
 *   \defgroup enums  Enumeration list
 *      \brief  enumerated values used in the library

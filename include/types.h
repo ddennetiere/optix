@@ -71,12 +71,14 @@ struct WavefrontData{
     ArrayXXd m_WFdata;/**< Array of double holding the wavefront heights*/
 };
 
+/** \brief Structure to register the parameters of a link between two elements in Solemio
+ */
 struct SolemioLinkType
 {
-        string name;
-        uint32_t parent=0;
-        uint32_t prev=0;
-        uint32_t next=0;
+        string name;        /**< Name of the linked element */
+        uint32_t parent=0;  /**< Currently unused. Might be removed in future */
+        uint32_t prev=0;    /**< reference ID of the previous element in Solemio element chain. */
+        uint32_t next=0;    /**< reference ID of the next element in Solemio element chain.  */
 };
 
 

@@ -81,7 +81,7 @@ int XYGridSource::generate(double wavelength)
     int ntX=2*nX-1;
     int ntY=2*nY-1;
 
-    VectorXd vXprim=VectorXd::LinSpaced(ntXprim, -Xprim, nXprim==1? 0 : Xprim);
+    VectorXd vXprim=VectorXd::LinSpaced(ntXprim, -Xprim, nXprim==1? 0 : Xprim);  // When LinSpaced size parameter is set to 1, it returns a vector of length 1 containing 'high' is returned.
     VectorXd vYprim=VectorXd::LinSpaced(ntYprim, -Yprim, nYprim==1? 0 : Yprim);
     VectorXd vX=VectorXd::LinSpaced(ntX, -Xsize, nX==1? 0 : Xsize);
     VectorXd vY=VectorXd::LinSpaced(ntY, -Ysize, nY==1? 0 : Ysize);

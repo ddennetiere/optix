@@ -5,7 +5,7 @@
 /**
 *      \file           interface.h
 *
-*      \brief         TODO  fill in file purpose
+*      \brief         Interface definition file. Defines a collection of the pure C functions enabling to call the Optix.dll library from any language
 *
 *      \author         François Polack <francois.polack@synchroton-soleil.fr>
 *      \date        2020-11-12  Creation

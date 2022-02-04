@@ -2,7 +2,7 @@
 /**
 *      \file           interface.cpp
 *
-*      \brief         TODO  fill in file purpose
+*      \brief         interface  C functions implementation
 *
 *      \author         François Polack <francois.polack@synchroton-soleil.fr>
 *      \date        2020-11-12  Creation

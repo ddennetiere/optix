@@ -89,10 +89,11 @@ enum ParameterFlags/*:uint32_t*/{
 //    Gaussian=0x20, /**< Gaussian random (value=sigma) */
 //    Grided=0x80    /**< Grided (value=stepsize) */
 };
-#ifdef __cplusplus
+
 /** \brief Keyed access class for the numeric parameters of an optical surface
  */
 struct Parameter{
+#ifdef __cplusplus
     double value=0; /**< \brief the internal value for in internal unit (m, rad, etc)*/
     double bounds[2]={0,0};/**< \brief  boundary value for optimization */
     double multiplier=1.; /**< \brief multiplier for display */
@@ -105,7 +106,6 @@ struct Parameter{
         value(newvalue), multiplier(newmultiplier), type(newtype){bounds[0]=bounds[1]=value;}
 };
 #else
-struct Parameter{
     double value;
     double bounds[2];
     double multiplier;

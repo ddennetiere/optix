@@ -2,8 +2,7 @@
  *************************************************************************
 *   \file           files.cpp
 *
-*   \brief             implementation file
-*
+*   \brief             implementation file of classes TextFile and SolemioFile
 *
 *
 *   \author             François Polack  <francois.polack@synchroton-soleil.fr>
