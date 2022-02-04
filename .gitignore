@@ -19,12 +19,13 @@ doxygen/doxyfile
 *.depend
 *.cscope*
 *copie*
-solemio/CASSIO
+#solemio/CASSIO
 
 # not maintained directories
 bibliography/
 removed/
 bin/
+solemio/
 
 
 

@@ -26,6 +26,7 @@
 #include "interface.h"
 #include "wavefront.h"
 
+#include "Polygon.h"
 
 //#define POSTFIX(X, P) X#P
 //#define M_PIl POSTFIX(M_PI, L)
@@ -45,7 +46,57 @@ int main()
 //    return OriginalTest();
 //    return SphereTest();
 //    return QuickTest();
-    return TestEllipse();
+//    return TestEllipse();
+     Polygon rectangle;
+     bool cvx;
+     Array2d point, trans;
+     point << 0.,3.1;
+     trans << 0,1;
+
+     rectangle.setRectangle(10., 4., 1.,1.);
+     cvx=rectangle.isConvex();
+     rectangle.dump();
+     if(cvx)
+        cout << "shape is convex; is origin inside ? :" << rectangle.locate(point)<<endl;
+     else
+        cout << "shape is NOT convex;; is origin inside ? :" << rectangle.locate(point)<<endl;
+
+     rectangle.insertVertex(2, 0,1);
+     cvx=rectangle.isConvex();
+     rectangle.dump();
+     if(cvx)
+        cout << "shape is convex; is origin inside ? :" << rectangle.locate(point)<<endl;
+     else
+        cout << "shape is NOT convex; is origin inside ? :" << rectangle.locate(point)<<endl;
+
+     rectangle.changeVertex(3, 0,4);
+     cvx=rectangle.isConvex();
+     rectangle.dump();
+     if(cvx)
+        cout << "shape is convex; is origin inside ? :" << rectangle.locate(point)<<endl;
+     else
+        cout << "shape is NOT convex; is origin inside ? :" << rectangle.locate(point)<<endl;
+
+     rectangle.deleteVertex(3);
+     cvx=rectangle.isConvex();
+     rectangle.dump();
+     if(cvx)
+        cout << "shape is convex; is origin inside ? :" << rectangle.locate(point)<<endl;
+     else
+        cout << "shape is NOT convex; is origin inside ? :" << rectangle.locate(point)<<endl;
+
+     rectangle.move(M_PI_2, trans);
+     cvx=rectangle.isConvex();
+     rectangle.dump();
+     if(cvx)
+        cout <<endl << "shape is convex; is origin inside ? :" << rectangle.locate(point)<<endl;
+     else
+        cout << "shape is NOT convex; is origin inside ? :" << rectangle.locate(point)<<endl;
+
+    Polygon rect2=rectangle;
+    cout <<endl;
+    rect2.dump();
+
 }
 
 int OriginalTest()
