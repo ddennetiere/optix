@@ -20,6 +20,9 @@ doxygen/doxyfile
 *.cscope*
 *copie*
 #solemio/CASSIO
+*.mod
+wigner3j.f95
+ftypes.f95
 
 # not maintained directories
 bibliography/

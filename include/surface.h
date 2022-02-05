@@ -31,6 +31,7 @@
 
 
 #include "elementbase.h"
+#include "ApertureStop.h"
 
 // included by elementbase.h
 //#include <string>
@@ -73,7 +74,7 @@ public:
 
     /** \brief default  constructor (Film) with explicit chaining to previous
     */
-    Surface(bool transparent=true, string name="", Surface * previous=NULL):ElementBase(transparent,name,previous),m_recording(RecordNone){}
+    Surface(bool transparent=true, string name="", Surface * previous=NULL):ElementBase(transparent,name,previous),m_recording(RecordNone),m_apertureActive(false){}
 
     virtual ~Surface(){}    /**< \brief virtual destructor */
 
@@ -99,19 +100,22 @@ public:
     *
     *   Implemented in shape classes (Plane , Quadric, Toroid)
     *   \n All implementations <b> must move and rebase </b> the ray at its intersection with the surface and return this position
+    *   \n if the ray is not alive the last active position is kept and expressed in local absolute frame cordinates
     */
 
     virtual RayType& transmit(RayType& ray);       /**<  \brief  ray transmission and impact storage. \n To be reimplemented in derived class
             *   \param ray the input ray in previous element exit space \return the transmitted ray in exit space of this element
             *
-            *  this implementation moves the ray to the surface and rebase it there
-            *   All implementations <b> must take care of recording impacts </b> in entrance or exit plane as required */
+            *   This implementation moves the ray to the surface and rebase it there
+            *   \n All implementations <b> must take care of recording impacts </b> in entrance or exit plane as required */
 
     virtual RayType& reflect(RayType& ray);    /**< \brief Ray reflection and impact storage. \n To be reimplemented in derived class
-            *    \param ray the input ray inprevious element exit space  \return the reflected ray in exit space of this element
             *
-            *    This implementation simply reflect the ray on the tangent plane
-            *   All implementations <b> must take care of recording impacts </b> in entrance or exit plane as required */
+            *    \param ray the input ray inprevious element exit space
+            *    \return the reflected ray in exit space of this element
+            *
+            *    This implementation simply reflect the ray on the tangent plane at intercept position.
+            *   \n All implementations <b> must take care of recording impacts </b> in entrance or exit plane as required. */
 
 /** \brief  call transmit or reflect according to surface type ray and iterate to the next surface*/
     inline  void propagate(RayType& ray) /**< the propagated ray */
@@ -150,7 +154,7 @@ public:
 
     void reserveImpacts(int n); /**< \brief  reserve space for élements in the impact vector of all elements of the surface chain starting from this element to avoid reallocations
                                 *    \param  n the  number of elements to reserve t*/
-    inline int sizeImpacts(){return m_impacts.size();}
+    inline int sizeImpacts(){return m_impacts.size();}  /**< \brief returns the number of recorded impacts  */
 
     /** \brief get the impacts and directions of the set of of rays propagated from the source
      *
@@ -209,7 +213,8 @@ protected:
 
     vector<RayType> m_impacts; /**<  \brief the ray impacts on the surfaces in forward or backward element space */
     RecordMode m_recording; /**<  \brief flag defining whether or not the ray impacts on this surface are recorded and in forward or backward space   */
-
+    ApertureStop m_aperture;  /**< \brief The active area of the surface   */
+    bool m_apertureActive;    /**<  \brief switch for taking the aperture active area into account */
 };
 
 

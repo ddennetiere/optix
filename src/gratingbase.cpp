@@ -165,9 +165,16 @@ RayType& GratingBase::transmit(RayType& ray)
 
     VectorType normal;
 
-    intercept(ray, &normal);    // intercept effectue le changement de repère entrée/sortie
+    intercept(ray, &normal);    // intercept effectue le changement de repère entrée/sortie (update seulement si alive)
     if(ray.m_alive)
     {
+        if(m_apertureActive)
+        {
+            Vector2d pos=(m_surfaceInverse*ray.position()).head(2).cast<double>();
+            double T=m_aperture.getTransmissionAt(pos);
+            ray.m_amplitude_P*=T;
+            ray.m_amplitude_S*=T;
+        }
         if(m_recording==RecordInput)
             m_impacts.push_back(ray);
 
@@ -200,6 +207,14 @@ RayType& GratingBase::reflect(RayType& ray)
     intercept(ray, &normal);    // intercept effectue le changement de repère entrée/sortie
     if(ray.m_alive)
     {
+        if(m_apertureActive)
+        {
+            Vector2d pos=(m_surfaceInverse*ray.position()).head(2).cast<double>();
+            double T=m_aperture.getTransmissionAt(pos);
+            ray.m_amplitude_P*=T;
+            ray.m_amplitude_S*=T;
+        }
+
         if(m_recording==RecordInput)
             m_impacts.push_back(ray);
 
