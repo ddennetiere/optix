@@ -27,14 +27,14 @@ using namespace std;
 /** \brief a class implementing a composite aperture, generated as a superimposition of clear and opaque areas
  *
  *  The object is composed of an unlimited number of polygonal or elliptic regions.
- *  The inner part of each region can be either transparent either opaque.
+ *  The inner part of each region can be either transparent either opaque, the outer part being the opposite.
  *  \n If the region is transparent inside, its transparency combines with the transparency of the underlying layers by a logical or (||) operation
  *  \n If the region is opaque inside, its transparency combines with the transparency of the underlying layers by a logical and (&&) operation
  */
 class ApertureStop
 {
     public:
-        ApertureStop(){}
+        ApertureStop(){}    /**< \brief creates an empty ApertureStop container with no obstructing region*/
 
         /** \brief destructor. Clear the region list and destroy the object
          *
@@ -74,7 +74,7 @@ class ApertureStop
         size_t getRegionCount(){return m_regions.size();}   /**< \brief return the number of region assigned to this apertureStop */
 
     protected:
-        vector<Region*> m_regions;
+        vector<Region*> m_regions;/**< \brief list of references of the Regions defining this aperture */
 
     private:
 };

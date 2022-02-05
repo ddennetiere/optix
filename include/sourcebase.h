@@ -53,7 +53,7 @@ class SourceBase : public virtual Surface
          */
         virtual EIGEN_DEVICE_FUNC VectorType intercept(RayType& ray, VectorType *normal=NULL)
         {
-            ray-=m_translationFromPrevious; // change ref fram from previous to this surface
+            ray-=m_translationFromPrevious; // change ref fram from previous to this surface  ray is not rebased
             if(ray.m_alive)
             {
                 if(normal)

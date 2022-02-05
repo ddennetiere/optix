@@ -102,13 +102,18 @@ class Polygon: public Region
           */
          void dump(){std::cout << m_vertices <<  std::endl << m_vects <<std::endl<< m_sides <<std::endl;}
     protected:
-        bool checkConvex();
-        size_t m_size;
-        Matrix2Xd m_vertices, m_vects;
+        bool checkConvex();/**< \brief auxiliary function called during object construction in order to check whether the simplified location algorithm is applicable  */
+        size_t m_size; /**< \brief the number of vertices (and sides of this polygon */
+        Matrix2Xd m_vertices;/**< \brief a 2 x size+1  matrix containing the vertex points. Vertex[0] is repeated as Vertex[size] for algorithm performance */
+        Matrix2Xd m_vects;  /**< \brief a 2 x size+1  matrix containing the side vectors. Vector[0] is repeated as Vector[size] for algorithm performance */
+
     private:
+        /**< \brief a ref point for defining the secant direction in the non-convex location algorithm
+        *
+        *   This point must be inside the smallest convex polygonal region enclosing this polygon. It is presently defined as the barycenter of the vertices  */
         Vector2d m_refPoint;
-        bool m_convex;
-        Matrix3Xd m_sides;
+        bool m_convex; /**< \brief boolean value to keep track of the polygon convexity property */
+        Matrix3Xd m_sides;  /**<  \brief a 2 x size matrix containing  the parameter of the line equation of the sides. (used by non-convex location algorithm*/
 };
 
 #endif // POLYGON_H

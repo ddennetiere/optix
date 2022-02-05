@@ -55,7 +55,7 @@ class Plane : virtual public Surface
         *   \param  ray  on input : the ray in the previous surface frame. in output the ray positionned on the surface in this surface frame
         *   \param normal adress of a vector which, if not null,  will receive the surface normal (normalized) at the intercept point
         *   \return a reference to the modified ray
-        *  \todo ne pas retourner la position si elle n'est pas utilisée
+        *      \todo intercept return value is never used & can be removed
         */
         EIGEN_DEVICE_FUNC virtual VectorType intercept(RayType& ray, VectorType * normal=NULL)
         {

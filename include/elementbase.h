@@ -96,13 +96,14 @@ inline void ClearOptiXError() {OptiXError=false;}
  */
 class ElementBase {
 public:
-    typedef map<string,Parameter>::iterator ParamIterator;
-    typedef map<string, string>::iterator HelpstrIterator;
+    // ces typedefs sont peut-être à déplacer dans un namespace Element indépendant(public)
+    typedef map<string,Parameter>::iterator ParamIterator; /**< \brief type of iterator used for parameter table lookup */
+    typedef map<string, string>::iterator HelpstrIterator;  /**< \brief type of iterator used for helpstring table lookup */
 
    // typedef Matrix<FloatType,3,1> VectorType;
-    typedef RayBaseType::VectorType VectorType;
-    typedef Matrix<FloatType,3,3> RotationType;  // peut-être à déplacer dans le namespace Element (public)
-    typedef Transform<FloatType,3,Affine> IsometryType;  // c'est quandmeme une isometrie
+    typedef RayBaseType::VectorType VectorType; /**< \brief the type of vectors used for point and rays */
+    typedef Matrix<FloatType,3,3> RotationType;  /**< \brief the type of rotation matrix used for space coordinate transforms */
+    typedef Transform<FloatType,3,Affine> IsometryType; /**< \brief the type of isometry matrix used for space coordinate transforms */
 
     ElementBase(bool transparent=true, string name="", ElementBase* previous=NULL); /**< \brief default  constructor (Film) with explicit chaining to previous */
 
@@ -331,7 +332,7 @@ protected:
     }
     inline void removeParameter(string name){ m_parameters.erase(name);}/**< \brief removes a tagged parameter */
 
-    static FloatType m_FlipSurfCoefs[];
+    static FloatType m_FlipSurfCoefs[]; /**< \brief list of coefficient of the  matrix transforming surface frame coordinates into propagation frame  coordinates  */
     static map<string, string> m_helpstrings;  /**< \brief  parameter description help strings  */
     static int m_nameIndex;  /**< \brief Index for automatic naming of surfaces created without a name */
  //   vector<RayType> m_impacts; /**<  \brief the ray impacts on the surfaces in forward or backward element space */
@@ -340,9 +341,9 @@ protected:
 
 //  surface definition primary parameters
     string m_name;   /**< \brief  an identification name for calling this surface from scripts  */
-    ElementBase* m_previous; /**<  \brief the previous element in the surface chain */
-    ElementBase* m_next; /**<  \brief the next element in the surface chain */
-    ElementBase* m_parent;
+    ElementBase* m_previous; /**< \brief the previous element in the surface chain */
+    ElementBase* m_next; /**< \brief the next element in the surface chain */
+    ElementBase* m_parent; /**< \brief The containing group - unused while group concept is not implemented  -  */
     map<string,Parameter> m_parameters;   /**<  \brief tagged parameters of the surface.  */
 
 // surface secondary parameters build during alignment
