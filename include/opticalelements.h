@@ -11,16 +11,9 @@
 *      \date        2020-10-30  Creation
 *      \date         Last update
 *
-*   \defgroup elemClasses Instantiable optical elements classes
-*      \brief  The limited list of class names which can be used to create optical elements in OptiX
+*      \ingroup elemClasses
 *
-*   The CreateElement() function of the C interface and the C++ internal function CreateElementObject() recognize two names for each instantiable optical element class.
-*   A template style name, Name<class1[,class2]>, or a capitalized name with internal capital letters (camel case).
-*   The GetElementType() C function calls ElementBase::getOptixClass(), and  always returns the template style name.
-*
-*   The actual underlying class is not always templated. When it is a template the template style name is the internal class name, and the simple name is a C++ typedef.
-*   When the underlying class is not templated, e.g. case of sources, the templated style name is an alias only recognized by the CreateElement() / CreateElementObject() functions.
-*/
+**********************************************************************************/
 
 ///////////////////////////////////////////////////////////////////////////////////
 //

@@ -14,19 +14,6 @@
 *   \date               Creation : 2020-10-05
 *   \date               Last update: 2021-02-26
 **********************************************************************************/
-/**
-*   \mainpage   OptiX
-*       An X-ray optics librray
-*       this is an &alpha; version of the library
-*   \date               Last update: 2022-02-05
-*
-*   \defgroup enums  Enumeration list
-*      \brief  enumerated values used in the library
-*
-*   \defgroup GlobalCpp  Global internal C++ functions
-*      \brief  C++ functions defined at the OptiX library internal level
-*
- ***************************************************************************/
 
 
 

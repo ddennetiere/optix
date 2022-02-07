@@ -39,6 +39,15 @@ bool ApertureStop::removeRegion(size_t index)
     return true;
 }
 
+bool ApertureStop::replaceRegion(size_t index, Region*pRegion)
+{
+    if(index <0 || index >= m_regions.size())
+        return false;
+    delete m_regions[index] ;
+    m_regions[index]=pRegion;
+    return true;
+}
+
 Region* ApertureStop::getRegion(size_t index)
 {
     if(index <0 || index >= m_regions.size())

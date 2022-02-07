@@ -19,7 +19,7 @@
 *
 *
  ***************************************************************************/
-#include <vector>
+#include <map>
 #include "region.h"
 
 using namespace std;
@@ -56,6 +56,11 @@ class ApertureStop
          * \return the index of the added element in the region list, equal to new size -1
          */
         size_t addRegion(Region* pRegion);
+
+
+        size_t addRegion(string regionType, bool transparent=true);
+
+        bool replaceRegion(size_t index, Region*pRegion);
 
         /** \brief Remove the region from the region list
          *

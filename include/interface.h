@@ -1,7 +1,6 @@
 #ifndef INTERFACE_H_INCLUDED
 #define INTERFACE_H_INCLUDED
 
-////////////////////////////////////////////////////////////////////////////////
 /**
 *      \file           interface.h
 *
@@ -11,13 +10,68 @@
 *      \date        2020-11-12  Creation
 *      \date         Last update
 *
-
 */
+
+
+
 ///////////////////////////////////////////////////////////////////////////////////
 //
 //             REVISIONS
 //
 ////////////////////////////////////////////////////////////////////////////////////
+
+
+/**
+*      \mainpage   OptiX
+*       An X-ray optics library
+*       this is an &alpha; version of the library
+*      \date               Last update: 2022-02-05
+*
+*      * For Main Interface C functions  see \ref mainAPI
+*      * For aperture utility functions  see \ref apertureAPI
+*      * Enumerated values used in the interface: \ref enums
+*      * Element classes which can be implemented in OptiX: \ref elemClasses
+*      * OptiX internal Global C++ function: \ref GlobalCpp
+*
+*      \defgroup globalc  Interface C functions
+*      \brief Functions exported by the C interface
+*
+*
+*      \defgroup elemClasses Instantiable optical elements classes
+*      \brief  The limited list of class names which can be used to create optical elements in OptiX
+*
+*       The CreateElement() function of the C interface and the C++ internal function CreateElementObject() recognize two names for each instantiable optical element class.
+*       A template style name, Name<class1[,class2]>, or a capitalized name with internal capital letters (camel case).
+*       The GetElementType() C function calls ElementBase::getOptixClass(), and  always returns the template style name.
+*
+*       The actual underlying class is not always templated. When it is a template the template style name is the internal class name, and the simple name is a C++ typedef.
+*       When the underlying class is not templated, e.g. case of sources, the templated style name is an alias only recognized by the CreateElement() / CreateElementObject() functions.
+*
+*      \defgroup enums  Enumeration list
+*      \brief  enumerated values used in the library
+*
+*      \defgroup GlobalCpp  Global internal C++ functions
+*      \brief  C++ functions defined at the OptiX library internal level
+*
+*      \defgroup mainAPI  main Interface C functions
+*      \brief Functions for defining optical systems and running computations
+*      \ingroup globalc
+*
+*      declared in interface.h
+*      \see see also \ref apertureAPI "C interface to Aperture defining functions"
+*
+*      \defgroup apertureAPI  C functions of the aperture API
+*      \brief  interface C Functions for aperture handling exported by the OptiX library
+*      \ingroup globalc
+*
+*      declared in apertureAPI.h
+*      \see see also \ref mainAPI "Main Interface C functions"
+*
+
+ ***************************************************************************/
+
+
+////////////////////////////////////////////////////////////////////////////////
 
 
 #ifdef BUILD_DLL
@@ -33,12 +87,12 @@
 #include "ctypes.h"
 
 
+/** \ingroup mainAPI
+*   \{
+*/
 
-   /** \defgroup globalc  Interface C functions
-    *
-    *   \brief Functions exported by the C interface
-    * \{
-    */
+
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -430,6 +484,6 @@ extern "C"
 }
 #endif
 
-/** \} */  //end of globalc group
+/** \} */  //end of mainAPI group
 
 #endif // INTERFACE_H_INCLUDED
