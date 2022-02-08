@@ -195,12 +195,13 @@ public:
 //    friend TextFile& operator<<(TextFile& file,  Surface& surface);  /**< \brief Duf this Surface object to a TextFile, in a human readable format  */
 //
 //    friend TextFile& operator >>(TextFile& file,  Surface& surface);  /**< \brief Retrieves a Surface object from a TextFile  */
+public:
+    ApertureStop m_aperture;  /**< \brief The active area of the surface   */
+
 
 protected:
-
     vector<RayType> m_impacts; /**<  \brief the ray impacts on the surfaces in forward or backward element space */
     RecordMode m_recording; /**<  \brief flag defining whether or not the ray impacts on this surface are recorded and in forward or backward space   */
-    ApertureStop m_aperture;  /**< \brief The active area of the surface   */
     bool m_apertureActive;    /**<  \brief switch for taking the aperture active area into account */
 };
 

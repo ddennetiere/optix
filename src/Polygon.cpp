@@ -13,7 +13,7 @@
 
  using namespace std;
 
-Polygon::Polygon()
+Polygon::Polygon(bool transparent):Region(transparent)
 {
    m_convex=false;
    m_size=0;

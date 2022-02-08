@@ -43,16 +43,20 @@ using namespace Eigen;
 class Region
 {
     public:
-        Region() {transparent=true;} /**< default constructor. Region transparency is true by default */
+        /** \brief  default constructor. Region transparency is true by default
+         *
+         * \param transparent true if the region is transparent inside opaque outside,  false in the opposite case
+         */
+        Region(bool transparent=true):m_transparent(transparent) {}
         virtual ~Region() {}    /**< default constructor. Does nothing  */
 
         virtual inline std::string getOptixClass()=0;   /**< \brief return the derived class name of this object */
 
-        void setTransparent(){transparent=true; } /**< \brief make the region inside transparent and the outside opaque */
+        void setTransparency(bool transparent){m_transparent=transparent; } /**< \brief make the region inside transparent and the outside opaque */
 
-        void setOpaque() {transparent=false;}  /**< \brief make the region inside opaque and the outside transparent */
+     //   void setOpaque() {transparent=false;}  /**< \brief make the region inside opaque and the outside transparent */
 
-        bool isTransparent(){return transparent;}   /**< \brief return whether or not the region inside is transparent */
+        bool isTransparent(){return m_transparent;}   /**< \brief return whether or not the region inside is transparent */
 
         /** \brief function returning the location of a point relative to the Region.
          *
@@ -85,7 +89,7 @@ class Region
 
 
     protected:
-        bool transparent; /**< \brief An indicator of whether the region is transparent inside and opaque outside (true) or vice versa (false)  */
+        bool m_transparent; /**< \brief An indicator of whether the region is transparent inside and opaque outside (true) or vice versa (false)  */
 
     private:
 };

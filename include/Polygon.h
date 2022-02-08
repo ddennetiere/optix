@@ -25,8 +25,11 @@ class Polygon: public Region
 {
     public:
 
-        Polygon();  /**< Default constructor. Contruct a transparent null polygon with 0 side */
-        virtual ~Polygon(){}    /**<  Default destructor*/
+        /** \brief  Default constructor. Construct a transparent null polygon with 0 side. transparency is true by default
+         *
+         * \param transparent true if the region is transparent inside opaque outside,  false in the opposite case
+         */
+        Polygon(bool transparent=true);
 
         virtual inline std::string getOptixClass(){return "Polygon";}
 

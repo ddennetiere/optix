@@ -28,9 +28,10 @@
 class Ellipse: public Region
 {
     public:
-        /** \brief Default creator: actually creates a circle of radius 1 (m)
+        /** \brief Default creator: actually creates a circle of radius 1 (m); It is created transparent by default
+         * \param  transparent true if the region is transparent inside opaque outside,  false in the opposite case
          */
-        Ellipse();
+        Ellipse(bool transparent=true);
         virtual ~Ellipse(){}
 
         virtual inline std::string getOptixClass(){return "Ellipse";}

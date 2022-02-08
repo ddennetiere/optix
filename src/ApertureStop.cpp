@@ -24,8 +24,9 @@ ApertureStop::~ApertureStop()
 }
 
 
-size_t ApertureStop::addRegion(Region* pRegion)
+size_t ApertureStop::addRegion(Region* pRegion, bool transparent)
 {
+    pRegion->setTransparency(transparent);
     m_regions.push_back(pRegion);
     return m_regions.size()-1;
 }

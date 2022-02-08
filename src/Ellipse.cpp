@@ -13,7 +13,7 @@
 #include "Ellipse.h"
 
 
-Ellipse::Ellipse()
+Ellipse::Ellipse(bool transparent):Region(transparent)
 {
     m_Mat=Matrix3d::Identity();
     m_Mat(2,2)=-1.;
