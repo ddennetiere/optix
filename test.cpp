@@ -27,6 +27,7 @@
 #include "wavefront.h"
 
 #include "Polygon.h"
+#include "Ellipse.h"
 
 //#define POSTFIX(X, P) X#P
 //#define M_PIl POSTFIX(M_PI, L)
@@ -49,7 +50,7 @@ int main()
 //    return TestEllipse();
      Polygon rectangle;
      bool cvx;
-     Array2d point, trans;
+     Array2d point, trans,vect;
      point << 0.,3.1;
      trans << 0,1;
 
@@ -96,6 +97,28 @@ int main()
     Polygon rect2=rectangle;
     cout <<endl;
     rect2.dump();
+    cout << "\nellipse\n";
+
+    Ellipse ellipse(0.2, 0.5, 0.3, 0.2,  M_PI/6.); // 0); //
+
+    double a,b, x0, y0, theta;
+    ellipse.getParameters(&a, &b, &x0, &y0, &theta);
+    ellipse.dump();
+
+    cout << "\ndemi axes:" <<a << ", " << b << endl;
+    cout << "centre:   " <<x0 <<", "<< y0 << endl;
+    cout << "angle:    " << theta*180/M_PI << endl;
+
+    point <<0,0;
+    vect << -1,-1;
+    ellipse.move(-M_PI/18.,vect);
+    ellipse.getParameters(&a, &b, &x0, &y0, &theta);
+    ellipse.dump();
+
+    cout << "\ndemi axes:" <<a << ", " << b << endl;
+    cout << "centre:   " <<x0 <<", "<< y0 << endl;
+    cout << "angle:    " << theta*180/M_PI << endl;
+
 
 }
 

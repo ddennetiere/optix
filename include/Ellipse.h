@@ -52,10 +52,15 @@ class Ellipse: public Region
          * \param ycenter Y coordinate of the circle center
          */
         void setCircle(double radius,  double xcenter=0, double ycenter=0);
+
+        void getParameters(double* a, double* b, double* xcenter, double* ycenter, double *angle);
+
         Location locate(const Ref<Vector2d> &point);
         void move(double angle, const Ref<Vector2d> &translation);
         void setSymmetric(const Ref<Vector2d> &point, const Ref<Vector2d> &dir);
         void setSymmetric(const Ref<Vector2d> &point);
+
+        void dump(){std::cout << std::endl << m_Mat << std::endl;}
 
     protected:
 
