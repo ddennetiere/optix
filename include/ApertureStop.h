@@ -55,10 +55,14 @@ class ApertureStop
          * \param pRegion a pointer to the Region object to be added to the list
          * \return the index of the added element in the region list, equal to new size -1
          */
-        size_t addRegion(Region* pRegion, bool transparent=true);
+        size_t addRegion(Region* pRegion);
 
+        bool insertRegion(size_t index, Region*pRegion);
 
       //  size_t addRegion(string regionType, bool transparent=true);
+
+        bool setRegionTransparency(size_t index, bool transparent);
+
 
         bool replaceRegion(size_t index, Region*pRegion);
 

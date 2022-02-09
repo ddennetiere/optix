@@ -23,12 +23,18 @@ ApertureStop::~ApertureStop()
   m_regions.clear();
 }
 
-
-size_t ApertureStop::addRegion(Region* pRegion, bool transparent)
+size_t ApertureStop::addRegion(Region* pRegion)
 {
-    pRegion->setTransparency(transparent);
     m_regions.push_back(pRegion);
     return m_regions.size()-1;
+}
+
+bool ApertureStop::insertRegion(size_t index, Region*pRegion)
+{
+    if(index <0 || index >= m_regions.size())
+        return false;
+    m_regions.insert(m_regions.begin()+index, pRegion);
+    return true;
 }
 
 bool ApertureStop::removeRegion(size_t index)
@@ -48,6 +54,15 @@ bool ApertureStop::replaceRegion(size_t index, Region*pRegion)
     m_regions[index]=pRegion;
     return true;
 }
+
+bool ApertureStop::setRegionTransparency(size_t index, bool transparent)
+{
+        if(index <0 || index >= m_regions.size())
+        return false;
+        m_regions[index]->setTransparency(transparent);
+        return true;
+}
+
 
 Region* ApertureStop::getRegion(size_t index)
 {

@@ -83,16 +83,17 @@ void Polygon::deleteVertex(size_t n)
     checkConvex();
 }
 
-void Polygon::insertVertex(size_t nprevious, double x, double y)
+void Polygon::insertVertex(size_t pos, double x, double y)
 {
-    if(nprevious < 0 || nprevious>= m_size)
+    if(pos < 0 || pos > m_size)
         throw runtime_error("invalid point number");
     Matrix2Xd vertices(2,m_size+2); //=Matrix2Xd::Zero
-    size_t n=nprevious+1;
-    vertices.leftCols(n)=m_vertices.leftCols(n);
-    vertices(0,n)=x;
-    vertices(1,n)=y;
-    n=m_size-nprevious;
+
+    if(pos!=0)
+        vertices.leftCols(pos)=m_vertices.leftCols(pos);
+    vertices(0,pos)=x;
+    vertices(1,pos)=y;
+    size_t n=m_size+1-pos;
     vertices.rightCols(n)=m_vertices.rightCols(n);
 
     m_vertices.swap(vertices);

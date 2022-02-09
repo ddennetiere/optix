@@ -168,7 +168,7 @@ RayType& GratingBase::transmit(RayType& ray)
     intercept(ray, &normal);    // intercept effectue le changement de repère entrée/sortie (update seulement si alive)
     if(ray.m_alive)
     {
-        if(m_apertureActive)
+        if(!inhibitApertureLimit && m_apertureActive)
         {
             Vector2d pos=(m_surfaceInverse*ray.position()).head(2).cast<double>();
             double T=m_aperture.getTransmissionAt(pos);
@@ -207,7 +207,7 @@ RayType& GratingBase::reflect(RayType& ray)
     intercept(ray, &normal);    // intercept effectue le changement de repère entrée/sortie
     if(ray.m_alive)
     {
-        if(m_apertureActive)
+        if(!inhibitApertureLimit && m_apertureActive)
         {
             Vector2d pos=(m_surfaceInverse*ray.position()).head(2).cast<double>();
             double T=m_aperture.getTransmissionAt(pos);

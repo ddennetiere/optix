@@ -29,7 +29,7 @@
 //#include "files.h"
 
 
-
+extern bool inhibitApertureLimit;
 
 using namespace std;
 
@@ -191,6 +191,18 @@ public:
       * \return The Nx x Ny (row,col) array of coefficients of Legendre polynomials describing the wavefront error to the given degrees and best fitting  the transverse aberration data
       */
      EIGEN_DEVICE_FUNC MatrixXd getWavefontExpansion(double distance, Index Nx, Index Ny, Array22d& XYbounds);
+
+     /** \brief Defines whether or not the aperture limitations of this surface are taken into account in the tray tracing
+      *
+      * \param activity the level of activity to set-up
+      */
+     void setApertureActive(bool activity=true){m_apertureActive=activity;}
+
+     /** \brief retrieves whether or not the aperture limitations of this surface are taken into account in the tray tracing
+      *
+      * \return the aperture activity setting of this surface
+      */
+     bool getApertureActive(){return m_apertureActive;}
 
 //    friend TextFile& operator<<(TextFile& file,  Surface& surface);  /**< \brief Duf this Surface object to a TextFile, in a human readable format  */
 //

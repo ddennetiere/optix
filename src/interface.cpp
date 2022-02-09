@@ -29,8 +29,10 @@
 
 
 ElementCollection System;/**< \brief dictionary of all elements created through this interface  */
+
+bool inhibitApertureLimit=true; /**< Global flag to take into account or not the apertures stops in the ray tracing */
 //set<size_t> ValidIDs;
-StringVector stringData; /**< \todo seem unused*/
+//StringVector stringData; /**< \todo seem unused*/
 
 //inline bool IsValidID(size_t ID)
 //{

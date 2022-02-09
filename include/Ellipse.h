@@ -54,6 +54,14 @@ class Ellipse: public Region
          */
         void setCircle(double radius,  double xcenter=0, double ycenter=0);
 
+        /** \brief Retrieves the parameter of an elliptical region, axis sizes, center position and orientation angle
+         *
+         * \param a Half length of the large axis
+         * \param b Half length of the small axis
+         * \param xcenter abscissa of the ellipse center (default 0)
+         * \param ycenter ordinate of the ellipse center (default 0)
+         * \param angle  orientation angle of the large axis with respect to the X axis in rd (default 0)
+         */
         void getParameters(double* a, double* b, double* xcenter, double* ycenter, double *angle);
 
         Location locate(const Ref<Vector2d> &point);
@@ -61,7 +69,7 @@ class Ellipse: public Region
         void setSymmetric(const Ref<Vector2d> &point, const Ref<Vector2d> &dir);
         void setSymmetric(const Ref<Vector2d> &point);
 
-        void dump(){std::cout << std::endl << m_Mat << std::endl;}
+        void dump(){std::cout << std::endl << m_Mat << std::endl;}/**< \brief \e Debugging \e function: dumps the internal ellipse matrix to std::out */
 
     protected:
 

@@ -21,7 +21,7 @@ RayType& Surface::transmit(RayType& ray)
 {
 
     intercept(ray); // intercept effectue le changement de repère previous to this. The position is updated only if the ray is alive
-    if(ray.m_alive && m_apertureActive)
+    if(ray.m_alive && !inhibitApertureLimit && m_apertureActive)
     {
         Vector2d pos=(m_surfaceInverse*ray.position()).head(2).cast<double>();
         double T=m_aperture.getTransmissionAt(pos);
@@ -42,7 +42,7 @@ RayType& Surface::reflect(RayType& ray)    /*  this implementation simply reflec
 
         if(ray.m_alive)
         {
-            if(m_apertureActive)
+            if(!inhibitApertureLimit && m_apertureActive)
             {
                 Vector2d pos=(m_surfaceInverse*ray.position()).head(2).cast<double>();
                 double T=m_aperture.getTransmissionAt(pos);

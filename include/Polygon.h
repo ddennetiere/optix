@@ -39,6 +39,10 @@ class Polygon: public Region
          */
         Polygon(const Ref<Array2Xd> &vertices);
 
+        size_t getNumSides(){return m_size;}/**< \brief returns the number of sides of the polygon */
+
+        Matrix2Xd getVertices(){return m_vertices.leftCols(m_size);} /**< \brief returns the vertex of the polygon in an m_size width array (without the repeated end point)*/
+
         /** \brief defines a new polygon from an array of vertices
          *
          * \param vertices a reference to an array containing the vertex points
@@ -59,13 +63,13 @@ class Polygon: public Region
          */
         void deleteVertex(size_t n);
 
-        /** \brief Adds a vertex point afte the specified one
+        /** \brief Adds a vertex point at the specified one
          *
-         * \param nprevious the vertex index after which the new vertex must be added
+         * \param pos the position before which the new vertex will be added
          * \param x the abscissa of the new point
          * \param y the ordinate of the new point
          */
-        void insertVertex(size_t nprevious, double x, double y);
+        void insertVertex(size_t pos, double x, double y);
 
         /** \brief checks whether the polygon is convex or not
          *
@@ -101,7 +105,7 @@ class Polygon: public Region
          void setSymmetric(const Ref<Vector2d> &point, const Ref<Vector2d> &dir);
          void setSymmetric(const Ref<Vector2d> &point);
 
-         /** \brief dump the internal data arrays (vertices, side vectors and side equations) to std_out
+         /** \brief \brief \e Debugging \e function: dumps the internal data arrays (vertices, side vectors and side equations) to std::out
           */
          void dump(){std::cout << m_vertices <<  std::endl << m_vects <<std::endl<< m_sides <<std::endl;}
     protected:
