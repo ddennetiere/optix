@@ -298,7 +298,7 @@ DLL_EXPORT size_t ReplaceStopByRectangle(size_t element_ID, size_t index, double
 
 }
 
-DLL_EXPORT size_t GetEllipseParameters(size_t element_ID, size_t index, double *mainAxis, double *minorAxis, bool *opacity, double *Xcenter, double *Ycenter, double *angle)
+DLL_EXPORT size_t GetEllipseParameters(size_t element_ID, size_t index, double *Xaxis, double *Yaxis, bool *opacity, double *Xcenter, double *Ycenter, double *angle)
 {
     if(!System.isValidID(element_ID))
     {
@@ -326,14 +326,14 @@ DLL_EXPORT size_t GetEllipseParameters(size_t element_ID, size_t index, double *
         return -1;
     }
     *opacity=!pReg->isTransparent();
-    dynamic_cast<Ellipse*>(pReg)->getParameters(mainAxis, minorAxis, Xcenter, Ycenter, angle);
+    dynamic_cast<Ellipse*>(pReg)->getParameters(Xaxis, Yaxis, Xcenter, Ycenter, angle);
 
     return 0;
 
 }
 
 
-DLL_EXPORT size_t AddEllipticalStop(size_t element_ID, double mainAxis, double minorAxis, bool opacity, double Xcenter, double Ycenter, double angle)
+DLL_EXPORT size_t AddEllipticalStop(size_t element_ID, double Xaxis, double Yaxis, bool opacity, double Xcenter, double Ycenter, double angle)
 {
     if(!System.isValidID(element_ID))
     {
@@ -347,14 +347,14 @@ DLL_EXPORT size_t AddEllipticalStop(size_t element_ID, double mainAxis, double m
         return -1;
     }
 
-    Ellipse * pellipse=new Ellipse(mainAxis,minorAxis, Xcenter,Ycenter, angle);
+    Ellipse * pellipse=new Ellipse(Xaxis, Yaxis, Xcenter,Ycenter, angle);
     pellipse->setTransparency(!opacity);
 
     return psurf->m_aperture.addRegion(pellipse); // index of the added object
 
 }
 
-DLL_EXPORT size_t InsertEllipticalStop(size_t element_ID, size_t index, double mainAxis, double minorAxis, bool opacity, double Xcenter, double Ycenter, double angle)
+DLL_EXPORT size_t InsertEllipticalStop(size_t element_ID, size_t index, double Xaxis, double Yaxis, bool opacity, double Xcenter, double Ycenter, double angle)
 {
     if(!System.isValidID(element_ID))
     {
@@ -373,7 +373,7 @@ DLL_EXPORT size_t InsertEllipticalStop(size_t element_ID, size_t index, double m
         return -1;
     }
 
-    Ellipse * pellipse=new Ellipse(mainAxis,minorAxis, Xcenter,Ycenter, angle);
+    Ellipse * pellipse=new Ellipse(Xaxis,Yaxis, Xcenter,Ycenter, angle);
     pellipse->setTransparency(!opacity);
 
     if(! psurf->m_aperture.insertRegion(index,pellipse))
@@ -381,7 +381,7 @@ DLL_EXPORT size_t InsertEllipticalStop(size_t element_ID, size_t index, double m
     return index;
 }
 
-DLL_EXPORT size_t ReplaceStopByEllipse(size_t element_ID, size_t index, double mainAxis, double minorAxis, bool opacity, double Xcenter, double Ycenter, double angle)
+DLL_EXPORT size_t ReplaceStopByEllipse(size_t element_ID, size_t index, double Xaxis, double Yaxis, bool opacity, double Xcenter, double Ycenter, double angle)
 {
     if(!System.isValidID(element_ID))
     {
@@ -400,7 +400,7 @@ DLL_EXPORT size_t ReplaceStopByEllipse(size_t element_ID, size_t index, double m
         return -1;
     }
 
-    Ellipse * pellipse=new Ellipse(mainAxis,minorAxis, Xcenter,Ycenter, angle);
+    Ellipse * pellipse=new Ellipse(Xaxis,Yaxis, Xcenter,Ycenter, angle);
     pellipse->setTransparency(!opacity);
 
     if(! psurf->m_aperture.replaceRegion(index,pellipse))
