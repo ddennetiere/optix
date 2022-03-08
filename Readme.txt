@@ -1,6 +1,9 @@
 This is a ray-tracer library for X-ray optics.
 All function are exposed in C form, thow it is internally written in C++
 
+February 10, 2022
+An Aperture API was added to the interface. It allows to define the obstruction/transmission of the aperture associated with each optical element. The aperture affects the intensity carried by a ray. It doesn't affect the ray path, which is computed though the transported intensity might be 0.
+
 June 23, 2021:
 New surface shape classes have been added: 
 ConicBaseCylinder  implements any conic based cylinder (elliptical, hyperbolic, and parabolic cylinders)
