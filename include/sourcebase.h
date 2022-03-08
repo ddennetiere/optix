@@ -96,6 +96,18 @@ class SourceBase : public virtual Surface
             for(it=m_impacts.begin(); it != m_impacts.end(); ++it)
                 m_next->propagate(propRay=*it);   // on propage une cope de *it. La propagation modifie directement le rayon propagé
         }
+
+        /** \brief  Start a specific ray tracing for Wavefront extraction and PSF computation
+         *
+         * \param wavelength The wavelength to radiate <b> in m </b>
+         * \param Xaperture 1/2 NA aperture in the X direction (range [0,1])
+         * \param Yaperture 1/2 NA aperture in the Y direction (range [0,1])
+         * \param Xsize total number of grid points in the X dimension (odd number suggested)
+         * \param Ysize otal number of grid points in the Y dimension (odd number suggested)
+         * \param polar The type of polarization. Can be 'S' (default) polarized along X or 'P' polarized along Y
+         */
+        void waveRadiate(double wavelength, double Xaperture, double Yaperture, size_t Xsize, size_t Ysize, char polar='S'); // will be specialized for computed source like undulators
+
     protected:
 
     private:
