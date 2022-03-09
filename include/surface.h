@@ -158,6 +158,8 @@ public:
      * \return the number of stored impacts     */
     int getImpactData(ImpactData &impactData, FrameID frame=LocalAbsoluteFrame);
 
+   // int getNewImpactData(int n, DiagramType<n> &impactData, FrameID frame=LocalAbsoluteFrame);
+
     /** \brief Computes and fills-up a SpotDiagram object from the internally stored impact collection
      * \param spotDiagram a SpotDiagram object reference which wiill be uptated on return
      * \param distance the distance from this surface along the alignment ray where the observation plane is located
@@ -170,7 +172,7 @@ public:
      * The CausticDiagram consists in the point of each ray wich is the closest to the central alignment ray
      * \param causticData a CausticDiagram object reference which wiill be uptated on return
      * \return the number of stored impacts
-     */    int getCaustic(CausticDiagram& causticData);
+     */    int getCaustic(Diagram& causticData);
 
      /** \brief return in a SpotDiagram structure the transverse aberrant distances from a given reference point and the direction coefficients of each ray
       *

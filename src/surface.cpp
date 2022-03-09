@@ -246,11 +246,12 @@ int Surface::getImpactData(ImpactData &impactData, FrameID frame)
     return ip;
 }
 
-int Surface::getCaustic(CausticDiagram& causticData)
+int Surface::getCaustic(Diagram& causticData)
 {
 //    if(causticData.m_spots)
 //        delete[] causticData.m_spots;
-
+    if(causticData.m_dim < 4)
+        throw invalid_argument("Caustic data arameter should have a vector dimension of at least 4");
     vector<RayType> impacts;
     causticData.m_lost=getImpacts(impacts,AlignedLocalFrame);
 //    if(impacts.size()==0)

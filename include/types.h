@@ -52,8 +52,38 @@ public:
        m_mean=new double[Vsize];
        m_sigma=new double[Vsize];
     }
-    DiagramType(int n):m_count(n), m_spots(new double[Vsize*n]){}
+  //  DiagramType(int n):m_count(n), m_spots(new double[Vsize*n]){}  Obsolete
     ~DiagramType()
+    {
+        if(m_min) delete [] m_min;
+        if(m_max) delete [] m_max;
+        if(m_mean) delete [] m_mean;
+        if(m_sigma) delete [] m_sigma;
+        if(m_spots) delete [] m_spots;
+    }
+};
+
+class Diagram{  // if this structure is changed, mind it is aligned on 8 byte boundaries
+public:
+    const int m_dim; /**< \brief number of components stored in each spot vector */
+    int m_reserved=0;   /**< \brief maximum number of spot vectors the m_spots storage area was allocated */
+    int m_count=0;    /**< \brief number of point in returned the spot diagram */
+    int m_lost=0;  /**< \brief number of ray lost in propagation from source */
+    double* m_min;    /**< \brief minimum values of the (Vsize) components (X, Y, dX/dZ, dY/dZ  or X, Y Z) */
+    double* m_max;    /**< \brief maximum values of the (Vsize) components  */
+    double* m_mean;   /**< \brief average value of each of the (Vsize) components */
+    double* m_sigma;  /**< \brief RMS value of each of the (Vsize) components */
+    double* m_spots;   /**<  \brief The   (Vsize) x m_reserved  array of the spot vectors (in component major order) */
+// methods
+    Diagram(int Vsize):m_dim(Vsize), m_count(0), m_spots(NULL)
+    {
+       m_min=new double[Vsize];
+       m_max=new double[Vsize];
+       m_mean=new double[Vsize];
+       m_sigma=new double[Vsize];
+    }
+  //  DiagramType(int n):m_count(n), m_spots(new double[Vsize*n]){}  Obsolete
+    ~Diagram()
     {
         if(m_min) delete [] m_min;
         if(m_max) delete [] m_max;
@@ -82,9 +112,9 @@ struct SolemioLinkType
 };
 
 
-typedef DiagramType<4> SpotDiagram;  /**< \brief Storage data structure of spot-diagrams */
+//typedef DiagramType<4> SpotDiagram;  /**< \brief Storage data structure of spot-diagrams */
 typedef DiagramType<5> SpotDiagramExt;  /**< \brief Storage data structure of spot-diagrams + wavelength*/
-typedef DiagramType<4> CausticDiagram; /**< \brief Storage data structure of caustic diagrams */
+// typedef DiagramType<4> CausticDiagram; /**< \brief Storage data structure of caustic diagrams */
 typedef DiagramType<7> ImpactData;/**< \brief Storage data structure to get full available impact information  */
 
 #endif // TYPES_H_INCLUDED

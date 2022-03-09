@@ -43,8 +43,8 @@ int TestEllipse();
 
 int main()
 {
- //  return SolemioTest();
-//    return OriginalTest();
+//  return SolemioTest();
+    return OriginalTest();
 //    return SphereTest();
 //    return QuickTest();
 //    return TestEllipse();
@@ -282,7 +282,7 @@ int OriginalTest()
 
     {
         fstream causticFile("diagram.cdg", ios::out | ios::binary);
-        CausticDiagram caustic;
+        Diagram caustic(4);
         int n= film2.getCaustic(caustic) ;
         cout << " caustic of " << n << " points\n";
         causticFile << caustic;

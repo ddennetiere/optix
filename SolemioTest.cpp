@@ -121,7 +121,8 @@ using namespace std::chrono;
             spotfile.close();
 
             {
-                CausticDiagram caustic;
+               //  CausticDiagram caustic;
+                Diagram caustic(4);
                 int n= screen->getCaustic(caustic) ;
                 cout << " caustic of " << n << " points\n";
                 fstream causticFile("SMcaustic.cdg", ios::out | ios::binary);

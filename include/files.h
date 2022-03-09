@@ -227,6 +227,20 @@ inline fstream& operator<<(fstream& file, DiagramType<Vsize>& diagram )
     return file;
 }
 
+inline fstream& operator<<(fstream& file, Diagram& diagram )
+{
+    streamsize bytes=diagram.m_dim*sizeof(double)*diagram.m_count;
+
+    file.write((char*)&diagram, 4*sizeof(int));
+    file.write((char*) diagram.m_min, diagram.m_dim*sizeof(double));
+    file.write((char*) diagram.m_max, diagram.m_dim*sizeof(double));
+    file.write((char*) diagram.m_mean, diagram.m_dim*sizeof(double));
+    file.write((char*) diagram.m_sigma, diagram.m_dim*sizeof(double));
+
+    file.write((char*)diagram.m_spots, bytes);
+    return file;
+}
+
 /** \brief Write a Spot-diagram contained in a C_DiagramStructto a file in binary format
  * \ingroup GlobalCpp
  * \param file  output binary file
