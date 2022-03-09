@@ -58,13 +58,10 @@ ElementBase* CreateElementObject(string s_type, string name)
 
     if (s_type=="Source<XY,Grid>" || s_type=="XYGridSource")
         elem=new XYGridSource(name);
-
     else if (s_type=="Source<Radial,Grid>" || s_type=="RadialGridSource")
         elem= new RadialGridSource(name);
-
     else if (s_type=="Source<Gaussian>" || s_type=="GaussianSource")
         elem= new GaussianSource(name);
-
     else if (s_type=="Source<Astigmatic,Gaussian>" || s_type=="AstigmaticGaussianSource")
         elem= new AstigmaticGaussianSource(name);
 
@@ -131,16 +128,14 @@ ElementBase * ElementCopy(ElementBase* source)
     ElementBase* Copy=NULL;
     string s_type=source->getOptixClass();
 
-    if (s_type=="Source<XYGrid>" || s_type=="XYGridSource")
+    if (s_type=="Source<XY,Grid>" || s_type=="XYGridSource")
         Copy=new XYGridSource(*dynamic_cast<XYGridSource*> (source));
-
-
-
-    else if (s_type=="Source<RadialGrid>" || s_type=="RadialGridSource")
+    else if (s_type=="Source<Radial,Grid>" || s_type=="RadialGridSource")
         Copy= new RadialGridSource(*dynamic_cast<RadialGridSource*>(source));
-
     else if (s_type=="Source<Gaussian>" || s_type=="GaussianSource")
         Copy= new GaussianSource(*dynamic_cast<GaussianSource*>(source));
+    else if (s_type=="Source<Astigmatic,Gaussian>" || s_type=="AstigmaticGaussianSource")
+        Copy= new AstigmaticGaussianSource(*dynamic_cast<AstigmaticGaussianSource*>(source));
 
     else if (s_type=="Mirror<Plane>" || s_type=="PlaneMirror")
         Copy= new Mirror<Plane>(*dynamic_cast<Mirror<Plane>*>(source));
@@ -163,6 +158,10 @@ ElementBase * ElementCopy(ElementBase* source)
         Copy= new Film<Cylinder>(*dynamic_cast<Film<Cylinder>*>(source));
     else if (s_type=="Film<Toroid>" || s_type=="ToroidalFilm")
         Copy= new Film<Toroid>(*dynamic_cast<Film<Toroid>*>(source));
+    else if (s_type=="Film<ConicBaseCylinder>" || s_type=="ConicBaseCylindricalFilm")
+        Copy= new Film<ConicBaseCylinder>(*dynamic_cast<Film<ConicBaseCylinder>*>(source));
+    else if (s_type=="Film<RevolutionQuadric>" || s_type=="RevolutionQuadricFilm")
+        Copy= new Film<RevolutionQuadric>(*dynamic_cast<Film<RevolutionQuadric>*>(source));
 
     else if (s_type=="Grating<Holo,Plane>" || s_type=="PlaneHoloGrating")
         Copy= new Grating<Holo,Plane>(*dynamic_cast<Grating<Holo,Plane>*>(source));
@@ -172,6 +171,11 @@ ElementBase * ElementCopy(ElementBase* source)
         Copy= new Grating<Holo,Cylinder>(*dynamic_cast<Grating<Holo,Cylinder>*>(source));
     else if (s_type=="Grating<Holo,Toroid>" || s_type=="ToroidalHoloGrating")
         Copy= new Grating<Holo,Toroid>(*dynamic_cast<Grating<Holo,Toroid>*>(source));
+    else if (s_type=="Grating<Holo,ConicBaseCylinder>" || s_type=="ConicBaseCylindricalHoloGrating")
+        Copy= new Grating<Holo,ConicBaseCylinder>(*dynamic_cast<Grating<Holo,ConicBaseCylinder>*>(source));
+    else if (s_type=="Grating<Holo,RevolutionQuadric>" || s_type=="RevolutionQuadricHoloGrating")
+        Copy= new Grating<Holo,RevolutionQuadric>(*dynamic_cast<Grating<Holo,RevolutionQuadric>*>(source));
+
 
     else if (s_type=="Grating<Poly1D,Plane>" || s_type=="PlanePoly1DGrating")
         Copy= new Grating<Poly1D,Plane>(*dynamic_cast<Grating<Poly1D,Plane>*>(source));
@@ -181,7 +185,10 @@ ElementBase * ElementCopy(ElementBase* source)
         Copy= new Grating<Poly1D,Cylinder>(*dynamic_cast<Grating<Poly1D,Cylinder>*>(source));
     else if (s_type=="Grating<Poly1D,Toroid>" || s_type=="ToroidalPoly1DGrating")
         Copy= new Grating<Poly1D,Toroid>(*dynamic_cast<Grating<Poly1D,Toroid>*>(source));
-
+    else if (s_type=="Grating<Poly1D,ConicBaseCylinder>" || s_type=="ConicBaseCylindricalPoly1DGrating")
+        Copy= new Grating<Poly1D,ConicBaseCylinder>(*dynamic_cast<Grating<Poly1D,ConicBaseCylinder>*>(source));
+    else if (s_type=="Grating<Poly1D,RevolutionQuadric>" || s_type=="RevolutionQuadricPoly1DGrating")
+        Copy= new Grating<Poly1D,RevolutionQuadric>(*dynamic_cast<Grating<Poly1D,RevolutionQuadric>*>(source));
 //    else
 //        return NULL; // creation failed bad type
 //
