@@ -115,6 +115,6 @@ struct SolemioLinkType
 //typedef DiagramType<4> SpotDiagram;  /**< \brief Storage data structure of spot-diagrams */
 typedef DiagramType<5> SpotDiagramExt;  /**< \brief Storage data structure of spot-diagrams + wavelength*/
 // typedef DiagramType<4> CausticDiagram; /**< \brief Storage data structure of caustic diagrams */
-typedef DiagramType<7> ImpactData;/**< \brief Storage data structure to get full available impact information  */
+//typedef DiagramType<7> ImpactData;/**< \brief Storage data structure to get full available impact information  */
 
 #endif // TYPES_H_INCLUDED

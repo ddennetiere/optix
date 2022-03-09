@@ -156,7 +156,7 @@ public:
      * \param impactData a DiagramType object to fill with the internally stored data
      * \param frame  The type of frame where impacts must be referred to. Can be: AlignedLocalFrame, SurfaceFrame, GeneralFrame or LocalAbsoluteFrame
      * \return the number of stored impacts     */
-    int getImpactData(ImpactData &impactData, FrameID frame=LocalAbsoluteFrame);
+    int getImpactData(Diagram &impactData, FrameID frame=LocalAbsoluteFrame);
 
    // int getNewImpactData(int n, DiagramType<n> &impactData, FrameID frame=LocalAbsoluteFrame);
 

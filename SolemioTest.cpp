@@ -292,7 +292,7 @@ using namespace std::chrono;
         cout << endl << endl;
     }
 
-    ImpactData impacts;
+    Diagram impacts(7);
 
     ncounts=screen->getImpactData(impacts);
     if(ncounts)
@@ -459,7 +459,7 @@ using namespace std::chrono;
 
     if(1) return 0;
 
-    ImpactData impacts;
+    Diagram impacts(7);
 
     ncounts=screen->getImpactData(impacts);
     if(ncounts)

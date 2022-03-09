@@ -177,12 +177,14 @@ int Surface::getSpotDiagram(SpotDiagramExt& spotDiagram, double distance)
     return ip;
 }
 
-int Surface::getImpactData(ImpactData &impactData, FrameID frame)
+int Surface::getImpactData(Diagram &impactData, FrameID frame)
 {
  //   cout << "getting diagram of  "  << m_name <<  " n " << m_impacts.size() << "  mem " << &m_impacts[0] << endl;
 
 //    vector<RayType> impacts;
 //    impactData.m_lost=getImpacts(impacts,LocalAbsoluteFrame);
+    if(impactData.m_dim < 7)
+        throw invalid_argument("Impact data argument should have a vector dimension of at least 7");
 
     impactData.m_count=m_impacts.size();
     if(impactData.m_count==0)
@@ -251,7 +253,7 @@ int Surface::getCaustic(Diagram& causticData)
 //    if(causticData.m_spots)
 //        delete[] causticData.m_spots;
     if(causticData.m_dim < 4)
-        throw invalid_argument("Caustic data arameter should have a vector dimension of at least 4");
+        throw invalid_argument("Caustic data argument should have a vector dimension of at least 4");
     vector<RayType> impacts;
     causticData.m_lost=getImpacts(impacts,AlignedLocalFrame);
 //    if(impacts.size()==0)

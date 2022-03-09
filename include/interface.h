@@ -101,7 +101,7 @@
     #endif
 #endif
 
-#include "ctypes.h"
+
 
 
 /** \ingroup mainAPI
@@ -116,6 +116,8 @@ extern "C"
 #else
 #include <stdbool.h>
 #endif
+
+#include "ctypes.h"
 
     /** \brief Dumps the version number and compilation date of the library to the console
      */
@@ -461,7 +463,7 @@ extern "C"
      * \param frame the reference frame in which the impacts must be evaluated
      * \return a boolean value, true for success, false for failure and OptixLastError is set.
      */
-    DLL_EXPORT bool GetImpactsData(size_t elementID, struct C_DiagramStruct * diagram, FrameID frame);
+    DLL_EXPORT bool GetImpactsData(size_t elementID, struct C_DiagramStruct * diagram, enum FrameID frame);
 
     /** \brief Write a C_DiagramStruct to a file in binary format <i>(it is questionnable whether it should be maintained as is,in the interface)</i>
      *

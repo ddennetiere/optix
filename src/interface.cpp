@@ -622,16 +622,16 @@ extern "C"
         SetOptiXLastError("Element cannot record impacts (not a surface) ", __FILE__, __func__);
         return false;
     }
-    DLL_EXPORT bool GetImpactsData(size_t elementID, struct C_DiagramStruct * diagram, FrameID frame)
+    DLL_EXPORT bool GetImpactsData(size_t elementID, struct C_DiagramStruct * diagram, enum FrameID frame)
     {
-        if(diagram->m_dim != 7)
+        if(diagram->m_dim <= 7)
         {
-            SetOptiXLastError("m_dim must be 7 for impact data", __FILE__, __func__);
+            SetOptiXLastError("m_dim must be at least  7 for impact data", __FILE__, __func__);
             return false;
         }
 
         char errstr[64];
-        ImpactData* impactData= (ImpactData*)diagram;
+        Diagram* impactData= (Diagram*)diagram;
         Surface * surf=dynamic_cast<Surface*>((ElementBase*)elementID);
 
         if(surf)

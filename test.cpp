@@ -43,8 +43,8 @@ int TestEllipse();
 
 int main()
 {
-//  return SolemioTest();
-    return OriginalTest();
+    return SolemioTest();
+//  return OriginalTest();
 //    return SphereTest();
 //    return QuickTest();
 //    return TestEllipse();
