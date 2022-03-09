@@ -165,23 +165,25 @@ public:
      * \param distance the distance from this surface along the alignment ray where the observation plane is located
      * \return the number of stored impacts
      */
-    int getSpotDiagram(SpotDiagramExt& spotDiagram, double distance=0);
+    int getSpotDiagram(Diagram & spotDiagram, double distance=0);
 
     /** \brief Computes and fills-up a CausticDiagram object from the internally stored impact collection
      *
      * The CausticDiagram consists in the point of each ray wich is the closest to the central alignment ray
-     * \param causticData a CausticDiagram object reference which wiill be uptated on return
+     * \param causticData a CausticDiagram object reference which will be uptated on return
+     * * \n  ATENTION the Diagram spotDiagram.m_spots array might be reallocated by this function. Do not pass a C struct allocated by malloc
      * \return the number of stored impacts
      */    int getCaustic(Diagram& causticData);
 
      /** \brief return in a SpotDiagram structure the transverse aberrant distances from a given reference point and the direction coefficients of each ray
       *
       *  The transverse aberrant distances can be identified as the derivative of the wavefront aberration  with respect to the aperture angles
-      * \param[out] WFdata a SpotDiagram structure to return the transverse aberrant distances in the X and Y planes and the X and Y components of the normalized direction vector
+      * \param[out] WFdata a SpotDiagram structure to return the transverse aberrant distances in the X and Y planes and the X and Y components of the normalized direction vector.
+      * \n  ATENTION the Diagram WFdata.m_spots array might be reallocated by this function. Do not pass a C struct allocated by malloc
       * \param[in] distance the distance of the reference point from the recording plane of the rays
       * \return the number of rays in the wFdata structure
       */
-     int getWavefrontData(SpotDiagramExt& WFdata, double distance=0);
+     int getWavefrontData(Diagram & WFdata, double distance=0);
 
      /** \brief Get the wavefront expansion in Legendre Polynomial of aperture angle
       *

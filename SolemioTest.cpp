@@ -108,7 +108,7 @@ using namespace std::chrono;
 
 
 
-        SpotDiagramExt spotDg;
+        Diagram spotDg(5);
 
         int ncounts=screen->getSpotDiagram(spotDg,-0.002);
         if(ncounts)
@@ -261,7 +261,7 @@ using namespace std::chrono;
     cout << "\nIMPACTS\n";
 
 
-    SpotDiagramExt spotDg;
+    Diagram spotDg(5);
 
     int ncounts=screen->getSpotDiagram(spotDg,0);
     if(ncounts)
@@ -441,7 +441,7 @@ using namespace std::chrono;
     cout << "\nIMPACTS\n";
 
 
-    SpotDiagramExt spotDg;
+    Diagram spotDg(5);
 
     int ncounts=screen->getSpotDiagram(spotDg,defoc);
     if(ncounts)

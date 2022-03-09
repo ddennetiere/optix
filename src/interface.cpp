@@ -598,7 +598,7 @@ extern "C"
         }
 
         char errstr[64];
-        SpotDiagramExt* spotdiag= (SpotDiagramExt*)diagram;
+        Diagram* spotdiag= (Diagram*)diagram;
         Surface * surf=dynamic_cast<Surface*>((ElementBase*)elementID);
 
         if(surf)

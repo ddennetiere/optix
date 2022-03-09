@@ -273,7 +273,7 @@ int OriginalTest()
 
     {
         fstream spotfile("Spotdiag.sdg", ios::out | ios::binary);
-        SpotDiagramExt spotDg;
+        Diagram spotDg(5);
        // PlaneFilm screenCopy(film2);
         film2.getSpotDiagram(spotDg,0.00);
         spotfile << spotDg;
@@ -290,7 +290,7 @@ int OriginalTest()
     }
     if(0){
         fstream WfFile("wavederiv.sdg", ios::out | ios::binary);
-        SpotDiagramExt WFdata;
+        Diagram WFdata(5);
         int n= film2.getWavefrontData(WFdata) ;
         cout << " WF deriv  of " << n << " points\n";
         WfFile << WFdata;
@@ -356,7 +356,7 @@ int OriginalTest()
         gSource.radiate();
 
         fstream spotfile("Spotdiag2.sdg", ios::out | ios::binary);
-        SpotDiagramExt spotDg;
+        Diagram spotDg(5);
        // PlaneFilm screenCopy(film2);
         film2.getSpotDiagram(spotDg,0.00);
         spotfile << spotDg;
@@ -555,7 +555,7 @@ int TestEllipse()
        return -1;
     }
 
-    SpotDiagramExt spotDg;
+    Diagram spotDg(5);
 
     cout << "\nIMPACTS\n";
     int ncounts=screen->getSpotDiagram(spotDg,0);

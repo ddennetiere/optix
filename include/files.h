@@ -205,27 +205,27 @@ protected:
 
 
 
-/** \brief Write a SpotDiagram object to a file in binary format
- * \ingroup GlobalCpp
- * \param file  output binary file
- * \param spotDiag spot diagram data
- * \return the file reference
- * \relates SpotDiagram
- */
-template<int Vsize>
-inline fstream& operator<<(fstream& file, DiagramType<Vsize>& diagram )
-{
-    streamsize bytes=Vsize*sizeof(double)*diagram.m_count;
-
-    file.write((char*)&diagram, 4*sizeof(int));
-    file.write((char*) diagram.m_min, Vsize*sizeof(double));
-    file.write((char*) diagram.m_max, Vsize*sizeof(double));
-    file.write((char*) diagram.m_mean, Vsize*sizeof(double));
-    file.write((char*) diagram.m_sigma, Vsize*sizeof(double));
-
-    file.write((char*)diagram.m_spots, bytes);
-    return file;
-}
+// /** \brief Write a SpotDiagram object to a file in binary format
+// * \ingroup GlobalCpp
+// * \param file  output binary file
+// * \param spotDiag spot diagram data
+// * \return the file reference
+// * \relates SpotDiagram
+// */
+//template<int Vsize>
+//inline fstream& operator<<(fstream& file, DiagramType<Vsize>& diagram )
+//{
+//    streamsize bytes=Vsize*sizeof(double)*diagram.m_count;
+//
+//    file.write((char*)&diagram, 4*sizeof(int));
+//    file.write((char*) diagram.m_min, Vsize*sizeof(double));
+//    file.write((char*) diagram.m_max, Vsize*sizeof(double));
+//    file.write((char*) diagram.m_mean, Vsize*sizeof(double));
+//    file.write((char*) diagram.m_sigma, Vsize*sizeof(double));
+//
+//    file.write((char*)diagram.m_spots, bytes);
+//    return file;
+//}
 
 inline fstream& operator<<(fstream& file, Diagram& diagram )
 {

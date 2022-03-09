@@ -125,11 +125,15 @@ int Surface::getImpacts(vector<RayType> &impacts, FrameID frame)
     return lostCount;
 }
 
-int Surface::getSpotDiagram(SpotDiagramExt& spotDiagram, double distance)
+int Surface::getSpotDiagram(Diagram & spotDiagram, double distance)
 {
 //    if(spotDiagram.m_spots)
 //        delete[] spotDiagram.m_spots;
     cout << "getting diagram of  "  << m_name <<  " n " << m_impacts.size() << "  mem " << &m_impacts[0] << endl;
+
+    if(spotDiagram.m_dim < 5)
+        throw invalid_argument("SpotDiagram argument should have a vector dimension of at least 5");
+
 
     vector<RayType> impacts;
     spotDiagram.m_lost=getImpacts(impacts,AlignedLocalFrame);
@@ -318,8 +322,11 @@ int Surface::getCaustic(Diagram& causticData)
 }
 
 
-int Surface::getWavefrontData(SpotDiagramExt& WFdata, double distance)
+int Surface::getWavefrontData(Diagram & WFdata, double distance)
 {
+    if(WFdata.m_dim < 5)
+        throw invalid_argument("WavefrontData argument should have a vector dimension of at least 5");
+
     if(WFdata.m_spots)
     delete[] WFdata.m_spots;
 
@@ -348,6 +355,8 @@ int Surface::getWavefrontData(SpotDiagramExt& WFdata, double distance)
         WFmat.block<2,1>(2,ip)= pRay->direction().segment(0,2).cast<double>();
         WFmat(4,ip)=pRay->m_wavelength;
     }
+    Map<Array<double,Dynamic, Dynamic> > WFMap(WFdata.m_spots, WFdata.m_dim,  ip);
+    WFMap.swap(WFmat);
     return ip;
 }
 
