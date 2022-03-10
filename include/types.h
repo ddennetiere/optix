@@ -65,11 +65,11 @@ typedef RayBase<FloatType>  RayBaseType;  /**< \brief base  class of rays for in
 
 /** \brief Structure to hold spot and caustic diagrams
  *
- * For spot diagrams (\ref SpotDiagram) each spot records the 2D ray position and direction with  X, Y, dX/dZ, dY/dZ
+ * For spot diagrams (\ref Surface::getSpotDiagram) each spot records the 2D ray position and direction with  X, Y, dX/dZ, dY/dZ
  * then  the wavelength and up to 4 Stokes parameters
  *
  * \n For impactData each spots records the 3D position and direction , then the wavelength and up to 4 stokes parameters (according to the structure size m_dim
- * \n For caustic diagrams (\ref CausticDiagram), each spot records the position on the ray (X,Y,Z) which has the minimum distance to the alignment chief ray, and the wavelength
+ * \n For caustic diagrams (\ref Surface::getCaustic), each spot records the position on the ray (X,Y,Z) which has the minimum distance to the alignment chief ray, and the wavelength
  * \n For caustic also, the sum of m_count and m_lost might be smaller than the number of rays emitted from the source, since some rays almost parallel
  * to the reference axes might be discarded.
  *
