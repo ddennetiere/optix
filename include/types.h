@@ -65,8 +65,10 @@ typedef RayBase<FloatType>  RayBaseType;  /**< \brief base  class of rays for in
 
 /** \brief Structure to hold spot and caustic diagrams
  *
- * For spot diagrams (\ref SpotDiagram) each spot records the 2D ray position and direction with  X, Y, dX/dZ, dY/dZ then  the wavelength and one to 4 Stokes parameters
- * \ For impactData each spots records the 3D position and direction , then the wavelength and one to 4 stokes parameters (according to the structure size m_dim
+ * For spot diagrams (\ref SpotDiagram) each spot records the 2D ray position and direction with  X, Y, dX/dZ, dY/dZ
+ * then  the wavelength and up to 4 Stokes parameters
+ *
+ * \n For impactData each spots records the 3D position and direction , then the wavelength and up to 4 stokes parameters (according to the structure size m_dim
  * \n For caustic diagrams (\ref CausticDiagram), each spot records the position on the ray (X,Y,Z) which has the minimum distance to the alignment chief ray, and the wavelength
  * \n For caustic also, the sum of m_count and m_lost might be smaller than the number of rays emitted from the source, since some rays almost parallel
  * to the reference axes might be discarded.
@@ -78,11 +80,11 @@ public:
     int m_reserved=0;   /**< \brief maximum number of spot vectors the m_spots storage area was allocated */
     int m_count=0;    /**< \brief number of point in returned the spot diagram */
     int m_lost=0;  /**< \brief number of ray lost in propagation from source */
-    double* m_min;    /**< \brief minimum values of the (Vsize) components (X, Y, dX/dZ, dY/dZ  or X, Y Z) */
-    double* m_max;    /**< \brief maximum values of the (Vsize) components  */
-    double* m_mean;   /**< \brief average value of each of the (Vsize) components */
-    double* m_sigma;  /**< \brief RMS value of each of the (Vsize) components */
-    double* m_spots;   /**<  \brief The   (Vsize) x m_reserved  array of the spot vectors (in component major order) */
+    double* m_min;    /**< \brief minimum values of the (m_dim) components (X, Y, dX/dZ, dY/dZ  or X, Y Z, dirX, dirY, dirZ) */
+    double* m_max;    /**< \brief maximum values of the (m_dim) components  */
+    double* m_mean;   /**< \brief average value of each of the (m_dim) components */
+    double* m_sigma;  /**< \brief RMS value of each of the (m_dim) components */
+    double* m_spots;   /**<  \brief The   (m_dim) x m_reserved  array of the spot vectors (in component major order) */
 // methods
     Diagram(int Vsize):m_dim(Vsize), m_count(0), m_spots(NULL)
     {

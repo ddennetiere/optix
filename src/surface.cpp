@@ -168,7 +168,25 @@ int Surface::getSpotDiagram(Diagram & spotDiagram, double distance)
             pRay->moveToPlane(obsPlane);
             spotMat.block<2,1>(0,ip)=pRay->position().segment(0,2).cast<double>();
             spotMat.block<2,1>(2,ip)=pRay->direction().segment(0,2).cast<double>();
-            spotMat(4,ip)=pRay->m_wavelength;
+
+            double Is,Ip;
+            complex<double> prod;
+            if(spotDiagram.m_dim>4)
+                spotMat(4,ip)=pRay->m_wavelength;
+            if(spotDiagram.m_dim>5)
+            {
+                Is=norm(pRay->m_amplitude_S);
+                Ip=norm(pRay->m_amplitude_P);
+                spotMat(5,ip)=Is+Ip;
+            }
+            if(spotDiagram.m_dim>8)
+            {
+                prod=conj(pRay->m_amplitude_S)*pRay->m_amplitude_P;
+                spotMat(6,ip)=Is-Ip;
+                spotMat(7,ip)=prod.real();
+                spotMat(8,ip)=prod.imag();
+            }
+
             ++ip;
         }
     }
@@ -187,8 +205,8 @@ int Surface::getImpactData(Diagram &impactData, FrameID frame)
 
 //    vector<RayType> impacts;
 //    impactData.m_lost=getImpacts(impacts,LocalAbsoluteFrame);
-    if(impactData.m_dim < 7)
-        throw invalid_argument("Impact data argument should have a vector dimension of at least 7");
+    if(impactData.m_dim < 6)
+        throw invalid_argument("Impact data argument should have a vector dimension of at least 6");
 
     impactData.m_count=m_impacts.size();
     if(impactData.m_count==0)
@@ -235,9 +253,24 @@ int Surface::getImpactData(Diagram &impactData, FrameID frame)
                 spotMat.block<3,1>(3,ip)=pRay->direction().cast<double>();
                 break;
             }
+            double Is,Ip;
+            complex<double> prod;
+            if(impactData.m_dim>6)
+                spotMat(6,ip)=pRay->m_wavelength;
+            if(impactData.m_dim>7)
+            {
+                Is=norm(pRay->m_amplitude_S);
+                Ip=norm(pRay->m_amplitude_P);
+                spotMat(7,ip)=Is+Ip;
+            }
+            if(impactData.m_dim>10)
+            {
+                prod=conj(pRay->m_amplitude_S)*pRay->m_amplitude_P;
+                spotMat(8,ip)=Is-Ip;
+                spotMat(9,ip)=prod.real();
+                spotMat(10,ip)=prod.imag();
+            }
 
-
-            spotMat(6,ip)=pRay->m_wavelength;
             ++ip;
         }
         else

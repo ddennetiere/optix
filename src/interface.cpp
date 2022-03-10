@@ -591,9 +591,9 @@ extern "C"
 
     DLL_EXPORT bool GetSpotDiagram(size_t elementID, struct C_DiagramStruct * diagram, double distance)
     {
-        if(diagram->m_dim != 5)
+        if(diagram->m_dim <4)
         {
-            SetOptiXLastError("m_dim must be 5 for spotdiagrams", __FILE__, __func__);
+            SetOptiXLastError("m_dim must be at least 4 for spotdiagrams", __FILE__, __func__);
             return false;
         }
 
@@ -622,11 +622,12 @@ extern "C"
         SetOptiXLastError("Element cannot record impacts (not a surface) ", __FILE__, __func__);
         return false;
     }
+
     DLL_EXPORT bool GetImpactsData(size_t elementID, struct C_DiagramStruct * diagram, enum FrameID frame)
     {
-        if(diagram->m_dim <= 7)
+        if(diagram->m_dim <= 6)
         {
-            SetOptiXLastError("m_dim must be at least  7 for impact data", __FILE__, __func__);
+            SetOptiXLastError("m_dim must be at least  6 for impact data", __FILE__, __func__);
             return false;
         }
 
