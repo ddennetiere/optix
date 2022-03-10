@@ -20,7 +20,7 @@
 
 using namespace std;
 
-EIGEN_DEVICE_FUNC ArrayXXd Legendre(int Norder, const Ref<ArrayXd>& Xpos, ArrayXXd& derivative )
+ArrayXXd Legendre(int Norder, const Ref<ArrayXd>& Xpos, ArrayXXd& derivative )
 {
     cout << "bounds in Legendre  " << Xpos.minCoeff() <<"  " << Xpos.maxCoeff() << endl;
     if ((Xpos.maxCoeff() > 1.) || (Xpos.minCoeff() < -1. ))
@@ -48,7 +48,7 @@ EIGEN_DEVICE_FUNC ArrayXXd Legendre(int Norder, const Ref<ArrayXd>& Xpos, ArrayX
 }
 
 
-EIGEN_DEVICE_FUNC ArrayXXd LegendreIntegrateSlopes(int Nx, int Ny, const Ref<ArrayX4d>& WFdata, const Ref<Array2d>& Xaperture,
+ArrayXXd LegendreIntegrateSlopes(int Nx, int Ny, const Ref<ArrayX4d>& WFdata, const Ref<Array2d>& Xaperture,
                                                    const Ref<Array2d>& Yaperture)
 {
 //  WFdata Transversa aberration array  stored in aperture points order. Columns are respectively
@@ -94,7 +94,7 @@ EIGEN_DEVICE_FUNC ArrayXXd LegendreIntegrateSlopes(int Nx, int Ny, const Ref<Arr
 }
 
 
-EIGEN_DEVICE_FUNC ArrayXXd LegendreSurface(const Ref<ArrayXd>& Xpos, const Ref<ArrayXd>& Ypos, const Ref<Array22d>& bounds, const Ref<MatrixXd>& legendreCoefs )
+ArrayXXd LegendreSurface(const Ref<ArrayXd>& Xpos, const Ref<ArrayXd>& Ypos, const Ref<Array22d>& bounds, const Ref<MatrixXd>& legendreCoefs )
 {
     ArrayXXd surface;
     MatrixXd Lx, Ly;
@@ -110,4 +110,23 @@ EIGEN_DEVICE_FUNC ArrayXXd LegendreSurface(const Ref<ArrayXd>& Xpos, const Ref<A
     Ly=Legendre(legendreCoefs.cols(),Ynormed, deriv);
     surface=Lx*legendreCoefs*Ly.transpose();
     return surface;
+}
+
+ArrayXd Legendre2DInterpolate(const Ref<ArrayXd>& Xpos, const Ref<ArrayXd>& Ypos, const Ref<Array22d>& bounds, const Ref<MatrixXd>& legendreCoefs )
+{
+    ArrayXXd Zvalues;
+    MatrixXd Lx, Ly;
+    ArrayXXd deriv;
+    double Kx=2./(bounds(1,0)-bounds(0,0));
+    double Ky=2./(bounds(1,1)-bounds(0,1));
+    double X0=(bounds(1,0)+bounds(0,0))/2.;
+    double Y0=(bounds(1,1)+bounds(0,1))/2.;
+    ArrayXd Xnormed=Kx*(Xpos-X0), Ynormed=Ky*(Ypos-Y0);
+
+
+    Lx=Legendre(legendreCoefs.rows(),Xnormed, deriv);
+    Ly=Legendre(legendreCoefs.cols(),Ynormed, deriv);
+    Zvalues=(Lx*legendreCoefs*Ly.transpose()).diagonal(); // Lazy evaluation enforced  see https://stackoverflow.com/questions/37863668/eigen-use-of-diagonal-matrix/37868577#37868577
+    return Zvalues ;
+
 }
