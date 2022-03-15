@@ -103,6 +103,7 @@ int XYGridSource::generate(double wavelength)
           }
       }
 
+    m_OPDvalid=false;
     return nRays;
 }
 
@@ -190,6 +191,7 @@ int RadialGridSource::generate(double wavelength)
        }
       }
 
+    m_OPDvalid=false;
     return nRays;
 }
 
@@ -283,6 +285,7 @@ int GaussianSource::generate(double wavelength)
         dir.normalize();
         m_impacts.push_back(RayType(RayBaseType(org,dir),wavelength)); // amplitude set to 1 and S polar
     }
+    m_OPDvalid=false;
     return nRays;
 }
 
@@ -388,6 +391,9 @@ int AstigmaticGaussianSource::generate(double wavelength)
 
         m_impacts.push_back(RayType(RayBaseType(org,dir),wavelength)); // amplitude set to 1 and S polar
     }
+
+    m_OPDvalid=false;
+
     return nRays;
 }
 

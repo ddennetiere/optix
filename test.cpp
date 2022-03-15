@@ -43,11 +43,12 @@ int TestEllipse();
 
 int main()
 {
-    return SolemioTest();
-//  return OriginalTest();
+//    return SolemioTest();
+    return OriginalTest();
 //    return SphereTest();
 //    return QuickTest();
 //    return TestEllipse();
+    cout << "sizeof(bool) " << sizeof(bool) << endl << endl;
      Polygon rectangle;
      bool cvx;
      Array2d point, trans,vect;
@@ -235,7 +236,7 @@ int OriginalTest()
     param.value=M_PI;
     mirror2.setParameter("phi",param);
     source.getParameter("nXdiv",param);
-    param.value=10;
+    param.value=200;
     source.setParameter("nXdiv",param);
     source.setParameter("nYdiv",param);
   //  param.value=M_PI_2;
@@ -314,7 +315,10 @@ int OriginalTest()
         WfFile.write((char*)XYbounds.data(), 4*sizeof(double )) ;
         WfFile.write ((char*)WFsurf.data(), nx*ny*sizeof(double));
         WfFile.close();
+
+        film2.computeOPD(0, 5,5, XYbounds);
     }
+
 
     cout << "     " << source.getName() << endl;
     cout << "     " << mirror1.getName() << endl;
@@ -462,9 +466,9 @@ int OriginalTest()
         };
     }
     else
-        cout << "could not open file for output\n";
+        cout << "could not open file 'SystemSave.data'  for output\n";
 
-    if(1)
+    if(0)
     {
       cout << "\n---------------------------------------------------------------------------\n\n";
 

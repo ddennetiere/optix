@@ -29,7 +29,11 @@ RayType& Surface::transmit(RayType& ray)
         ray.m_amplitude_S*=T;
     }
     if(m_recording!=RecordNone)
-            m_impacts.push_back(ray);
+    {
+        m_impacts.push_back(ray);
+        if(m_OPDvalid)
+            m_OPDvalid=false;
+    }
     return ray;
 }
 
@@ -58,6 +62,9 @@ RayType& Surface::reflect(RayType& ray)    /*  this implementation simply reflec
         else if(m_recording!=RecordNone)
                 m_impacts.push_back(ray);
 
+        if(m_OPDvalid && m_recording)
+            m_OPDvalid=false;
+
         return ray;
     } catch(exception & excpt)
     {
@@ -70,6 +77,7 @@ RayType& Surface::reflect(RayType& ray)    /*  this implementation simply reflec
 void Surface::clearImpacts()
 {
     m_impacts.clear();
+    m_OPDvalid=false;
     if(m_next!=NULL)
     {
         Surface* psurf=dynamic_cast<Surface*>(m_next);
@@ -393,7 +401,8 @@ int Surface::getWavefrontData(Diagram & WFdata, double distance)
     return ip;
 }
 
-EIGEN_DEVICE_FUNC MatrixXd Surface::getWavefontExpansion(double distance, Index Nx, Index Ny, Array22d& XYbounds)
+/*EIGEN_DEVICE_FUNC*/
+MatrixXd Surface::getWavefontExpansion(double distance, Index Nx, Index Ny, Array22d& XYbounds)
 {
     MatrixXd LegendreCoefs;
     vector<RayType> impacts;
@@ -416,7 +425,7 @@ EIGEN_DEVICE_FUNC MatrixXd Surface::getWavefontExpansion(double distance, Index 
         VectorType delta=pRay->projection(referencePoint)-referencePoint;
         slopeMat(ip,0)= (delta(0)*pRay->direction()(2)- delta(2)*pRay->direction()(0) ) /sqrtl(1.L-pRay->direction()(1)*pRay->direction()(1));
         slopeMat(ip,1)= (delta(1)*pRay->direction()(2)- delta(2)*pRay->direction()(1) ) /sqrtl(1.L-pRay->direction()(0)*pRay->direction()(0));
-        slopeMat.block<1,2>(ip,2)= pRay->direction().segment(0,2).cast<double>();
+        slopeMat.block<1,2>(ip,2)= pRay->direction().segment(0,2).cast<double>();  // la direction U
     }
     XYbounds.row(0)=slopeMat.block(0,2,ip,2).colwise().minCoeff(); // ici il est permis de faire min max sur les valeurs passées dans XY bounds
     XYbounds.row(1)=slopeMat.block(0,2,ip,2).colwise().maxCoeff();
@@ -429,4 +438,45 @@ EIGEN_DEVICE_FUNC MatrixXd Surface::getWavefontExpansion(double distance, Index 
 }
 
 
+void Surface::computeOPD(double distance, Index Nx, Index Ny, Array22d& XYbounds)
+{
+    MatrixXd LegendreCoefs;
+    vector<RayType> impacts;
+    getImpacts(impacts,AlignedLocalFrame);
 
+    if(impacts.size()==0)
+        return ; //Returns a matrix whose size() is zero
+
+    VectorType referencePoint= VectorType::UnitZ()*distance;
+    ArrayX4d slopeMat(impacts.size(),4 );  // impacts ne contient que les rayons 'alive'
+
+    vector<RayType>::iterator pRay;
+    Index ip;
+
+    m_OPDdata.resize(impacts.size(),3);
+    m_amplitudes.resize(impacts.size(),2);
+
+    for(ip=0, pRay=impacts.begin(); pRay!=impacts.end(); ++pRay, ++ip)
+    {
+
+        VectorType delta=pRay->projection(referencePoint)-referencePoint;
+        slopeMat(ip,0)= (delta(0)*pRay->direction()(2)- delta(2)*pRay->direction()(0) ) /sqrtl(1.L-pRay->direction()(1)*pRay->direction()(1)); // l'aberration transversale
+        slopeMat(ip,1)= (delta(1)*pRay->direction()(2)- delta(2)*pRay->direction()(1) ) /sqrtl(1.L-pRay->direction()(0)*pRay->direction()(0));
+        slopeMat.block<1,2>(ip,2)= pRay->direction().segment(0,2).cast<double>(); // la direction U
+        m_amplitudes(ip,0)=pRay->m_amplitude_S;
+        m_amplitudes(ip,1)=pRay->m_amplitude_P;
+    }
+    XYbounds.row(0)=slopeMat.block(0,2,ip,2).colwise().minCoeff(); // ici il est permis de faire min max sur les valeurs passées dans XY bounds
+    XYbounds.row(1)=slopeMat.block(0,2,ip,2).colwise().maxCoeff();
+
+    cout << "bounds\n" <<XYbounds.col(0).transpose() << endl<< XYbounds.col(1).transpose() << endl;
+
+    LegendreCoefs=LegendreIntegrateSlopes(Nx,Ny, slopeMat, XYbounds.col(0), XYbounds.col(1));
+
+    // jusqu'ici pas de différence avec la fonction  si ce n'est la sauvegarde des amplitudes complexe dans m_amplitudes
+
+    m_OPDdata.leftCols(2)=slopeMat.rightCols(2);
+    m_OPDdata.col(2)=Legendre2DInterpolate(slopeMat.col(2), slopeMat.col(3), XYbounds, LegendreCoefs);
+
+    m_OPDvalid=true;
+}

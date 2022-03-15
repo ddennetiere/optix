@@ -197,6 +197,9 @@ RayType& GratingBase::transmit(RayType& ray)
     else if(m_recording!=RecordNone)
             m_impacts.push_back(ray);
 
+    if(m_OPDvalid && m_recording)
+            m_OPDvalid=false;
+
     return ray;
 }
 
@@ -236,6 +239,9 @@ RayType& GratingBase::reflect(RayType& ray)
     }
     else if(m_recording!=RecordNone)
             m_impacts.push_back(ray);
+
+    if(m_OPDvalid && m_recording)
+            m_OPDvalid=false;
 
     return ray;
 }

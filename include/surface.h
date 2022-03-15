@@ -191,10 +191,15 @@ public:
       * \param[in] distance of the surface where the reference is taken. This has an influence on the 2<sup>nd</sup> order terms (curvature) only
       * \param[in] Nx max order of Legendres in X direction
       * \param[in] Ny max order of Legendres in Y direction
-      * \param[out] XYbounds the aperture limits in X and Y from the ray tracing impacts recorded on the surface.
+      * \param[out] XYbounds the aperture limits in X and Y from the ray tracing impacts recorded on the surface. (mins in the first row and maxs in the second; X in first column and Y in the second)
       * \return The Nx x Ny (row,col) array of coefficients of Legendre polynomials describing the wavefront error to the given degrees and best fitting  the transverse aberration data
       */
-     EIGEN_DEVICE_FUNC MatrixXd getWavefontExpansion(double distance, Index Nx, Index Ny, Array22d& XYbounds);
+     /*EIGEN_DEVICE_FUNC*/
+      MatrixXd getWavefontExpansion(double distance, Index Nx, Index Ny, Array22d& XYbounds);
+
+      void computeOPD(double distance, Index Nx, Index Ny, Array22d& XYbounds);
+   //   MatrixXcd computePSF(Index Nx, Index Ny, double &distance );
+
 
      /** \brief Defines whether or not the aperture limitations of this surface are taken into account in the tray tracing
       *
@@ -216,9 +221,16 @@ public:
 
 
 protected:
-    vector<RayType> m_impacts; /**<  \brief the ray impacts on the surfaces in forward or backward element space */
-    RecordMode m_recording; /**<  \brief flag defining whether or not the ray impacts on this surface are recorded and in forward or backward space   */
-    bool m_apertureActive;    /**<  \brief switch for taking the aperture active area into account */
+    vector<RayType> m_impacts; /**<  \brief the ray impacts on the surfaces in absolute local element space before or after reflection/transmission */
+    RecordMode m_recording; /**<  \brief flag defining whether or not the ray impacts on this surface are recorded and before or after reflection/transmission   */
+    bool m_apertureActive;  /**<  \brief boolean flag for taking the aperture active area into account */
+    bool m_OPDvalid=false;  /**< \brief boolean flag for keeping track of the validity of the OPD of the rays stored in the m_impacts vector */
+    int m_NxOPD=0;          /**< \brief degree of Legendre polynomials of the X variable used to interpolate the OPD*/
+    int m_NyOPD=0;          /**< \brief degree of Legendre polynomials of the Y variable used to interpolate the OPD */
+    double m_OPDrefDist;    /**< distance of the reference point used to compute the OPD from this surface  */
+    ArrayX3d m_OPDdata;     /**< \brief The OPD data of each valid ray, expressed in the aligned local frame \ref AlignedLocalFrame ux, uy, and oOPD */
+    ArrayX2cd m_amplitudes; /**< \brief S and P complex amplitudes for each valid ray */
+
 };
 
 
