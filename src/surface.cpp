@@ -15,7 +15,9 @@
 #include "surface.h"
 //#include "sourcebase.h"
 #include "wavefront.h"
-
+#define NFFT_PRECISION_DOUBLE
+#include <nfft3mp.h>
+//#include <unsupported/Eigen/CXX11/Tensor>
 
 RayType& Surface::transmit(RayType& ray)
 {
@@ -438,8 +440,10 @@ MatrixXd Surface::getWavefontExpansion(double distance, Index Nx, Index Ny, Arra
 }
 
 
-void Surface::computeOPD(double distance, Index Nx, Index Ny, Array22d& XYbounds)
+void Surface::computeOPD(double distance, Index Nx, Index Ny)
 {
+    /**< \todo Tester dans cette fonction si les calculs actuellement stockés sont utilisables ou non */
+
     MatrixXd LegendreCoefs;
     vector<RayType> impacts;
     getImpacts(impacts,AlignedLocalFrame);
@@ -466,17 +470,66 @@ void Surface::computeOPD(double distance, Index Nx, Index Ny, Array22d& XYbounds
         m_amplitudes(ip,0)=pRay->m_amplitude_S;
         m_amplitudes(ip,1)=pRay->m_amplitude_P;
     }
-    XYbounds.row(0)=slopeMat.block(0,2,ip,2).colwise().minCoeff(); // ici il est permis de faire min max sur les valeurs passées dans XY bounds
-    XYbounds.row(1)=slopeMat.block(0,2,ip,2).colwise().maxCoeff();
+    m_XYbounds.row(0)=slopeMat.block(0,2,ip,2).colwise().minCoeff(); // ici il est permis de faire min max sur les valeurs passées dans XY bounds
+    m_XYbounds.row(1)=slopeMat.block(0,2,ip,2).colwise().maxCoeff();
 
-    cout << "bounds\n" <<XYbounds.col(0).transpose() << endl<< XYbounds.col(1).transpose() << endl;
+    cout << "bounds\n" <<m_XYbounds.col(0).transpose() << endl<< m_XYbounds.col(1).transpose() << endl;
 
-    LegendreCoefs=LegendreIntegrateSlopes(Nx,Ny, slopeMat, XYbounds.col(0), XYbounds.col(1));
+    LegendreCoefs=LegendreIntegrateSlopes(Nx,Ny, slopeMat, m_XYbounds.col(0), m_XYbounds.col(1));
 
     // jusqu'ici pas de différence avec la fonction  si ce n'est la sauvegarde des amplitudes complexe dans m_amplitudes
 
     m_OPDdata.leftCols(2)=slopeMat.rightCols(2);
-    m_OPDdata.col(2)=Legendre2DInterpolate(slopeMat.col(2), slopeMat.col(3), XYbounds, LegendreCoefs);
-
+    m_OPDdata.col(2)=Legendre2DInterpolate(slopeMat.col(2), slopeMat.col(3), m_XYbounds, LegendreCoefs);
+    m_NxOPD=Nx;
+    m_NyOPD=Ny;
     m_OPDvalid=true;
 }
+
+Array2d Surface::computePSF(ndArray<complex<double>,3> &PSF, double lambda, /*Index NxSamples, Index NySamples,*/ double oversampling, double distOffset)
+{
+    std::array<size_t,3> dims=PSF.dimensions();
+    if(dims[2]<2)
+        throw invalid_argument("Last dimension of argument PSF should be at least 2");
+    size_t arraysize=dims[0]*dims[1];
+    Map<ArrayXXcd> Spsf(PSF.data(),dims[0], dims[1]);
+    Map<ArrayXXcd> Ppsf(PSF.data()+arraysize*2*sizeof(double),dims[0], dims[1]);
+
+    nfft_plan plan;
+
+    nfft_init_2d(&plan,dims[1],dims[0],m_OPDdata.rows());
+
+    Array2d unorm, ucenter, pixel;
+    unorm = (m_XYbounds.row(1)-m_XYbounds.row(0))*oversampling;
+    ucenter=(m_XYbounds.row(1)+m_XYbounds.row(0))/ 2. ;// unorm.transpose();
+
+    pixel=lambda/unorm;
+
+    complex<double> i2pi_lambda(0,2.*M_PI/lambda);
+
+    Map<Array2Xd> Ux(plan.x,2,m_OPDdata.rows()); // il faut normaliser et transposer les 2 premières colonnes de m_OPDdata
+    Ux=(m_OPDdata.leftCols(2).transpose().colwise()-ucenter).colwise()/unorm;
+
+    ArrayXd correctOPD=m_OPDdata.col(2);
+    if(distOffset !=0)
+        correctOPD+=m_OPDdata.leftCols(2).matrix().rowwise().norm().array()*distOffset/2.;  //  vrai au 2° ordre en ouverture 4° ordre possible : +norm()^2*distoffset/8
+
+    if(plan.flags & PRE_ONE_PSI)
+        nfft_precompute_one_psi(&plan);
+
+    Map<ArrayXcd> F((complex<double>*)plan.f,m_OPDdata.rows());
+    Map<ArrayXXcd> Tf((complex<double>*)plan.f_hat,dims[1],dims[0] );
+
+    F= exp( correctOPD*i2pi_lambda)*m_amplitudes.col(0)  ;
+    nfft_adjoint(&plan);
+    Spsf=Tf.transpose()/m_OPDdata.rows();
+
+    F= exp( correctOPD*i2pi_lambda)*m_amplitudes.col(1)  ;
+    nfft_adjoint(&plan);
+    Ppsf=Tf.transpose()/m_OPDdata.rows();
+
+    nfft_finalize(&plan);  // ceci desalloue toute la structure plan
+
+    return pixel;
+}
+

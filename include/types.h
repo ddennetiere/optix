@@ -20,6 +20,7 @@
 ////////////////////////////////////////////////////////////////////////////////////
 #include "ctypes.h"
 #include "ray.h"
+#include <cstdarg>
 
 typedef Ray<FloatType>  RayType;/**< \brief Complete ray with wavelength and metadata (photometric and polar weights) */
 typedef RayBase<FloatType>  RayBaseType;  /**< \brief base  class of rays for intercept and propagation computations  */
@@ -121,6 +122,93 @@ struct SolemioLinkType
         uint32_t prev=0;    /**< reference ID of the previous element in Solemio element chain. */
         uint32_t next=0;    /**< reference ID of the next element in Solemio element chain.  */
 };
+
+
+
+/** \brief Multidimensional array class
+ */
+template <typename scalar_, size_t ndims_>
+class ndArray
+{
+  public:
+
+    /** \brief default constructor; create a multidimensional array of size zero (empty storage)
+     */
+    ndArray():storage(NULL){dims.fill(0); }
+
+    /** \brief create a multidimensional array of specifies size and allocate the corresponding storage
+     *
+     * \param N0 size of the internal (faster varying index) dimension
+     * \param ...  one size_t value for the size of the corresponding dimension, ordered from internal to external.
+     *  Dimensions equal or above ndims_ are ignored,; missing dimensions are set to 1
+     */
+    ndArray(size_t N0, ...)
+    {
+        dims.fill(1);
+        dims[0]=N0;
+        va_list args;
+        va_start(args, N0);
+        size_t length=N0;
+        for (size_t i = 1; i < ndims_; ++i)
+        {
+            dims[i]=va_arg(args, size_t);
+            length*=dims[i];
+        }
+        va_end(args);
+        storage=new scalar_[length];
+    }
+    /** \brief change the dimension sizes of a multidimensional array of specifies size
+     *
+     *  If the new size (product of the dimensions) is equal to the old size, no storage réassignation is performed and the stored data are preserved.
+     *  \n In all other case the old storage is destroyed and a new one is reallocated. All stored data are lost.
+     * \param N0 size of the internal (faster varying index) dimension
+     * \param ...  one size_t value for the size of the corresponding dimension, ordered from internal to external.
+     *  Dimensions equal or above ndims_ are ignored,; missing dimensions are set to 1
+     */
+    void resize(size_t N0, ...)
+    {
+        std::array<size_t,ndims_> newdims;
+        newdims.fill(1);
+        newdims[0]=N0;
+        va_list args;
+        va_start(args, N0);
+        size_t oldlength=dims[0],newlength=N0;
+        for (size_t i = 1; i < ndims_; ++i)
+        {
+            newdims[i]=va_arg(args, size_t);
+            oldlength*=dims[i];
+            newlength*=newdims[i];
+        }
+        va_end(args);
+        if(oldlength!= newlength)
+        {
+            delete[] storage;
+            storage=new scalar_[newlength];
+        }
+        dims=newdims;
+
+    }
+    /** \brief destructor: release the allocated storage and release the object
+     *
+     */
+    ~ndArray(){delete[] storage;}
+    /** \brief return the size of all dimensions of the multidimensional array
+     *
+     * \return a std::array containing the dimensions sizes
+     *
+     */
+    std::array<size_t,ndims_> dimensions(){return dims;}
+    /** \brief Gts a pointer to the storage area
+     *
+     * \return a pointer to the data storage
+     *
+     */
+    scalar_* data() {return storage;}
+  protected:
+    std::array<size_t,ndims_> dims; /**< \brief dimension vector */
+    scalar_ * storage;/**< pointer to the stored data */
+};
+
 
 
 //typedef DiagramType<4> SpotDiagram;  /**< \brief Storage data structure of spot-diagrams */

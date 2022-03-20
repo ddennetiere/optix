@@ -20,6 +20,12 @@
 #include "elementbase.h"
 #include "ApertureStop.h"
 
+
+// l'inclusion de la classe Tensor par le Header  <unsupported/Eigen/CXX11/Tensor> est incompatible avec les classes Polygon et ellipse de Aperture Api
+
+//#include <unsupported\Eigen\CXX11\src\Tensor\TensorForwardDeclarations.h>
+
+
 // included by elementbase.h
 //#include <string>
 //#include <vector>
@@ -197,8 +203,9 @@ public:
      /*EIGEN_DEVICE_FUNC*/
       MatrixXd getWavefontExpansion(double distance, Index Nx, Index Ny, Array22d& XYbounds);
 
-      void computeOPD(double distance, Index Nx, Index Ny, Array22d& XYbounds);
-   //   MatrixXcd computePSF(Index Nx, Index Ny, double &distance );
+      void computeOPD(double distance, Index Nx, Index Ny);
+
+      Array2d computePSF(ndArray<complex<double>,3 > &PSF, double lambda, /*Index xSamples, Index ySamples,*/ double oversampling=4, double distOffset=0);
 
 
      /** \brief Defines whether or not the aperture limitations of this surface are taken into account in the tray tracing
@@ -227,6 +234,7 @@ protected:
     bool m_OPDvalid=false;  /**< \brief boolean flag for keeping track of the validity of the OPD of the rays stored in the m_impacts vector */
     int m_NxOPD=0;          /**< \brief degree of Legendre polynomials of the X variable used to interpolate the OPD*/
     int m_NyOPD=0;          /**< \brief degree of Legendre polynomials of the Y variable used to interpolate the OPD */
+    Array22d m_XYbounds;
     double m_OPDrefDist;    /**< distance of the reference point used to compute the OPD from this surface  */
     ArrayX3d m_OPDdata;     /**< \brief The OPD data of each valid ray, expressed in the aligned local frame \ref AlignedLocalFrame ux, uy, and oOPD */
     ArrayX2cd m_amplitudes; /**< \brief S and P complex amplitudes for each valid ray */

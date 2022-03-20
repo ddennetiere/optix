@@ -14,7 +14,9 @@
 //             REVISIONS
 //
 ////////////////////////////////////////////////////////////////////////////////////
-#
+
+
+
 #include <iostream>
 #include "opticalelements.h"
 #include "sources.h"
@@ -29,8 +31,12 @@
 #include "Polygon.h"
 #include "Ellipse.h"
 
+
+
 //#define POSTFIX(X, P) X#P
 //#define M_PIl POSTFIX(M_PI, L)
+//#include <unsupported\Eigen\CXX11\src\Tensor\TensorBase.h>
+//#include <unsupported\Eigen\CXX11\src\Tensor\Tensor.h>
 
 
 
@@ -291,7 +297,7 @@ int OriginalTest()
     }
     if(0){
         fstream WfFile("wavederiv.sdg", ios::out | ios::binary);
-        Diagram WFdata(5);
+        Diagram WFdata(5); // dim à revoir
         int n= film2.getWavefrontData(WFdata) ;
         cout << " WF deriv  of " << n << " points\n";
         WfFile << WFdata;
@@ -316,7 +322,21 @@ int OriginalTest()
         WfFile.write ((char*)WFsurf.data(), nx*ny*sizeof(double));
         WfFile.close();
 
-        film2.computeOPD(0, 5,5, XYbounds);
+        film2.computeOPD(0, 5,5);
+        cout << "OPD computed\n";
+
+//        ArrayXXcd Psf;
+        nx=ny=500;
+        ndArray<complex<double>,3> Psf(nx,ny,2);
+
+        Array2d pixelSize=film2.computePSF(Psf, wavelength); //, nx,ny);
+        cout << "PSF computed\n";
+        WfFile.open("film2.psf", ios::out | ios::binary);
+        WfFile.write((char*)&nx, sizeof(int));
+        WfFile.write((char*)&ny, sizeof(int)) ;
+        WfFile.write((char*)pixelSize.data(), 2*sizeof(double )) ;
+        WfFile.write ((char*)Psf.data(), nx*ny*2*sizeof(double));
+        WfFile.close();
     }
 
 

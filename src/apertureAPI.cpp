@@ -12,6 +12,7 @@
  ***************************************************************************/
 
 #include "apertureAPI.h"
+#include "surface.h"
 
 DLL_EXPORT size_t GetStopNumber(size_t element_ID)
 {
