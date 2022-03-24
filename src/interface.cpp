@@ -27,10 +27,22 @@
 #include "version.h"
 #include <limits>  // pour epsilon
 
+#ifdef HAS_REFLEX  // if libRefleX added to linklist
+#include "ReflectivityAPI.h"
 
-ElementCollection System;/**< \brief dictionary of all elements created through this interface  */
+map<string, XDatabase> dataBases;   /**< \brief a set of DABAX data bases indexed for fast access  */
+map<string, MaterialTable> indexTables; /**< \brief a set of tables of material index. Material tables interpolate
+                                        *  the index of the registered materials on a common energy grid with minimum number of steps*/
+CoatingTable coatingTable;  /**< \brief the coating table enables interpolation of the registered coatings on a unique energy and angle grid */
+
+#endif // HAS_REFLEX
 
 bool inhibitApertureLimit=true; /**< Global flag to take into account or not the apertures stops in the ray tracing */
+
+ElementCollection System;   /**< \brief dictionary of all elements created through this interface  */
+
+
+
 //set<size_t> ValidIDs;
 //StringVector stringData; /**< \todo seem unused*/
 

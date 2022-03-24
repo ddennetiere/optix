@@ -143,4 +143,51 @@ struct C_WFtype{
   size_t m_dataSize[2];     /**< dimensions of the mapped array in order nX, nY */
 };
 
+/** \brief C struct to return PSF and other image stacks
+*
+*  The storage area contains the dimension vector followed by the data array
+*  dimension vector dims  and data can be accessed as:\n
+*  size_t dims[ndims];      in which dimensions are listed from inner (faster varying) to outer (lower varying) \n
+*  < datatype >* data= storage+ ndims*sizeof(size_t)  */
+struct C_ndArray{
+    size_t allocatedStorage; /**< \brief size of allocated storage in bytes. Must be properly filled by the creator */
+    size_t ndims;            /**< \brief number of dimensions; will be set by the user entity*/
+    void* storage;           /**< \brief  address of storage area  containing the dimension vector followed by the data */
+};
+
+/** \brief structure holding the parameters needed to radiate a wavefront
+*
+*  a wavefront is defined as a point source radiating a regular sampling grid in X and Y aperture angles */
+struct WFemission{
+    double wavelength;  /**< \brief The wavelength in m*/
+    double Xaperture;   /**< \brief The 1/2 aperture angle in the X direction (in radians) */
+    double Yaperture;   /**< \brief The 1/2 aperture angle in the Y direction (in radians) */
+    size_t Xsize;       /**< \brief  The number of point of the angular grid in X over the full X aperture*/
+    size_t Ysize;       /**< \brief  The number of point of the angular grid in Y over the full Y aperture*/
+    char polar='S';     /**< \brief  The radiated polarization, which can be 'S' or 'P' */
+};
+
+/** \brief Parameters needed to integrate the output wavefront (on Legendre products) and compute PSF
+ */
+struct PSFparameters{
+    double opdRefDistance;  /**< \brief Distance from the observation plane of the image reference point used for OPD computation (it can be 0) */
+    size_t legendreNx;      /**< \brief Degree of the Legendre polynomial base for interpolating the wavefront in the X direction */
+    size_t legendreNy;      /**< \brief Degree of the Legendre polynomial base for interpolating the wavefront in the Y direction */
+
+    double oversampling=4;  /**< \brief The minimum oversampling of the PSF with respect to the exit aperture of the ray tracing (must be  >1) */
+    double psfXpixel;       /**< \brief the X pixel size (in m) of PSF computation resulting of the choice of oversampling and refXimgNA*/
+    double psfYpixel;       /**< \brief the Y pixel size (in m) of PSF computation resulting of the choice of oversampling and refYimgNA*/
+    size_t xSamples;        /**< \brief Number sample points in X the PSF must be computed at */
+    size_t ySamples;        /**< \brief Number sample points in X the PSF must be computed at */
+    double zFirstOffset;    /**< \brief First image plane position the PSF must be computed at (Note it is relative to the OPD reference point */
+    double zLastOffset;     /**< \brief Last image plane position the PSF must be computed at (Note it is relative to the OPD reference point */
+    size_t numOffsetPlanes=1;   /**< \brief Number of planes where the PSF will be computed (if equal to 1, only First plane will be computed */
+    double refXimgNA;       /**< \brief The reference exit numerical aperture use to define the PSF sampling interval in X (psfXpixel= lambda/2/refXimgNA
+                            *
+                            *  if the given value is smaller than what is given by applying the oversampling factor, this last value is applied instead*/
+    double refYimgNA;       /**< \brief The reference exit numerical aperture use to define the PSF sampling interval in Y (psfYpixel= lambda/2/refYimgNA
+                            *
+                            *  if the given value is smaller than what is given by applying the oversampling factor, this last value is applied instead */
+};
+
 #endif // CTYPES_H_INCLUDED

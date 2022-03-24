@@ -85,6 +85,16 @@
 *   All functions of the Aperture API are returning a size_t value. A negative return value, actually -1, means an error occurred and the GetOptiXLastError can be checked for a reason.
 *
 *
+*      \defgroup reflectivityAPI  C functions of the reflectivity API
+*      \brief  interface C Functions exported by the OptiX library to handle objects defined in the C++ RefleX library
+*
+*
+*      \ingroup globalc
+*
+*      declared in ReflectivityAPI.h
+*      \see see also \ref mainAPI "Main Interface C functions"
+*
+*
 ****************************************************************************/
 
 

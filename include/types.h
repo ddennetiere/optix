@@ -21,6 +21,7 @@
 #include "ctypes.h"
 #include "ray.h"
 #include <cstdarg>
+//#include <stdexcept>
 
 typedef Ray<FloatType>  RayType;/**< \brief Complete ray with wavelength and metadata (photometric and polar weights) */
 typedef RayBase<FloatType>  RayBaseType;  /**< \brief base  class of rays for intercept and propagation computations  */
@@ -156,10 +157,28 @@ class ndArray
         }
         va_end(args);
         storage=new scalar_[length];
+        ownStorage=true;
+    }
+
+    ndArray(C_ndArray & cndArray)
+    {
+        if(cndArray.ndims != ndims_)
+            throw std::invalid_argument("The number of required dimension does't match the C_ndArray setting");
+        size_t length=1;
+        size_t* idim=dims.data(), *jdim=(size_t*)cndArray.storage;
+        for (int i =0; i< ndims_; ++i, ++idim, ++jdim )
+        {
+            *idim=*jdim;
+            length*=*jdim;
+        }
+        if(length*sizeof(scalar_)+ ndims_*sizeof(size_t) < cndArray.allocatedStorage)
+            throw std::length_error("The allocated storage in the C_ndArray is too small to receive the requested array");
+        storage=cndArray.storage+ndims_*sizeof(size_t);
     }
     /** \brief change the dimension sizes of a multidimensional array of specifies size
      *
      *  If the new size (product of the dimensions) is equal to the old size, no storage réassignation is performed and the stored data are preserved.
+     *  If storage is not owned the change in dimension should be reflected in the storage owning entity
      *  \n In all other case the old storage is destroyed and a new one is reallocated. All stored data are lost.
      * \param N0 size of the internal (faster varying index) dimension
      * \param ...  one size_t value for the size of the corresponding dimension, ordered from internal to external.
@@ -182,6 +201,8 @@ class ndArray
         va_end(args);
         if(oldlength!= newlength)
         {
+            if(!ownStorage)
+                throw runtime_error("Cannot realloc not owned storage");
             delete[] storage;
             storage=new scalar_[newlength];
         }
@@ -198,13 +219,14 @@ class ndArray
      *
      */
     std::array<size_t,ndims_> dimensions(){return dims;}
-    /** \brief Gts a pointer to the storage area
+    /** \brief Gets a pointer to the storage area
      *
      * \return a pointer to the data storage
      *
      */
     scalar_* data() {return storage;}
   protected:
+    bool ownStorage=false;
     std::array<size_t,ndims_> dims; /**< \brief dimension vector */
     scalar_ * storage;/**< pointer to the stored data */
 };

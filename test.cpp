@@ -39,6 +39,13 @@
 //#include <unsupported\Eigen\CXX11\src\Tensor\Tensor.h>
 
 
+/** \brief helper functor to extract the coefficient-wise minimum value of two arrays
+ */
+template<typename Scalar_>  struct minOf2Op
+{
+  const Scalar_ operator()(const Scalar_& x, const Scalar_& y) const { return x < y ? x : y; }
+};
+
 
 using namespace std;
 int OriginalTest();
@@ -49,6 +56,16 @@ int TestEllipse();
 
 int main()
 {
+    cout << "starting \n";
+    ArrayXd v1(7), v2(7), v3;
+    v1 << 4,8,5.2,8.5, 9,14,18 ;
+    v2 << 3,9.5,7, 13.2, 6, 15, 19;
+    cout << v1 << endl <<v2<< endl;
+
+    v1= v1.binaryExpr(v2, minOf2Op<double>());
+
+    cout << v1 << endl <<endl;
+
 //    return SolemioTest();
     return OriginalTest();
 //    return SphereTest();
@@ -242,7 +259,7 @@ int OriginalTest()
     param.value=M_PI;
     mirror2.setParameter("phi",param);
     source.getParameter("nXdiv",param);
-    param.value=200;
+    param.value=500;
     source.setParameter("nXdiv",param);
     source.setParameter("nYdiv",param);
   //  param.value=M_PI_2;
@@ -322,14 +339,15 @@ int OriginalTest()
         WfFile.write ((char*)WFsurf.data(), nx*ny*sizeof(double));
         WfFile.close();
 
-        film2.computeOPD(0, 5,5);
+        film2.computeOPD(0, 7,7);
         cout << "OPD computed\n";
 
 //        ArrayXXcd Psf;
         nx=ny=500;
         ndArray<complex<double>,3> Psf(nx,ny,2);
-
-        Array2d pixelSize=film2.computePSF(Psf, wavelength); //, nx,ny);
+        Array2d pixelSize;
+        pixelSize <<  2e-7, 2e-7;
+        film2.computePSF(Psf,pixelSize, wavelength); //, nx,ny);
         cout << "PSF computed\n";
         WfFile.open("film2.psf", ios::out | ios::binary);
         WfFile.write((char*)&nx, sizeof(int));

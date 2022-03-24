@@ -17,7 +17,16 @@
 #include "wavefront.h"
 #define NFFT_PRECISION_DOUBLE
 #include <nfft3mp.h>
-//#include <unsupported/Eigen/CXX11/Tensor>
+
+
+
+/** \brief helper functor to extract the coefficient-wise minimum value of two arrays
+ */
+template<typename Scalar_>  struct minOf2Op
+{
+  const Scalar_ operator()(const Scalar_& x, const Scalar_& y) const { return x < y ? x : y; }
+};
+
 
 RayType& Surface::transmit(RayType& ray)
 {
@@ -486,11 +495,13 @@ void Surface::computeOPD(double distance, Index Nx, Index Ny)
     m_OPDvalid=true;
 }
 
-Array2d Surface::computePSF(ndArray<complex<double>,3> &PSF, double lambda, /*Index NxSamples, Index NySamples,*/ double oversampling, double distOffset)
+void Surface::computePSF(ndArray<complex<double>,3> &PSF, Array2d& pixelSizes, double lambda, double oversampling, double distOffset)
 {
     std::array<size_t,3> dims=PSF.dimensions();
     if(dims[2]<2)
         throw invalid_argument("Last dimension of argument PSF should be at least 2");
+    if(oversampling <1. )
+        throw invalid_argument("Oversampling factor should be greater than 1.");
     size_t arraysize=dims[0]*dims[1];
     Map<ArrayXXcd> Spsf(PSF.data(),dims[0], dims[1]);
     Map<ArrayXXcd> Ppsf(PSF.data()+arraysize*2*sizeof(double),dims[0], dims[1]);
@@ -499,13 +510,18 @@ Array2d Surface::computePSF(ndArray<complex<double>,3> &PSF, double lambda, /*In
 
     nfft_init_2d(&plan,dims[1],dims[0],m_OPDdata.rows());
 
-    Array2d unorm, ucenter, pixel;
+    Array2d unorm, ucenter;
     unorm = (m_XYbounds.row(1)-m_XYbounds.row(0))*oversampling;
     ucenter=(m_XYbounds.row(1)+m_XYbounds.row(0))/ 2. ;// unorm.transpose();
 
-    pixel=lambda/unorm;
+    pixelSizes=pixelSizes.binaryExpr(lambda/unorm, minOf2Op<double>()); // on garde le plus petit pixel entre oversampling et pixel demandé
+    unorm=lambda/pixelSizes;  // On calcule la normalisation d'ouverture en conséquence
 
-    complex<double> i2pi_lambda(0,2.*M_PI/lambda);
+
+    //pixel=lambda/unorm;
+    // if OPD is positive then the remaining path to the ref point is less.  Hence the minus sign
+    complex<double> i2pi_lambda(0,-2.*M_PI/lambda);/**< \todo  Extensive checking of the phase shifts signs. \n The sign of phase shifts must be consistent throughout, with the convention that wave propagates
+                *   in the form \f$ e^{i k z} \f$  */
 
     Map<Array2Xd> Ux(plan.x,2,m_OPDdata.rows()); // il faut normaliser et transposer les 2 premières colonnes de m_OPDdata
     Ux=(m_OPDdata.leftCols(2).transpose().colwise()-ucenter).colwise()/unorm;
@@ -530,6 +546,5 @@ Array2d Surface::computePSF(ndArray<complex<double>,3> &PSF, double lambda, /*In
 
     nfft_finalize(&plan);  // ceci desalloue toute la structure plan
 
-    return pixel;
 }
 
