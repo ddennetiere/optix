@@ -166,14 +166,14 @@ class ndArray
             throw std::invalid_argument("The number of required dimension does't match the C_ndArray setting");
         size_t length=1;
         size_t* idim=dims.data(), *jdim=(size_t*)cndArray.storage;
-        for (int i =0; i< ndims_; ++i, ++idim, ++jdim )
+        for (size_t i =0; i< ndims_; ++i, ++idim, ++jdim )
         {
             *idim=*jdim;
             length*=*jdim;
         }
         if(length*sizeof(scalar_)+ ndims_*sizeof(size_t) < cndArray.allocatedStorage)
             throw std::length_error("The allocated storage in the C_ndArray is too small to receive the requested array");
-        storage=cndArray.storage+ndims_*sizeof(size_t);
+        storage=(scalar_*)cndArray.storage+ndims_*sizeof(size_t);
     }
     /** \brief change the dimension sizes of a multidimensional array of specifies size
      *

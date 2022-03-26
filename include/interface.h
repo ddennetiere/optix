@@ -515,6 +515,32 @@ extern "C"
      */
     DLL_EXPORT bool DumpXML(const char* filename);
 
+    /** \brief finds the most upstream source in the element chain starting from the given element
+     *
+     * \param elementID  The element from which the chain is explored
+     * \return the ID of the most upstream source ou NULL if no source is found upstream the given element
+     */
+    DLL_EXPORT size_t GetSource(size_t elementID);
+
+    /** \brief Radiate a "wavefront" emitted from a single point source  with aperture angle distributed on a regular grid
+     *
+     * \param elementID if the corresponding element is a source, the wavefront will be radiated from the position of this source.
+     *  If it is not a source the most upstream source position will be used
+     * \param WFemitParams Parameters of emission wavelength, aperture and number of points in this aperture
+     * \return true if successfull; false, in case of an error and OptiXLastError is set
+     */
+    DLL_EXPORT bool WaveRadiate(size_t elementID, WFemission WFemitParams);
+
+    /** \brief compute the PSF on a plane at given distance in free space from a given element, or a set of planes
+     *
+     * \param elementID The element on which the wavefront is computed
+     * \param wavelength The radiation wavelength (m). It should be the same  wavelength use in the generating WaveRadiate call
+     * \param psfParams PSFparameters parameters needed to define the WF interpolation and the PSF resolution and size
+     *      note that the pixel size might be redefine to satisfy the prescribed oversampling factor
+     * \param psfData C_ndArray* Address of a C_ndArray struct which must be initialize in order to receive two complex tables (S&P) of size xSamples*ySamples*numOffsetplanes
+     * \return true if successful; false, in case of an error and OptiX  LastError is set
+     */
+    DLL_EXPORT bool GetPsf(size_t elementID, double wavelength, PSFparameters *psfParams, C_ndArray * psfData);
 
 #ifdef __cplusplus
 }

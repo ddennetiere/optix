@@ -210,6 +210,7 @@ public:
        * \param distance  Distance from this surface of the reference image point on the chief ray
        * \param Nx Degree of the legendre polynomial expansion in X
        * \param Ny Degree of the legendre polynomial expansion in X
+       * \throw an instance of runtime_error if the impact number is too small to compute a valid OPD
        */
       void computeOPD(double distance, Index Nx, Index Ny);
 
@@ -221,13 +222,14 @@ public:
        * \param[in,out] pixelSizes  On input : the requested the sampling interval of PSF, in a 2 element Eigen Array (X first).
        *        \n on output: The effectively used pixel size after application of the minimum oversampling factor.
        *        \n if the given sampling interval is to loose to respect the oversampling value, the pixel size is adapted to match it
-       * \param[in] lambda the wavelength of computation (the wavelength store in each ray is not considered)
+       * \param[in] lambda the wavelength of computation (the wavelength stored in each ray is not considered)
        * \param[in] oversampling this factor determines the maximum grid step of the computed PSF as lambda/ (ThetaMax-ThetaMin)/oversampling for each dimension
-       *        Oversampling must be >1. The default oversampling is4. Theta Max and Min  are stored in the array m_XYbounds
+       *        Oversampling must be >1. The default oversampling is 4. Theta Max and Min  are stored in the array m_XYbounds
        * \param[in] distOffset Displacement of the plane of PSF determination with respect the the reference point used to determine the OPD
        */
       void computePSF(ndArray<complex<double>,3 > &PSF, Array2d &pixelSizes, double lambda, double oversampling=4, double distOffset=0);
 
+      void computePSF(ndArray<complex<double>,4 > &PSF, Array2d &pixelSizes, ArrayXd &distOffset, double lambda, double oversampling=4);
 
      /** \brief Defines whether or not the aperture limitations of this surface are taken into account in the tray tracing
       *
@@ -240,6 +242,7 @@ public:
       * \return the aperture activity setting of this surface
       */
      bool getApertureActive(){return m_apertureActive;}
+     bool isOPDvalid(){return m_OPDvalid;}
 
 //    friend TextFile& operator<<(TextFile& file,  Surface& surface);  /**< \brief Duf this Surface object to a TextFile, in a human readable format  */
 //
@@ -255,8 +258,8 @@ protected:
     bool m_OPDvalid=false;  /**< \brief boolean flag for keeping track of the validity of the OPD of the rays stored in the m_impacts vector */
     int m_NxOPD=0;          /**< \brief degree of Legendre polynomials of the X variable used to interpolate the OPD*/
     int m_NyOPD=0;          /**< \brief degree of Legendre polynomials of the Y variable used to interpolate the OPD */
-    Array22d m_XYbounds;
-    double m_OPDrefDist;    /**< distance of the reference point used to compute the OPD from this surface  */
+    Array22d m_XYbounds;    /**< \brief XYbounds the aperture limits in X and Y from the ray tracing impacts recorded on the surface \see getWavefontExpansion for details*/
+    double m_OPDrefDist;    /**< \brief distance of the reference point used to compute the OPD from this surface  */
     ArrayX3d m_OPDdata;     /**< \brief The OPD data of each valid ray, expressed in the aligned local frame \ref AlignedLocalFrame ux, uy, and oOPD */
     ArrayX2cd m_amplitudes; /**< \brief S and P complex amplitudes for each valid ray */
 

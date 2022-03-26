@@ -457,8 +457,8 @@ void Surface::computeOPD(double distance, Index Nx, Index Ny)
     vector<RayType> impacts;
     getImpacts(impacts,AlignedLocalFrame);
 
-    if(impacts.size()==0)
-        return ; //Returns a matrix whose size() is zero
+    if(impacts.size()< (size_t) 2*Nx*Ny)
+        throw runtime_error("The impact number is to small to compute a valid OPD");
 
     VectorType referencePoint= VectorType::UnitZ()*distance;
     ArrayX4d slopeMat(impacts.size(),4 );  // impacts ne contient que les rayons 'alive'
@@ -548,3 +548,59 @@ void Surface::computePSF(ndArray<complex<double>,3> &PSF, Array2d& pixelSizes, d
 
 }
 
+void Surface::computePSF(ndArray<complex<double>,4 > &PSF, Array2d &pixelSizes, ArrayXd &distOffset, double lambda, double oversampling)
+{
+    std::array<size_t,4> dims=PSF.dimensions();
+    if(dims[3]<2)
+        throw invalid_argument("Fourth dimension of argument PSF should be  2");
+    if(oversampling <1. )
+        throw invalid_argument("Oversampling factor should be greater than 1.");
+    size_t arraysize=2*dims[0]*dims[1]*sizeof(double);
+    size_t stacksize=arraysize*dims[2];
+
+    nfft_plan plan;
+
+    nfft_init_2d(&plan,dims[1],dims[0],m_OPDdata.rows());
+
+    Array2d unorm, ucenter;
+    unorm = (m_XYbounds.row(1)-m_XYbounds.row(0))*oversampling;
+    ucenter=(m_XYbounds.row(1)+m_XYbounds.row(0))/ 2. ;// unorm.transpose();
+
+    pixelSizes=pixelSizes.binaryExpr(lambda/unorm, minOf2Op<double>()); // on garde le plus petit pixel entre oversampling et pixel demandé
+    unorm=lambda/pixelSizes;  // On calcule la normalisation d'ouverture en conséquence
+
+
+    //pixel=lambda/unorm;
+    // if OPD is positive then the remaining path to the ref point is less.  Hence the minus sign
+    complex<double> i2pi_lambda(0,-2.*M_PI/lambda);/**< \todo  Extensive checking of the phase shifts signs. \n The sign of phase shifts must be consistent throughout, with the convention that wave propagates
+                *   in the form \f$ e^{i k z} \f$  */
+
+    Map<Array2Xd> Ux(plan.x,2,m_OPDdata.rows()); // il faut normaliser et transposer les 2 premières colonnes de m_OPDdata
+    Ux=(m_OPDdata.leftCols(2).transpose().colwise()-ucenter).colwise()/unorm;
+
+
+    if(plan.flags & PRE_ONE_PSI)
+        nfft_precompute_one_psi(&plan);
+
+    complex<double> *pSdat=PSF.data(), *pPdat=PSF.data()+stacksize;
+    for(Index ioffset=0; ioffset < distOffset.size(); ++ioffset, ++pSdat,++pPdat )
+    {
+        Map<ArrayXcd> F((complex<double>*)plan.f,m_OPDdata.rows());
+        Map<ArrayXXcd> Tf((complex<double>*)plan.f_hat,dims[1],dims[0] );
+        Map<ArrayXXcd> Spsf(pSdat,dims[0], dims[1]);
+        Map<ArrayXXcd> Ppsf(pPdat,dims[0], dims[1]);
+
+        ArrayXd correctOPD=m_OPDdata.col(2) +
+                m_OPDdata.leftCols(2).matrix().rowwise().norm().array()*distOffset(ioffset)/2.;  // approximation faible ouerture
+
+        F= exp( correctOPD*i2pi_lambda)*m_amplitudes.col(0)  ;
+        nfft_adjoint(&plan);
+        Spsf=Tf.transpose()/m_OPDdata.rows();
+
+        F= exp( correctOPD*i2pi_lambda)*m_amplitudes.col(1)  ;
+        nfft_adjoint(&plan);
+        Ppsf=Tf.transpose()/m_OPDdata.rows();
+
+    }
+   nfft_finalize(&plan);  // ceci desalloue toute la structure plan
+}

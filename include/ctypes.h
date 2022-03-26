@@ -151,7 +151,7 @@ struct C_WFtype{
 *  < datatype >* data= storage+ ndims*sizeof(size_t)  */
 struct C_ndArray{
     size_t allocatedStorage; /**< \brief size of allocated storage in bytes. Must be properly filled by the creator */
-    size_t ndims;            /**< \brief number of dimensions; will be set by the user entity*/
+    size_t ndims;            /**< \brief number of dimensions; will be set by the filling entity*/
     void* storage;           /**< \brief  address of storage area  containing the dimension vector followed by the data */
 };
 
@@ -174,20 +174,18 @@ struct PSFparameters{
     size_t legendreNx;      /**< \brief Degree of the Legendre polynomial base for interpolating the wavefront in the X direction */
     size_t legendreNy;      /**< \brief Degree of the Legendre polynomial base for interpolating the wavefront in the Y direction */
 
-    double oversampling=4;  /**< \brief The minimum oversampling of the PSF with respect to the exit aperture of the ray tracing (must be  >1) */
-    double psfXpixel;       /**< \brief the X pixel size (in m) of PSF computation resulting of the choice of oversampling and refXimgNA*/
-    double psfYpixel;       /**< \brief the Y pixel size (in m) of PSF computation resulting of the choice of oversampling and refYimgNA*/
+    double psfXpixel;       /**< \brief the X pixel size (in m) of PSF computation: \n  On input : the requested the sampling interval of PSF,
+                            *   \n on output: The effectively used pixel size after application of the minimum oversampling factor.*/
+    double psfYpixel;       /**< \brief the Y pixel size (in m) of PSF computation: \n  On input : the requested the sampling interval of PSF,
+                            *   \n on output: The effectively used pixel size after application of the minimum oversampling factor.*/
+    double oversampling=4;  /**< \brief The minimum oversampling of the PSF with respect to the exit aperture of the ray tracing (must be  >1.)
+                            * this factor determines the maximum grid step of the computed PSF as lambda/ (ThetaMax-ThetaMin)/oversampling for each dimension */
     size_t xSamples;        /**< \brief Number sample points in X the PSF must be computed at */
     size_t ySamples;        /**< \brief Number sample points in X the PSF must be computed at */
+
     double zFirstOffset;    /**< \brief First image plane position the PSF must be computed at (Note it is relative to the OPD reference point */
     double zLastOffset;     /**< \brief Last image plane position the PSF must be computed at (Note it is relative to the OPD reference point */
-    size_t numOffsetPlanes=1;   /**< \brief Number of planes where the PSF will be computed (if equal to 1, only First plane will be computed */
-    double refXimgNA;       /**< \brief The reference exit numerical aperture use to define the PSF sampling interval in X (psfXpixel= lambda/2/refXimgNA
-                            *
-                            *  if the given value is smaller than what is given by applying the oversampling factor, this last value is applied instead*/
-    double refYimgNA;       /**< \brief The reference exit numerical aperture use to define the PSF sampling interval in Y (psfYpixel= lambda/2/refYimgNA
-                            *
-                            *  if the given value is smaller than what is given by applying the oversampling factor, this last value is applied instead */
+    size_t numOffsetPlanes=1;   /**< \brief Number of planes where the PSF will be computed (if equal to 1, only \b Last plane will be computed */
 };
 
 #endif // CTYPES_H_INCLUDED

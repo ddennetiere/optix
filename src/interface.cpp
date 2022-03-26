@@ -813,6 +813,91 @@ extern "C"
 
     DLL_EXPORT bool DumpXML(const char* filename) {return DumpXmlSys(filename);}
 
+    DLL_EXPORT size_t GetSource(size_t elementID)
+    {
+        ClearOptiXError();
+        if(!System.isValidID(elementID))
+        {
+            SetOptiXLastError("Invalid element ID", __FILE__, __func__);
+            return false;
+        }
+        return (size_t)((ElementBase*)elementID)->getSource();
+
+    }
+
+    DLL_EXPORT bool waveRadiate(size_t elementID, WFemission WFemitParams)
+    {
+        ClearOptiXError();
+        if(!System.isValidID(elementID))
+        {
+            SetOptiXLastError("Invalid element ID", __FILE__, __func__);
+            return false;
+        }
+        SourceBase* source;
+        if(((ElementBase*)elementID)->isSource())
+            source=dynamic_cast<SourceBase*>((ElementBase*)elementID);
+        else
+            source=dynamic_cast<SourceBase*>(((ElementBase*)elementID)->getSource());
+        if(!source)
+        {
+            SetOptiXLastError("No source found upstream the given element", __FILE__, __func__);
+            return false;
+        }
+        source->waveRadiate(WFemitParams.wavelength, WFemitParams.Xaperture, WFemitParams.Yaperture,
+                            WFemitParams.Xsize, WFemitParams.Xsize, WFemitParams.polar);
+
+        return true;
+    }
+
+
+    DLL_EXPORT bool GetPsf(size_t elementID, double wavelength, PSFparameters *psfParams, C_ndArray * psfData)
+    {
+        if(!System.isValidID(elementID))
+        {
+            SetOptiXLastError("Invalid element ID", __FILE__, __func__);
+            return false;
+        }
+        Surface* surface= dynamic_cast<Surface*>((ElementBase*)elementID);
+
+        size_t psfStorage=psfParams->xSamples*psfParams->ySamples*psfParams->numOffsetPlanes*4*sizeof(double)+4*sizeof(size_t);
+
+        if(psfData->allocatedStorage < psfStorage)
+        {
+            SetOptiXLastError("Allocated storage for psfData is to small for the size requested by parameters ", __FILE__, __func__);
+            return false;
+        }
+        psfData->ndims=4;
+        size_t *dims=(size_t*)psfData->storage;
+        dims[0]=psfParams->xSamples;
+        dims[1]=psfParams->ySamples;
+        dims[2]=psfParams->numOffsetPlanes;
+        dims[3]=2;
+
+
+        ndArray<complex<double>, 4> PSF(*psfData);
+        Array2d pixelSizes;
+        pixelSizes << psfParams->psfXpixel, psfParams->psfYpixel;
+        ArrayXd distoffsets=ArrayXd::LinSpaced(psfParams->numOffsetPlanes, psfParams->zFirstOffset, psfParams->zLastOffset);
+
+        if(! surface->isOPDvalid())
+        {
+            try {
+                surface->computeOPD(psfParams->opdRefDistance, psfParams->legendreNx, psfParams->legendreNy);
+            }
+            catch (runtime_error &rte)
+            {
+                SetOptiXLastError("The number of recorded impacts is too small to get the requested OPD Legendre development", __FILE__, __func__);
+                return false;
+            }
+        }
+
+        surface->computePSF(PSF, pixelSizes, distoffsets, wavelength, psfParams->oversampling );
+
+        psfParams->psfXpixel=pixelSizes(0);
+        psfParams->psfYpixel=pixelSizes(1);
+        return true;
+    }
+
 #ifdef __cplusplus
 } // extern C
 #endif

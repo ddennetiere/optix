@@ -106,7 +106,7 @@ class SourceBase : public virtual Surface
          * \param Ysize otal number of grid points in the Y dimension (odd number suggested)
          * \param polar The type of polarization. Can be 'S' (default) polarized along X or 'P' polarized along Y
          */
-        void waveRadiate(double wavelength, double Xaperture, double Yaperture, size_t Xsize, size_t Ysize, char polar='S'); // will be specialized for computed source like undulators
+        virtual void waveRadiate(double wavelength, double Xaperture, double Yaperture, size_t Xsize, size_t Ysize, char polar='S'); // will be specialized for computed source like undulators
 
     protected:
 
