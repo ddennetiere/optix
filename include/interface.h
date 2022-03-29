@@ -537,7 +537,9 @@ extern "C"
      * \param wavelength The radiation wavelength (m). It should be the same  wavelength use in the generating WaveRadiate call
      * \param psfParams PSFparameters parameters needed to define the WF interpolation and the PSF resolution and size
      *      note that the pixel size might be redefine to satisfy the prescribed oversampling factor
-     * \param psfData C_ndArray* Address of a C_ndArray struct which must be initialize in order to receive two complex tables (S&P) of size xSamples*ySamples*numOffsetplanes
+     * \param psfData C_ndArray* Address of a C_ndArray struct which must be initialized in order to receive two complex tables (S&P) of size xSamples*ySamples*numOffsetplanes
+     *      \n the ndims attribute will be set to 4 and the first 4 size_t elements of storage will be filled  by the dimensions values {xSamples,ySamples,numOffsetplanes,2} immediately followed by the PSF data
+     *      \n the total memory size of the psfData.storage area must be larger than (xSamples*ySamples*numOffsetplanes*2+1)*8 bytes and documented in the allocatedStorage attribute \see note in C_ndArray
      * \return true if successful; false, in case of an error and OptiX  LastError is set
      */
     DLL_EXPORT bool GetPsf(size_t elementID, double wavelength, PSFparameters *psfParams, C_ndArray * psfData);

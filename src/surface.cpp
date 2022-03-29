@@ -17,7 +17,7 @@
 #include "wavefront.h"
 #define NFFT_PRECISION_DOUBLE
 #include <nfft3mp.h>
-
+extern void Init_Threads();
 
 
 /** \brief helper functor to extract the coefficient-wise minimum value of two arrays
@@ -497,6 +497,8 @@ void Surface::computeOPD(double distance, Index Nx, Index Ny)
 
 void Surface::computePSF(ndArray<complex<double>,3> &PSF, Array2d& pixelSizes, double lambda, double oversampling, double distOffset)
 {
+    Init_Threads(); // will initialize The MT mode if not yet done
+
     std::array<size_t,3> dims=PSF.dimensions();
     if(dims[2]<2)
         throw invalid_argument("Last dimension of argument PSF should be at least 2");
@@ -528,7 +530,7 @@ void Surface::computePSF(ndArray<complex<double>,3> &PSF, Array2d& pixelSizes, d
 
     ArrayXd correctOPD=m_OPDdata.col(2);
     if(distOffset !=0)
-        correctOPD+=m_OPDdata.leftCols(2).matrix().rowwise().norm().array()*distOffset/2.;  //  vrai au 2° ordre en ouverture 4° ordre possible : +norm()^2*distoffset/8
+        correctOPD+=m_OPDdata.leftCols(2).matrix().rowwise().squaredNorm().array()*distOffset/2.;  //  vrai au 2° ordre en ouverture 4° ordre possible : +norm()^2*distoffset/8
 
     if(plan.flags & PRE_ONE_PSI)
         nfft_precompute_one_psi(&plan);
@@ -550,12 +552,13 @@ void Surface::computePSF(ndArray<complex<double>,3> &PSF, Array2d& pixelSizes, d
 
 void Surface::computePSF(ndArray<complex<double>,4 > &PSF, Array2d &pixelSizes, ArrayXd &distOffset, double lambda, double oversampling)
 {
+    Init_Threads(); // will initialize The MT mode if not yet done
     std::array<size_t,4> dims=PSF.dimensions();
     if(dims[3]<2)
         throw invalid_argument("Fourth dimension of argument PSF should be  2");
     if(oversampling <1. )
         throw invalid_argument("Oversampling factor should be greater than 1.");
-    size_t arraysize=2*dims[0]*dims[1]*sizeof(double);
+    size_t arraysize=dims[0]*dims[1];
     size_t stacksize=arraysize*dims[2];
 
     nfft_plan plan;
@@ -583,7 +586,7 @@ void Surface::computePSF(ndArray<complex<double>,4 > &PSF, Array2d &pixelSizes, 
         nfft_precompute_one_psi(&plan);
 
     complex<double> *pSdat=PSF.data(), *pPdat=PSF.data()+stacksize;
-    for(Index ioffset=0; ioffset < distOffset.size(); ++ioffset, ++pSdat,++pPdat )
+    for(Index ioffset=0; ioffset < distOffset.size(); ++ioffset, pSdat+=arraysize, pPdat+=arraysize )
     {
         Map<ArrayXcd> F((complex<double>*)plan.f,m_OPDdata.rows());
         Map<ArrayXXcd> Tf((complex<double>*)plan.f_hat,dims[1],dims[0] );
@@ -591,7 +594,7 @@ void Surface::computePSF(ndArray<complex<double>,4 > &PSF, Array2d &pixelSizes, 
         Map<ArrayXXcd> Ppsf(pPdat,dims[0], dims[1]);
 
         ArrayXd correctOPD=m_OPDdata.col(2) +
-                m_OPDdata.leftCols(2).matrix().rowwise().norm().array()*distOffset(ioffset)/2.;  // approximation faible ouerture
+                m_OPDdata.leftCols(2).matrix().rowwise().squaredNorm().array()*distOffset(ioffset)/2.;  // approximation faible ouerture
 
         F= exp( correctOPD*i2pi_lambda)*m_amplitudes.col(0)  ;
         nfft_adjoint(&plan);

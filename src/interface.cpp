@@ -27,6 +27,9 @@
 #include "version.h"
 #include <limits>  // pour epsilon
 
+#define NFFT_PRECISION_DOUBLE
+#include <nfft3mp.h>
+
 #ifdef HAS_REFLEX  // if libRefleX added to linklist
 #include "ReflectivityAPI.h"
 
@@ -37,10 +40,38 @@ CoatingTable coatingTable;  /**< \brief the coating table enables interpolation 
 
 #endif // HAS_REFLEX
 
-bool inhibitApertureLimit=true; /**< Global flag to take into account or not the apertures stops in the ray tracing */
+bool inhibitApertureLimit=true; /**< \brief Global flag to take into account or not the apertures stops in the ray tracing */
 
 ElementCollection System;   /**< \brief dictionary of all elements created through this interface  */
 
+bool threadInitialized=false;   /**< \brief Global flag to keep track of Open_MP  initialization */
+
+/** \brief Initialize Multi-thread mode for NFFT if openmp is available (set the -fopenmp compiler flag and link  with libgomp
+ */
+void Init_Threads()
+{
+    if(threadInitialized)
+        return;
+
+//    int maxthreads=1;
+//#ifdef _OPENMP
+//#ifndef __DEBUG   // we dont want debuggin in MT mode
+// #ifdef MAXTHREADS  // num threads is limited
+//    int available=omp_get_max_threads();
+//    cout << "Available processors " << available << endl;
+//    maxthreads= available > MAXTHREADS ? MAXTHREADS : available;
+//  #else
+//    maxthreads=omp_get_max_threads();
+//  #endif // threads unlimited
+//    //double time0=omp_get_wtime();  // initialise l'horloge
+//    omp_set_num_threads(maxthreads);
+   fftw_init_threads();
+//#endif  // __DEBUG
+//#endif // _OPENMP
+//  //  Eigen::setNbThreads(0); // use default thread number in Eigen
+//    cout << "number of active threads " << maxthreads <<endl;
+    threadInitialized=true;
+}
 
 
 //set<size_t> ValidIDs;

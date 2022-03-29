@@ -18,10 +18,11 @@
 
 
 #include <iostream>
+#include <fstream>
+#include <chrono>
+
 #include "opticalelements.h"
 #include "sources.h"
-#include <fstream>
-#include <float.h>
 #include "gratingbase.h"
 #include "files.h"
 #include <sstream>
@@ -31,8 +32,7 @@
 #include "Polygon.h"
 #include "Ellipse.h"
 
-
-
+using HR_clock = std::chrono::high_resolution_clock ;
 //#define POSTFIX(X, P) X#P
 //#define M_PIl POSTFIX(M_PI, L)
 //#include <unsupported\Eigen\CXX11\src\Tensor\TensorBase.h>
@@ -60,11 +60,11 @@ int main()
     ArrayXd v1(7), v2(7), v3;
     v1 << 4,8,5.2,8.5, 9,14,18 ;
     v2 << 3,9.5,7, 13.2, 6, 15, 19;
-    cout << v1 << endl <<v2<< endl;
+    cout << v1.transpose() << endl <<v2.transpose()<< endl;
 
     v1= v1.binaryExpr(v2, minOf2Op<double>());
 
-    cout << v1 << endl <<endl;
+    cout << v1.transpose() << endl <<endl;
 
 //    return SolemioTest();
     return OriginalTest();
@@ -339,21 +339,33 @@ int OriginalTest()
         WfFile.write ((char*)WFsurf.data(), nx*ny*sizeof(double));
         WfFile.close();
 
+        HR_clock clock;
+        HR_clock::time_point start(clock.now());
+
+
         film2.computeOPD(0, 7,7);
-        cout << "OPD computed\n";
+        HR_clock::time_point midtime(clock.now());
+        cout << "OPD computed; duration " << chrono::duration_cast<chrono::milliseconds>(midtime-start).count() << " msec\n" ;
 
 //        ArrayXXcd Psf;
         nx=ny=500;
-        ndArray<complex<double>,3> Psf(nx,ny,2);
+        int nplane=21;
         Array2d pixelSize;
         pixelSize <<  2e-7, 2e-7;
-        film2.computePSF(Psf,pixelSize, wavelength); //, nx,ny);
-        cout << "PSF computed\n";
+        // la profondeur de Rayley à 1 nm ouverture 1 mead est env 0.5 mm
+        ArrayXd zOffsets=ArrayXd::LinSpaced(nplane, -2e-2,2e-2);
+        ndArray<complex<double>,4> Psf((size_t)nx,(size_t)ny,(size_t)nplane,2ull);
+        film2.computePSF(Psf, pixelSize, zOffsets, wavelength);
+       // ndArray<complex<double>,3> Psf(nx,ny,2);
+      //  film2.computePSF(Psf,pixelSize, wavelength); //, nx,ny);
+        cout << "PSF computed; duration " << chrono::duration_cast<chrono::milliseconds>(clock.now()-midtime).count() << " msec\n" ;
+
         WfFile.open("film2.psf", ios::out | ios::binary);
         WfFile.write((char*)&nx, sizeof(int));
         WfFile.write((char*)&ny, sizeof(int)) ;
+        WfFile.write((char*)&nplane,sizeof(int));
         WfFile.write((char*)pixelSize.data(), 2*sizeof(double )) ;
-        WfFile.write ((char*)Psf.data(), nx*ny*2*sizeof(double));
+        WfFile.write ((char*)Psf.data(), nx*ny*nplane*4*sizeof(double));
         WfFile.close();
     }
 
