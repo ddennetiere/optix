@@ -1,5 +1,5 @@
-        OptiX Ray-tracing Library
-        =========================
+OptiX Ray-tracing Library
+=================================
 
 OptiX is a ray-tracer library for X-ray optics.
 All function are exposed in C form, though it is internally written in C++
