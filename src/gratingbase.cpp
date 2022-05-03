@@ -15,11 +15,12 @@
 //
 ////////////////////////////////////////////////////////////////////////////////////
 #include "gratingbase.h"
-EIGEN_DEVICE_FUNC  Surface::VectorType Pattern::gratingVector(const Surface::VectorType &position, const  Surface::VectorType &normal)
-{
-    throw ElementException("Pattern base class virtual functions should never be called", __FILE__, __func__, __LINE__);
-    return  Surface::VectorType::Zero();   // calcul dans le plan de description de la surface (XY), pas dans l'espace d propagation
-}
+//
+//EIGEN_DEVICE_FUNC  Surface::VectorType Pattern::gratingVector(const Surface::VectorType &position, const  Surface::VectorType &normal)
+//{
+//    throw ElementException("Pattern base class virtual functions should never be called", __FILE__, __func__, __LINE__);
+//    return  Surface::VectorType::Zero();   // calcul dans le plan de description de la surface (XY), pas dans l'espace d propagation
+//}
 
 
 GratingBase::GratingBase(bool transparent, string name ,Surface * previous):Surface(transparent,name, previous)
@@ -106,32 +107,24 @@ int GratingBase::setFrameTransforms(double alWavelength)         /**< \todo to b
     else        // si la surface est réflective, calcul de chi et omega
     {
         VectorType G;
-        try{
-            psiTransform=Matrix<FloatType,4,4>(m_FlipSurfCoefs);
-            psiTransform*=AngleAxis<FloatType>(psi,VectorType::UnitZ());
 
-            // aligne sur le point 0 et la normale selon Z. S'il y a des desalignement l'intercept réel sera différent de l'alignement théorique
-            G=psiTransform*gratingVector(VectorType::Zero(), VectorType::UnitZ())*m_alignmentOrder*alWavelength; // G dans le plan tangent ==> Gy==0
+        psiTransform=Matrix<FloatType,4,4>(m_FlipSurfCoefs);
+        psiTransform*=AngleAxis<FloatType>(psi,VectorType::UnitZ());
 
-            m_exitFrame*=AngleAxis<FloatType>(-2.*theta,VectorType::UnitX()) ; // axe X nouveau
+        // aligne sur le point 0 et la normale selon Z. S'il y a des desalignement l'intercept réel sera différent de l'alignement théorique
+        G=psiTransform*gratingVector(VectorType::Zero(), VectorType::UnitZ())*m_alignmentOrder*alWavelength; // G dans le plan tangent ==> Gy==0
+        // après la transformation Psi le vecteur G est tourné dans le plan XZ (Y=0)
+        m_exitFrame*=AngleAxis<FloatType>(-2.*theta,VectorType::UnitX()) ; // axe X nouveau
 
-            G/=(2.*sin(theta)); // angle=theta  (la formule est identique en x et en Z
-            if(abs(G(0)) >1. || abs(G(2))>1.)
-            {
-                SetOptiXLastError(getName()+" grating cannot diffract the given wavelength in the given direction", __FILE__, __func__);
-                return -1;  // cannot align
-            }
-            chi=asin(G(0));
-            omega=asin(G(2));
-
-        }
-        catch(...)
+        G/=(2.*sin(theta)); // angle=theta  (la formule est identique en x et en Z
+        if(abs(G(0)) >1. || abs(G(2))>1.)
         {
-            char Gstring[256];
-            sprintf(Gstring, "(%Lf, %Lf, %Lf)", G(0), G(1), G(2));
-            SetOptiXLastError(getName()+" unknowwn error in grating alignment G="+Gstring, __FILE__, __func__);
+            SetOptiXLastError(getName()+" grating cannot diffract the given wavelength in the given direction", __FILE__, __func__);
             return -1;  // cannot align
         }
+        chi=asin(G(0));
+        omega=asin(G(2));
+
     }
     m_surfaceDirect= IsometryType(inputFrameRot)*AngleAxis<FloatType>(phi+chi, VectorType::UnitZ()); // rot/nouveau Z
 

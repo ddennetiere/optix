@@ -65,8 +65,8 @@ class Poly1D : virtual public Surface, virtual public Pattern
          * \param[in] normal  vector normal to the surface at position (usually position and normal are provided by the Surface::intercept() function)
          * \return the line density vector at position. it is perpendicular to normal and Y (in surface reference frame)
          */
-        EIGEN_DEVICE_FUNC virtual Surface::VectorType gratingVector(Surface::VectorType position,
-                                Surface::VectorType normal);
+        virtual EIGEN_DEVICE_FUNC  Surface::VectorType gratingVector(const Surface::VectorType &position,
+                               const Surface::VectorType &normal);
 
     protected:
         int m_degree;       /**< degree of line density polynomial */

@@ -70,7 +70,7 @@ int main()
     return OriginalTest();
 //    return SphereTest();
 //    return QuickTest();
-//    return TestEllipse();
+//    return TestEllipse();   // modifié pour test grating
     cout << "sizeof(bool) " << sizeof(bool) << endl << endl;
      Polygon rectangle;
      bool cvx;
@@ -349,7 +349,7 @@ int OriginalTest()
 
 //        ArrayXXcd Psf;
         nx=ny=500;
-        int nplane=21;
+        int nplane=51;
         Array2d pixelSize;
         pixelSize <<  2e-7, 2e-7;
         // la profondeur de Rayley à 1 nm ouverture 1 mead est env 0.5 mm
@@ -551,13 +551,15 @@ int TestEllipse()
 {
     char errBuf[256];
 
-    size_t sourceID, hfmID, vfmID, screenID;
+    size_t sourceID, hfmID, vfmID, screenID; //, gratID;
     sourceID=CreateElement("Source<Gaussian>", "source");
     hfmID=CreateElement("Mirror<ConicBaseCylinder>", "hfm");
     vfmID=CreateElement("Mirror<ConicBaseCylinder>", "vfm");
+//    gratID=CreateElement("Grating<Poly1D,Plane>", "grating");  //just for alignment test
     screenID=CreateElement("Film<Plane>", "screen");
     ChainElement_byID(sourceID, hfmID);
     ChainElement_byID(hfmID,vfmID);
+ //   ChainElement_byID(vfmID,gratID);
     ChainElement_byID(vfmID,screenID);
 
 
@@ -581,9 +583,17 @@ int TestEllipse()
     SetParamValue(vfmID, "theta", 1.75*M_PI/180.);
     SetParamValue(vfmID, "phi", - M_PI/2.);
 
-    SetParamValue(screenID, "distance", 1.8);
+//    SetParamValue(gratID, "distance", .3);
+//    SetParamValue(gratID, "lineDensity", 1.e+6);
+//    SetParamValue(gratID, "order_align",  1);
+//    SetParamValue(gratID, "order_use", 1);
+//    SetParamValue(gratID, "theta", 1.5*M_PI/180.);
+//
+
+    SetParamValue(screenID, "distance", 1.5);
 
     double lambda=6.e-9;
+    cout << "calling align on source\n";
     if(!Align(sourceID, lambda))
     {
        GetOptiXLastError(errBuf,256);

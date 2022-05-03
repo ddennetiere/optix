@@ -43,7 +43,7 @@ class Pattern
         /** Line density vector in  grating coordinates
         *       \todo should be made pure virtual when derived classes are setup */
         EIGEN_DEVICE_FUNC virtual Surface::VectorType gratingVector(const Surface::VectorType &position,
-                                const Surface::VectorType &normal=Surface::VectorType::UnitZ());
+                                const Surface::VectorType &normal=Surface::VectorType::UnitZ())=0;
 };
 
 /** \brief Base class for all gratings
