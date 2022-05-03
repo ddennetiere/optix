@@ -105,25 +105,34 @@ int GratingBase::setFrameTransforms(double alWavelength)         /**< \todo to b
         psiTransform=AngleAxis<FloatType>(psi,VectorType::UnitZ());
     else        // si la surface est réflective, calcul de chi et omega
     {
-        psiTransform=Matrix<FloatType,4,4>(m_FlipSurfCoefs);
-        psiTransform*=AngleAxis<FloatType>(psi,VectorType::UnitZ());
+        VectorType G;
+        try{
+            psiTransform=Matrix<FloatType,4,4>(m_FlipSurfCoefs);
+            psiTransform*=AngleAxis<FloatType>(psi,VectorType::UnitZ());
 
-        // aligne sur le point 0 et la normale selon Z. S'il y a des desalignement l'intercept réel sera différent de l'alignement théorique
-        VectorType G=psiTransform*gratingVector(VectorType::Zero(), VectorType::UnitZ())*m_alignmentOrder*alWavelength; // G dans le plan tangent ==> Gy==0
+            // aligne sur le point 0 et la normale selon Z. S'il y a des desalignement l'intercept réel sera différent de l'alignement théorique
+            G=psiTransform*gratingVector(VectorType::Zero(), VectorType::UnitZ())*m_alignmentOrder*alWavelength; // G dans le plan tangent ==> Gy==0
 
-        m_exitFrame*=AngleAxis<FloatType>(-2.*theta,VectorType::UnitX()) ; // axe X nouveau
+            m_exitFrame*=AngleAxis<FloatType>(-2.*theta,VectorType::UnitX()) ; // axe X nouveau
 
-        G/=(2.*sin(theta)); // angle=theta  (la formule est identique en x et en Z
-        if(abs(G(0)) >1. || abs(G(2))>1.)
+            G/=(2.*sin(theta)); // angle=theta  (la formule est identique en x et en Z
+            if(abs(G(0)) >1. || abs(G(2))>1.)
+            {
+                SetOptiXLastError(getName()+" grating cannot diffract the given wavelength in the given direction", __FILE__, __func__);
+                return -1;  // cannot align
+            }
+            chi=asin(G(0));
+            omega=asin(G(2));
+
+        }
+        catch(...)
         {
-            SetOptiXLastError(getName()+" grating cannot diffract the given wavelength in the given direction", __FILE__, __func__);
+            char Gstring[256];
+            sprintf(Gstring, "(%Lf, %Lf, %Lf)", G(0), G(1), G(2));
+            SetOptiXLastError(getName()+" unknowwn error in grating alignment G="+Gstring, __FILE__, __func__);
             return -1;  // cannot align
         }
-        chi=asin(G(0));
-        omega=asin(G(2));
-
     }
-
     m_surfaceDirect= IsometryType(inputFrameRot)*AngleAxis<FloatType>(phi+chi, VectorType::UnitZ()); // rot/nouveau Z
 
     getParameter("Dtheta",param);
