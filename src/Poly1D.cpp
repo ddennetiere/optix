@@ -117,8 +117,7 @@ bool Poly1D::setParameter(string name, Parameter& param)
 
 }
 
-
-EIGEN_DEVICE_FUNC  Surface::VectorType Poly1D::gratingVector(Surface::VectorType position, Surface::VectorType normal)
+EIGEN_DEVICE_FUNC  Surface::VectorType Poly1D::gratingVector(const Surface::VectorType &position, const Surface::VectorType &normal)
 {
 
   Surface::VectorType G=normal.cross(Surface::VectorType::UnitY()).normalized();
