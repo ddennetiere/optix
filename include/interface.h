@@ -169,7 +169,7 @@ extern "C"
      * \return true if a new element was found and returned; false if  the name buffer was too small and the OptiXLastError will be set
      * in this latter case, the element name is truncated and the enumerator is  invalidated  and set to 0
      *
-     * Memory leeks will occur if the handle is dropped before it is returned as 0. If needed clear a non zero handle with ReleaseElementHandle()
+     * Memory leaks will occur if the handle is dropped before it is returned as 0. If needed clear a non zero handle with ReleaseElementHandle()
      */
     DLL_EXPORT bool EnumerateElements(size_t * pHandle, size_t* elemID, char * nameBuffer, const int bufSize);
 
@@ -333,7 +333,7 @@ extern "C"
      * \param[out] paramData a pointer to a Parameter struct to receive the parameter data
      * \return true if a new parameter was found and returned without error ; false if elementID was invalid or the buffer was too small, and OptixLastError is set
      * in this latter case, the parameter name is truncated and the enumerator is  invalidated  and set to 0
-     * Memory leeks will occur if the handle is dropped before it is returned as 0. If needed clear a non zero hande with ReleaseParameterHandle()
+     * Memory leaks will occur if the handle is dropped before it is returned as 0. If needed clear a non zero hande with ReleaseParameterHandle()
      */
     DLL_EXPORT bool EnumerateParameters(size_t elementID, size_t * pHandle, char* tagBuffer, const int bufSize , struct Parameter* paramData);
 
@@ -506,6 +506,16 @@ extern "C"
      */
     DLL_EXPORT bool LoadSystemFromXml(const char * filename);
 
+    /** \brief switch the global aperture activity flag
+     * \param activity new value of activity. If true, aperture stops are taken into account for ray intensity
+     */
+    DLL_EXPORT void SetAperturesActive(const bool activity);
+
+    /** \brief get the status of global aperture activity flag
+     * \return a bolean value reflecting aperture stop activity
+     */
+    DLL_EXPORT bool GetAperturesActive();
+
   //  DLL_EXPORT bool AddElementsFromXml(const char * filename);  la gestion des nom en double doit être testée
 
     /** \brief Dump the content of an XML system file to stdout (given for convenience)
@@ -524,6 +534,7 @@ extern "C"
 
     /** \brief Radiate a "wavefront" emitted from a single point source  with aperture angle distributed on a regular grid
      *
+     * Align and radiate a wavefront of given wavelength and aperture angle from the nominal source position
      * \param elementID if the corresponding element is a source, the wavefront will be radiated from the position of this source.
      *  If it is not a source the most upstream source position will be used
      * \param WFemitParams Parameters of emission wavelength, aperture and number of points in this aperture

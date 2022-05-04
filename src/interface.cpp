@@ -844,6 +844,10 @@ extern "C"
 
     DLL_EXPORT bool DumpXML(const char* filename) {return DumpXmlSys(filename);}
 
+    DLL_EXPORT void SetAperturesActive(const bool activity){inhibitApertureLimit=!activity;}
+
+    DLL_EXPORT bool GetAperturesActive(){return !inhibitApertureLimit;}
+
     DLL_EXPORT size_t GetSource(size_t elementID)
     {
         ClearOptiXError();
@@ -856,7 +860,7 @@ extern "C"
 
     }
 
-    DLL_EXPORT bool waveRadiate(size_t elementID, WFemission WFemitParams)
+    DLL_EXPORT bool WaveRadiate(size_t elementID, WFemission WFemitParams)
     {
         ClearOptiXError();
         if(!System.isValidID(elementID))
@@ -874,6 +878,7 @@ extern "C"
             SetOptiXLastError("No source found upstream the given element", __FILE__, __func__);
             return false;
         }
+        source->alignFromHere(WFemitParams.wavelength);
         source->waveRadiate(WFemitParams.wavelength, WFemitParams.Xaperture, WFemitParams.Yaperture,
                             WFemitParams.Xsize, WFemitParams.Xsize, WFemitParams.polar);
 
