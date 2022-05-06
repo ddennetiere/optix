@@ -87,8 +87,6 @@
 *
 *      \defgroup reflectivityAPI  C functions of the reflectivity API
 *      \brief  interface C Functions exported by the OptiX library to handle objects defined in the C++ RefleX library
-*
-*
 *      \ingroup globalc
 *
 *      declared in ReflectivityAPI.h

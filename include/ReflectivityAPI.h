@@ -20,7 +20,6 @@
 *
  ***************************************************************************/
 
-
 #ifdef HAS_REFLEX
 
 
@@ -43,9 +42,8 @@ extern map<string, MaterialTable> indexTables; /**< \brief a set of tables of ma
 extern CoatingTable coatingTable;  /**< \brief the coating table enables interpolation of the registered coatings on a unique energy and angle grid */
 
 
-/** \ingroup reflectivityAPI
-*   \{
-*/
+
+
 
 #ifdef __cplusplus
 extern "C"
@@ -54,6 +52,12 @@ extern "C"
 #include <stdbool.h>
 #endif
 
+
+/** \ingroup reflectivityAPI
+*   \{
+*/
+
+
 /** \brief Opens a DabaX database file
  *
  * \param filepath An absolute or relative path to the database
@@ -61,6 +65,7 @@ extern "C"
  * \see also EnumeratesDatabases
  */
 DLL_EXPORT const char* OpenDatabase(const char* filepath);
+
 
 /** \brief enumerates the names of the DabaX databases open in the application
  *
@@ -127,23 +132,50 @@ DLL_EXPORT void ReleaseIndexTableEnumHandle(size_t handle);
 
 
 
+/** \brief Adds a material from a database  to an IndexTable
+ *
+ * \param table the name of the IndexTable to be modified
+ * \param database The name of the Xdatabase where the optical parameters of the new material will be loaded from
+ * \param material The name of the material (in the Xdatabase) to add to the IndexTable
+ * \return true id the specified element could be added to the table; false ortherwise, and the OptiXLastError is set
+ */
 DLL_EXPORT bool AddMaterial(const char* table, char* database, const char* material);
 
+/** \brief Adds a compound material to an IndexTable
+ *
+ * \param table the name of the IndexTable to be modified
+ * \param database The name of the Xdatabase where the optical parameters of the new material will be loaded from
+ * \param formula The stoechiometric formula of the compound. This is also the name the compound will be  given
+ * \param density the specific mass (g/cm^2)
+ * \return true id the compound of specified formula could be added to the table; false ortherwise, and the OptiXLastError is set
+ */
 DLL_EXPORT bool AddCompound(const char* table, char* database, const char* formula,double density);
 
+/** \brief enumerate the elements and compounds available in an IndexTable
+ *
+ * \param[in] indexTable const Name of the IndexTable to search in
+ * \param[in,out] pHandle address of a location containing: \n on input, a handle to the current enumerator or 0 to get the first element;
+ *  \n on output, a  handle to underlying enumerator of the parameter list or 0 if the retrieved element is the last one or an error occurs
+ * \param[out] nameBuffer a character buffer to receive the retrieved database name.
+ * \param[in] bufSize size of the buffer
+ * \return true if the function was successful, 0 otherwise and he OptiXLastError is set
+ */
 DLL_EXPORT bool EnumerateMaterials(const char* indexTable, size_t * pHandle, char * nameBuffer, const int bufSize);
 
+/** \brief Release a non 0 handle
+ * \param Handle the handle to release
+ */
 DLL_EXPORT void ReleaseMaterialEnumHandle(size_t Handle);
 
+/** \} */     // ingroup reflectivityAPI
 
 
-
-
-/** \} */ // end of reflectivityAPI group
 #ifdef __cplusplus
 }
 #endif
 
+
 #endif // HAS_REFLEX
+
 
 #endif // REFLECTIVITYAPI_H_INCLUDED
