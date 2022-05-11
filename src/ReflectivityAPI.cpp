@@ -52,6 +52,27 @@ DLL_EXPORT const char* OpenDatabase(const char* filepath)
     return key.c_str();
 }
 
+DLL_EXPORT bool CloseDatabase(const char* database)
+{
+    ClearOptiXError();
+
+    map<string,XDatabase>::iterator dbit = dataBases.find(database);
+    if(dbit==dataBases.end())
+    {
+        SetOptiXLastError(string("Database ")+ database + " is not currently open" , __FILE__, __func__);
+        return false;
+    }
+    if(dbit->second.refCount() >0)
+    {
+        char str[256];
+        sprintf(str,"Database %s is currently used by %lld objects", database, dbit->second.refCount());
+        SetOptiXLastError(str , __FILE__, __func__);
+        return false;
+    }
+    dataBases.erase(dbit);
+    return true;
+}
+
 DLL_EXPORT bool EnumerateDatabases(size_t * pHandle, char * nameBuffer, const int bufSize)
 {
     ClearOptiXError();
@@ -132,6 +153,26 @@ DLL_EXPORT bool CreateIndexTable(const char* name)
     return true;
 }
 
+DLL_EXPORT bool DeleteIndexTable(const char* name)
+{
+    ClearOptiXError();
+
+    map<string,MaterialTable>::iterator pit = indexTables.find(name);
+    if(pit==indexTables.end())
+    {
+        SetOptiXLastError(string("There is currently no IndexTable named ")+ name , __FILE__, __func__);
+        return false;
+    }
+    if(pit->second.refCount() >0)
+    {
+        char str[256];
+        sprintf(str,"Index Table %s is currently used by %lld objects", name, pit->second.refCount());
+        SetOptiXLastError(str , __FILE__, __func__);
+        return false;
+    }
+    indexTables.erase(pit);
+    return true;
+}
 
 DLL_EXPORT bool EnumerateIndexTables(size_t * pHandle, char * nameBuffer, const int bufSize)
 {
@@ -198,7 +239,7 @@ DLL_EXPORT bool AddMaterial(const char* table, char* database, const char* mater
     return true;
 }
 
-DLL_EXPORT bool AddCompound(const char* table, char* database, const char* formula,double density)
+DLL_EXPORT bool AddCompound(const char* table, const  char* database, const char* formula,double density)
 {
     ClearOptiXError();
     map<string,MaterialTable>::iterator itit = indexTables.find(table);
@@ -224,6 +265,36 @@ DLL_EXPORT bool AddCompound(const char* table, char* database, const char* formu
     return true;
 }
 
+DLL_EXPORT bool RemoveMaterial(const char* indexTable, const char* materialName)
+{
+    ClearOptiXError();
+    map<string,MaterialTable>::iterator itit = indexTables.find(indexTable);
+    if(itit==indexTables.end())
+    {
+        SetOptiXLastError(string("IndexTable  ")+ indexTable + " is not currently defined" , __FILE__, __func__);
+        return false;
+    }
+    MaterialTable & matTable=itit->second;
+    bool removed;
+    try
+    {
+        removed=matTable.removeMaterialEntry(materialName);
+    }
+    catch(runtime_error &rte)
+    {
+        SetOptiXLastError(string("Material entry ")+ materialName + " is not currently defined in IndexTable " +indexTable, __FILE__, __func__);
+        return false;
+    }
+    if(!removed)
+    {
+        SetOptiXLastError(string("Material entry ")+ materialName + " of IndexTable " +indexTable + " is still in use " , __FILE__, __func__);
+        return false;
+    }
+    return true;
+}
+
+
+
 DLL_EXPORT bool EnumerateMaterials(const char* indexTable, size_t * pHandle, char * nameBuffer, const int bufSize)
 {
     ClearOptiXError();
@@ -238,7 +309,7 @@ DLL_EXPORT bool EnumerateMaterials(const char* indexTable, size_t * pHandle, cha
     if((size_t)bufSize <= name.size())
     {
         SetOptiXLastError(string("IndexTable ")+ indexTable + ": provided buffer is too small" , __FILE__, __func__);
-        XDatabase::ReleaseHandle(*pHandle);
+        MaterialTable::ReleaseHandle(*pHandle);
         *pHandle=0;
         return false;
     }
@@ -253,5 +324,180 @@ DLL_EXPORT void ReleaseMaterialEnumHandle(size_t Handle)
 }
 
 
+
+/****************************   Coating Tables    ******************************************/
+
+DLL_EXPORT bool CreateCoatingTable(const char* name)
+{
+    ClearOptiXError();
+    auto retpair=coatingTables.emplace(name, CoatingTable());
+    if( ! retpair.second)
+    {
+        SetOptiXLastError(string("Coating table ")+ name + " already exists" , __FILE__, __func__);
+        return false;
+    }
+
+    return true;
+}
+
+
+DLL_EXPORT bool EnumerateCoatingTables(size_t * pHandle, char * nameBuffer, const int bufSize)
+{
+    ClearOptiXError();
+    map<string,CoatingTable>::iterator* tabit;
+    if(*pHandle==0)
+        tabit=new map<string,CoatingTable>::iterator(coatingTables.begin());
+    else
+        tabit=(map<string,CoatingTable>::iterator* )*pHandle;
+
+    strncpy(nameBuffer,(*tabit)->first.c_str(), bufSize);
+
+    if(bufSize < (int) (*tabit)->first.size()+1)
+    {
+        SetOptiXLastError("nameBuffer is too small",__FILE__,__func__);
+        delete tabit;
+        *pHandle=0;
+        return false;
+    }
+
+    if(++(*tabit)== coatingTables.end())
+    {
+         delete tabit;
+         *pHandle=0;
+    }
+    else
+        *pHandle=(size_t) tabit;
+
+    return true;
+}
+
+DLL_EXPORT void ReleaseCoatingTableEnumHandle(size_t handle)
+{
+    if(handle)
+        delete (map<string, CoatingTable>::iterator*) handle;
+}
+
+DLL_EXPORT bool EnumerateCoatings(const char* coatingTable, size_t * pHandle, char * nameBuffer, const int bufSize)
+{
+    ClearOptiXError();
+    map<string,CoatingTable>::iterator tabit = coatingTables.find(coatingTable);
+    if(tabit==coatingTables.end())
+    {
+        SetOptiXLastError(string("CoatingTable  ")+ coatingTable + " is not currently defined" , __FILE__, __func__);
+        return false;
+    }
+    string name;
+    tabit->second.enumerateCoatings(pHandle,name);
+    if((size_t)bufSize <= name.size())
+    {
+        SetOptiXLastError(string("CoatingTable ")+ coatingTable + ": provided buffer is too small" , __FILE__, __func__);
+        CoatingTable::ReleaseHandle(*pHandle);
+        *pHandle=0;
+        return false;
+    }
+    strncpy(nameBuffer, name.c_str(),bufSize);
+    return true;
+}
+
+
+DLL_EXPORT void ReleaseCoatingEnumHandle(size_t Handle)
+{
+    if(Handle)
+        CoatingTable::ReleaseHandle(Handle);  // methode statique de la classe
+}
+
+
+DLL_EXPORT bool CreateCoating(const char* coatingTable, const char * coatingName, const char* indexTable, const char* substrateMaterial)
+{
+    ClearOptiXError();
+    map<string,CoatingTable>::iterator ctabit = coatingTables.find(coatingTable);
+    if(ctabit==coatingTables.end())
+    {
+        SetOptiXLastError(string("CoatingTable  ")+ coatingTable + " is not currently defined" , __FILE__, __func__);
+        return false;
+    }
+    map<string,MaterialTable>::iterator matit = indexTables.find(indexTable);
+    if(matit==indexTables.end())
+    {
+        SetOptiXLastError(string("Index Table  ")+ indexTable + " is not currently defined" , __FILE__, __func__);
+        return false;
+    }
+    try
+    {
+        MaterialTable::MatEntry &substrateEntry= matit->second.getMaterial(substrateMaterial);
+        ctabit->second.addCoating(coatingName, substrateEntry);
+    }
+    catch(runtime_error & rte)
+    {
+        SetOptiXLastError(string("CoatingTable ")+ coatingTable + " coating " + coatingName +" creation failed ; reason: " + rte.what() , __FILE__, __func__);
+        return false;
+    }
+    return true;
+
+}
+
+DLL_EXPORT bool AddCoatingLayer(const char* coatingTable, const char * coatingName,
+                                const char* indexTable, const char* layerMaterial, double thickness, double compacity)
+{
+    ClearOptiXError();
+    if(thickness <0)
+    {
+        SetOptiXLastError(string("cannot add a layer with negative thickness" ), __FILE__, __func__);
+        return false;
+    }
+    if(compacity <0)
+    {
+        SetOptiXLastError(string("cannot add a layer with negative compacity") , __FILE__, __func__);
+        return false;
+    }
+    map<string,CoatingTable>::iterator ctabit = coatingTables.find(coatingTable);
+    if(ctabit==coatingTables.end())
+    {
+        SetOptiXLastError(string("CoatingTable  ")+ coatingTable + " is not currently defined" , __FILE__, __func__);
+        return false;
+    }
+    map<string,MaterialTable>::iterator matit = indexTables.find(indexTable);
+    if(matit==indexTables.end())
+    {
+        SetOptiXLastError(string("Index Table  ")+ indexTable + " is not currently defined" , __FILE__, __func__);
+        return false;
+    }
+    MaterialTable::MatEntry *p_matEntry;
+    try{
+        p_matEntry= &(matit->second.getMaterial(layerMaterial));
+    }
+    catch (runtime_error & rte)
+    {
+        SetOptiXLastError(string("Material ")+ layerMaterial + " was not found in table  " + indexTable , __FILE__, __func__);
+        return false;
+    }
+    try
+    {
+
+        Coating &coat=ctabit->second.getCoating(coatingName);
+        coat.addLayer(*p_matEntry, thickness);
+        int64_t nlayers=coat.getLayers();
+        coat.setCompacity(nlayers-1,compacity);
+    }
+    catch(runtime_error &rte)
+    {
+        SetOptiXLastError(string("CoatingTable ")+ coatingTable + " cannot add layer " +layerMaterial+ " ; reason: "+ rte.what(),
+                           __FILE__, __func__);
+        return false;
+    }
+    return true;
+}
+
+
+
+//    Coating * p_coat;
+//    try{
+//        p_coat=&(tabit->second.getCoating(coatingName));
+//    }
+//    catch (runtime_error & rte)
+//    {
+//        SetOptiXLastError(string("CoatingTable ")+ coatingTable + " operation failed ; reason: " + rte.what() , __FILE__, __func__);
+//        return false;
+//    }
  #endif // HAS_REFLEX
 

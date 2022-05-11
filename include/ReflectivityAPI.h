@@ -39,7 +39,7 @@
 extern map<string, XDatabase> dataBases;   /**< \brief a set of DABAX data bases indexed for fast access  */
 extern map<string, MaterialTable> indexTables; /**< \brief a set of tables of material index. Material tables interpolate
                                         *  the index of the registered materials on a common energy grid with minimum number of steps*/
-extern CoatingTable coatingTable;  /**< \brief the coating table enables interpolation of the registered coatings on a unique energy and angle grid */
+extern map<string,CoatingTable> coatingTables;  /**< \brief the coating table enables interpolation of the registered coatings on a unique energy and angle grid */
 
 
 
@@ -58,7 +58,13 @@ extern "C"
 */
 
 
-/** \brief Opens a DabaX database file
+/* ******************************************************
+*         Databases interface functions
+*********************************************************
+*/
+
+
+/** \brief Opens a DabaX database file and add it to the list of accessible databases
  *
  * \param filepath An absolute or relative path to the database
  * \return the name under which this database will be referred as or an empty string if an error occured, in which cases OptiXLastError is set
@@ -66,6 +72,13 @@ extern "C"
  */
 DLL_EXPORT const char* OpenDatabase(const char* filepath);
 
+/** \brief close the named DabaX database  and removes it from the list of accessible databases <b> if it is no longer referred to by other objects </b>
+ *
+ * \param database the name of the database to close
+ * \return true if the database was found, is no longer used and removed from the list.
+ *  It will return false if the database  was not found in the list or is still in use; OptiXLastError is set accordingly
+ */
+DLL_EXPORT bool CloseDatabase(const char* database);
 
 /** \brief enumerates the names of the DabaX databases open in the application
  *
@@ -80,7 +93,7 @@ DLL_EXPORT const char* OpenDatabase(const char* filepath);
  */
 DLL_EXPORT bool EnumerateDatabases(size_t * pHandle, char * nameBuffer, const int bufSize);
 
-/** \brief release an element enumeration handle returned by EnumerateDatabases()
+/** \brief release an enumeration handle returned by EnumerateDatabases()
  *
  * \param handle a non null handle returned by EnumerateDatabases()
  */
@@ -103,6 +116,12 @@ DLL_EXPORT bool EnumerateDbaseEntries(const char* dbaseName, size_t * pHandle, c
  */
 DLL_EXPORT void ReleaseDBentryEnumHandle(size_t handle);
 
+
+/* ******************************************************
+*         Index tables interface functions
+*********************************************************
+*/
+
 /** \brief Creates a new empty index table
  *
  * It is wise to create different index tables for material and compounds whose parameters are provided by different Databases since the Energy grids of different tables may badly overlap
@@ -112,20 +131,27 @@ DLL_EXPORT void ReleaseDBentryEnumHandle(size_t handle);
  */
 DLL_EXPORT bool CreateIndexTable(const char* name);
 
+/** \brief Delete an index table if it is no longer used and remove it of the list of index tables
+ *
+ * \param name The name of the index table to suppress
+ * \return true if the index table was removed; false if the table name was not found or the table is still in use. The OptiXLastEror is set accordingly
+*/
+DLL_EXPORT bool DeleteIndexTable(const char* name);
+
 /** \brief enumerates the names of the index tables defines in the application
  *
- * \param[in,out] pHandle address of a location containing: \n on input, a handle to the current enumerator or 0 to get the first open database;
- *  \n on output, a  handle to underlying enumerator of the parameter list or 0 if the retrieved database is the last one or an error occurs
- * \param[out] nameBuffer char* a character buffer to receive the retrieved database name.
+ * \param[in,out] pHandle address of a location containing: \n on input, a handle to the current enumerator or 0 to get the first indexTable;
+ *  \n on output, a  handle to underlying enumerator of the parameter list or 0 if the retrieved indexTable is the last one or an error occurs
+ * \param[out] nameBuffer char* a character buffer to receive the retrieved indexTable name.
  * \param[in] bufSize The size of the name buffer
- * \return true if a new element was found and returned; false if  the name buffer was too small and the OptiXLastError will be set
- * in this latter case, the element name is truncated and the enumerator is  invalidated  and set to 0
+ * \return true if a new item was found and returned; false if  the name buffer was too small and the OptiXLastError will be set
+ * in this latter case, the item name is truncated and the enumerator is  invalidated  and set to 0
  *
  * Memory leaks will occur if the handle is dropped before it is returned as 0. If needed clear a non zero handle with ReleaseIndexTableEnumHandle()
  */
 DLL_EXPORT bool EnumerateIndexTables(size_t * pHandle, char * nameBuffer, const int bufSize);
 
-/** \brief release an element enumeration handle returned by EnumerateIndexTables()
+/** \brief release an non 0 enumeration handle returned by EnumerateIndexTables()
  * \param handle a non null handle returned by EnumerateIndexTables()
  */
 DLL_EXPORT void ReleaseIndexTableEnumHandle(size_t handle);
@@ -149,7 +175,15 @@ DLL_EXPORT bool AddMaterial(const char* table, char* database, const char* mater
  * \param density the specific mass (g/cm^2)
  * \return true id the compound of specified formula could be added to the table; false ortherwise, and the OptiXLastError is set
  */
-DLL_EXPORT bool AddCompound(const char* table, char* database, const char* formula,double density);
+DLL_EXPORT bool AddCompound(const char* table,const char* database, const char* formula,double density);
+
+/** \brief removes a material entry in a MaterialTable if it is unused
+ *
+ * \param indexTable The name of the index Table to update
+ * \param materialName The name of the material entry to suppress
+ * \return true if the entry was removed. false if the material is not found in the table or is used by a coating. OptiXLastError will report the reason of failure
+ */
+DLL_EXPORT bool RemoveMaterial(const char* indexTable, const char* materialName);
 
 /** \brief enumerate the elements and compounds available in an IndexTable
  *
@@ -166,6 +200,109 @@ DLL_EXPORT bool EnumerateMaterials(const char* indexTable, size_t * pHandle, cha
  * \param Handle the handle to release
  */
 DLL_EXPORT void ReleaseMaterialEnumHandle(size_t Handle);
+
+
+/* ******************************************************
+*         Coatings interface functions
+*********************************************************
+*/
+
+
+/** \brief Creates a new empty coating  table
+ *
+ * Each table is given a unique energy and angle grid on which the reflectivity is computed in advance allowing fast interpolation during ray tracing
+ *
+ * \param name The name the table will be given
+ * \return true if the table was created, false if a table of same name already exists. The OptiXLastError will be set in this case.
+ */
+DLL_EXPORT bool CreateCoatingTable(const char* name);
+
+
+/** \brief enumerate the defined  coatingTables
+ *
+ * \param[in,out] pHandle address of a location containing: \n on input, a handle to the current enumerator or 0 to get the first coatingTable;
+ *  \n on output, a  handle to underlying enumerator of the parameter list or 0 if the retrieved coatingTable is the last one or an error occurs
+ * \param[out] nameBuffer a character buffer to receive the retrieved coatingTable name.
+ * \param[in] bufSize size of the buffer
+ * \return true if the function was successful, 0 otherwise and he OptiXLastError is set
+ *
+ * Memory leaks will occur if the handle is dropped before it is returned as 0. If needed clear a non zero handle with ReleaseCoatingTableEnumHandle()
+ */
+DLL_EXPORT bool EnumerateCoatingTables(size_t * pHandle, char * nameBuffer, const int bufSize);
+
+
+
+/** \brief release an non 0 enumeration handle returned by EnumerateCoatingTables()
+ * \param handle a non null handle returned by EnumerateCoatingTables()
+ */
+DLL_EXPORT void ReleaseCoatingTableEnumHandle(size_t handle);
+
+
+/** \brief enumerate the coatings available in an coatingTable
+ *
+ * \param[in] coatingTable const Name of the coatingTable to search in
+ * \param[in,out] pHandle address of a location containing: \n on input, a handle to the current enumerator or 0 to get the first coating;
+ *  \n on output, a  handle to underlying enumerator of the parameter list or 0 if the retrieved coating is the last one or an error occurs
+ * \param[out] nameBuffer a character buffer to receive the retrieved coating name.
+ * \param[in] bufSize size of the buffer
+ * \return true if the function was successful, 0 otherwise and he OptiXLastError is set
+ *
+ * Memory leaks will occur if the handle is dropped before it is returned as 0. If needed clear a non zero handle with ReleaseCoatingEnumHandle()
+ */
+DLL_EXPORT bool EnumerateCoatings(const char* coatingTable, size_t * pHandle, char * nameBuffer, const int bufSize);
+
+
+/** \brief release an non 0 enumeration handle returned by EnumerateCoatings()
+ * \param handle a non null handle returned by EnumerateCoatings()
+ */
+DLL_EXPORT void ReleaseCoatingEnumHandle(size_t handle);
+
+/** \brief Create a new coating in a coating table
+ *
+ * \param coatingTable Name of the coating table to new coating will be added to
+ * \param coatingName the name to be given to the new coating
+ * \param indexTable The index table where the substrate material will be found
+ * \param substrateMaterial the name of the substrate material
+ * \return true if the coating was created; false if it wasn't. The OptiXLastError is set appropiately
+ */
+DLL_EXPORT bool CreateCoating(const char* coatingTable, const char * coatingName, const char* indexTable, const char* substrateMaterial);
+
+DLL_EXPORT bool AddCoatingLayer(const char* coatingTable, const char * coatingName,
+                                const char* indexTable, const char* layerMaterial, double thickness, double compacity);
+
+DLL_EXPORT bool InsertCoatingLayer(const char* coatingTable, const char * coatingName, int64_t layerIndex,
+                                const char* indexTable, const char* layerMaterial, double thickness, double compacity);
+
+DLL_EXPORT bool GetLayerNumber(const char* coatingTable, const char * coatingName, size_t *layerNumber);
+
+DLL_EXPORT bool SetCoatingLayer(const char* coatingTable, const char * coatingName, size_t layerIndex,
+                                const char* indexTable, const char* layerMaterial, double thickness, double compacity);
+
+DLL_EXPORT bool GetCoatingLayer(const char* coatingTable, const char * coatingName, size_t layerIndex,
+                                char* matBuffer, const int bufSize, double *p_thickness, double *p_compacity);
+
+
+DLL_EXPORT bool SetCoatingRoughness(const char* coatingTable, const char * coatingName, double roughness);
+
+DLL_EXPORT bool GetCoatingRoughness(const char* coatingTable, const char * coatingName, double *p_roughness);
+
+
+
+DLL_EXPORT bool SetCoatingAngleRange(const char* coatingTable, const char * coatingName,
+                                     double angleMin, double angleMax, size_t numAngles);
+
+DLL_EXPORT bool GetCoatingAngleRange(const char* coatingTable, const char * coatingName,
+                                      double *p_angleMin, double *p_angleMax, size_t *p_numAngles);
+
+
+DLL_EXPORT bool SetCoatingEnergyRange(const char* coatingTable, const char * coatingName,
+                                      double energyMin, double energyMax, int64_t numEnergies, bool logSpacing);
+
+DLL_EXPORT bool GetCoatingEnergyRange(const char* coatingTable, const char * coatingName,
+                                      double *p_energyMin, double *p_energyMax, int64_t *p_numEnergies, bool *p_logSpacing);
+
+
+
 
 /** \} */     // ingroup reflectivityAPI
 

@@ -36,7 +36,8 @@
 map<string, XDatabase> dataBases;   /**< \brief a set of DABAX data bases indexed for fast access  */
 map<string, MaterialTable> indexTables; /**< \brief a set of tables of material index. Material tables interpolate
                                         *  the index of the registered materials on a common energy grid with minimum number of steps*/
-CoatingTable coatingTable;  /**< \brief the coating table enables interpolation of the registered coatings on a unique energy and angle grid */
+map<string,CoatingTable> coatingTables;  /**< \brief a set of CoatingTable. A coating table enables interpolating the reflectivity
+                                        *   of the registered coatings on a unique energy and angle grid */
 
 #endif // HAS_REFLEX
 
