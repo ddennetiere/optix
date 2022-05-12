@@ -380,14 +380,22 @@ int OriginalTest()
     {
         Parameter param;
         PlanePoly1DGrating testGrating("testGrating");
-        testGrating.getParameter("lineDensity", param);
-        cout << endl << "Default line density for test grating is " << param.value << endl ;
+
+        testGrating.getParameter("degree", param);
+        cout << "Default degree for test grating is " << param.value << endl ;
+        param.value=2;
+        testGrating.setParameter("degree", param);
+        cout << "Default degree for test grating is " << param.value << endl ;
         testGrating.getParameter("degree", param);
         cout << "Default degree for test grating is " << param.value << endl ;
 
-        param.value=1e6;
+        testGrating.getParameter("lineDensity", param);
+        cout << endl << "Default line density for test grating is " << param.value << endl ;
+        param.value=2e6;
         testGrating.setParameter("lineDensity",param);
         cout << endl << "Line density test grating set to "<< param.value << "m^-1 \n\n";
+        testGrating.getParameter("lineDensity", param);
+        cout << endl << "Default line density for test grating is " << param.value << endl ;
     }
 
     if(1)

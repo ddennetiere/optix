@@ -53,16 +53,26 @@ bool Poly1D::setParameter(string name, Parameter& param)
     bool success=true;
     if(name.compare(0,6,"degree")==0)
     {
+        if(param.value== m_degree)
+            return  true;
+
         if(param.value <0)
-            success= false;
+        {
+            SetOptiXLastError("Invalid parameter in Poly1D: degree cannot be negative",__FILE__,__func__);
+            return  false;
+        }
         char namebuf[32];
+        ArrayXd temp=ArrayXd::Zero(param.value+1);
         if(param.value > m_degree)
         {
-            ArrayXd ccopy=m_coeffs; // Save present coefficients
-            m_coeffs.resize(param.value+1); // resize reallocates the array
-            m_coeffs.head(m_degree)=ccopy;
-            m_coeffs.tail(param.value-m_degree).setZero();
-            // ca ne suffit pas il faut ajouter des aramètres
+//            ArrayXd ccopy=m_coeffs; // Save present coefficients
+//            m_coeffs.resize(param.value+1); // resize reallocates the array
+//            m_coeffs.head(m_degree)=ccopy;
+//            m_coeffs.tail(param.value-m_degree).setZero();
+
+            temp.head(m_degree+1)=m_coeffs;
+            m_coeffs.swap(temp);
+            // ca ne suffit pas il faut ajouter des paramètres
             Parameter newParam;
             newParam.value=0;
             newParam.type=DistanceMoinsN;
@@ -78,10 +88,12 @@ bool Poly1D::setParameter(string name, Parameter& param)
         }
         else if(param.value < m_degree)
         {
-            ArrayXd ccopy=m_coeffs; // Save present coefficients
-            m_coeffs.resize(param.value+1); // resize reallocates the array
-            m_coeffs=ccopy.head(param.value+1);
-            // ca ne suffit pas il faut supprimer des aramètres
+//            ArrayXd ccopy=m_coeffs; // Save present coefficients
+//            m_coeffs.resize(param.value+1); // resize reallocates the array
+//            m_coeffs=ccopy.head(param.value+1);
+            temp=m_coeffs.head(param.value+1);
+            m_coeffs.swap(temp);
+            // ca ne suffit pas il faut supprimer des paramètres
             for(int i=m_degree; i>param.value; --i)
             {
                 sprintf(namebuf, "lineDensityCoeff_%d", i);
@@ -116,6 +128,7 @@ bool Poly1D::setParameter(string name, Parameter& param)
     return success;
 
 }
+
 
 EIGEN_DEVICE_FUNC  Surface::VectorType Poly1D::gratingVector(const Surface::VectorType &position, const Surface::VectorType &normal)
 {
