@@ -267,19 +267,71 @@ DLL_EXPORT void ReleaseCoatingEnumHandle(size_t handle);
  */
 DLL_EXPORT bool CreateCoating(const char* coatingTable, const char * coatingName, const char* indexTable, const char* substrateMaterial);
 
-DLL_EXPORT bool AddCoatingLayer(const char* coatingTable, const char * coatingName,
-                                const char* indexTable, const char* layerMaterial, double thickness, double compacity);
 
+/** \brief Removes a coating from a coating table
+ *
+ * \param coatingTable name of the table from where the coating must be removed
+ * \param coatingName name of the coating to remove
+ * \return true if the layer was removed ; false if it couldn't, in particular because the coating is still in use. The OptiXLastError is set appropiately
+ */
+DLL_EXPORT bool RemoveCoating(const char* coatingTable, const char * coatingName);
+
+
+/** \brief Adds a new layer on top of the layer stack of a particular coating
+ *
+ * \param coatingTable name of the table where the coating to modify is located
+ * \param coatingName name of the coating to modify
+ * \param indexTable Table where the optical parameters of the layer material can be found
+ * \param layerMaterial name of the layer material
+ * \param thickness the thickness of the layer (in m). Must be positive
+ * \param compactness ratio of the layer density to that of the material tabulated value. Should be positive (usually close to 1.)
+ * \return true if the layer was added; false if it wasn't. The OptiXLastError is set appropiately
+ */
+DLL_EXPORT bool AddCoatingLayer(const char* coatingTable, const char * coatingName, const char* indexTable,
+                                const char* layerMaterial, double thickness, double compactness);
+
+/** \brief inserts  a new layer inside or on top of the layer stack of a particular coating
+ *
+ * \param coatingTable name of the table where the coating to modify is defined
+ * \param coatingName name of the coating to modify
+ * \param layerIndex position of the new layer in the stack after insertion. If layerIndex <0 then the layer is added on top of the stack.
+ * \n if layerIndex > LayerNumber an error will occur
+ * \param indexTable Table where the optical parameters of the layer material can be found
+ * \param layerMaterial name of the layer material
+ * \param thickness the thickness of the layer (in m). Must be positive
+ * \param compactness ratio of the layer density to that of the material tabulated value. Should be positive (usually close to 1.)
+ * \return true if the layer was inserted or added; false if it wasn't. The OptiXLastError is set appropiately
+ */
 DLL_EXPORT bool InsertCoatingLayer(const char* coatingTable, const char * coatingName, int64_t layerIndex,
-                                const char* indexTable, const char* layerMaterial, double thickness, double compacity);
+                                   const char* indexTable, const char* layerMaterial, double thickness, double compactness);
 
+/** \brief retrieves the number of layers fdefine in a specified Coating
+ *
+ * \param[in] coatingTable  name of the table where the coating is defined
+ * \param[in] coatingName coatingName name of the coating to modify
+ * \param[out] layerNumber variable to return the number of defined layers
+ * \return true if the the number of layers was returned in layerNumber; false if it wasn't. The OptiXLastError is set appropiately
+ */
 DLL_EXPORT bool GetLayerNumber(const char* coatingTable, const char * coatingName, size_t *layerNumber);
 
+
+/** \brief Change the material or parameters of one layer in a coating
+ *
+ * \param coatingTable name of the table where the coating to modify is defined
+ * \param coatingName name of the coating to modify
+ * \param layerIndex position of the layer to modify. if  layerIndex > LayerNumber an error will occur
+ * \param indexTable Table where the optical parameters of the layer material can be found
+ * \param layerMaterial name of the layer material
+ * \param thickness the thickness of the layer (in m). Must be positive
+ * \param compactness ratio of the layer density to that of the material tabulated value. Should be positive (usually close to 1.)
+ * \return true if the layer was inserted or added; false if it wasn't. The OptiXLastError is set appropiately
+
+ */
 DLL_EXPORT bool SetCoatingLayer(const char* coatingTable, const char * coatingName, size_t layerIndex,
-                                const char* indexTable, const char* layerMaterial, double thickness, double compacity);
+                                const char* indexTable, const char* layerMaterial, double thickness, double compactness);
 
 DLL_EXPORT bool GetCoatingLayer(const char* coatingTable, const char * coatingName, size_t layerIndex,
-                                char* matBuffer, const int bufSize, double *p_thickness, double *p_compacity);
+                                char* matBuffer, const int bufSize, double *p_thickness, double *p_compactness);
 
 
 DLL_EXPORT bool SetCoatingRoughness(const char* coatingTable, const char * coatingName, double roughness);
@@ -288,18 +340,16 @@ DLL_EXPORT bool GetCoatingRoughness(const char* coatingTable, const char * coati
 
 
 
-DLL_EXPORT bool SetCoatingAngleRange(const char* coatingTable, const char * coatingName,
-                                     double angleMin, double angleMax, size_t numAngles);
+DLL_EXPORT bool SetCoatingTableAngles(const char* coatingTable, double angleMin, double angleMax, size_t numAngles);
 
-DLL_EXPORT bool GetCoatingAngleRange(const char* coatingTable, const char * coatingName,
-                                      double *p_angleMin, double *p_angleMax, size_t *p_numAngles);
+DLL_EXPORT bool GetCoatingTableAngles(const char* coatingTable, double *p_angleMin, double *p_angleMax, size_t *p_numAngles);
 
 
-DLL_EXPORT bool SetCoatingEnergyRange(const char* coatingTable, const char * coatingName,
-                                      double energyMin, double energyMax, int64_t numEnergies, bool logSpacing);
+DLL_EXPORT bool SetCoatingTableEnergies(const char* coatingTable, double energyMin, double energyMax,
+                                        int64_t numEnergies, bool logSpacing);
 
-DLL_EXPORT bool GetCoatingEnergyRange(const char* coatingTable, const char * coatingName,
-                                      double *p_energyMin, double *p_energyMax, int64_t *p_numEnergies, bool *p_logSpacing);
+DLL_EXPORT bool GetCoatingTableEnergies(const char* coatingTable, double *p_energyMin, double *p_energyMax,
+                                        int64_t *p_numEnergies, bool *p_logSpacing);
 
 
 

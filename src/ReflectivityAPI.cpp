@@ -436,8 +436,34 @@ DLL_EXPORT bool CreateCoating(const char* coatingTable, const char * coatingName
 
 }
 
+
+DLL_EXPORT bool RemoveCoating(const char* coatingTable, const char * coatingName)
+{
+    map<string,CoatingTable>::iterator ctabit = coatingTables.find(coatingTable);
+    if(ctabit==coatingTables.end())
+    {
+        SetOptiXLastError(string("CoatingTable  ")+ coatingTable + " is not currently defined" , __FILE__, __func__);
+        return false;
+    }
+    try
+    {
+        if(!ctabit->second.deleteCoating(coatingName))
+        {
+            SetOptiXLastError(string("Cannot remove coating ")+coatingName+" from "+ coatingTable+ " because it is still used", __FILE__, __func__);
+            return false;
+        }
+    }
+    catch(runtime_error &rte)
+    {
+        SetOptiXLastError(string("Cannot find the coating ")+coatingName+" in table "+ coatingTable, __FILE__, __func__);
+        return false;
+    }
+    return true;
+}
+
+
 DLL_EXPORT bool AddCoatingLayer(const char* coatingTable, const char * coatingName,
-                                const char* indexTable, const char* layerMaterial, double thickness, double compacity)
+                                const char* indexTable, const char* layerMaterial, double thickness, double compactness)
 {
     ClearOptiXError();
     if(thickness <0)
@@ -445,9 +471,9 @@ DLL_EXPORT bool AddCoatingLayer(const char* coatingTable, const char * coatingNa
         SetOptiXLastError(string("cannot add a layer with negative thickness" ), __FILE__, __func__);
         return false;
     }
-    if(compacity <0)
+    if(compactness <0)
     {
-        SetOptiXLastError(string("cannot add a layer with negative compacity") , __FILE__, __func__);
+        SetOptiXLastError(string("cannot add a layer with negative compactness") , __FILE__, __func__);
         return false;
     }
     map<string,CoatingTable>::iterator ctabit = coatingTables.find(coatingTable);
@@ -477,7 +503,7 @@ DLL_EXPORT bool AddCoatingLayer(const char* coatingTable, const char * coatingNa
         Coating &coat=ctabit->second.getCoating(coatingName);
         coat.addLayer(*p_matEntry, thickness);
         int64_t nlayers=coat.getLayers();
-        coat.setCompacity(nlayers-1,compacity);
+        coat.setLayerCompactness(nlayers-1,compactness);
     }
     catch(runtime_error &rte)
     {
@@ -488,16 +514,148 @@ DLL_EXPORT bool AddCoatingLayer(const char* coatingTable, const char * coatingNa
     return true;
 }
 
+DLL_EXPORT bool InsertCoatingLayer(const char* coatingTable, const char * coatingName, int64_t layerIndex,
+                                const char* indexTable, const char* layerMaterial, double thickness, double compactness)
+{
+    if(layerIndex <0)
+        return AddCoatingLayer(coatingTable, coatingName, indexTable, layerMaterial, thickness,compactness);
+
+    ClearOptiXError();
+    if(thickness <0)
+    {
+        SetOptiXLastError(string("cannot insert a layer with negative thickness" ), __FILE__, __func__);
+        return false;
+    }
+    if(compactness <0)
+    {
+        SetOptiXLastError(string("cannot insert a layer with negative compactness") , __FILE__, __func__);
+        return false;
+    }
+    map<string,CoatingTable>::iterator ctabit = coatingTables.find(coatingTable);
+    if(ctabit==coatingTables.end())
+    {
+        SetOptiXLastError(string("CoatingTable  ")+ coatingTable + " is not currently defined" , __FILE__, __func__);
+        return false;
+    }
+    map<string,MaterialTable>::iterator matit = indexTables.find(indexTable);
+    if(matit==indexTables.end())
+    {
+        SetOptiXLastError(string("Index Table  ")+ indexTable + " is not currently defined" , __FILE__, __func__);
+        return false;
+    }
+    MaterialTable::MatEntry *p_matEntry;
+    try{
+        p_matEntry= &(matit->second.getMaterial(layerMaterial));
+    }
+    catch (runtime_error & rte)
+    {
+        SetOptiXLastError(string("Material ")+ layerMaterial + " was not found in table  " + indexTable , __FILE__, __func__);
+        return false;
+    }
+    try
+    {
+
+        Coating &coat=ctabit->second.getCoating(coatingName);
+        int64_t nlayers=coat.getLayers();
+        if(layerIndex >= nlayers)
+        {
+            SetOptiXLastError(string("Can't insert the layer : insertion index exceeds the number of defined layers" ), __FILE__, __func__);
+            return false;
+        }
+        coat.insertLayer(layerIndex,*p_matEntry, thickness);
+        coat.setLayerCompactness(layerIndex,compactness);
+    }
+    catch(runtime_error &rte)
+    {
+        SetOptiXLastError(string("CoatingTable ")+ coatingTable + " cannot insert the layer " +layerMaterial+ " ; reason: "+ rte.what(),
+                           __FILE__, __func__);
+        return false;
+    }
+    return true;
+}
+
+DLL_EXPORT bool GetLayerNumber(const char* coatingTable, const char * coatingName, size_t *layerNumber)
+{
+    ClearOptiXError();
+    map<string,CoatingTable>::iterator ctabit = coatingTables.find(coatingTable);
+    if(ctabit==coatingTables.end())
+    {
+        SetOptiXLastError(string("CoatingTable  ")+ coatingTable + " is not currently defined" , __FILE__, __func__);
+        return false;
+    }
+    try
+    {
+        *layerNumber=ctabit->second.getCoating(coatingName).getLayers();
+    }
+    catch(runtime_error &rte)
+    {
+        SetOptiXLastError(string("Cannot find the coating ")+coatingName+" in table "+ coatingTable, __FILE__, __func__);
+        return false;
+    }
+}
 
 
-//    Coating * p_coat;
-//    try{
-//        p_coat=&(tabit->second.getCoating(coatingName));
-//    }
-//    catch (runtime_error & rte)
-//    {
-//        SetOptiXLastError(string("CoatingTable ")+ coatingTable + " operation failed ; reason: " + rte.what() , __FILE__, __func__);
-//        return false;
-//    }
+DLL_EXPORT bool SetCoatingLayer(const char* coatingTable, const char * coatingName, size_t layerIndex,
+                                const char* indexTable, const char* layerMaterial, double thickness, double compactness)
+{
+    ClearOptiXError();
+    if(thickness <0)
+    {
+        SetOptiXLastError(string("cannot assign a negative thickness to a layer" ), __FILE__, __func__);
+        return false;
+    }
+    if(compactness <0)
+    {
+        SetOptiXLastError(string("cannot assign negative compactness to a layer") , __FILE__, __func__);
+        return false;
+    }
+    map<string,CoatingTable>::iterator ctabit = coatingTables.find(coatingTable);
+    if(ctabit==coatingTables.end())
+    {
+        SetOptiXLastError(string("CoatingTable  ")+ coatingTable + " is not currently defined" , __FILE__, __func__);
+        return false;
+    }
+    map<string,MaterialTable>::iterator matit = indexTables.find(indexTable);
+    if(matit==indexTables.end())
+    {
+        SetOptiXLastError(string("Index Table  ")+ indexTable + " is not currently defined" , __FILE__, __func__);
+        return false;
+    }
+    MaterialTable::MatEntry *p_matEntry;
+    try{
+        p_matEntry= &(matit->second.getMaterial(layerMaterial));
+    }
+    catch (runtime_error & rte)
+    {
+        SetOptiXLastError(string("Material ")+ layerMaterial + " was not found in table  " + indexTable , __FILE__, __func__);
+        return false;
+    }
+    try
+    {
+        Coating &coat=ctabit->second.getCoating(coatingName);
+        size_t nlayers=coat.getLayers();
+        if(layerIndex > nlayers)
+        {
+            SetOptiXLastError(string("Layer index ")+ to_string(layerIndex) + "is out of " + coatingName + " coating range"  , __FILE__, __func__);
+            return false;
+        }
+        if(p_matEntry !=&coat.getLayerMaterial(layerIndex))
+            coat.setLayerMaterial(layerIndex,*p_matEntry);
+        if(thickness != coat.getlayerThickness(layerIndex))
+            coat.setLayerThickness(layerIndex,thickness);
+        if(compactness != coat.getLayerCompactness(layerIndex))
+            coat.setLayerCompactness(layerIndex,compactness);
+    }
+    catch(runtime_error &rte)
+    {
+        SetOptiXLastError(string("CoatingTable ")+ coatingTable + " cannot change layer material to " +layerMaterial+ " ; reason: "+ rte.what(),
+                           __FILE__, __func__);
+        return false;
+    }
+    return true;
+}
+
+
+
  #endif // HAS_REFLEX
 
