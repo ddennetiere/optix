@@ -110,22 +110,23 @@
 #endif
 
 
-
-
 /** \ingroup mainAPI
 *   \{
 */
 
-
+#include "ctypes.h"
 
 #ifdef __cplusplus
+
 extern "C"
 {
 #else
 #include <stdbool.h>
 #endif
 
-#include "ctypes.h"
+
+
+
 
     /** \brief Dumps the version number and compilation date of the library to the console
      */
@@ -310,7 +311,7 @@ extern "C"
      * \param[in] paramData the new parameter data as a Parameter struct
      * \return true if the element ID is valid and the parameter was found and successfully changed;  \n false if the parameter was not found or cannot be modified
      */
-    DLL_EXPORT bool SetParameter(size_t elementID,const char* paramTag, struct Parameter paramData);
+    DLL_EXPORT bool SetParameter(size_t elementID,const char* paramTag, Parameter paramData);
 
     /** \brief retrieves an element parameter
      *
@@ -319,7 +320,7 @@ extern "C"
      * \param paramData a pointer to a Parameter struct to receive the parameter data
      * \return true if the element Id is valid and the parameter was found and successfully returned;  \n false if the parameter was not found or elementId is invalid
      */
-    DLL_EXPORT bool GetParameter(size_t elementID,const char* paramTag, struct Parameter* paramData);
+    DLL_EXPORT bool GetParameter(size_t elementID,const char* paramTag, Parameter* paramData);
 
     /** \brief enumerates the parameter list of a given optical element
      *
@@ -333,7 +334,7 @@ extern "C"
      * in this latter case, the parameter name is truncated and the enumerator is  invalidated  and set to 0
      * Memory leaks will occur if the handle is dropped before it is returned as 0. If needed clear a non zero hande with ReleaseParameterHandle()
      */
-    DLL_EXPORT bool EnumerateParameters(size_t elementID, size_t * pHandle, char* tagBuffer, const int bufSize , struct Parameter* paramData);
+    DLL_EXPORT bool EnumerateParameters(size_t elementID, size_t * pHandle, char* tagBuffer, const int bufSize , Parameter* paramData);
 
     /** \brief release a parameter enumeration handle returned by EnumerateParameter()
      *
@@ -462,7 +463,7 @@ extern "C"
      * \param  distance (optional) The distance from the element where the spot diagram is evaluated. Default value is 0
      * \return a boolean value, true for success, false for failure and OptixLastError is set.
      */
-    DLL_EXPORT bool GetSpotDiagram(size_t elementID, struct C_DiagramStruct * diagram, double distance);
+    DLL_EXPORT bool GetSpotDiagram(size_t elementID, C_DiagramStruct * diagram, double distance);
 
     /** \brief Evaluates the impacts stored in the given element in the chosen reference frame  returns it in a C_DiagramStruct of dimension m_dim >= 6.
      *
@@ -478,7 +479,7 @@ extern "C"
      * \param frame the reference frame in which the impacts must be evaluated
      * \return a boolean value, true for success, false for failure and OptixLastError is set.
      */
-    DLL_EXPORT bool GetImpactsData(size_t elementID, struct C_DiagramStruct * diagram, enum FrameID frame);
+    DLL_EXPORT bool GetImpactsData(size_t elementID, C_DiagramStruct * diagram, enum FrameID frame);
 
     /** \brief Write a C_DiagramStruct to a file in binary format <i>(it is questionnable whether it should be maintained as is,in the interface)</i>
      *
@@ -488,7 +489,7 @@ extern "C"
      * \param cdiagram a pointer to the C_DiagramStruct to be written on file
      * \return DLL_EXPORT bool
      */
-    DLL_EXPORT bool DiagramToFile(const char* filename, struct C_DiagramStruct* cdiagram);
+    DLL_EXPORT bool DiagramToFile(const char* filename, C_DiagramStruct* cdiagram);
 
     /** \brief Save the system in memory to a file in XML format
      *

@@ -376,7 +376,7 @@ extern "C"
         return true;
     }
 
-    DLL_EXPORT bool SetParameter(size_t elementID, const char* paramTag, struct Parameter paramData)
+    DLL_EXPORT bool SetParameter(size_t elementID, const char* paramTag,  Parameter paramData)
     {
         if(System.isValidID(elementID))
             return ((ElementBase*)elementID)->setParameter(paramTag, paramData);
@@ -392,7 +392,7 @@ extern "C"
                 return false;
     }
 
-    DLL_EXPORT bool EnumerateParameters(size_t elementID, size_t * pHandle, char* tagBuffer, const int bufSize , struct Parameter* paramData)
+    DLL_EXPORT bool EnumerateParameters(size_t elementID, size_t * pHandle, char* tagBuffer, const int bufSize ,  Parameter* paramData)
     {
         if(!System.isValidID(elementID))
         {
@@ -633,7 +633,7 @@ extern "C"
         return true;
     }
 
-    DLL_EXPORT bool GetSpotDiagram(size_t elementID, struct C_DiagramStruct * diagram, double distance)
+    DLL_EXPORT bool GetSpotDiagram(size_t elementID,  C_DiagramStruct * diagram, double distance)
     {
         if(diagram->m_dim <4)
         {
@@ -667,7 +667,7 @@ extern "C"
         return false;
     }
 
-    DLL_EXPORT bool GetImpactsData(size_t elementID, struct C_DiagramStruct * diagram, enum FrameID frame)
+    DLL_EXPORT bool GetImpactsData(size_t elementID,  C_DiagramStruct * diagram, enum FrameID frame)
     {
         if(diagram->m_dim <= 6)
         {
@@ -820,7 +820,7 @@ extern "C"
     }
 
 
-    DLL_EXPORT bool DiagramToFile(const char* filename, struct C_DiagramStruct* cdiagram)
+    DLL_EXPORT bool DiagramToFile(const char* filename,  C_DiagramStruct* cdiagram)
     {
         fstream spotfile(filename, ios::out | ios::binary);
         if(!spotfile.is_open())

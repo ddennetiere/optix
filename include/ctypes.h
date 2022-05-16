@@ -92,7 +92,7 @@ enum ParameterFlags/*:uint32_t*/{
 
 /** \brief Keyed access class for the numeric parameters of an optical surface
  */
-struct Parameter{
+typedef struct __Parameter{
 #ifdef __cplusplus
     double value=0; /**< \brief the internal value for in internal unit (m, rad, etc)*/
     double bounds[2]={0,0};/**< \brief  boundary value for optimization */
@@ -101,10 +101,9 @@ struct Parameter{
     ParameterGroup group=BasicGroup; /**< \brief parameter group. This field is read-only outside ElementBase class*/
     uint32_t flags=0; /**< \brief non null if parameter is not optimizable. This field is read-only outside ElementBase class */
 // methods:
-    Parameter(){}
-    inline Parameter(double newvalue, UnitType newtype, double newmultiplier=1.):/**<  \brief standard constructor sets optimization bounds to  parameter value */
+    __Parameter(){}
+    inline __Parameter(double newvalue, UnitType newtype, double newmultiplier=1.):/**<  \brief standard constructor sets optimization bounds to  parameter value */
         value(newvalue), multiplier(newmultiplier), type(newtype){bounds[0]=bounds[1]=value;}
-};
 #else
     double value;
     double bounds[2];
@@ -112,16 +111,16 @@ struct Parameter{
     enum UnitType type;
     enum ParameterGroup group;
     uint32_t flags;
-};
 #endif // __cplusplus
 
+}Parameter;
 
 /** \brief Structure designed to receive spot diagram
  *
  *  The calling program must define the m_dim member to the appropriate spot vector size,
  *  and m_reserved to indicate the maximum number of spots the storage area, m_spots, can accept
  */
-struct C_DiagramStruct
+typedef struct __C_DiagramStruct
 {
     const int m_dim; /**< \brief number of components which are stored in each spot vector. Must be set by the calling program with appropriate value*/
     int m_reserved;   /**< \brief maximum number of spot vectors the m_spots storage area can store  */
@@ -133,15 +132,17 @@ struct C_DiagramStruct
     double* m_sigma;  /**< \brief RMS value of each of the components. This array must be allocated with a minimum size of m_dim */
     double* m_spots; /**<  \brief reference of an array the size of which must be larger than  m_dim* m_reserved, into which the spot vectors will be stored in component major order. */
 
-};
+}C_DiagramStruct;
 
 
 /** \brief C equivalent structure to WavefrontData, holding a Wavefront map */
-struct C_WFtype{
+typedef struct __C_WFtype
+{
   double m_bounds[4];       /**< aray conntaining the X and Y bounds of the mapped area in order X min, X max, Ymin, Ymax */
   double * m_WFdata;        /**< pointer to the WF height data in memory */
   size_t m_dataSize[2];     /**< dimensions of the mapped array in order nX, nY */
-};
+}C_WFtype;
+
 
 /** \brief C struct to return PSF and other image stacks
 *
@@ -149,28 +150,37 @@ struct C_WFtype{
 *  dimension vector dims  and data can be accessed as:\n
 *  size_t dims[ndims];      in which dimensions are listed from inner (faster varying) to outer (lower varying) \n
 *  < datatype >* data= storage+ ndims*sizeof(size_t)  */
-struct C_ndArray{
+typedef struct __C_ndArray
+{
     size_t allocatedStorage; /**< \brief size of allocated storage in bytes. Must be properly filled by the creator */
     size_t ndims;            /**< \brief number of dimensions; will be set by the filling entity*/
     void* storage;           /**< \brief  address of storage area  containing the dimension vector followed by the data */
-};
+}C_ndArray;
+
 
 /** \brief structure holding the parameters needed to radiate a wavefront
 *
 *  a wavefront is defined as a point source radiating a regular sampling grid in X and Y aperture angles */
-struct WFemission{
+typedef struct __WFemission
+{
     double wavelength;  /**< \brief The wavelength in m*/
     double Xaperture;   /**< \brief The 1/2 aperture angle in the X direction (in radians) */
     double Yaperture;   /**< \brief The 1/2 aperture angle in the Y direction (in radians) */
     size_t Xsize;       /**< \brief  The number of point of the angular grid in X over the full X aperture*/
     size_t Ysize;       /**< \brief  The number of point of the angular grid in Y over the full Y aperture*/
+#ifdef __cplusplus
     char polar='S';     /**< \brief  The radiated polarization, which can be 'S' or 'P' */
-};
+#else
+    char polar;
+#endif
+} WFemission;
 
 /** \brief Parameters needed to integrate the output wavefront (on Legendre products) and compute PSF
  */
-struct PSFparameters{
-    double opdRefDistance;  /**< \brief Distance from the observation plane of the image reference point used for OPD computation (it can be 0) */
+typedef struct __PSFparameters
+{
+#ifdef __cplusplus
+double opdRefDistance;  /**< \brief Distance from the observation plane of the image reference point used for OPD computation (it can be 0) */
     size_t legendreNx;      /**< \brief Degree of the Legendre polynomial base for interpolating the wavefront in the X direction */
     size_t legendreNy;      /**< \brief Degree of the Legendre polynomial base for interpolating the wavefront in the Y direction */
 
@@ -178,14 +188,31 @@ struct PSFparameters{
                             *   \n on output: The effectively used pixel size after application of the minimum oversampling factor.*/
     double psfYpixel;       /**< \brief the Y pixel size (in m) of PSF computation: \n  On input : the requested the sampling interval of PSF,
                             *   \n on output: The effectively used pixel size after application of the minimum oversampling factor.*/
-    double oversampling=4;  /**< \brief The minimum oversampling of the PSF with respect to the exit aperture of the ray tracing (must be  >1.)
+    double oversampling=4;   /**< \brief The minimum oversampling of the PSF with respect to the exit aperture of the ray tracing (must be  >1.)
                             * this factor determines the maximum grid step of the computed PSF as lambda/ (ThetaMax-ThetaMin)/oversampling for each dimension */
     size_t xSamples;        /**< \brief Number sample points in X the PSF must be computed at */
     size_t ySamples;        /**< \brief Number sample points in X the PSF must be computed at */
-
     double zFirstOffset;    /**< \brief First image plane position the PSF must be computed at (Note it is relative to the OPD reference point */
     double zLastOffset;     /**< \brief Last image plane position the PSF must be computed at (Note it is relative to the OPD reference point */
-    size_t numOffsetPlanes=1;   /**< \brief Number of planes where the PSF will be computed (if equal to 1, only \b Last plane will be computed */
-};
+    size_t numOffsetPlanes=1;  /**< \brief Number of planes where the PSF will be computed (if equal to 1, only \b Last plane will be computed */
+#else
+    double opdRefDistance;  /**< \brief Distance from the observation plane of the image reference point used for OPD computation (it can be 0) */
+
+    size_t legendreNx;      /**< \brief Degree of the Legendre polynomial base for interpolating the wavefront in the X direction */
+    size_t legendreNy;      /**< \brief Degree of the Legendre polynomial base for interpolating the wavefront in the Y direction */
+
+    double psfXpixel;       /**< \brief the X pixel size (in m) of PSF computation: \n  On input : the requested the sampling interval of PSF,
+                            *   \n on output: The effectively used pixel size after application of the minimum oversampling factor.*/
+    double psfYpixel;       /**< \brief the Y pixel size (in m) of PSF computation: \n  On input : the requested the sampling interval of PSF,
+                            *   \n on output: The effectively used pixel size after application of the minimum oversampling factor.*/
+    double oversampling;   /**< \brief The minimum oversampling of the PSF with respect to the exit aperture of the ray tracing (must be  >1.)
+                            * this factor determines the maximum grid step of the computed PSF as lambda/ (ThetaMax-ThetaMin)/oversampling for each dimension */
+    size_t xSamples;        /**< \brief Number sample points in X the PSF must be computed at */
+    size_t ySamples;        /**< \brief Number sample points in X the PSF must be computed at */
+    double zFirstOffset;    /**< \brief First image plane position the PSF must be computed at (Note it is relative to the OPD reference point */
+    double zLastOffset;     /**< \brief Last image plane position the PSF must be computed at (Note it is relative to the OPD reference point */
+    size_t numOffsetPlanes;  /**< \brief Number of planes where the PSF will be computed (if equal to 1, only \b Last plane will be computed */
+#endif
+}PSFparameters;
 
 #endif // CTYPES_H_INCLUDED
