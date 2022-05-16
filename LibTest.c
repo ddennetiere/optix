@@ -15,9 +15,10 @@
 #include <time.h>
 #include <stdlib.h>
 
+
 #include "interface.h"
 #include <math.h>
-#include "ctypes.h"
+
 
 #define ELEM_NAMELEN  32
 #define PARAM_NAMELEN 48

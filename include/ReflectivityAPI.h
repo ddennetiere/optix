@@ -315,7 +315,7 @@ DLL_EXPORT bool InsertCoatingLayer(const char* coatingTable, const char * coatin
 DLL_EXPORT bool GetLayerNumber(const char* coatingTable, const char * coatingName, size_t *layerNumber);
 
 
-/** \brief Change the material or parameters of one layer in a coating
+/** \brief Change the material and/or parameters of one layer of a coating
  *
  * \param coatingTable name of the table where the coating to modify is defined
  * \param coatingName name of the coating to modify
@@ -325,17 +325,42 @@ DLL_EXPORT bool GetLayerNumber(const char* coatingTable, const char * coatingNam
  * \param thickness the thickness of the layer (in m). Must be positive
  * \param compactness ratio of the layer density to that of the material tabulated value. Should be positive (usually close to 1.)
  * \return true if the layer was inserted or added; false if it wasn't. The OptiXLastError is set appropiately
-
  */
 DLL_EXPORT bool SetCoatingLayer(const char* coatingTable, const char * coatingName, size_t layerIndex,
                                 const char* indexTable, const char* layerMaterial, double thickness, double compactness);
 
+/** \brief Get material information and parameters related to one layer of a coating
+ *
+ * \param[in] coatingTable name of the table where the coating is defined
+ * \param[in] coatingName name of the coating
+ * \param[in] layerIndex position of the layer to look for. if  layerIndex > LayerNumber an error will occur
+ * \param[out] matBuffer Buffer to receive the qualified name of the layer material. The qualified name consist in the IndexTable name followed
+ *              by the material name, the two names being separated by the character ':'
+ * \param[in] bufSize The length of the buffer in bytes
+ * \param[out] p_thickness  address of a variable which will receive the layer thickness in m
+ * \param[out] p_compactness address of a variable which will receive the layer compactness
+ * \return True if all information is returned; False if an error occurred, in which case OptiXLastError is set.
+ */
 DLL_EXPORT bool GetCoatingLayer(const char* coatingTable, const char * coatingName, size_t layerIndex,
                                 char* matBuffer, const int bufSize, double *p_thickness, double *p_compactness);
 
 
+/** \brief defines the roughness of the coating. Correlated roughness assumed for all layers
+ *
+ * \param[in] coatingTable name of the table where the coating is defined
+ * \param[in] coatingName name of the coating
+ * \param[in] roughness RMS roughness value in m
+ * \return True if the roughness was set; false if it wasn't. The OptiXLastError is set appropiately
+ */
 DLL_EXPORT bool SetCoatingRoughness(const char* coatingTable, const char * coatingName, double roughness);
 
+/** \brief retrieves the roughness of the coating substrate
+ *
+ * \param[in] coatingTable name of the table where the coating is defined
+ * \param[in] coatingName name of the coating
+ * \param[out] p_roughness address of a variable wher the RMS roughness value will be returned
+ * \return  True if all information is returned; False if an error occurred, in which case OptiXLastError is set.
+*/
 DLL_EXPORT bool GetCoatingRoughness(const char* coatingTable, const char * coatingName, double *p_roughness);
 
 
@@ -351,6 +376,7 @@ DLL_EXPORT bool SetCoatingTableEnergies(const char* coatingTable, double energyM
 DLL_EXPORT bool GetCoatingTableEnergies(const char* coatingTable, double *p_energyMin, double *p_energyMax,
                                         int64_t *p_numEnergies, bool *p_logSpacing);
 
+DLL_EXPORT bool CoatingTableCompute(const char* coatingTable);
 
 
 

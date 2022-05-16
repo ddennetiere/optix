@@ -143,7 +143,7 @@ DLL_EXPORT void ReleaseDBentryEnumHandle(size_t Handle)
 DLL_EXPORT bool CreateIndexTable(const char* name)
 {
     ClearOptiXError();
-    auto retpair=indexTables.emplace(name, MaterialTable());
+    auto retpair=indexTables.emplace(name, MaterialTable(name));
     if( ! retpair.second)
     {
         SetOptiXLastError(string("Material table ")+ name + " already exists" , __FILE__, __func__);
@@ -330,7 +330,7 @@ DLL_EXPORT void ReleaseMaterialEnumHandle(size_t Handle)
 DLL_EXPORT bool CreateCoatingTable(const char* name)
 {
     ClearOptiXError();
-    auto retpair=coatingTables.emplace(name, CoatingTable());
+    auto retpair=coatingTables.emplace(name, CoatingTable(name));
     if( ! retpair.second)
     {
         SetOptiXLastError(string("Coating table ")+ name + " already exists" , __FILE__, __func__);
@@ -652,6 +652,155 @@ DLL_EXPORT bool SetCoatingLayer(const char* coatingTable, const char * coatingNa
                            __FILE__, __func__);
         return false;
     }
+    return true;
+}
+
+DLL_EXPORT bool GetCoatingLayer(const char* coatingTable, const char * coatingName, size_t layerIndex,
+                                char* matBuffer, const int bufSize, double *p_thickness, double *p_compactness)
+{
+    ClearOptiXError();
+    map<string,CoatingTable>::iterator ctabit = coatingTables.find(coatingTable);
+    if(ctabit==coatingTables.end())
+    {
+        SetOptiXLastError(string("CoatingTable  ")+ coatingTable + " is not currently defined" , __FILE__, __func__);
+        return false;
+    }
+    Coating *p_coat;
+    try
+    {
+        p_coat=&(ctabit->second.getCoating(coatingName));
+    }
+    catch (runtime_error &rte)
+    {
+        SetOptiXLastError(string("Coating  ")+ coatingName + " is not currently defined in table "+ coatingTable , __FILE__, __func__);
+        return false;
+    }
+    size_t nlayers=p_coat->getLayers();
+    if(layerIndex > nlayers)
+    {
+        SetOptiXLastError(string("Layer index ")+ to_string(layerIndex) + "is out of " + coatingName + " coating range"  , __FILE__, __func__);
+        return false;
+    }
+    MaterialTable::MatEntry &matEntry=p_coat->getLayerMaterial(layerIndex);
+    if(sprintf_s(matBuffer,bufSize,"%s:%s",matEntry.parentTable->getName(),matEntry.material.getName()) <=0)
+    {
+        SetOptiXLastError(string("Buffer is  too small for the qualified coating name"), __FILE__, __func__);
+        return false;
+    }
+    *p_thickness= p_coat->getlayerThickness(layerIndex);
+    *p_compactness= p_coat->getLayerCompactness(layerIndex);
+
+    return true;
+}
+
+
+DLL_EXPORT bool SetCoatingRoughness(const char* coatingTable, const char * coatingName, double roughness)
+{
+    ClearOptiXError();
+    map<string,CoatingTable>::iterator ctabit = coatingTables.find(coatingTable);
+    if(ctabit==coatingTables.end())
+    {
+        SetOptiXLastError(string("CoatingTable  ")+ coatingTable + " is not currently defined" , __FILE__, __func__);
+        return false;
+    }
+    Coating *p_coat;
+    try
+    {
+        p_coat=&(ctabit->second.getCoating(coatingName));
+    }
+    catch (runtime_error &rte)
+    {
+        SetOptiXLastError(string("Coating  ")+ coatingName + " is not currently defined in table "+ coatingTable , __FILE__, __func__);
+        return false;
+    }
+    p_coat->setRoughness(roughness);
+    return true;
+}
+
+
+DLL_EXPORT bool GetCoatingRoughness(const char* coatingTable, const char * coatingName, double *p_roughness)
+{
+    ClearOptiXError();
+    map<string,CoatingTable>::iterator ctabit = coatingTables.find(coatingTable);
+    if(ctabit==coatingTables.end())
+    {
+        SetOptiXLastError(string("CoatingTable  ")+ coatingTable + " is not currently defined" , __FILE__, __func__);
+        return false;
+    }
+    Coating *p_coat;
+    try
+    {
+        p_coat=&(ctabit->second.getCoating(coatingName));
+    }
+    catch (runtime_error &rte)
+    {
+        SetOptiXLastError(string("Coating  ")+ coatingName + " is not currently defined in table "+ coatingTable , __FILE__, __func__);
+        return false;
+    }
+    *p_roughness=p_coat->getRoughness();
+    return true;
+}
+
+
+DLL_EXPORT bool SetCoatingTableAngles(const char* coatingTable, double angleMin, double angleMax, size_t numAngles)
+{
+    ClearOptiXError();
+    map<string,CoatingTable>::iterator ctabit = coatingTables.find(coatingTable);
+    if(ctabit==coatingTables.end())
+    {
+        SetOptiXLastError(string("CoatingTable  ")+ coatingTable + " is not currently defined" , __FILE__, __func__);
+        return false;
+    }
+    try {
+        ctabit->second.setGrazingAngleRange(angleMin, angleMax, numAngles);
+    }
+    catch(invalid_argument & invarg)
+    {
+        SetOptiXLastError(string("CoatingTable  ")+ coatingTable + " invalid  angle range " , __FILE__, __func__);
+        return false;
+    }
+
+    return true;
+}
+
+
+
+DLL_EXPORT bool GetCoatingTableAngles(const char* coatingTable, double *p_angleMin, double *p_angleMax, size_t *p_numAngles)
+{
+    ClearOptiXError();
+    map<string,CoatingTable>::iterator ctabit = coatingTables.find(coatingTable);
+    if(ctabit==coatingTables.end())
+    {
+        SetOptiXLastError(string("CoatingTable  ")+ coatingTable + " is not currently defined" , __FILE__, __func__);
+        return false;
+    }
+    if(ctabit->second.getGrazingAngleRange(p_angleMin, p_angleMax, p_numAngles))
+        return true;
+
+    SetOptiXLastError(string("CoatingTable  ")+ coatingTable + " the angle tabulation grid is not yet defined", __FILE__, __func__);
+    return false;
+
+}
+
+DLL_EXPORT bool SetCoatingTableEnergies(const char* coatingTable, double energyMin, double energyMax,
+                                        int64_t numEnergies, bool logSpacing)
+{
+    ClearOptiXError();
+    map<string,CoatingTable>::iterator ctabit = coatingTables.find(coatingTable);
+    if(ctabit==coatingTables.end())
+    {
+        SetOptiXLastError(string("CoatingTable  ")+ coatingTable + " is not currently defined" , __FILE__, __func__);
+        return false;
+    }
+    try {
+        ctabit->second.setEnergyRange(energyMin, energyMax, numEnergies, logSpacing);
+    }
+    catch(invalid_argument & invarg)
+    {
+        SetOptiXLastError(string("CoatingTable  ")+ coatingTable + " invalid  energy range, "+invarg.what() , __FILE__, __func__);
+        return false;
+    }
+
     return true;
 }
 
