@@ -365,17 +365,56 @@ DLL_EXPORT bool GetCoatingRoughness(const char* coatingTable, const char * coati
 
 
 
+/** \brief Set the angle grid on which reflectivity will be computed
+ *
+ * \param coatingTable Name of the CoatingTable
+ * \param angleMin smallest angle to be tabulated
+ * \param angleMax largest angle to be tabulated
+ * \param numAngles Total number of tabulated angle values including first and last
+ * \return true id successfully set; false otherwise, OptiXLastError will explain the reason
+ */
 DLL_EXPORT bool SetCoatingTableAngles(const char* coatingTable, double angleMin, double angleMax, size_t numAngles);
 
+/** \brief Retrieves the angle grid used for computing reflectivity
+ *
+ * \param coatingTable Name of the CoatingTable
+ * \param p_angleMin address of a variable which will receive the smallest angle
+ * \param p_angleMax address of a variable which will receive the largest angle
+ * \param p_numAngles address of a variable which will receive the number of computed angles
+ * \return true if the returned values are valid; false otherwise and OptiXLastError will explain the reason
+ */
 DLL_EXPORT bool GetCoatingTableAngles(const char* coatingTable, double *p_angleMin, double *p_angleMax, size_t *p_numAngles);
 
 
+/** \brief Set the energy grid on which reflectivity will be computed
+ *
+ * \param coatingTable Name of the CoatingTable
+ * \param energyMin smallest energy to be tabulated (cannot be smaller than the energy range of the parent index table)
+ * \param energyMax  largest energy to be tabulated (cannot be larger than the energy range of the parent index table)
+ * \param numEnergies Total number of tabulated enrgy values including first and last. The special value '-1' indicates that the tabulated energies of the parent index table  will be used
+ * \param logSpacing boolean value specifying whether the grid steps are linearly spaced (false) or logarithmically spaced (true)
+ * \return true id successfully set; false otherwise, OptiXLastError will explain the reason
+ */
 DLL_EXPORT bool SetCoatingTableEnergies(const char* coatingTable, double energyMin, double energyMax,
                                         int64_t numEnergies, bool logSpacing);
 
+/** \brief Retrieves the energy grid used for computing reflectivity
+ *
+ * \param coatingTable Name of the CoatingTable
+ * \param p_energyMin address of a variable which will receive the smallest energy
+ * \param p_energyMax address of a variable which will receive the largest energy
+ * \param p_numEnergies address of a variable which will receive the number of energy steps or the special value '-1' indicating that the tabulated energies of the parent index table are used
+ * \param p_logSpacing address of a boolean variable indicating whether the grid steps are linearly spaced (false) or logarithmically spaced (true)
+ * \return  true if the returned values are valid; false otherwise and OptiXLastError will explain the reason
+ */
 DLL_EXPORT bool GetCoatingTableEnergies(const char* coatingTable, double *p_energyMin, double *p_energyMax,
                                         int64_t *p_numEnergies, bool *p_logSpacing);
 
+/** \brief
+ *
+ * \param coatingTable Name of the CoatingTable
+ * \return true if the reflectivity of all coatings was successfully tabulated; false otherwise and OptiXLastError will explain the reason
+ */
 DLL_EXPORT bool CoatingTableCompute(const char* coatingTable);
 
 

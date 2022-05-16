@@ -42,7 +42,7 @@ int CassioTest()
 
     size_t hSys=0, hParm=0, elemID=0; // Handles used to access internal objects
     char elname[ELEM_NAMELEN], elname2[ELEM_NAMELEN],classname[ELEM_NAMELEN],parmname[PARAM_NAMELEN], errBuf[ERROR_BUFLEN];  // Sting variables
-    struct Parameter param; // structure holding the definition of a parameter
+    Parameter param; // structure holding the definition of a parameter
     int numrays=5000;  // number of random rays to issued by the source
     char * title[5]={"X   ", "Y   ", "X'  ", "Y'  ", "lmda" };
 
@@ -173,7 +173,7 @@ int CassioTest()
     {
 
         {
-            struct C_DiagramStruct cdiagram={5,numrays,0,0}; // defines and initialize a new C_DiagramStruct
+            C_DiagramStruct cdiagram={5,numrays,0,0}; // defines and initialize a new C_DiagramStruct
                             // in order to record spot diagram the m_dim must be set to 5 and m_reserved should be at least the number of rays going through
 
             cdiagram.m_min=malloc(cdiagram.m_dim*sizeof(double)); // Use m_dim and m_reserve to be sure initialization is consistent
@@ -293,7 +293,7 @@ int CassioTest()
 
  void SetParamValue(size_t ID,char* parmName, double value)
 {
-    struct Parameter parm;
+    Parameter parm;
     if(!GetParameter(ID, parmName,&parm) )
     {
         printf("invalid object ID %d or invalid parameter %s\n", ID, parmName);
@@ -364,7 +364,7 @@ int EllipticKB()
     }
 
 
-    struct C_DiagramStruct cdiagram={5,numrays,0,0}; // defines and initialize a new C_DiagramStruct
+    C_DiagramStruct cdiagram={5,numrays,0,0}; // defines and initialize a new C_DiagramStruct
                     // in order to record spot diagram the m_dim must be set to 5 and m_reserved should be at least the number of rays going through
 
     cdiagram.m_min=malloc(cdiagram.m_dim*sizeof(double)); // Use m_dim and m_reserve to be sure initialization is consistent

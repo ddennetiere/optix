@@ -804,6 +804,43 @@ DLL_EXPORT bool SetCoatingTableEnergies(const char* coatingTable, double energyM
     return true;
 }
 
+DLL_EXPORT bool GetCoatingTableEnergies(const char* coatingTable, double *p_energyMin, double *p_energyMax,
+                                        int64_t *p_numEnergies, bool *p_logSpacing)
+{
+    ClearOptiXError();
+    map<string,CoatingTable>::iterator ctabit = coatingTables.find(coatingTable);
+    if(ctabit==coatingTables.end())
+    {
+        SetOptiXLastError(string("CoatingTable  ")+ coatingTable + " is not currently defined" , __FILE__, __func__);
+        return false;
+    }
+    if(ctabit->second.getEnergyRange(p_energyMin, p_energyMax, p_numEnergies, p_logSpacing))
+        return true;
+
+    SetOptiXLastError(string("CoatingTable  ")+ coatingTable + " the energy tabulation grid is not yet defined", __FILE__, __func__);
+    return false;
+
+}
+
+DLL_EXPORT bool CoatingTableCompute(const char* coatingTable)
+{
+    ClearOptiXError();
+    map<string,CoatingTable>::iterator ctabit = coatingTables.find(coatingTable);
+    if(ctabit==coatingTables.end())
+    {
+        SetOptiXLastError(string("CoatingTable  ")+ coatingTable + " is not currently defined" , __FILE__, __func__);
+        return false;
+    }
+    try{
+        ctabit->second.computeReflectivity();
+    }
+    catch(runtime_error &rte)
+    {
+        SetOptiXLastError(string("CoatingTable  ")+ coatingTable + " cannot compute the reflectivity; reason: "+rte.what(), __FILE__, __func__);
+        return false;
+    }
+    return true;
+}
 
 
  #endif // HAS_REFLEX
