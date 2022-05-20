@@ -11,16 +11,17 @@ doxygen/doxyfile
 ~$*
 *.o
 *.a
-*.exe
-*.dll
-*.def
 *.cbp
-*.layout
-*.depend
-*.cscope*
 *copie*
+*.cscope*
+*.def
+*.depend
+*.dll
+*.exe
+*.layout
 #solemio/CASSIO
 *.mod
+*.res
 wigner3j.f95
 ftypes.f95
 

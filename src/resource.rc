@@ -1,0 +1,40 @@
+#include "version.h"
+#include <winver.h>
+
+#ifdef _DEBUG
+#define FTYPE VS_FF_PRERELEASE|VS_FF_DEBUG
+#define PROD_NAME "OptiX-debug"
+#else
+#define FTYPE VS_FF_PRERELEASE
+#define PROD_NAME "OptiX"
+#endif // _DEBUG
+
+
+VS_VERSION_INFO  VERSIONINFO
+FILEVERSION     RC_FILEVERSION
+PRODUCTVERSION  RC_FILEVERSION
+FILEFLAGSMASK   VS_FFI_FILEFLAGSMASK
+FILEFLAGS       FTYPE
+FILEOS          VOS__WINDOWS32
+FILETYPE        VFT_DLL
+FILESUBTYPE     VFT2_UNKNOWN
+BEGIN
+  BLOCK "StringFileInfo"
+  BEGIN
+    BLOCK "040904E4"
+    BEGIN
+      VALUE "CompanyName", "Groupe Optique - Synchrotron SOLEIL"
+      VALUE "FileDescription", "X-ray ray tracing and optics simulation library"
+      VALUE "FileVersion", RC_FILEVERSION_STRING
+      VALUE "InternalName", "OptiX"
+      VALUE "LegalCopyright", "Francois Polack francois.polack@synchrotron-soleil.fr"
+      VALUE "OriginalFilename", "OptiX"
+      VALUE "ProductName", PROD_NAME
+      VALUE "ProductVersion", RC_FILEVERSION_STRING
+    END
+  END
+  BLOCK "VarFileInfo"
+  BEGIN
+    VALUE "Translation", 0x409, 1252
+  END
+END
