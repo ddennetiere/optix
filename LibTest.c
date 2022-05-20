@@ -32,7 +32,8 @@ int EllipticKB();
 int main()
 {
    // return CassioTest();
-   return EllipticKB();
+   //return EllipticKB();
+   LoadConfigurationFile("Config.dat");
 }
 
 int CassioTest()

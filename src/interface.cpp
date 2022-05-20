@@ -41,10 +41,11 @@ map<string,CoatingTable> coatingTables;  /**< \brief a set of CoatingTable. A co
 
 #endif // HAS_REFLEX
 
-bool inhibitApertureLimit=true; /**< \brief Global flag to take into account or not the apertures stops in the ray tracing */
-
 ElementCollection System;   /**< \brief dictionary of all elements created through this interface  */
+                            // system, hence all optical elements, will be deleted
 
+bool inhibitApertureLimit=true; /**< \brief Global flag to take into account or not the apertures stops in the ray tracing */
+bool useReflectivity=false;     /**<  \brief Global flag to switch on or off the computation of reflectivity  in the ray tracing computation*/
 bool threadInitialized=false;   /**< \brief Global flag to keep track of Open_MP  initialization */
 
 /** \brief Initialize Multi-thread mode for NFFT if openmp is available (set the -fopenmp compiler flag and link  with libgomp
@@ -56,7 +57,7 @@ void Init_Threads()
 
 //    int maxthreads=1;
 //#ifdef _OPENMP
-//#ifndef __DEBUG   // we dont want debuggin in MT mode
+//#ifndef _DEBUG   // we dont want debuggin in MT mode
 // #ifdef MAXTHREADS  // num threads is limited
 //    int available=omp_get_max_threads();
 //    cout << "Available processors " << available << endl;
@@ -67,7 +68,7 @@ void Init_Threads()
 //    //double time0=omp_get_wtime();  // initialise l'horloge
 //    omp_set_num_threads(maxthreads);
    fftw_init_threads();
-//#endif  // __DEBUG
+//#endif  // _DEBUG
 //#endif // _OPENMP
 //  //  Eigen::setNbThreads(0); // use default thread number in Eigen
 //    cout << "number of active threads " << maxthreads <<endl;
@@ -934,6 +935,14 @@ extern "C"
         psfParams->psfYpixel=pixelSizes(1);
         return true;
     }
+
+    DLL_EXPORT bool LoadConfigurationFile(const char* filename)
+    {
+        System.clear();
+        return LoadConfiguration(filename);
+
+    }
+
 
 #ifdef __cplusplus
 } // extern C

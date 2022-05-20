@@ -554,6 +554,8 @@ extern "C"
      */
     DLL_EXPORT bool GetPsf(size_t elementID, double wavelength, PSFparameters *psfParams, C_ndArray * psfData);
 
+    DLL_EXPORT bool LoadConfigurationFile(const char* filename);
+
 #ifdef __cplusplus
 }
 #endif

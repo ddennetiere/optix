@@ -279,7 +279,7 @@ inline fstream& operator<<(fstream& file, WavefrontData& wfData )
 }
 
 
-/** \brief write a Parameter to a readable output file
+/** \brief write a Parameter to a human-readable output file
  *
  * \param file  output text file
  * \param param reference to the Parameter object
@@ -290,14 +290,15 @@ inline TextFile& operator<<(TextFile& file, const Parameter& param)
 {
     file << param.value << param.bounds[0] << param.bounds[1] << param.multiplier << (uint32_t)param.type <<
                         (uint32_t)param.group << (uint32_t)param.flags;
-    if(file.fail()) throw TextFileException("Error while reading Parameter from File", __FILE__, __func__, __LINE__);
+    if(file.fail()) throw TextFileException("Error while writing Parameter from File", __FILE__, __func__, __LINE__);
 
     return file;
 }
 
-/** \brief write a Parameter to a readable output file
+/** \brief Reads a Parameter from a human-readable input file
  *
- * \param file  output text file
+ *  All the  parameters fields must be present in the file
+ * \param file  input text file
  * \param param reference to the Parameter object
  * \return a reference to the file
  * \relates Parameter
@@ -352,5 +353,8 @@ void ReadSolemioFile(string filename);/**< dumps the content of a Solemio file t
  *
  */
 bool SolemioImport(string filename);
+
+
+bool LoadConfiguration(string filename);
 
 #endif // FILES_H_INCLUDED

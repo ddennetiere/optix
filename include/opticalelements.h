@@ -31,7 +31,7 @@
 #include "Poly1D.h"
 #include "holo.h"
 
-
+#include "Coating.h"
 
 typedef map<ElementBase *, ElementBase*> ElementCopyMap;
 

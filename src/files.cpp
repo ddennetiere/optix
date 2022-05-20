@@ -16,6 +16,7 @@
  #include "surface.h"
  #include "collections.h"
  #include "opticalelements.h"
+ #include <queue>
 
  #define   TAILLEPARAMETRES 20
  #define   NOMBRETAGS 16
@@ -1477,4 +1478,217 @@ bool getTrimmedEnding(const string &line, size_t pos, string &token)
 
     Sfile.close();
     return true;
+ }
+
+inline size_t tokenize(char* line, vector<string> & tokens)
+{
+    char *pstr=strtok(line," ");
+    tokens.clear();
+    while(pstr && pstr[0]!='#') // discard all comments
+    {
+        tokens.emplace_back(pstr);
+        pstr=strtok(NULL," ");
+    }
+    return tokens.size();
+}
+
+ bool LoadConfiguration(string filename)
+ {
+    char line[256];
+    size_t level=0, tokCount;
+    priority_queue<size_t> indentStack;
+    indentStack.push(0);
+    vector<string> token;
+    string keyword, object, subObject, dbasePath;
+    fstream Cfile(filename.c_str());
+    if(!Cfile.is_open())
+    {
+         SetOptiXLastError(string("Can't open the config file ")+filename , __FILE__, __func__);
+         return false;
+    }
+
+    while (!Cfile.eof())
+    {
+        Cfile.getline(line,256);
+        if(Cfile.gcount()==1)continue;   //  The eol sequence is counted as 1
+
+        size_t indent= strspn(line," ");
+        if(line[indent]=='#'||line[indent]==0)
+                continue;
+
+        if(indent!=indentStack.top())
+        {
+            if(indent > indentStack.top())
+            {
+                ++level;
+                indentStack.push(indent);
+            }
+            else
+                do
+                {
+                    --level;
+                    indentStack.pop();
+                }while(indentStack.top()>indent);
+        }
+
+        if(level==0)
+            keyword=strtok(line," ");
+        if(keyword=="DBASEPATH")
+        {
+            dbasePath= strtok(NULL," ");
+            cout << "Path to databases: "<< dbasePath << endl;
+        }
+        else if(keyword=="DATABASE")
+        {
+            string dbase= dbasePath+"/"+strtok(NULL," ");
+            cout << "Path to databases: "<< dbase << endl;
+        }
+        else if(keyword=="INDEXTABLE")
+        {
+            switch(level)
+            {
+            case 0:
+                if(tokenize(NULL,token) <1)
+                {
+                    SetOptiXLastError("No name after INDEXTABLE declaration", __FILE__, __func__);
+                    return false;
+                }
+                else
+                    object=token[0];
+                cout << "IndexTable " << object << endl;
+                break;
+            case 1:
+                {
+                    tokCount=tokenize(line, token);
+                    if(tokCount <3)
+                    {
+                        SetOptiXLastError(to_string(tokCount)+" tokens instead of 3 in entry "+token[0]+" of Table "+object, __FILE__, __func__);
+                        return false;
+                    }
+                    else
+                        cout << "      Material "<< token[0] << " from "<<token[1] << ":" << token[2] <<endl;
+                }
+            }
+        }
+        else if(keyword=="COATINGTABLE")
+        {
+            switch(level)
+            {
+            case 0:
+                if(tokenize(NULL,token) <1)
+                {
+                    SetOptiXLastError("No name after COATINGTABLE declaration", __FILE__, __func__);
+                    return false;
+                }
+                else
+                    object=token[0];
+                cout << "CoatingTable " << object << endl;
+                break;
+            case 1:
+                tokCount=tokenize(line, token);
+                subObject=token[0];
+                if(subObject=="ANGLERANGE")
+                {
+                    if(tokCount <4)
+                    {
+                        SetOptiXLastError(string("ANGLERANGE of table ")+object+"Should have 3 numeric parameters", __FILE__, __func__);
+                        return false;
+                    }
+                    else
+                        cout << "     Angle range " << token[1] << ", " << token[2] << ", " <<token[3] <<endl;
+                }
+                else if(subObject=="ENERGYRANGE")
+                {
+                    if(tokCount <3)
+                    {
+                        SetOptiXLastError(string("ENERGYRANGE of table ")+object+"Should have at least 2 explicit numeric parameters", __FILE__, __func__);
+                        return false;
+                    }
+                    else
+                        cout << "     Energy range " << token[1] << ", " << token[2] << ", " <<(tokCount <4? "-1":token[3]) <<", " <<(tokCount <5 ? "false":token[4]) <<endl;
+                }
+                else
+                {
+                    if(tokCount <4)
+                    {
+                        SetOptiXLastError(string("Coating entry ")+subObject+" of table "+object+"Should have 3 parameters", __FILE__, __func__);
+                        return false;
+                    }
+                    else
+                        cout << "     Coating  " << subObject << " substrate " << token[1] <<":" << token[2] << "  roughness " <<token[3] <<endl;
+                }
+                break;
+            case 2:
+                {
+                    tokCount=tokenize(line, token);
+                    if(tokCount < 3)
+                    {
+                        cout <<"not enough tokens for a layer entry\n";
+                        break;
+                    }
+                    cout << "              " << subObject << "  layer " << token[0] <<":" << token[1] << "  thickness " <<token[2] ;
+                    if(tokCount>=4)
+                        cout << "  compactness " << token[3] ;
+                    cout << endl;
+                }
+            }
+        }
+        else if(keyword=="BEAMLINE")
+        {
+            switch(level)
+            {
+            case 0:
+                cout << "Beamline elements:\n";
+                break;
+            case 1:
+                tokCount=tokenize(line, token);
+                if(tokCount <2)
+                {
+                    SetOptiXLastError("Beamline elements should be declared by class-name and name", __FILE__, __func__);
+                    return false;
+                }
+                else
+                {
+                    object=token[1];
+                    cout << "     Element  " << object << " of class " << token[0]  <<endl;
+                }
+                break;
+            case 2:
+                tokCount=tokenize(line, token);
+                if(tokCount <2)
+                {
+                    SetOptiXLastError("Parameter "+token[0]+" of  beamline element"+ object+" should have at least a value", __FILE__, __func__);
+                    return false;
+                }
+                else   if(tokCount==3)
+                {
+                    SetOptiXLastError("Parameter range "+token[0]+" of  beamline element"+ object+" should be given 2 prameters", __FILE__, __func__);
+                    return false;
+                }
+                else
+                {
+                    cout << "              " << token[0] << " = " << token[1] ;
+                }
+                 if(tokCount>3)
+                 {
+                      cout << "  range ["+token[2]<< ", "<< token[3] <<"]";
+                 }
+                cout <<endl;
+            }
+        }
+        else if(keyword=="CHAIN")
+        {
+            tokCount=tokenize(NULL, token);
+            auto it =token.begin();
+            cout << " Chain : " << *it;
+            for(++it; it != token.end(); ++it)
+                cout <<" --> " << *it;
+
+            cout <<endl;
+        }
+        else
+            cout  << level <<'\t' << line << endl;
+    };
+
+     return true;
  }
