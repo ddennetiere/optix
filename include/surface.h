@@ -17,25 +17,19 @@
 
 
 
-#include "elementbase.h"
+#include "elementbase.h"  // include many basic headers
 #include "ApertureStop.h"
-
+#include "CoatingTable.h"
+extern map<string,CoatingTable> coatingTables;
 
 // l'inclusion de la classe Tensor par le Header  <unsupported/Eigen/CXX11/Tensor> est incompatible avec les classes Polygon et ellipse de Aperture Api
 
 //#include <unsupported\Eigen\CXX11\src\Tensor\TensorForwardDeclarations.h>
 
 
-// included by elementbase.h
-//#include <string>
-//#include <vector>
-//#include <map>
-
-//#include "types.h"
-//#include "files.h"
 
 
-extern bool inhibitApertureLimit;
+extern bool inhibitApertureLimit; // global flag defined in interfac.cpp
 
 using namespace std;
 
@@ -67,7 +61,8 @@ public:
 
     /** \brief default  constructor (Film) with explicit chaining to previous
     */
-    Surface(bool transparent=true, string name="", Surface * previous=NULL):ElementBase(transparent,name,previous),m_recording(RecordNone),m_apertureActive(false){}
+    Surface(bool transparent=true, string name="", Surface * previous=NULL):ElementBase(transparent,name,previous),m_recording(RecordNone),
+             m_apertureActive(false), m_pCoating(NULL){}
 
     virtual ~Surface(){}    /**< \brief virtual destructor */
 
@@ -235,15 +230,25 @@ public:
       *
       * \param activity the level of activity to set-up
       */
-     void setApertureActive(bool activity=true){m_apertureActive=activity;}
+     inline void setApertureActive(bool activity=true){m_apertureActive=activity;}
 
      /** \brief retrieves whether or not the aperture limitations of this surface are taken into account in the tray tracing
       *
       * \return the aperture activity setting of this surface
       */
-     bool getApertureActive(){return m_apertureActive;}
-     bool isOPDvalid(){return m_OPDvalid;}
+     inline bool getApertureActive(){return m_apertureActive;}
+     inline bool isOPDvalid(){return m_OPDvalid;}/**< \brief check validity  of OPD data before computing a PSF \return true if OPD data are valid*/
 
+     /** \brief sets or replaces the Coating that will be used in reflectivity computations if enabled \see useReflectivity
+      *
+      * \param tableName name of te table where the coating is defined
+      * \param coatingName name of the coating
+      * \return true if the coating was set or replaced; false if coating was not found or element is a source. The OptiXLastError is set
+      */
+     bool setCoating(string tableName, string coatingName);
+     void removeCoating();  /**< \brief Suppress the coating; a reflectivity (or transmittance) of 1. will be assumed for both poarizations*/
+     inline string getCoatingName(){return m_pCoating->getParentTable()->getName()+':'+m_pCoating->getName() ;} /**< \brief returns the qualified name of the coating, that is CoatingTable name and Coating name separated by a colon ':' */
+     inline Coating* getCoating(){return m_pCoating;} /**< \brief returns a pointer to the coating used by the optical element */
 //    friend TextFile& operator<<(TextFile& file,  Surface& surface);  /**< \brief Duf this Surface object to a TextFile, in a human readable format  */
 //
 //    friend TextFile& operator >>(TextFile& file,  Surface& surface);  /**< \brief Retrieves a Surface object from a TextFile  */
@@ -255,6 +260,7 @@ protected:
     vector<RayType> m_impacts; /**<  \brief the ray impacts on the surfaces in absolute local element space before or after reflection/transmission */
     RecordMode m_recording; /**<  \brief flag defining whether or not the ray impacts on this surface are recorded and before or after reflection/transmission   */
     bool m_apertureActive;  /**<  \brief boolean flag for taking the aperture active area into account */
+    Coating *m_pCoating=NULL; /**< \brief a pointer to a instance of Coating class to be used in reflectivity (or to be done transmittance) computations */
     bool m_OPDvalid=false;  /**< \brief boolean flag for keeping track of the validity of the OPD of the rays stored in the m_impacts vector */
     int m_NxOPD=0;          /**< \brief degree of Legendre polynomials of the X variable used to interpolate the OPD*/
     int m_NyOPD=0;          /**< \brief degree of Legendre polynomials of the Y variable used to interpolate the OPD */

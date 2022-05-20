@@ -79,7 +79,7 @@ RayType& Surface::reflect(RayType& ray)    /*  this implementation simply reflec
         return ray;
     } catch(exception & excpt)
     {
-        cout << "Exception catched in " << m_name << " reflect \n" << excpt.what();
+        cout << "Exception catch in " << m_name << " reflect \n" << excpt.what();
         exit(-1);
     }
 }
@@ -606,4 +606,47 @@ void Surface::computePSF(ndArray<complex<double>,4 > &PSF, Array2d &pixelSizes, 
 
     }
    nfft_finalize(&plan);  // ceci desalloue toute la structure plan
+}
+
+void Surface::removeCoating()
+{
+    if(m_pCoating)
+    {
+        --(*m_pCoating);
+        m_pCoating=NULL;
+    }
+}
+
+bool Surface::setCoating(string tableName, string coatingName)
+{
+    ClearOptiXError();
+    if (isSource())
+    {
+        SetOptiXLastError("This element is a source and can't be given a coating" , __FILE__, __func__);
+        return false;
+    }
+    map<string,CoatingTable>::iterator ctabit = coatingTables.find(tableName);
+    if(ctabit==coatingTables.end())
+    {
+        SetOptiXLastError(string("CoatingTable  ")+ tableName + " is not currently defined" , __FILE__, __func__);
+        return false;
+    }
+    Coating *p_coat;
+    try
+    {
+        p_coat=&(ctabit->second.getCoating(coatingName));
+    }
+    catch (runtime_error &rte)
+    {
+        SetOptiXLastError(string("Coating  ")+ coatingName + " is not currently defined in table "+ tableName , __FILE__, __func__);
+        return false;
+    }
+    if(p_coat!=m_pCoating) // ne fait rien si le coating est remplacé par lui-même mais ne génère pas d'erreur
+    {
+        if(m_pCoating)
+            --(*m_pCoating);
+        m_pCoating=p_coat;
+        ++(*m_pCoating);
+    }
+    return true;
 }
