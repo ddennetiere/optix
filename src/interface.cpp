@@ -382,15 +382,22 @@ extern "C"
         if(System.isValidID(elementID))
             return ((ElementBase*)elementID)->setParameter(paramTag, paramData);
         else
-            return false;
+        {
+             SetOptiXLastError("The given elementID is invalid ", __FILE__, __func__);
+             return false;
+        }
     }
 
     DLL_EXPORT bool GetParameter(size_t elementID, const char* paramTag, Parameter* paramData)
     {
         if(System.isValidID(elementID))
             return ((ElementBase*)elementID)->getParameter(paramTag, *paramData);
-            else
-                return false;
+        else
+        {
+             SetOptiXLastError("The given elementID is invalid ", __FILE__, __func__);
+             return false;
+        }
+
     }
 
     DLL_EXPORT bool EnumerateParameters(size_t elementID, size_t * pHandle, char* tagBuffer, const int bufSize ,  Parameter* paramData)
@@ -941,6 +948,28 @@ extern "C"
         System.clear();
         return LoadConfiguration(filename);
 
+    }
+
+    DLL_EXPORT bool SetCoating(size_t elementID,const char* coatingTable, const char* coatingName)
+    {
+        if(!System.isValidID(elementID))
+        {
+            SetOptiXLastError("invalid element ID", __FILE__, __func__);
+            return false;
+        }
+        Surface * psurf=dynamic_cast<Surface*>((ElementBase*)elementID);
+        if(! psurf )
+        {
+            SetOptiXLastError("element is not an OptiX Surface", __FILE__, __func__);
+            return false;
+        }
+        if(psurf->isSource())
+        {
+            SetOptiXLastError("Cannot define a coating on a source", __FILE__, __func__);
+            return false;
+        }
+
+        return psurf->setCoating(coatingTable, coatingName);
     }
 
 

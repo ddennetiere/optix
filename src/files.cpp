@@ -16,6 +16,8 @@
  #include "surface.h"
  #include "collections.h"
  #include "opticalelements.h"
+ #include "ReflectivityAPI.h"
+ #include "ApertureAPI.h"
  #include <queue>
 
  #define   TAILLEPARAMETRES 20
@@ -1480,6 +1482,8 @@ bool getTrimmedEnding(const string &line, size_t pos, string &token)
     return true;
  }
 
+//  *************************    Configuration file    *************************
+
 inline size_t tokenize(char* line, vector<string> & tokens)
 {
     char *pstr=strtok(line," ");
@@ -1492,10 +1496,43 @@ inline size_t tokenize(char* line, vector<string> & tokens)
     return tokens.size();
 }
 
+double ValueOf(string strIn)
+{
+    size_t openPar=strIn.find('(');
+    if (openPar==string::npos)
+        return stod(strIn);
+    string macro=strIn.substr(0,openPar);
+    size_t closePar=strIn.find(')',openPar);
+    if(closePar==string::npos)
+    {
+        cout << "\n  macro closing parenthesis not found\n";
+        closePar=string::npos;
+    }
+    double val=stod(strIn.substr(openPar+1,closePar-openPar-1));
+    if(macro=="INV")
+        return 1./val;
+    else if(macro=="DEGREE")
+        return M_PI*val/180.;
+    else
+    {
+        cout << "\n UNKNOWN MACRO  " << macro << endl;
+        return NAN;
+    }
+}
+int OpacityOf(string strIn)
+{
+    if(strIn=="open"|| strIn=="false" || strIn=="0")
+        return 0;
+    else if(strIn=="opaque"|| strIn=="true" || strIn=="1")
+        return 1;
+    else
+        return -1;
+}
+
  bool LoadConfiguration(string filename)
  {
     char line[256];
-    size_t level=0, tokCount;
+    size_t level=0, tokCount, elementID=0;
     priority_queue<size_t> indentStack;
     indentStack.push(0);
     vector<string> token;
@@ -1531,8 +1568,23 @@ inline size_t tokenize(char* line, vector<string> & tokens)
                 }while(indentStack.top()>indent);
         }
 
+        if(level <2)
+            elementID=0;
         if(level==0)
+        {
+            if(keyword=="COATINGTABLE")
+            {
+                if(!CoatingTableCompute(object.c_str()))
+                {
+                    cout << "     FAILED ti compute Reflectivity.     Reason:  " << LastError  << endl;
+                    return false;
+                }
+                else
+                cout << "     REFLECTIVITY SUCCESSFULLY computed\n ";
+            }
             keyword=strtok(line," ");
+        }
+
         if(keyword=="DBASEPATH")
         {
             dbasePath= strtok(NULL," ");
@@ -1541,7 +1593,14 @@ inline size_t tokenize(char* line, vector<string> & tokens)
         else if(keyword=="DATABASE")
         {
             string dbase= dbasePath+"/"+strtok(NULL," ");
-            cout << "Path to databases: "<< dbase << endl;
+            cout << "Path to databases: "<< dbase <<endl;
+            string dbname=OpenDatabase(dbase.c_str());
+            if(dbname.empty())
+            {
+                cout << "   database WAS NOT OPEN reason:\n" << LastError << endl;
+                return false;
+            }
+            cout << "   OPEN as  " << dbname <<endl;
         }
         else if(keyword=="INDEXTABLE")
         {
@@ -1555,18 +1614,29 @@ inline size_t tokenize(char* line, vector<string> & tokens)
                 }
                 else
                     object=token[0];
-                cout << "IndexTable " << object << endl;
+                cout << "IndexTable " << object ;
+                if(!CreateIndexTable(object.c_str()))
+                {
+                    cout << "     Index Table NOT CREATED reason:\n" << LastError << endl;
+                    return false;
+                }
+                cout << "    Created as  "    <<object <<endl;
                 break;
             case 1:
                 {
                     tokCount=tokenize(line, token);
-                    if(tokCount <3)
+                    if(tokCount <2)
                     {
-                        SetOptiXLastError(to_string(tokCount)+" tokens instead of 3 in entry "+token[0]+" of Table "+object, __FILE__, __func__);
+                        SetOptiXLastError(string(" Incomplete material entry in Table ")+object, __FILE__, __func__);
                         return false;
                     }
-                    else
-                        cout << "      Material "<< token[0] << " from "<<token[1] << ":" << token[2] <<endl;
+                    cout << "      Material "<< token[0] << ":"<<token[1] ;
+                    if(!AddMaterial(object.c_str(),token[0].c_str(), token[1].c_str()))
+                    {
+                        cout << "     NOT ADDED to table " <<object << " reason:\n" << LastError << endl;
+                        return false;
+                    }
+                    cout << "    Added to table  "    <<object <<endl;
                 }
             }
         }
@@ -1582,7 +1652,13 @@ inline size_t tokenize(char* line, vector<string> & tokens)
                 }
                 else
                     object=token[0];
-                cout << "CoatingTable " << object << endl;
+                cout << "CoatingTable " << object ;
+                if(!CreateCoatingTable(object.c_str()))
+                {
+                    cout << "     Coating Table NOT CREATED reason:\n" << LastError << endl;
+                    return false;
+                }
+                cout << "    Created as  "    <<object <<endl;
                 break;
             case 1:
                 tokCount=tokenize(line, token);
@@ -1594,8 +1670,13 @@ inline size_t tokenize(char* line, vector<string> & tokens)
                         SetOptiXLastError(string("ANGLERANGE of table ")+object+"Should have 3 numeric parameters", __FILE__, __func__);
                         return false;
                     }
-                    else
-                        cout << "     Angle range " << token[1] << ", " << token[2] << ", " <<token[3] <<endl;
+                    cout << "     Angle range " << token[1] << ", " << token[2] << ", " <<token[3] ;
+                    if(! SetCoatingTableAngles(object.c_str(), stod(token[1]),stod(token[2]), stoll(token[3])))
+                    {
+                        cout << "     Angle range  NOT SET reason:\n" << LastError << endl;
+                        return false;
+                    }
+                    cout << "    SET\n";
                 }
                 else if(subObject=="ENERGYRANGE")
                 {
@@ -1604,8 +1685,24 @@ inline size_t tokenize(char* line, vector<string> & tokens)
                         SetOptiXLastError(string("ENERGYRANGE of table ")+object+"Should have at least 2 explicit numeric parameters", __FILE__, __func__);
                         return false;
                     }
+                    int64_t numE=(tokCount <4? -1:stoll(token[3]));
+                    bool logscale;
+                    if(tokCount<5 ||token[4]=="false" || token[4]=="0")
+                        logscale=false;
+                    else if(token[4]=="true" || token[4]=="1")
+                        logscale=true;
                     else
-                        cout << "     Energy range " << token[1] << ", " << token[2] << ", " <<(tokCount <4? "-1":token[3]) <<", " <<(tokCount <5 ? "false":token[4]) <<endl;
+                    {
+                        SetOptiXLastError(string("invalid value for Energy range log-spacing in table ")+object, __FILE__, __func__);
+                        return false;
+                    }
+                    cout << "     Energy range " << token[1] << ", " << token[2] << ", " <<numE <<", " <<(logscale? "true":"false") ;
+                    if(! SetCoatingTableEnergies (object.c_str(), stod(token[1]),stod(token[2]), numE, logscale))
+                    {
+                        cout << "     Energy range  NOT SET reason:\n" << LastError << endl;
+                        return false;
+                    }
+                    cout << "    SET\n";
                 }
                 else
                 {
@@ -1614,8 +1711,18 @@ inline size_t tokenize(char* line, vector<string> & tokens)
                         SetOptiXLastError(string("Coating entry ")+subObject+" of table "+object+"Should have 3 parameters", __FILE__, __func__);
                         return false;
                     }
-                    else
-                        cout << "     Coating  " << subObject << " substrate " << token[1] <<":" << token[2] << "  roughness " <<token[3] <<endl;
+                    cout << "     Coating  " << subObject << " substrate " << token[1] <<":" << token[2] << "  roughness " <<token[3] ;
+                    if(! CreateCoating(object.c_str(), subObject.c_str(), token[1].c_str(), token[2].c_str()))
+                    {
+                        cout << "     Cooating  NOT SET reason:\n" << LastError << endl;
+                        return false;
+                    }
+                    if(!SetCoatingRoughness(object.c_str(),subObject.c_str(),stod(token[3])))
+                    {
+                        cout << "     roughness  NOT SET reason:\n" << LastError << endl;
+                        return false;
+                    }
+                    cout << "    SET\n";
                 }
                 break;
             case 2:
@@ -1626,10 +1733,17 @@ inline size_t tokenize(char* line, vector<string> & tokens)
                         cout <<"not enough tokens for a layer entry\n";
                         break;
                     }
+                    double compactness=tokCount>=4 ? stod(token[3]): 1.;
                     cout << "              " << subObject << "  layer " << token[0] <<":" << token[1] << "  thickness " <<token[2] ;
                     if(tokCount>=4)
                         cout << "  compactness " << token[3] ;
-                    cout << endl;
+                    if(! AddCoatingLayer(object.c_str(), subObject.c_str(), token[0].c_str(), token[1].c_str(),stod(token[2]), compactness))
+                    {
+                        cout << "     Layer  NOT ADDED reason:\n" << LastError << endl;
+                        return false;
+                    }
+
+                    cout << "     Layer  ADDED\n";
                 }
             }
         }
@@ -1650,30 +1764,148 @@ inline size_t tokenize(char* line, vector<string> & tokens)
                 else
                 {
                     object=token[1];
-                    cout << "     Element  " << object << " of class " << token[0]  <<endl;
+                    cout << "     Element  " << object << " of class " << token[0]  ;
+                    elementID=CreateElement(token[0].c_str(), token[1].c_str());
+                    if(!elementID)
+                    {
+                        cout << "     was NOT CREATED reason:\n" << LastError << endl;
+                        return false;
+                    }
+                    cout << "   CREATED\n";
                 }
                 break;
             case 2:
                 tokCount=tokenize(line, token);
-                if(tokCount <2)
+                subObject=token[0];
+                if(subObject=="APERTURE")
                 {
-                    SetOptiXLastError("Parameter "+token[0]+" of  beamline element"+ object+" should have at least a value", __FILE__, __func__);
-                    return false;
+                    bool activity=true;   // true is default
+                    if(tokCount<2 ||token[1]=="active" || token[1]=="1")
+                        activity=true;
+                    else if(token[1]=="inactive" || token[1]=="0")
+                        activity=false;
+                    cout <<  "              APERTURE  ";
+                    if(SetApertureActivity(elementID,activity))  // return -1 in case of an error
+                    {
+                        cout<< " CANNOT SET aperture activity. Reason:   "<< LastError <<endl;
+                        return false ;
+                    }
+                    cout << (activity ? "active" : "inactive")<< endl;
+                    break;
+                    // Regions definition at level 3
                 }
-                else   if(tokCount==3)
+                else if(token[0]=="COATING")
                 {
-                    SetOptiXLastError("Parameter range "+token[0]+" of  beamline element"+ object+" should be given 2 prameters", __FILE__, __func__);
-                    return false;
+                    cout <<  "              COATING  " ;
+                    if(tokCount <3)
+                    {
+                        SetOptiXLastError("Coating entry should specify a coating table and a coating name ", __FILE__, __func__);
+                        return false;
+                    }
+                    if(!elementID)
+                    {
+                        SetOptiXLastError("Coating is not referred to a valid optical element ", __FILE__, __func__);
+                    }
+                    cout << token[1].c_str() << ":" << token[2].c_str() ;
+                    if(! SetCoating(elementID, token[1].c_str(), token[2].c_str() ) )
+                    {
+                        cout << "   NOT Set reason:\n" << LastError << endl;
+                        return false;
+                    }
+                    cout <<   "  SET\n";
+                    break;
                 }
                 else
                 {
-                    cout << "              " << token[0] << " = " << token[1] ;
+                    if(tokCount <2)
+                    {
+                        SetOptiXLastError("Parameter "+token[0]+" of  beamline element"+ object+" should have at least a value", __FILE__, __func__);
+                        return false;
+                    }
+                    if(tokCount==3)
+                    {
+                        SetOptiXLastError("Parameter range "+token[0]+" of  beamline element"+ object+" should be given 2 prameters", __FILE__, __func__);
+                        return false;
+                    }
+                    Parameter param;
+                    if(!GetParameter(elementID,token[0].c_str(), &param))
+                    {
+                        cout << "  INVALID PARAMETER : " << token[0] <<endl;
+                        return false ;
+                    }
+                    cout << "              " << token[0] << " = " << ValueOf(token[1]) ;
+                    param.value=ValueOf(token[1]);
+                    if(tokCount>3)
+                    {
+                        cout << "  range ["<< ValueOf(token[1]) << ", "<< ValueOf(token[3]) <<"]";
+                        param.bounds[0]=ValueOf(token[1]);
+                        param.bounds[1]=ValueOf(token[3]);
+                    }
+                    if(!SetParameter(elementID, token[0].c_str(), param))
+                    {
+                        cout << "  Can get but not set parameter : " << token[0] <<endl;
+                        return false ;
+                    }
+                    cout <<  "     SET\n";
                 }
-                 if(tokCount>3)
-                 {
-                      cout << "  range ["+token[2]<< ", "<< token[3] <<"]";
-                 }
-                cout <<endl;
+                break;
+            case 3:     // only Aperture subentries can be on  level 3
+                if(subObject!= "APERTURE")
+                {
+                    cout <<"invalid config file structure: unexpected level\n";
+                    return false;
+                }
+                    tokCount=tokenize(line,token);
+                    if(token[0]=="RECTANGLE")
+                    {
+                        cout << "              RECTANGLE region \n" ;
+                        double  angle=0, Xcenter=0, Ycenter=0;
+                        int opacity=0;
+                        switch(tokCount)
+                        {
+                        case 7:
+                            angle=ValueOf(token[6]);
+                        case 6:
+                            Ycenter=ValueOf(token[5]);
+                        case 5:
+                            Xcenter=ValueOf(token[4]);
+                        case 4:
+                            opacity=OpacityOf(token[3]);
+                            if(opacity==-1)
+                            {
+                                cout  << "     invalid opacity value \n";
+                                return false;
+                            }
+                        case 3:
+                            break;
+                        default:
+                             cout << "rectangle region need at least 2 explicit parameters\n";
+                             return false;
+                        }
+                        if(AddRectangularStop(elementID, ValueOf(token[1]), ValueOf(token[2]), (opacity==1? true:false),Xcenter, Ycenter,angle))
+                        {
+                            cout << "  NOT ADDED to aperture definition. Reason:   " << LastError << endl;
+                        }
+                        cout << "  ADDED to aperture definition\n";
+                    }
+                    else  if(token[0]=="ELLIPTICAL")
+                    {
+                        cout << "              ELLIPTICAL region \n" ;
+                    }
+                    else  if(token[0]=="CIRCULAR")
+                    {
+                        cout << "              CIRCULAR region \n" ;
+                    }
+                    else   if(token[0]=="POLYGONAL")
+                    {
+                        cout << "              POLYGONAL region \n" ;
+                    }
+                    else
+                    {
+                        cout << "Unknown aperture region shape:  " << token[0] << endl;
+                        return false;
+                    }
+
             }
         }
         else if(keyword=="CHAIN")

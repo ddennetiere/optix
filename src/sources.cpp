@@ -202,7 +202,7 @@ int RadialGridSource::generate(double wavelength)
 
 GaussianSource::GaussianSource(string name ,Surface * previous):Surface(true,name, previous)
 {
-    cout << "creating Gaussian source " << name << endl;
+   // cout << "creating Gaussian source " << name << endl;
     Parameter param;
     param.type=Dimensionless;
     param.group=SourceGroup;

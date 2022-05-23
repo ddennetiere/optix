@@ -165,7 +165,7 @@ DLL_EXPORT void ReleaseIndexTableEnumHandle(size_t handle);
  * \param material The name of the material (in the Xdatabase) to add to the IndexTable
  * \return true id the specified element could be added to the table; false ortherwise, and the OptiXLastError is set
  */
-DLL_EXPORT bool AddMaterial(const char* table, char* database, const char* material);
+DLL_EXPORT bool AddMaterial(const char* table, const char* database, const char* material);
 
 /** \brief Adds a compound material to an IndexTable
  *
@@ -410,6 +410,8 @@ DLL_EXPORT bool SetCoatingTableEnergies(const char* coatingTable, double energyM
 DLL_EXPORT bool GetCoatingTableEnergies(const char* coatingTable, double *p_energyMin, double *p_energyMax,
                                         int64_t *p_numEnergies, bool *p_logSpacing);
 
+
+
 /** \brief
  *
  * \param coatingTable Name of the CoatingTable
@@ -417,6 +419,8 @@ DLL_EXPORT bool GetCoatingTableEnergies(const char* coatingTable, double *p_ener
  */
 DLL_EXPORT bool CoatingTableCompute(const char* coatingTable);
 
+
+DLL_EXPORT bool GetCoatingTableStatus(const char* coatingTable, short * pstatus);
 
 
 /** \} */     // ingroup reflectivityAPI

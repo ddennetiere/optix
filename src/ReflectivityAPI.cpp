@@ -212,7 +212,7 @@ DLL_EXPORT void ReleaseIndexTableEnumHandle(size_t handle)
 
 
 
-DLL_EXPORT bool AddMaterial(const char* table, char* database, const char* material)
+DLL_EXPORT bool AddMaterial(const char* table, const char* database, const char* material)
 {
     ClearOptiXError();
     map<string,MaterialTable>::iterator itit = indexTables.find(table);
@@ -800,6 +800,7 @@ DLL_EXPORT bool SetCoatingTableEnergies(const char* coatingTable, double energyM
         SetOptiXLastError(string("CoatingTable  ")+ coatingTable + " invalid  energy range, "+invarg.what() , __FILE__, __func__);
         return false;
     }
+ //   cout << "Table status = " << hex << ctabit->second.getStatus() << dec <<endl;
 
     return true;
 }
@@ -831,6 +832,7 @@ DLL_EXPORT bool CoatingTableCompute(const char* coatingTable)
         SetOptiXLastError(string("CoatingTable  ")+ coatingTable + " is not currently defined" , __FILE__, __func__);
         return false;
     }
+  //  cout << " Coating table status ="<< hex << ctabit->second.getStatus() << dec <<endl;
     try{
         ctabit->second.computeReflectivity();
     }
@@ -842,6 +844,19 @@ DLL_EXPORT bool CoatingTableCompute(const char* coatingTable)
     return true;
 }
 
+
+DLL_EXPORT bool GetCoatingTableStatus(const char* coatingTable, short * pstatus)
+{
+    ClearOptiXError();
+    map<string,CoatingTable>::iterator ctabit = coatingTables.find(coatingTable);
+    if(ctabit==coatingTables.end())
+    {
+        SetOptiXLastError(string("CoatingTable  ")+ coatingTable + " is not currently defined" , __FILE__, __func__);
+        return false;
+    }
+    *pstatus= ctabit->second.getStatus() ;
+    return true;
+}
 
  #endif // HAS_REFLEX
 

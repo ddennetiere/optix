@@ -309,7 +309,8 @@ extern "C"
      * \param elementID The ID of the element to modify
      * \param paramTag the name of the parameter to change
      * \param[in] paramData the new parameter data as a Parameter struct
-     * \return true if the element ID is valid and the parameter was found and successfully changed;  \n false if the parameter was not found or cannot be modified
+     * \return true if the element ID is valid and the parameter was found and successfully changed;
+     *      \n false if the parameter was not found or cannot be modified; OptiXLast error is set in this case
      */
     DLL_EXPORT bool SetParameter(size_t elementID,const char* paramTag, Parameter paramData);
 
@@ -555,6 +556,8 @@ extern "C"
     DLL_EXPORT bool GetPsf(size_t elementID, double wavelength, PSFparameters *psfParams, C_ndArray * psfData);
 
     DLL_EXPORT bool LoadConfigurationFile(const char* filename);
+
+    DLL_EXPORT bool SetCoating(size_t elementID,const char* coatingTable, const char* coatingName);
 
 #ifdef __cplusplus
 }
