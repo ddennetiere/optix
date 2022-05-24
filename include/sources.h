@@ -49,7 +49,7 @@ public:
     /** Default destructor */
     virtual ~XYGridSource(){}
     virtual inline string getOptixClass(){return "Source<XY,Grid>";}/**< return the derived class name ie. Source<XY,Grid> */
-    virtual int generate(double wavelength);    /**< implementation of SourceBase::generate for XYGridSource() */
+    virtual int generate(const double wavelength, const char polar='S');    /**< implementation of SourceBase::generate for XYGridSource() */
     //public members
     int nXprim, nYprim,nX,nY;
 };
@@ -78,7 +78,7 @@ public:
     /** Default destructor */
     virtual ~RadialGridSource(){}
     virtual inline string getOptixClass(){return "Source<Radial,Grid>";}/**< return the derived class name ie. Source<Radial,Grid> */
-    virtual int generate(double wavelength);    /**< implementation of SourceBase::generate for RadialGridSource() */
+    virtual int generate(const double wavelength, const char polar='S');    /**< implementation of SourceBase::generate for RadialGridSource() */
     // public members
     int nRprim, nTprim,nR,nT;
 };
@@ -111,7 +111,7 @@ public:
     /** Default destructor */
     virtual ~GaussianSource(){}
     virtual inline string getOptixClass(){return "Source<Gaussian>";}   /**< return the derived class name ie. Source<Gaussian> */
-    virtual int generate(double wavelength);    /**< implementation of SourceBase::generate for GaussianSource() */
+    virtual int generate(const double wavelength, const char polar='S');    /**< implementation of SourceBase::generate for GaussianSource() */
     //public members
 
 };
@@ -147,7 +147,7 @@ public:
     /** Default destructor */
     virtual ~AstigmaticGaussianSource(){}
     virtual inline string getOptixClass(){return "Source<Astigmatic,Gaussian>";}   /**< return the derived class name ie. Source<Astigmatic,Gaussian> */
-    virtual int generate(double wavelength);    /**< implementation of SourceBase::generate for an AstigmaticGaussianSource() */
+    virtual int generate(const double wavelength, const char polar='S');    /**< implementation of SourceBase::generate for an AstigmaticGaussianSource() */
     //public members
 
 };

@@ -32,8 +32,12 @@ void SourceBase::waveRadiate(double wavelength, double Xaperture, double Yapertu
         Samp=1., Pamp=0;
     else if(polar=='P')
         Samp=0, Pamp=1.;
+    else if(polar=='R')
+        Samp=sqrt(2.), Pamp=complex<double>(0,sqrt(2.));
+    else if(polar=='L')
+        Samp=sqrt(2.), Pamp=complex<double>(0,-sqrt(2.));
     else
-        throw ParameterException("invalid polarization (S or P only allowed)", __FILE__, __func__, __LINE__);
+        throw ParameterException("invalid polarization (S, P, R or L only are  allowed)", __FILE__, __func__, __LINE__);
     for(size_t j=0; j< Ysize; ++j)
     {
         for (size_t i=0; i < Xsize; ++i)

@@ -52,7 +52,7 @@ XYGridSource::XYGridSource(string name ,Surface * previous):Surface(true,name, p
 }
 
 /** \todo if needed iterate the generation of upstream sources. */
-int XYGridSource::generate(double wavelength)
+int XYGridSource::generate(const double wavelength, const char polar)
 {
     Parameter param;
     getParameter("nXdiv",param);
@@ -81,6 +81,19 @@ int XYGridSource::generate(double wavelength)
     int ntX=2*nX-1;
     int ntY=2*nY-1;
 
+    RayType::ComplexType Samp, Pamp;
+    if(polar=='S')
+        Samp=1., Pamp=0;
+    else if(polar=='P')
+        Samp=0, Pamp=1.;
+    else if(polar=='R')
+        Samp=sqrt(2.), Pamp=complex<double>(0,sqrt(2.));
+    else if(polar=='L')
+        Samp=sqrt(2.), Pamp=complex<double>(0,-sqrt(2.));
+    else
+        throw ParameterException("invalid polarization (S, P, R or L only are  allowed)", __FILE__, __func__, __LINE__);
+
+
     VectorXd vXprim=VectorXd::LinSpaced(ntXprim, -Xprim, nXprim==1? 0 : Xprim);  // When LinSpaced size parameter is set to 1, it returns a vector of length 1 containing 'high' is returned.
     VectorXd vYprim=VectorXd::LinSpaced(ntYprim, -Yprim, nYprim==1? 0 : Yprim);
     VectorXd vX=VectorXd::LinSpaced(ntX, -Xsize, nX==1? 0 : Xsize);
@@ -99,7 +112,7 @@ int XYGridSource::generate(double wavelength)
           for(Index iXprim=0; iXprim<ntXprim; ++iXprim)
           {
               dir << vXprim(iXprim), vYprim(iYprim), 1.L;
-              m_impacts.emplace_back(RayBaseType(org,dir),wavelength); // amplitude set to 1 and S polar
+              m_impacts.emplace_back(RayBaseType(org,dir),wavelength,Samp,Pamp); // amplitude set to 1 and S polar by default
           }
       }
 
@@ -139,7 +152,7 @@ RadialGridSource::RadialGridSource(string name ,Surface * previous):Surface(true
     setHelpstring("nTheta_size", "Number of azimuth steps in 2 Pi ");
 }
 
-int RadialGridSource::generate(double wavelength)
+int RadialGridSource::generate(const double wavelength, const char polar)
 {
     Parameter param;
     getParameter("nRdiv",param);
@@ -159,6 +172,19 @@ int RadialGridSource::generate(double wavelength)
     double Rprim=param.value;
     getParameter("sizeR",param);
     double Rsize=param.value;
+
+    RayType::ComplexType Samp, Pamp;
+    if(polar=='S')
+        Samp=1., Pamp=0;
+    else if(polar=='P')
+        Samp=0, Pamp=1.;
+    else if(polar=='R')
+        Samp=sqrt(2.), Pamp=complex<double>(0,sqrt(2.));
+    else if(polar=='L')
+        Samp=sqrt(2.), Pamp=complex<double>(0,-sqrt(2.));
+    else
+        throw ParameterException("invalid polarization (S, P, R or L only are  allowed)", __FILE__, __func__, __LINE__);
+
 
     ArrayXd tempV=ArrayXd::LinSpaced(nT+1, -M_PI,M_PI );
     ArrayXd SinSize=(tempV.segment(1,nT)).sin();
@@ -185,7 +211,7 @@ int RadialGridSource::generate(double wavelength)
           for(Index iTprim=0; iTprim< (iRprim==0) ? 1:nTprim; ++iTprim)
           {
               dir << RoPrim*CosDiv(iTprim), RoPrim*SinDiv(iTprim), 1.L;
-              m_impacts.emplace_back(RayBaseType(org,dir),wavelength); // amplitude set to 1 and S polar
+              m_impacts.emplace_back(RayBaseType(org,dir),wavelength,Samp,Pamp); // amplitude set to 1 and S polar by default
           }
         }
        }
@@ -231,7 +257,7 @@ GaussianSource::GaussianSource(string name ,Surface * previous):Surface(true,nam
 
 }
 
-int GaussianSource::generate(double wavelength)
+int GaussianSource::generate(const double wavelength, const char polar)
 {
     int nRays;
     FloatType sigmaX, sigmaY, sigmaXprim, sigmaYprim;
@@ -250,13 +276,26 @@ int GaussianSource::generate(double wavelength)
     getParameter("sigmaYdiv", param);
     sigmaYprim=param.value;
 
-        normal_distribution<FloatType> gaussX(0.,sigmaX);
+    RayType::ComplexType Samp, Pamp;
+    if(polar=='S')
+        Samp=1., Pamp=0;
+    else if(polar=='P')
+        Samp=0, Pamp=1.;
+    else if(polar=='R')
+        Samp=sqrt(2.), Pamp=complex<double>(0,sqrt(2.));
+    else if(polar=='L')
+        Samp=sqrt(2.), Pamp=complex<double>(0,-sqrt(2.));
+    else
+        throw ParameterException("invalid polarization (S, P, R or L only are  allowed)", __FILE__, __func__, __LINE__);
 
-        normal_distribution<FloatType> gaussY(0., sigmaY);
 
-        normal_distribution<FloatType> gaussXprim(0., sigmaXprim);
+    normal_distribution<FloatType> gaussX(0.,sigmaX);
 
-        normal_distribution<FloatType> gaussYprim(0., sigmaYprim);
+    normal_distribution<FloatType> gaussY(0., sigmaY);
+
+    normal_distribution<FloatType> gaussXprim(0., sigmaXprim);
+
+    normal_distribution<FloatType> gaussYprim(0., sigmaYprim);
 
     reserveImpacts(m_impacts.size() + nRays);
     VectorType org=VectorType::Zero(),dir=VectorType::Zero();
@@ -265,7 +304,7 @@ int GaussianSource::generate(double wavelength)
     {
         org <<0, 0, 0;
         dir << 0, 0, 1.L;
-        m_impacts.push_back(RayType(RayBaseType(org,dir),wavelength)); // amplitude set to 1 and S polar
+        m_impacts.push_back(RayType(RayBaseType(org,dir),wavelength,Samp,Pamp)); // amplitude set to 1 and S polar by default
         return nRays;
     }
     random_device rd;
@@ -283,7 +322,7 @@ int GaussianSource::generate(double wavelength)
         if(sigmaYprim > 0)
             dir(1)=gaussYprim(rd);
         dir.normalize();
-        m_impacts.push_back(RayType(RayBaseType(org,dir),wavelength)); // amplitude set to 1 and S polar
+        m_impacts.push_back(RayType(RayBaseType(org,dir),wavelength,Samp,Pamp)); // amplitude set to 1 and S polar by default
     }
     m_OPDvalid=false;
     return nRays;
@@ -331,7 +370,7 @@ AstigmaticGaussianSource::AstigmaticGaussianSource(string name ,Surface * previo
 
 }
 
-int AstigmaticGaussianSource::generate(double wavelength)
+int AstigmaticGaussianSource::generate(const double wavelength, const char polar)
 {
     int nRays;
     FloatType sigmaX, sigmaY, sigmaXprim, sigmaYprim, waistX, waistY;
@@ -354,13 +393,26 @@ int AstigmaticGaussianSource::generate(double wavelength)
     getParameter("waistY", param);
     waistY=param.value;
 
-        normal_distribution<FloatType> gaussX(0.,sigmaX);
+    RayType::ComplexType Samp, Pamp;
+    if(polar=='S')
+        Samp=1., Pamp=0;
+    else if(polar=='P')
+        Samp=0, Pamp=1.;
+    else if(polar=='R')
+        Samp=sqrt(2.), Pamp=complex<double>(0,sqrt(2.));
+    else if(polar=='L')
+        Samp=sqrt(2.), Pamp=complex<double>(0,-sqrt(2.));
+    else
+        throw ParameterException("invalid polarization (S, P, R or L only are  allowed)", __FILE__, __func__, __LINE__);
 
-        normal_distribution<FloatType> gaussY(0., sigmaY);
 
-        normal_distribution<FloatType> gaussXprim(0., sigmaXprim);
+    normal_distribution<FloatType> gaussX(0.,sigmaX);
 
-        normal_distribution<FloatType> gaussYprim(0., sigmaYprim);
+    normal_distribution<FloatType> gaussY(0., sigmaY);
+
+    normal_distribution<FloatType> gaussXprim(0., sigmaXprim);
+
+    normal_distribution<FloatType> gaussYprim(0., sigmaYprim);
 
     reserveImpacts(m_impacts.size() + nRays);
     VectorType org=VectorType::Zero(),dir=VectorType::Zero();
@@ -389,7 +441,7 @@ int AstigmaticGaussianSource::generate(double wavelength)
         if(sigmaY >0)
             org(1)=gaussY(rd)-waistY*dir(1);
 
-        m_impacts.push_back(RayType(RayBaseType(org,dir),wavelength)); // amplitude set to 1 and S polar
+        m_impacts.push_back(RayType(RayBaseType(org,dir),wavelength,Samp,Pamp)); // amplitude set to 1 and S polar by default
     }
 
     m_OPDvalid=false;
