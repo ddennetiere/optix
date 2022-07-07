@@ -87,9 +87,9 @@ int XYGridSource::generate(const double wavelength, const char polar)
     else if(polar=='P')
         Samp=0, Pamp=1.;
     else if(polar=='R')
-        Samp=sqrt(2.), Pamp=complex<double>(0,sqrt(2.));
-    else if(polar=='L')
         Samp=sqrt(2.), Pamp=complex<double>(0,-sqrt(2.));
+    else if(polar=='L')
+        Samp=sqrt(2.), Pamp=complex<double>(0,sqrt(2.));
     else
         throw ParameterException("invalid polarization (S, P, R or L only are  allowed)", __FILE__, __func__, __LINE__);
 
@@ -179,9 +179,9 @@ int RadialGridSource::generate(const double wavelength, const char polar)
     else if(polar=='P')
         Samp=0, Pamp=1.;
     else if(polar=='R')
-        Samp=sqrt(2.), Pamp=complex<double>(0,sqrt(2.));
-    else if(polar=='L')
         Samp=sqrt(2.), Pamp=complex<double>(0,-sqrt(2.));
+    else if(polar=='L')
+        Samp=sqrt(2.), Pamp=complex<double>(0,sqrt(2.));
     else
         throw ParameterException("invalid polarization (S, P, R or L only are  allowed)", __FILE__, __func__, __LINE__);
 
@@ -282,9 +282,9 @@ int GaussianSource::generate(const double wavelength, const char polar)
     else if(polar=='P')
         Samp=0, Pamp=1.;
     else if(polar=='R')
-        Samp=sqrt(2.), Pamp=complex<double>(0,sqrt(2.));
-    else if(polar=='L')
         Samp=sqrt(2.), Pamp=complex<double>(0,-sqrt(2.));
+    else if(polar=='L')
+        Samp=sqrt(2.), Pamp=complex<double>(0,sqrt(2.));
     else
         throw ParameterException("invalid polarization (S, P, R or L only are  allowed)", __FILE__, __func__, __LINE__);
 
@@ -399,9 +399,9 @@ int AstigmaticGaussianSource::generate(const double wavelength, const char polar
     else if(polar=='P')
         Samp=0, Pamp=1.;
     else if(polar=='R')
-        Samp=sqrt(2.), Pamp=complex<double>(0,sqrt(2.));
-    else if(polar=='L')
         Samp=sqrt(2.), Pamp=complex<double>(0,-sqrt(2.));
+    else if(polar=='L')
+        Samp=sqrt(2.), Pamp=complex<double>(0,sqrt(2.));
     else
         throw ParameterException("invalid polarization (S, P, R or L only are  allowed)", __FILE__, __func__, __LINE__);
 

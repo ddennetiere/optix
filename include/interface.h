@@ -50,8 +50,12 @@
 *      \defgroup enums  Enumeration list
 *      \brief  enumerated values used in the library
 *
-*      \defgroup GlobalCpp  Global internal C++ functions
-*      \brief  C++ functions defined at the OptiX library internal level
+*      \defgroup GlobalCpp  Global internal variables and functions
+*      \brief  Variables and functions defined at internal level and not exported by the C API
+*
+*      \defgroup InternalVar Internal global variables
+*      \brief internally defined global variables not visible in the C API
+*      \ingroup GlobalCpp
 *
 *      \defgroup mainAPI  main Interface C functions
 *      \brief Functions for defining optical systems and running computations
@@ -91,7 +95,6 @@
 *
 *      declared in ReflectivityAPI.h
 *      \see see also \ref mainAPI "Main Interface C functions"
-*
 *
 ****************************************************************************/
 
@@ -395,6 +398,18 @@ extern "C"
      */
     DLL_EXPORT int Generate(size_t elementID, double wavelength);
 
+    /** \brief Same as Generate() but allow specifying other polarizations than 'S'
+     *
+     * \param elementID ID of the element which must be of source type
+     * \param wavelength  the radiation wavelength (must be  >0
+     * \param polar Polarization of the generated rays which can be 'S', 'P', 'R', 'L'
+     * \return the number of generated rays. It will be 0 if elementID is invalid or is not a source, or wavelength <0 and OptiXLastError is set,
+     *      otherwise GetOptiXLastError will return NoError even if 0 rays were created
+     *
+     */
+    DLL_EXPORT int GeneratePol(size_t elementID, double wavelength, char polar);
+
+
     /** \brief Propagate all rays generated in the source through the element chain
      *
      * \param elementID ID of the element which must be of source type
@@ -555,8 +570,44 @@ extern "C"
      */
     DLL_EXPORT bool GetPsf(size_t elementID, double wavelength, PSFparameters *psfParams, C_ndArray * psfData);
 
+    /** \brief Load an optical system from a configuration file description
+     *
+     * A Configuration file contains description of the beamline and tables used for reflectivity.
+     * It is hierarchically organized with the level of indentation (it is better to use spaces than tabs)
+     * It might define several section and subsections introduced by keyword. Keywords are always capitalized they are follewd by parameters separated by spaces
+     * Section defining keywords:
+     *  - DBASEPATH  Path to the optics database directory
+     *  - DATABASE  Databases to open
+     *  - INDEXTABLE  name : New index table . Should be followed indented by the database and material name to tabulate, each one on a separate line
+     *  - COATINGTABLE name: New table of reflectivity. Should be followed indented by coating definitions. Coating are composed of \n
+     *   +  a substrate on level 1 indented line: \e coating_name \e substrate_material \e roughness  \n
+     *     * additionnal layers on level 2 indented new lines: \e material \e thickness [ \e compactness ]. Material names are composed of   DBase:material (names as defined in DBase)  with a colon separator \n
+     *   + sub-keywords: ANGLERANGE and ENERGYRANGE are used to define the tabulation grid
+     *  - BEAMLINE Introduce the optical element section (no parameter). Each element is defined on an level 1 new line. \n
+     *   + \e class_name  \e element_name;  parameters follow on level 2 separate lines \n
+     *    *  \e parameter_name \e value [ \e range ], range is optionnal. Macro as INV() and DEGREE() can be used to modify the values \n
+     *    * COATING \e CoatingTable_name \e coating_name define a reflective coating
+     *    * APERTURE Keyword, optionnally followed by activity (default= \e active ) starts an aperture stop \n           Aperture Regions definition are on level 4. The can be of 4 types \n
+     *        +    RECTANGULAR \n
+     *        +    CIRCULAR  \n
+     *        +    ELLIPTICAL  \n
+     *        +    POLYGONAL  \n
+     *  - CHAIN
+     *
+     * \see Commented configuration file samples
+     * \param filename Full path to the configuration file
+     * \return True if the system was successfully loaded. False otherwise. The Optix LastError is set when the error comes from the OptiX element implementation.
+     * \n It is not always set when the error comes from the config file itself; either wrong indentation or syntax
+     */
     DLL_EXPORT bool LoadConfigurationFile(const char* filename);
 
+    /** \brief Assign a Coating to a reflective surface
+     *
+     * \param elementID The Identifier of the optical element
+     * \param coatingTable The table where the coating is defined
+     * \param coatingName Name of the coating in the table
+     * \return True if assignation succeeds; False otherwise. OptiXLastError should give a reason
+     */
     DLL_EXPORT bool SetCoating(size_t elementID,const char* coatingTable, const char* coatingName);
 
 #ifdef __cplusplus

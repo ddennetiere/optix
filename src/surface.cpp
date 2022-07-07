@@ -278,7 +278,7 @@ int Surface::getImpactData(Diagram &impactData, FrameID frame)
                 spotMat(6,ip)=pRay->m_wavelength;
             if(impactData.m_dim>7)
             {
-                Is=norm(pRay->m_amplitude_S);
+                Is=norm(pRay->m_amplitude_S);   // atn norm(complex<double) retourne la magnitude square, alors que norm(Eigen::Matrix) retourne la norme euclidienne= sqrt(mag square)
                 Ip=norm(pRay->m_amplitude_P);
                 spotMat(7,ip)=Is+Ip;
             }
@@ -476,7 +476,7 @@ void Surface::computeOPD(double distance, Index Nx, Index Ny)
         slopeMat(ip,0)= (delta(0)*pRay->direction()(2)- delta(2)*pRay->direction()(0) ) /sqrtl(1.L-pRay->direction()(1)*pRay->direction()(1)); // l'aberration transversale
         slopeMat(ip,1)= (delta(1)*pRay->direction()(2)- delta(2)*pRay->direction()(1) ) /sqrtl(1.L-pRay->direction()(0)*pRay->direction()(0));
         slopeMat.block<1,2>(ip,2)= pRay->direction().segment(0,2).cast<double>(); // la direction U
-        m_amplitudes(ip,0)=pRay->m_amplitude_S;
+         m_amplitudes(ip,0)=pRay->m_amplitude_S;
         m_amplitudes(ip,1)=pRay->m_amplitude_P;
     }
     m_XYbounds.row(0)=slopeMat.block(0,2,ip,2).colwise().minCoeff(); // ici il est permis de faire min max sur les valeurs passées dans XY bounds

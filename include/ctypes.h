@@ -105,12 +105,12 @@ typedef struct __Parameter{
     inline __Parameter(double newvalue, UnitType newtype, double newmultiplier=1.):/**<  \brief standard constructor sets optimization bounds to  parameter value */
         value(newvalue), multiplier(newmultiplier), type(newtype){bounds[0]=bounds[1]=value;}
 #else
-    double value;
-    double bounds[2];
-    double multiplier;
-    enum UnitType type;
-    enum ParameterGroup group;
-    uint32_t flags;
+    double value;  /**< \brief the internal value for in internal unit (m, rad, etc)*/
+    double bounds[2];  /**< \brief  boundary value for optimization */
+    double multiplier;  /**< \brief multiplier for display */
+    enum UnitType type;  /**< \brief type of unit. This field is read-only outside ElementBase class*/
+    enum ParameterGroup group;  /**< \brief parameter group. This field is read-only outside ElementBase class*/
+    uint32_t flags;  /**< \brief non null if parameter is not optimizable. This field is read-only outside ElementBase class */
 #endif // __cplusplus
 
 }Parameter;
@@ -169,9 +169,9 @@ typedef struct __WFemission
     size_t Xsize;       /**< \brief  The number of point of the angular grid in X over the full X aperture*/
     size_t Ysize;       /**< \brief  The number of point of the angular grid in Y over the full Y aperture*/
 #ifdef __cplusplus
-    char polar='S';     /**< \brief  The radiated polarization, which can be 'S' or 'P' */
+    char polar='S';     /**< \brief The polarization of the generated rays - it can be: S (along X), P (along Y), R (right circular), L (left circular) are allowed*/
 #else
-    char polar;
+    char polar;   /**< \brief The polarization of the generated rays - it can be: S (along X), P (along Y), R (right circular), L (left circular) are allowed*/
 #endif
 } WFemission;
 
@@ -180,7 +180,7 @@ typedef struct __WFemission
 typedef struct __PSFparameters
 {
 #ifdef __cplusplus
-double opdRefDistance;  /**< \brief Distance from the observation plane of the image reference point used for OPD computation (it can be 0) */
+    double opdRefDistance;  /**< \brief Distance from the observation plane of the image reference point used for OPD computation (it can be 0) */
     size_t legendreNx;      /**< \brief Degree of the Legendre polynomial base for interpolating the wavefront in the X direction */
     size_t legendreNy;      /**< \brief Degree of the Legendre polynomial base for interpolating the wavefront in the Y direction */
 

@@ -30,6 +30,10 @@
 #define NFFT_PRECISION_DOUBLE
 #include <nfft3mp.h>
 
+/** \ingroup InternalVar
+*   \{
+*/
+
 #ifdef HAS_REFLEX  // if libRefleX added to linklist
 #include "ReflectivityAPI.h"
 
@@ -48,18 +52,22 @@ bool inhibitApertureLimit=true; /**< \brief Global flag to take into account or 
 bool useReflectivity=false;     /**<  \brief Global flag to switch on or off the computation of reflectivity  in the ray tracing computation*/
 bool threadInitialized=false;   /**< \brief Global flag to keep track of Open_MP  initialization */
 
+/** \} */ // end of InternalVar
+
 /** \brief Initialize Multi-thread mode for NFFT if openmp is available (set the -fopenmp compiler flag and link  with libgomp
+ *  \ingroup GlobalCpp
  */
 void Init_Threads()
 {
     if(threadInitialized)
         return;
 
-//    int maxthreads=1;
-//#ifdef _OPENMP
+
+//#ifdef _OPENMP  NFFT is already compiled with OpenMP
+//    cout << "openmp is defined\n";
 //#ifndef _DEBUG   // we dont want debuggin in MT mode
 // #ifdef MAXTHREADS  // num threads is limited
-//    int available=omp_get_max_threads();
+//     int maxthreads=omp_get_max_threads();
 //    cout << "Available processors " << available << endl;
 //    maxthreads= available > MAXTHREADS ? MAXTHREADS : available;
 //  #else
@@ -69,11 +77,14 @@ void Init_Threads()
 //    omp_set_num_threads(maxthreads);
    fftw_init_threads();
 //#endif  // _DEBUG
+//#else
+//    cout << "openmp is not defined\n";
 //#endif // _OPENMP
 //  //  Eigen::setNbThreads(0); // use default thread number in Eigen
 //    cout << "number of active threads " << maxthreads <<endl;
     threadInitialized=true;
 }
+
 
 
 //set<size_t> ValidIDs;
@@ -575,10 +586,10 @@ extern "C"
             element->setParameter("waistY",param);
 
         }
-
-
         return true ;
     }
+
+
     DLL_EXPORT int Generate(size_t elementID, double wavelength)
     {
         ClearOptiXError();
@@ -598,7 +609,34 @@ extern "C"
             return 0;
         }
              printf("generating rays in %s  at WL %g \n", ((ElementBase*)elementID)->getName().c_str(),wavelength );
-            return dynamic_cast<SourceBase*>((ElementBase*)elementID)->generate(wavelength);
+            return dynamic_cast<SourceBase*>((ElementBase*)elementID)->generate(wavelength );
+    }
+
+    DLL_EXPORT int GeneratePol(size_t elementID, double wavelength, char polar)
+    {
+        ClearOptiXError();
+        if(!System.isValidID(elementID))
+        {
+            SetOptiXLastError("Invalid element ID", __FILE__, __func__);
+            return 0;
+        }
+        if( !((ElementBase*)elementID)->isSource())
+        {
+            SetOptiXLastError("Element is not a source", __FILE__, __func__);
+            return 0;
+        }
+        if(wavelength <0)
+        {
+            SetOptiXLastError("Invalid wavelength", __FILE__, __func__);
+            return 0;
+        }
+        if(polar!='S'||polar!='P' || polar!='R'||  polar!='L')
+        {
+            SetOptiXLastError("Invalid Polarization: 'S', 'P', 'R', 'L' only are valid", __FILE__, __func__);
+            return 0;
+        }
+             printf("generating rays in %s  at WL %g \n", ((ElementBase*)elementID)->getName().c_str(),wavelength );
+            return dynamic_cast<SourceBase*>((ElementBase*)elementID)->generate(wavelength,polar );
     }
 
     DLL_EXPORT bool Radiate(size_t elementID)
