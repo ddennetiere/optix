@@ -22,6 +22,7 @@
 #include <set>
 #include "elementbase.h"
 
+using std::set;
 
 /** \brief a class implementing a dictionary of optical elements from the library  which is a specialization of the map<string, ElementBase*>  class
  *  And \e will manage the création and deletion of new elements

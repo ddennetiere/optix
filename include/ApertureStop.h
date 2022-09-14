@@ -22,7 +22,9 @@
 #include <map>
 #include "region.h"
 
-using namespace std;
+//using namespace std; no longer valid
+using std::map;
+using std::vector;
 
 /** \brief a class implementing a composite aperture, generated as a superimposition of clear and opaque areas
  *

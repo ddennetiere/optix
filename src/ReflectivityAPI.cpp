@@ -585,13 +585,15 @@ DLL_EXPORT bool GetLayerNumber(const char* coatingTable, const char * coatingNam
     }
     try
     {
-        *layerNumber=ctabit->second.getCoating(coatingName).getLayers();
+        Coating &coat=ctabit->second.getCoating(coatingName);
+        *layerNumber=coat.getLayers();
     }
     catch(runtime_error &rte)
     {
         SetOptiXLastError(string("Cannot find the coating ")+coatingName+" in table "+ coatingTable, __FILE__, __func__);
         return false;
     }
+    return true;
 }
 
 

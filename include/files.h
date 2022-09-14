@@ -25,7 +25,12 @@
 #include "types.h"
 
 
-using namespace std;
+//using namespace std; no longer valid in recent releases
+using std::fstream;
+using std::string;
+using std::map;
+using std::ios;
+using std::numeric_limits;
 
 /** \brief stream file with operators for storing OptiX elements  in a human readable way
  */
@@ -190,7 +195,7 @@ public:
 
     inline TextFile& ignore(int_type delim = '\n' )
     {
-        fstream::ignore(numeric_limits<streamsize>::max(), delim);
+        fstream::ignore(numeric_limits<std::streamsize>::max(), delim);
         return *this;
     }
 
@@ -229,7 +234,7 @@ protected:
 
 inline fstream& operator<<(fstream& file, Diagram& diagram )
 {
-    streamsize bytes=diagram.m_dim*sizeof(double)*diagram.m_count;
+    std::streamsize n_bytes=diagram.m_dim*sizeof(double)*diagram.m_count;
 
     file.write((char*)&diagram, 4*sizeof(int));
     file.write((char*) diagram.m_min, diagram.m_dim*sizeof(double));
@@ -237,7 +242,7 @@ inline fstream& operator<<(fstream& file, Diagram& diagram )
     file.write((char*) diagram.m_mean, diagram.m_dim*sizeof(double));
     file.write((char*) diagram.m_sigma, diagram.m_dim*sizeof(double));
 
-    file.write((char*)diagram.m_spots, bytes);
+    file.write((char*)diagram.m_spots, n_bytes);
     return file;
 }
 
@@ -250,7 +255,7 @@ inline fstream& operator<<(fstream& file, Diagram& diagram )
  */
 inline fstream& operator<<(fstream& file, C_DiagramStruct& cdiagram )
 {
-    streamsize bytes=cdiagram.m_dim*sizeof(double)*cdiagram.m_count;
+    std::streamsize n_bytes=cdiagram.m_dim*sizeof(double)*cdiagram.m_count;
 
     file.write((char*)&cdiagram, 4*sizeof(int));
     file.write((char*) cdiagram.m_min, cdiagram.m_dim*sizeof(double));
@@ -258,7 +263,7 @@ inline fstream& operator<<(fstream& file, C_DiagramStruct& cdiagram )
     file.write((char*) cdiagram.m_mean, cdiagram.m_dim*sizeof(double));
     file.write((char*) cdiagram.m_sigma, cdiagram.m_dim*sizeof(double));
 
-    file.write((char*)cdiagram.m_spots, bytes);
+    file.write((char*)cdiagram.m_spots, n_bytes);
     return file;
 }
 /** \brief Write a WavefrontData  object to a file in binary format

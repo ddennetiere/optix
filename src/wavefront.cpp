@@ -18,7 +18,9 @@
 #include <exception>
 #include <algorithm>
 
-using namespace std;
+//using namespace std; no longer usable in recet C++ releases
+
+using std::cout, std::endl;
 
 ArrayXXd Legendre(int Norder, const Ref<ArrayXd>& Xpos, ArrayXXd& derivative )
 {

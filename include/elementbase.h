@@ -25,7 +25,11 @@
 #include "files.h"
 
 
-using namespace std;
+//using namespace std; no longer valid
+using std::string;
+using std::map;
+using std::pair;
+using std::vector;
 
 class ElementCollection;
 //class SourceBase;
@@ -237,7 +241,7 @@ public:
         }
         else
         {
-            cout << "Parameter name "<< name << " is invalid\n";
+            std::cout << "Parameter name "<< name << " is invalid\n";
             return false;
         }
     }

@@ -20,7 +20,10 @@
 #include "types.h"
 #include <iostream>
 #include <limits>
-using namespace std;
+//using namespace std; no longer usable in recet C++ releases
+
+using std::complex;
+using std::cout, std::endl;
 
 /** \brief Solution of conic intersection equation  when degenerated conics have imaginary 2 intercepts instead of 4 .
  *  \ingroup GlobalCpp

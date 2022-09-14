@@ -20,7 +20,10 @@
 #include "types.h"
 #include <iostream>
 #include <limits>
-using namespace std;
+//using namespace std; no longer usable in recet C++ releases
+
+using std::complex;
+using std::cout, std::endl;
 
 int GetZeroVal(Array<FloatType,3,1> &vect, FloatType tol)
 {

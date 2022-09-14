@@ -18,7 +18,7 @@
 //#include <chrono>
 //using namespace chrono;
 // #define DIAG_OUTPUT
-#include <windows.h>
+//#include <windows.h>  cette instruction est inutile et fait planter la compilation dans les versions récentes de C++
 
 
 

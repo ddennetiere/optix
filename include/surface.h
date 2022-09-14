@@ -31,7 +31,7 @@ extern map<string,CoatingTable> coatingTables;
 
 extern bool inhibitApertureLimit; // global flag defined in interfac.cpp
 
-using namespace std;
+// using namespace std; no longer valid in recent c++ releases
 
 class SourceBase;
 

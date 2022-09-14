@@ -11,7 +11,8 @@
 *   \date               Last update: 2022-01-24
  ***************************************************************************/#include "Polygon.h"
 
- using namespace std;
+// using namespace std; no longer usable in recet C++ releases
+using std::runtime_error;
 
 Polygon::Polygon(bool transparent):Region(transparent)
 {
@@ -169,7 +170,7 @@ bool Polygon::checkConvex()
     double det=m_vects.rightCols(2).determinant();
     if (det ==0)
         throw runtime_error("invalid polygon");
-    bool direct= !signbit(det);
+    bool direct= !std::signbit(det);
     for (size_t i=0 ; i< m_size; ++i)
     {
 //       if(signbit(det)) // rotation inverse
@@ -189,7 +190,7 @@ bool Polygon::checkConvex()
         if (det ==0)
             throw runtime_error("invalid polygon");
 
-        if(signbit(det)==direct)
+        if(std::signbit(det)==direct)
             m_convex=false;
     }
     return m_convex;
