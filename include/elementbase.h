@@ -241,7 +241,8 @@ public:
         }
         else
         {
-            std::cout << "Parameter name "<< name << " is invalid\n";
+            //std::cout << "Parameter name "<< name << " is invalid\n";
+            SetOptiXLastError(string("parameter name ")+ name + " is invalid",__FILE__, __func__);
             return false;
         }
     }
