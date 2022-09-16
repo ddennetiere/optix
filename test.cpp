@@ -24,6 +24,7 @@
 #include "opticalelements.h"
 #include "sources.h"
 #include "gratingbase.h"
+#include "holo.h"
 #include "files.h"
 #include <sstream>
 #include "interface.h"
@@ -401,6 +402,56 @@ int OriginalTest()
     if(1)
     {
         Parameter param;
+        PlaneHoloGrating hGrating("holoGrating", & film2);
+        hGrating.getParameter("distance", param);
+        cout << "distance of Holo grating from film2" << param.value << "m\n";
+
+        hGrating.getParameter("recordingWavelength", param);
+        cout << "Default recording wavelength for holo grating is " << param.value << endl ;
+        // left unchanged = 351.1
+
+        hGrating.getParameter("lineDensity", param);
+        cout << endl << "Default line density for holo grating is " << param.value << endl ;
+        param.value=6e5;
+        hGrating.setParameter("lineDensity",param);
+        cout <<  "Line density of holo grating set to "<< param.value << "m^-1 \n\n" <<endl;
+        hGrating.getParameter("lineDensity", param);
+        cout <<  "Actual line density for holo grating is " << param.value << endl ;
+
+        hGrating.getParameter("inverseDist1", param);
+        param.value=-0.2002547;
+        hGrating.setParameter("inverseDist1", param);
+        cout <<  "inverseDist1 of holo grating set to "<< param.value << "m^-1 \n\n" <<endl;
+
+        hGrating.getParameter("inverseDist2", param);
+        param.value=-0.11111109999999999;
+        hGrating.setParameter("inverseDist2", param);
+        cout <<  "inverseDist2 of holo grating set to "<< param.value << "m^-1 \n\n" <<endl;
+
+        hGrating.getParameter("elevationAngle1", param);
+        param.value=-0.6457718399328866;
+        hGrating.setParameter("elevationAngle1", param);
+        cout <<  "elevationAngle1 of holo grating set to "<< param.value << "m^-1 \n\n" <<endl;
+
+        source.alignFromHere(wavelength);
+
+        GratingPatternInfo gratInfo;
+        hGrating.getPatternInfo(0.06, 0.01, &gratInfo);
+
+        cout << "\n HOLO GRATING \n    central line density " << gratInfo.AxialLineDensity[0] << " m^-1\n";
+        cout  << "     linear   VGD : " << gratInfo.AxialLineDensity[1] << " m^-2\n";
+        cout  << "     2nd order VGD: " << gratInfo.AxialLineDensity[2] << " m^-3\n";
+        cout  << "     3rd order VGD: " << gratInfo.AxialLineDensity[3] << " m^-4\n";
+
+        cout << "      central line angle: " << gratInfo.lineTilt << " rd\n";
+        cout << "      central line radius: " << gratInfo.lineCurvature << " m\n";
+
+
+    }
+
+    if(1)
+    {
+        Parameter param;
 
         GaussianSource gSource("GaussSource") ;
 
@@ -532,7 +583,7 @@ int OriginalTest()
 
  //   Parameter param;
 //    ReadSolemioFile("R:\\Partage\\SOLEMIO\\DEIMOS-cpy.txt");
-    ReadSolemioFile("R:\\Partage\\SOLEMIO\\CASSIOPEE");
+//    ReadSolemioFile("R:\\Partage\\SOLEMIO\\CASSIOPEE");
 //    ReadSolemioFile("R:\\Partage\\SOLEMIO\\HERMES");
 //    ReadSolemioFile("R:\\Partage\\SOLEMIO\\ANTARES");
 //    ReadSolemioFile("R:\\Partage\\SOLEMIO\\SEXTANTS");

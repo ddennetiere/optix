@@ -54,7 +54,10 @@
  *   \b azimuthAngle\e n  | Angle  | azimuth angle ( \f$ \psi \f$) of construction point P\e n  [\f$ - \pi/2, \pi/2 \f$]
  *   \b elevationAngle1  | Angle | elevation angle ( \f$ \theta \f$) of the first construction point P1  [\f$ - \pi/2, \pi/2 \f$]
  * <em> with  n  = 1 or 2,  example:</em> inverseDist1
- *  \n For positive inverse distances he grating line-density vector will point toward +X if the elevation angle of P1 is smaller (more grazing)  than P2; toward -X otherwise.
+ *  \n <b> WARNING: elevationAngle2 is not defined and invalid </b> \n
+ *  "elevationAngle2" is defined from elevationAngle1 and lineDensity and calculated as sign(\e elevationAngle1 ) * arcos{ cos( \e elevationAngle1 ) - \e lineDensity * \e recordingWavelength  }
+ *   \n If lineDensity > 0 the construction direction 1 is more grazing than direction 2  (irrespective of the signs)
+ *
  *  \image html  Holo.png "Definition of holographic construction points"
  */
 #endif // HOLO_EULERIAN
@@ -81,6 +84,16 @@ class Holo :   virtual public Surface, virtual public Pattern
          */
         virtual EIGEN_DEVICE_FUNC Surface::VectorType gratingVector(const Surface::VectorType &position, const
                                 Surface::VectorType &normal);
+
+        /** \brief Computes the orientation and curvature of the grating central line and a third order polynomial approximation
+         *  of the line density function along the meridional axis (X)
+         *
+         * \param halfLength 1/2 length of the grating (X direction) used for computing the polynomial approximation
+         * \param halfWidth 1/2 width of the grating (Y) used to compute the central line curvature
+         * \param patInfo a pointer to a GratingPatternInfo structure to be filled in return
+         */
+        void getPatternInfo(double halfLength, double halfWidth, GratingPatternInfo *patInfo);
+
         double lineNumber(const Surface::VectorType &position);
  //   protected:
         double m_holoWavelength; /**< Holographic recording wavelength*/

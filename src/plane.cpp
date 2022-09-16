@@ -17,6 +17,9 @@
 #include "plane.h"
 
 
-Plane::Plane(string name, Surface *previous):Surface(true,name, previous) {} //{Surface::m_transmissive=false;}
+Plane::Plane(string name, Surface *previous):Surface(true,name, previous)//{Surface::m_transmissive=false;}
+{
+    m_hyperplane=RayType::PlaneType(VectorType::UnitZ(),0); // plan par origine normale OZ
+}
 
 Plane::~Plane(){}

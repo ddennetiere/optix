@@ -143,6 +143,16 @@ typedef struct __C_WFtype
   size_t m_dataSize[2];     /**< dimensions of the mapped array in order nX, nY */
 }C_WFtype;
 
+/** \brief C structure to get pattern info from an holographic grating
+ */
+typedef struct __C_GratingPatternInfo{
+    double AxialLineDensity[4];/**<array which will receive the coefficients of the line density approximation by a third degree polynomial.\n
+                                * The term of degree 0 is the nominal line density at grating center (in lines/m)*/
+    double lineTilt;    /**< angle in radian of the angle of the central line of the grating line with the Y axis (in rad)*/
+    double lineCurvature; /**< approximate radius of curvature of the central line of the grating (in m)  */
+}GratingPatternInfo;
+
+
 
 /** \brief C struct to return PSF and other image stacks
 *

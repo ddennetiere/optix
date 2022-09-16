@@ -221,7 +221,7 @@ public:
 
     /** \brief Modifies an existing  named numeric parameter
     *
-    * The type, group and flags of a parameter are internally defined and cannot be changed. Their actual values will be reflected in param on returning
+    * The type, group and flags of a parameter are internally defined and cannot be changed. Their actual values will be reflected in param on return
     * \param name the name of parameter to set
     * \param param the new parameter  object
     * \return  true if parameters was changed , false if parameter doesn't belong to the object

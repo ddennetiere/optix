@@ -891,6 +891,32 @@ extern "C"
 
     DLL_EXPORT bool DumpXML(const char* filename) {return DumpXmlSys(filename);}
 
+    DLL_EXPORT bool GetHologramPatternInfo(size_t elementID, GratingPatternInfo *gratInfo, double halfLength, double halfWidth )
+    {
+        ClearOptiXError();
+        if(!System.isValidID(elementID))
+        {
+            SetOptiXLastError("Invalid element ID", __FILE__, __func__);
+            return false;
+        }
+        Holo *pHologram= dynamic_cast<Holo*>((ElementBase*) elementID);
+        if( !pHologram)
+        {
+            SetOptiXLastError("Element is not a holographic grating", __FILE__, __func__);
+            return false;
+        }
+        if(! gratInfo)
+        {
+            SetOptiXLastError("Second parameter is not a valid GratingPatternInfo pointer", __FILE__, __func__);
+            return false;
+        }
+        pHologram->getPatternInfo(halfLength, halfWidth, gratInfo);
+
+        return true;
+    }
+
+//            Aperture and wavefront related functions
+
     DLL_EXPORT void SetAperturesActive(const bool activity){inhibitApertureLimit=!activity;}
 
     DLL_EXPORT bool GetAperturesActive(){return !inhibitApertureLimit;}

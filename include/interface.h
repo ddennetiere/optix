@@ -309,6 +309,7 @@ extern "C"
 
     /** \brief Modifies an element parameter
      *
+     * <b>The type, group and flags of a parameter are internally defined and will not be changed no matter how they are defined<b>
      * \param elementID The ID of the element to modify
      * \param paramTag the name of the parameter to change
      * \param[in] paramData the new parameter data as a Parameter struct
@@ -539,6 +540,17 @@ extern "C"
      * \return false in case of error and the OptiXLastError will be set.  true otherwise
      */
     DLL_EXPORT bool DumpXML(const char* filename);
+
+    /** \brief computes the polynomial expansion of the line density, and the central line tilt and cuvrature, of an holographic grating
+     *
+     * \param elementID ID of the element which must be a Holographic Grating
+     * \param gratInfo pointer to a  GratingPatternInfo structure which will be filed with the requested info. The caller is responsible of creating and destructing this structure
+     * \param halfLength The 1/2 length of the grating. Needed to evaluate the axial polynomial expansion of line density
+     * \param halfWidth The 1/2 width of the grating. Needed to evaluate the central line curvature
+     * \return false (and sets OptiXLastError) if elementID is invalid or if the object is not an holographic grating; otherwise return true
+     */
+    DLL_EXPORT bool GetHologramPatternInfo(size_t elementID,  GratingPatternInfo *gratInfo, double halfLength, double halfWidth );
+
 
     /** \brief finds the most upstream source in the element chain starting from the given element
      *

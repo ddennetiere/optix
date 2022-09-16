@@ -41,17 +41,17 @@ Holo::Holo()
     setHelpstring("inverseDist2", "Reciprocal distance of the 2nd construction point (with sign)");
     param.type=Angle;
     param.value=0;
-    defineParameter("azimuthAngle1", param);  // par défaut 0
+    defineParameter("azimuthAngle1", param);  // par défaut 0 (onde plane)
     setHelpstring("azimuthAngle1", "Azimuth angle (psi) of the 1st construction point");
     defineParameter("azimuthAngle2", param);  // par défaut 0
     setHelpstring("azimuthAngle2", "Azimuth angle (psi) of the 2nd construction point");
-    param.value=M_PI/4.5;    //   40° rasance min de JY 20°
+    param.value=-M_PI/4.5;    //   40° rasance min de JY 20° points de constructions côté entrée
     m_direction1 << cos(param.value),0,  sin(param.value);
-    defineParameter("elevationAngle1", param);  // par défaut 0
+    defineParameter("elevationAngle1", param);  // par défaut 40°
     setHelpstring("elevationAngle1", "Elevation angle (theta) of the 1st construction point");
     m_direction2(0)=m_direction1[0]-m_holoWavelength*m_lineDensity;
     m_direction2(1)=0;
-    m_direction2(2)=sqrt(1.-m_direction2(0)*m_direction2(0));
+    m_direction2(2)=-sqrt(1.-m_direction2(0)*m_direction2(0));
 }
 /** \brief solves the following equation for \f$ \theta_2 \f$ and sets the  m_direction2 vector appropriately
  *
@@ -161,6 +161,55 @@ EIGEN_DEVICE_FUNC  Surface::VectorType Holo::gratingVector(const Surface::Vector
  // densité de traits = delta cos(theta)
     return G;
 }
+
+void Holo::getPatternInfo(double halfLength, double halfWidth, GratingPatternInfo *patInfo)
+{
+    // l'intercept avec la surface (orientée) doit être calculé dans le référentiel absolu local et ramené dans le référentiel surface
+    Surface::VectorType org=Surface::VectorType::Zero(); // origine du rayon utilisé pour caluler l'intercept (dans le référentiel Surface)
+    Surface::VectorType dir=m_surfaceDirect*Surface::VectorType::UnitZ(); // direction invariante du rayon //ON directement transformée dans repère absolu local
+    Surface::VectorType position=org, normal=Surface::VectorType::UnitZ(); // dans referentiel surface pour calcul de la densité centrale
+    Surface::VectorType G;
+    RayType ray;
+
+    G=gratingVector(position,normal);  //grating vector at center
+    double d0=G.norm();
+    std::cout << "central line density:" << d0 << std::endl;
+    patInfo->lineTilt=asin(G.normalized().dot(Surface::VectorType::UnitY()));
+
+    VectorXd X=VectorXd::LinSpaced(5,-halfLength, halfLength);
+    VectorXd N=VectorXd::Zero(5);
+    for(Index i=0; i< X.size(); ++i)
+    {
+        org(0)=X(i);
+        ray=Ray(RayBaseType(m_surfaceDirect*org,dir)); // useless to set wavelength
+        position=m_surfaceInverse*intercept(ray,&normal);
+        N(i)=gratingVector(position,normal).norm();
+        cout << i << "  " << N(i) << endl;
+
+    }
+
+    MatrixXd A=MatrixXd::Ones(5,4);
+    for(Index i=1; i <4; ++i )
+        A.col(i).array()=A.col(i-1).array()*X.array();
+
+    MatrixXd M=(A.transpose()*A).inverse();
+    double* pcoeffs=(double*)&patInfo->AxialLineDensity;
+    Map<VectorXd>C(pcoeffs, 4);
+    C=M*A.transpose()*N;
+
+    org(0)=0;
+    org(1)=halfWidth;
+    ray=Ray(RayBaseType(m_surfaceDirect*org,dir));
+    position=m_surfaceInverse*intercept(ray,&normal);
+
+    G=gratingVector(position,normal).normalized();
+    org(1)=-halfWidth;
+    ray=Ray(RayBaseType(m_surfaceDirect*org,dir));
+    position=m_surfaceInverse*intercept(ray,&normal);
+    double theta=acos(G.dot(gratingVector(position,normal).normalized()));
+    patInfo->lineCurvature=2*halfWidth/cos(patInfo->lineTilt)/theta;
+}
+
 double Holo::lineNumber(const Surface::VectorType &position)
 {
     FloatType N1,N2;
