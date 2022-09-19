@@ -4,8 +4,20 @@ OptiX Ray-tracing Library
 OptiX is a ray-tracer library for X-ray optics.
 All function are exposed in C form, though it is internally written in C++
 
+September 2022  
+--------------
+V2.1 
+
+Coatings addedd to the element definition. 
+A new LoadConfigurationFile function added to the interface to ease the definition of a system.
+Language is keyword and tabulation structured. Se example file config.dat.
+OptiXLastError is now set when SetParameter is called with an invalid parameter name.
+Many doc updates including holographic grating parameter description.
+
 March 29, 2022
 ---------------
+V2.0
+
 Coherent computation are now exposed  by the OptiX C-API with 2 new functions : WaveRadiate and GetPsf.
 These functions requires a rather large number of parameters which are passed in structs.
 Psf distributions can be calculated for a sequence of equally spaced planes around the estimated focus. They are returned in a four dimensions version of the ndArray struct (\see c_types.h) ). Please look at GetPsf documentation to allocate the storage space required

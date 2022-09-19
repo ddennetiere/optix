@@ -19,7 +19,6 @@ doxygen/doxyfile
 *.dll
 *.exe
 *.layout
-#solemio/CASSIO
 *.mod
 *.res
 wigner3j.f95
@@ -29,7 +28,6 @@ ftypes.f95
 bibliography/
 removed/
 bin/
-!bin/Librarytest/config.dat
 solemio/
 
 
