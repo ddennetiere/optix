@@ -28,15 +28,24 @@
     if (!(x)) { throw (EigenException("Eigen_assert ",__FILE__, __func__, __LINE__)); }
 //  if (!(x)) { throw (std::runtime_error("Eigen assertion error")); }
 
-#include <Eigen/Eigen>
-//#include <Eigen/ParametrizedLine.h>
+// in case it is required when Eigen includes cmath
+#define _USE_MATH_DEFINES
+#include <Eigen/Eigen>  // Eigen/Core includes cmath
+
+// if the message show-up in compilation comment the pragma and uncomment M_PI and M_PI_2 definitions
+#ifndef M_PI
+    #pragma message "you need to define M_PI and M_PI_2 in raybase.h line 37"
+    //#define M_PI		3.14159265358979323846
+    //#define M_PI_2		1.57079632679489661923
+    //#define M_PI_4		0.78539816339744830962
+    //#define M_1_PI		0.31830988618379067154
+    //#define M_2_PI		0.63661977236758134308
+#endif // M_PI not defined
+
 #include <fstream>
 #include <iostream>
 
 
-
-//#define _USE_MATH_DEFINES
-#include <cmath>
 using namespace Eigen;
 
 
