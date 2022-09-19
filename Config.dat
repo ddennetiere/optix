@@ -1,0 +1,61 @@
+#example of config file.  
+# Keywords are capitalized. Blocks are defined by indentation
+# Argument meaning is given in the comments following a command line. Arguments between [] in comments are optional
+# comment lines should start with # with no blank before; Empty  lines are allowed and skipped
+
+DBASEPATH    ../../../RefleX/data
+DATABASE    nk_Windt.dat
+INDEXTABLE  nkTable
+    nk_Windt    a-Si            #material_entry:  database databaseName
+    nk_Windt    Pt
+    nk_Windt    Rh
+    nk_Windt    a-C
+    nk_Windt    B4C
+
+COATINGTABLE    coatings
+    PtCoat  nkTable nk_Windt:a-Si  0.2e-9      # coating_entry: databaseName:entryName  table  material(of substrate) roughness(of substrate)
+            nkTable nk_Windt:Pt  400.e-9     # layer_entry:  table material thickness [compactness]
+            nkTable nk_Windt:a-C   20.e-9  1.3
+    RhCoat  nkTable nk_Windt:a-Si  0.2e-9
+            nkTable nk_Windt:Rh  400.e-9
+            nkTable nk_Windt:a-C   20.e-9  1.3
+    ANGLERANGE  0.01    0.06    501 # min  max numsteps
+    ENERGYRANGE 50  200 -1          # min  max []numsteps logscale] defaults numsteps=-1 (table steps) logscale=0 (false)
+BEAMLINE
+    Source<Gaussian>    source      #element_entry: elementClass    elementName
+        nRays   10000
+        sigmaX  5.e-6               # parameterName value [min  max]  (value and range can use macros)
+        sigmaY  5.e-6
+        sigmaXdiv   1.e-3
+        sigmaYdiv   1.e-3
+    Mirror<ConicBaseCylinder>   hfm
+        distance    5.
+        invp    INV(-5.)    INV(-4.5)   INV(-6.)
+        invq    INV(2.3)
+        theta0  DEGREE(1.75)
+        theta   DEGREE(1.75)
+        phi     DEGREE(-90)
+        COATING coatings PtCoat
+        APERTURE                         # [activity] either active or 1 either inactive or 0  defaults to active
+            RECTANGLE  350 12 open 0 0  #  X_size Y_size [opacity] [X_center] [Y_center][angle]
+                            # Opacity can be either opaque or true or 1 either open or false or 0 which is the default value.
+                            # Last 3 parameters define a translation rotation of the region and all default to 0
+            # ELLIPTICAL  X_size Y_size [opacity] [X_center] [Y_center][angle]
+            # CIRCULAR    diameter [opacity] [X_center] [Y_center]
+            # POLYGONAL   ??? input ?
+    Mirror<ConicBaseCylinder>   vfm
+        distance    0.5
+        invp    INV(-5.5)
+        invq    INV(1.8)
+        theta0  DEGREE(1.75)
+        theta   DEGREE(1.75)
+        phi     DEGREE(90)
+        COATING coatings RhCoat
+        APERTURE active
+            RECTANGLE  350 12 open      # Diaphragme rectangle centré
+    Film<Plane>     screen
+        distance    1.8
+        APERTURE inactive
+
+
+CHAIN   source  hfm vfm screen      # Chaining command any number of tokens

@@ -29,6 +29,7 @@ ftypes.f95
 bibliography/
 removed/
 bin/
+!bin/Librarytest/config.dat
 solemio/
 
 
