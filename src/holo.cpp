@@ -181,7 +181,7 @@ void Holo::getPatternInfo(double halfLength, double halfWidth, GratingPatternInf
     for(Index i=0; i< X.size(); ++i)
     {
         org(0)=X(i);
-        ray=Ray(RayBaseType(m_surfaceDirect*org,dir)); // useless to set wavelength
+        ray=Ray(RayBaseType(m_surfaceDirect*org,dir)); // useless to set wavelength and other parameters
         position=m_surfaceInverse*intercept(ray,&normal);
         N(i)=gratingVector(position,normal).norm();
         cout << i << "  " << N(i) << endl;

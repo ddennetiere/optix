@@ -103,6 +103,7 @@ int XYGridSource::generate(const double wavelength, const char polar)
     int nRays=vXprim.size()*vYprim.size()*vX.size()*vY.size();
     reserveImpacts(m_impacts.size() + nRays);
     VectorType org=VectorType::Zero(),dir=VectorType::Zero();
+   // Vector3d Zdir=Vector3d::UnitZ(); //will be used to orient polarization
 
     for(Index iY=0; iY <ntY; ++iY)
       for(Index iX=0; iX< ntX; ++iX)

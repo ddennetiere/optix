@@ -309,7 +309,7 @@ extern "C"
 
     /** \brief Modifies an element parameter
      *
-     * <b>The type, group and flags of a parameter are internally defined and will not be changed no matter how they are defined<b>
+     * <b>The type, group and flags of a parameter are internally defined and will not be changed no matter how they are defined</b>
      * \param elementID The ID of the element to modify
      * \param paramTag the name of the parameter to change
      * \param[in] paramData the new parameter data as a Parameter struct

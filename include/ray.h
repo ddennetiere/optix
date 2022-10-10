@@ -72,11 +72,11 @@ public:
 
 
 // data :  // ne pas modifier la structure   sans reviser datasize et verifier les opérateurs fstream >> et  <<
-    static const  int datasize=6*sizeof(double)+sizeof(bool);
-    double m_wavelength;
-    ComplexType m_amplitude_S, m_amplitude_P; // en attente d'une implémentation possible
-//    double m_OPD=0.;  /**< \brief The Optical Path Difference, will be set only in rays which are stored in the impact vector of a Surface,
-//                    *    and after the Surface::ComputeOPD function  was called on the impact vector*/
+    static const  int datasize=5*sizeof(double)+sizeof(bool);  // wrongly set as 6 instead of 5 until 07 oct 2022
+  //  Vector3d m_vector_S  /**< \brief unit vector of S polarization direction associated with the Ray */
+    double m_wavelength; /**< \brief wavelength of the ray (m) */
+    ComplexType m_amplitude_S, m_amplitude_P; /**< \brief Complex amplitude of polarization components */
+
     bool m_alive;  /**<  \brief (set to false when no intercept is found with or no diffraction is possible from a surface).
                     *   If absorbed amplitudes are set to 0, but the ray is nevertheless propagated to enable wavefront interpolation  */
 

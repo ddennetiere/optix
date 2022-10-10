@@ -59,7 +59,7 @@ class Plane : virtual public Surface
         */
         EIGEN_DEVICE_FUNC virtual VectorType intercept(RayType& ray, VectorType * normal=NULL)
         {
-            ray-=m_translationFromPrevious; // change ref fram from previous to this surface
+            ray-=m_translationFromPrevious; // change ref frame from previous to this surface
             if(ray.m_alive)
             {
                 if(normal)
