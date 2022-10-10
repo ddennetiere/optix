@@ -64,16 +64,16 @@ public:
     typedef Matrix<scalar,4,4> QuadricType;
 
     /** Default constructor */
-    RayBase() {}
+    RayBase():m_alive(true) {} //All rays are created alive
     /** Default destructor */
     virtual ~RayBase() {}
 
-    /** Copy constructor with scalar type conversion
+    /** Copy constructor with scalar type conversion (m_alive flag is preserved)
      *  \param other Object to copy from
      */
      template<typename otherScalar>
     inline RayBase(const RayBase<otherScalar>& other):BaseLine( other),
-            m_distance(other.m_distance) {}
+            m_distance(other.m_distance),m_alive(other.m_alive) {}
 
 
      /** \brief Construction from origin and direction , sets  position at origin
@@ -83,7 +83,7 @@ public:
       * \param distance  the distance of ray position from origin
       */
      inline explicit RayBase(const VectorType& origin, const VectorType& direction, const scalar distance=0):
-        BaseLine(origin, direction.normalized()), m_distance(distance){ } // force la normalisation
+        BaseLine(origin, direction.normalized()), m_distance(distance),m_alive(true){ } // force la normalisation
 
     /** \brief Construction from origin and direction , sets  position at some distance from origin
      *
@@ -97,7 +97,7 @@ public:
                              const Matrix<otherScalar,3,1>  &direction,
                              otherScalar distance=0):
                 BaseLine( ParametrizedLine<otherScalar,3>( origin, direction) ),
-                m_distance(distance)
+                m_distance(distance),m_alive(true)
                 {BaseLine::m_direction.normalize(); } ;// force la normalisation dans la précision finale
 
 
@@ -328,6 +328,7 @@ public:
         s.write((char*)&ray.m_origin, sizeof(ray.m_origin));
         s.write((char*)&ray.m_direction, sizeof(ray.m_direction));
         s.write((char*)&ray.m_distance, sizeof(ray.m_distance));
+        s.write((char*)&ray.m_alive, sizeof(ray.m_alive));
         return s;
      }
 
@@ -339,6 +340,7 @@ public:
         s.read((char*)&ray.m_origin, sizeof(ray.m_origin));
         s.read((char*)&ray.m_direction, sizeof(ray.m_direction));
         s.read((char*)&ray.m_distance, sizeof(ray.m_distance));
+        s.read((char*)&ray.m_alive, sizeof(ray.m_alive));
         return s;
      }
 
@@ -348,7 +350,13 @@ public:
      inline static RayBase OZ(){ return RayBase(VectorType::Zero(), VectorType::UnitZ());}  /**< \brief ray along X with origin and position set at zero */
 protected:
     scalar m_distance;/**< \brief distance from origin of the current position */
-private:
+
+public:  // public variables
+    bool m_alive;  /**<  \brief  boolean variable which defines if aray should be propagated further or not
+          *
+          *   new rays are always created alive. m_alive is set to false when no intercept is found with or no diffraction is possible from a surface)
+          */
+
 };
 
 

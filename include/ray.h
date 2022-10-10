@@ -32,21 +32,21 @@ class Ray:public RayBase<scalar>{
 public:
     typedef std::complex<double> ComplexType;
 
-    inline Ray():m_wavelength(0), m_amplitude_S(1.), m_amplitude_P(0), m_alive(true){}    /**< \brief default constructor */
+    inline Ray():m_wavelength(0), m_amplitude_S(1.), m_amplitude_P(0){}    /**< \brief default constructor */
 
     inline Ray(RayBase<scalar>&& base, double wavelength=0, ComplexType amplitudeS=1., ComplexType amplitudeP=0) :
-        RayBase<scalar>(base), m_wavelength(wavelength), m_amplitude_S(amplitudeS), m_amplitude_P(amplitudeP),m_alive(true){} /**< \brief
+        RayBase<scalar>(base), m_wavelength(wavelength), m_amplitude_S(amplitudeS), m_amplitude_P(amplitudeP){} /**< \brief
     *       constructor from a RayvBase object of same type and metaparameters */
 
     template<typename otherScalar>
     inline Ray(RayBase<otherScalar>&& base, double wavelength=0, ComplexType amplitudeS=1., ComplexType amplitudeP=0) :
-        RayBase<scalar>(base), m_wavelength(wavelength), m_amplitude_S(amplitudeS), m_amplitude_P(amplitudeP),m_alive(true){} /**<  \brief
+        RayBase<scalar>(base), m_wavelength(wavelength), m_amplitude_S(amplitudeS), m_amplitude_P(amplitudeP){} /**<  \brief
     *   type conversion constructor with meta parameters    */
 
     template<typename otherScalar>
     inline Ray(Ray<otherScalar> & ray) :
         RayBase<scalar>(ray), m_wavelength(ray.m_wavelength), m_amplitude_S(ray.m_amplitude_S),
-                m_amplitude_P(ray.m_amplitude_P), m_alive(ray.m_alive){} /**<  \brief
+                m_amplitude_P(ray.m_amplitude_P){} /**<  \brief
     *   copy constructor with type conversion */
 
 
@@ -72,15 +72,12 @@ public:
 
 
 // data :  // ne pas modifier la structure   sans reviser datasize et verifier les opérateurs fstream >> et  <<
-    static const  int datasize=5*sizeof(double)+sizeof(bool);  // wrongly set as 6 instead of 5 until 07 oct 2022
+    static const  int datasize=5*sizeof(double);  // wrongly set as 6 instead of 5 until 07 oct 2022
   //  Vector3d m_vector_S  /**< \brief unit vector of S polarization direction associated with the Ray */
     double m_wavelength; /**< \brief wavelength of the ray (m) */
-    ComplexType m_amplitude_S, m_amplitude_P; /**< \brief Complex amplitude of polarization components */
-
-    bool m_alive;  /**<  \brief (set to false when no intercept is found with or no diffraction is possible from a surface).
-                    *   If absorbed amplitudes are set to 0, but the ray is nevertheless propagated to enable wavefront interpolation  */
-
-
+    ComplexType m_amplitude_S, m_amplitude_P; /**< \brief Complex amplitude of polarization components
+                  *   If  amplitudes are set to 0, but ray is alive, the ray is nevertheless propagated to enable wavefront interpolation
+                  */
 };
 
 #endif // RAY_H_INCLUDED
