@@ -19,8 +19,13 @@
 
 #include "elementbase.h"  // include many basic headers
 #include "ApertureStop.h"
-#include "CoatingTable.h"
-extern map<string,CoatingTable> coatingTables;
+
+#ifdef HAS_REFLEX
+    #include "CoatingTable.h"
+    extern map<string,CoatingTable> coatingTables;
+#endif //HAS_REFLEX
+
+using std::cout, std::endl, std::complex ;
 
 // l'inclusion de la classe Tensor par le Header  <unsupported/Eigen/CXX11/Tensor> est incompatible avec les classes Polygon et ellipse de Aperture Api
 
@@ -59,11 +64,16 @@ class Surface: public  ElementBase
 
 public:
 
+#ifdef HAS_REFLEX
+
     /** \brief default  constructor (Film) with explicit chaining to previous
     */
     Surface(bool transparent=true, string name="", Surface * previous=NULL):ElementBase(transparent,name,previous),m_recording(RecordNone),
              m_apertureActive(false), m_pCoating(NULL){}
-
+#else
+    Surface(bool transparent=true, string name="", Surface * previous=NULL):ElementBase(transparent,name,previous),m_recording(RecordNone),
+             m_apertureActive(false){}
+#endif // HAS_REFLEX
     virtual ~Surface(){}    /**< \brief virtual destructor */
 
     virtual inline string getOptixClass(){return "Surface";}/**< \brief return the derived class name of this object */
@@ -84,9 +94,9 @@ public:
     */
     virtual int align(double wavelength)=0;
 
-    EIGEN_DEVICE_FUNC virtual VectorType intercept(RayType& ray, VectorType * normal=NULL )=0; /**< \brief Pure virtual function
+    virtual VectorType intercept(RayBaseType& ray, VectorType * normal=NULL )=0; /**< \brief Pure virtual function
     *
-    *   Implemented in shape classes (Plane , Quadric, Toroid)
+    *   Implemented in shape classes (Plane , Quadric, Toroid, and SourceBase)
     *   \n All implementations <b> must move and rebase </b> the ray at its intersection with the surface and return this position
     *   \n if the ray is not alive the last active position is kept and expressed in local absolute frame cordinates
     */
@@ -222,9 +232,9 @@ public:
        *        Oversampling must be >1. The default oversampling is 4. Theta Max and Min  are stored in the array m_XYbounds
        * \param[in] distOffset Displacement of the plane of PSF determination with respect the the reference point used to determine the OPD
        */
-      void computePSF(ndArray<complex<double>,3 > &PSF, Array2d &pixelSizes, double lambda, double oversampling=4, double distOffset=0);
+      void computePSF(ndArray<std::complex<double>,3 > &PSF, Array2d &pixelSizes, double lambda, double oversampling=4, double distOffset=0);
 
-      void computePSF(ndArray<complex<double>,4 > &PSF, Array2d &pixelSizes, ArrayXd &distOffset, double lambda, double oversampling=4);
+      void computePSF(ndArray<std::complex<double>,4 > &PSF, Array2d &pixelSizes, ArrayXd &distOffset, double lambda, double oversampling=4);
 
      /** \brief Defines whether or not the aperture limitations of this surface are taken into account in the tray tracing
       *
@@ -238,7 +248,7 @@ public:
       */
      inline bool getApertureActive(){return m_apertureActive;}
      inline bool isOPDvalid(){return m_OPDvalid;}/**< \brief check validity  of OPD data before computing a PSF \return true if OPD data are valid*/
-
+#ifdef HAS_REFLEX
      /** \brief sets or replaces the Coating that will be used in reflectivity computations if enabled \see useReflectivity
       *
       * \param tableName name of te table where the coating is defined
@@ -249,6 +259,7 @@ public:
      void removeCoating();  /**< \brief Suppress the coating; a reflectivity (or transmittance) of 1. will be assumed for both poarizations*/
      inline string getCoatingName(){return m_pCoating->getParentTable()->getName()+':'+m_pCoating->getName() ;} /**< \brief returns the qualified name of the coating, that is CoatingTable name and Coating name separated by a colon ':' */
      inline Coating* getCoating(){return m_pCoating;} /**< \brief returns a pointer to the coating used by the optical element */
+#endif // HAS_REFLEX
 //    friend TextFile& operator<<(TextFile& file,  Surface& surface);  /**< \brief Duf this Surface object to a TextFile, in a human readable format  */
 //
 //    friend TextFile& operator >>(TextFile& file,  Surface& surface);  /**< \brief Retrieves a Surface object from a TextFile  */
@@ -260,7 +271,9 @@ protected:
     vector<RayType> m_impacts; /**<  \brief the ray impacts on the surfaces in absolute local element space before or after reflection/transmission */
     RecordMode m_recording; /**<  \brief flag defining whether or not the ray impacts on this surface are recorded and before or after reflection/transmission   */
     bool m_apertureActive;  /**<  \brief boolean flag for taking the aperture active area into account */
+#ifdef HAS_REFLEX
     Coating *m_pCoating=NULL; /**< \brief a pointer to a instance of Coating class to be used in reflectivity (or to be done transmittance) computations */
+#endif // HAS_REFLEX
     bool m_OPDvalid=false;  /**< \brief boolean flag for keeping track of the validity of the OPD of the rays stored in the m_impacts vector */
     int m_NxOPD=0;          /**< \brief degree of Legendre polynomials of the X variable used to interpolate the OPD*/
     int m_NyOPD=0;          /**< \brief degree of Legendre polynomials of the Y variable used to interpolate the OPD */

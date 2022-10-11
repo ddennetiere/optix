@@ -24,7 +24,7 @@ Quadric::Quadric():Surface(false, "Quadric"){} //{Surface::m_transmissive=false;
 Quadric::~Quadric(){}
 
 
-EIGEN_DEVICE_FUNC  RayBaseType::VectorType Quadric::intercept(RayType& ray, VectorType * normal)
+RayBaseType::VectorType Quadric::intercept(RayBaseType& ray, VectorType * normal)
 {
     ray-=m_translationFromPrevious; // change ref frame from previous to this surface
 

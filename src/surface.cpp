@@ -20,6 +20,7 @@
 extern void Init_Threads();
 
 
+
 /** \brief helper functor to extract the coefficient-wise minimum value of two arrays
  */
 template<typename Scalar_>  struct minOf2Op
@@ -66,7 +67,21 @@ RayType& Surface::reflect(RayType& ray)    /*  this implementation simply reflec
             }
             if(m_recording==RecordInput)
                 m_impacts.push_back(ray);
-            ray.direction()-=2.*ray.direction().dot(normal)*normal;
+            VectorType indir=ray.direction();
+            double singrazing=-ray.direction().dot(normal);
+            ray.direction()+=2.*singrazing*normal;
+
+            if(singrazing> 1e-6) // compute polar frame if grazing angle  > 1µrad ; si singrazing  <0 on a un problème
+            {
+                VectorType S0(ray.m_vector_S);
+                VectorType P0=indir.cross(S0);
+                ray.m_vector_S=indir.cross(ray.direction()).normalized();
+                double ca=S0.dot(ray.m_vector_S), sa=P0.dot(ray.m_vector_S);
+                complex<double> As=ca*ray.m_amplitude_S+sa*ray.m_amplitude_P;
+                complex<double> Ap=ca*ray.m_amplitude_P-sa*ray.m_amplitude_S;
+                ray.m_amplitude_S=As;
+                ray.m_amplitude_P=Ap;
+            }
             if(m_recording==RecordOutput)
                 m_impacts.push_back(ray);
         }
@@ -77,7 +92,7 @@ RayType& Surface::reflect(RayType& ray)    /*  this implementation simply reflec
             m_OPDvalid=false;
 
         return ray;
-    } catch(exception & excpt)
+    } catch(std::exception & excpt)
     {
         cout << "Exception catch in " << m_name << " reflect \n" << excpt.what();
         exit(-1);
@@ -151,7 +166,7 @@ int Surface::getSpotDiagram(Diagram & spotDiagram, double distance)
     cout << "getting diagram of  "  << m_name <<  " n " << m_impacts.size() << "  mem " << &m_impacts[0] << endl;
 
     if(spotDiagram.m_dim < 5)
-        throw invalid_argument("SpotDiagram argument should have a vector dimension of at least 5");
+        throw std::invalid_argument("SpotDiagram argument should have a vector dimension of at least 5");
 
 
     vector<RayType> impacts;
@@ -225,7 +240,7 @@ int Surface::getImpactData(Diagram &impactData, FrameID frame)
 //    vector<RayType> impacts;
 //    impactData.m_lost=getImpacts(impacts,LocalAbsoluteFrame);
     if(impactData.m_dim < 6)
-        throw invalid_argument("Impact data argument should have a vector dimension of at least 6");
+        throw std::invalid_argument("Impact data argument should have a vector dimension of at least 6");
 
     impactData.m_count=m_impacts.size();
     if(impactData.m_count==0)
@@ -309,7 +324,7 @@ int Surface::getCaustic(Diagram& causticData)
 //    if(causticData.m_spots)
 //        delete[] causticData.m_spots;
     if(causticData.m_dim < 4)
-        throw invalid_argument("Caustic data argument should have a vector dimension of at least 4");
+        throw std::invalid_argument("Caustic data argument should have a vector dimension of at least 4");
     vector<RayType> impacts;
     causticData.m_lost=getImpacts(impacts,AlignedLocalFrame);
 //    if(impacts.size()==0)
@@ -377,7 +392,7 @@ int Surface::getCaustic(Diagram& causticData)
 int Surface::getWavefrontData(Diagram & WFdata, double distance)
 {
     if(WFdata.m_dim < 5)
-        throw invalid_argument("WavefrontData argument should have a vector dimension of at least 5");
+        throw std::invalid_argument("WavefrontData argument should have a vector dimension of at least 5");
 
     if(WFdata.m_spots)
     delete[] WFdata.m_spots;
@@ -458,7 +473,7 @@ void Surface::computeOPD(double distance, Index Nx, Index Ny)
     getImpacts(impacts,AlignedLocalFrame);
 
     if(impacts.size()< (size_t) 2*Nx*Ny)
-        throw runtime_error("The impact number is to small to compute a valid OPD");
+        throw std::runtime_error("The impact number is to small to compute a valid OPD");
 
     VectorType referencePoint= VectorType::UnitZ()*distance;
     ArrayX4d slopeMat(impacts.size(),4 );  // impacts ne contient que les rayons 'alive'
@@ -501,9 +516,9 @@ void Surface::computePSF(ndArray<complex<double>,3> &PSF, Array2d& pixelSizes, d
 
     std::array<size_t,3> dims=PSF.dimensions();
     if(dims[2]<2)
-        throw invalid_argument("Last dimension of argument PSF should be at least 2");
+        throw std::invalid_argument("Last dimension of argument PSF should be at least 2");
     if(oversampling <1. )
-        throw invalid_argument("Oversampling factor should be greater than 1.");
+        throw std::invalid_argument("Oversampling factor should be greater than 1.");
     size_t arraysize=dims[0]*dims[1];
     Map<ArrayXXcd> Spsf(PSF.data(),dims[0], dims[1]);
     Map<ArrayXXcd> Ppsf(PSF.data()+arraysize*2*sizeof(double),dims[0], dims[1]);
@@ -555,9 +570,9 @@ void Surface::computePSF(ndArray<complex<double>,4 > &PSF, Array2d &pixelSizes, 
     Init_Threads(); // will initialize The MT mode if not yet done
     std::array<size_t,4> dims=PSF.dimensions();
     if(dims[3]<2)
-        throw invalid_argument("Fourth dimension of argument PSF should be  2");
+        throw std::invalid_argument("Fourth dimension of argument PSF should be  2");
     if(oversampling <1. )
-        throw invalid_argument("Oversampling factor should be greater than 1.");
+        throw std::invalid_argument("Oversampling factor should be greater than 1.");
     size_t arraysize=dims[0]*dims[1];
     size_t stacksize=arraysize*dims[2];
 
@@ -607,7 +622,7 @@ void Surface::computePSF(ndArray<complex<double>,4 > &PSF, Array2d &pixelSizes, 
     }
    nfft_finalize(&plan);  // ceci desalloue toute la structure plan
 }
-
+#ifdef HAS_REFLEX
 void Surface::removeCoating()
 {
     if(m_pCoating)
@@ -650,3 +665,4 @@ bool Surface::setCoating(string tableName, string coatingName)
     }
     return true;
 }
+#endif //HAS_REFLEX

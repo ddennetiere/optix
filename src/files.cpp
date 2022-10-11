@@ -1570,6 +1570,7 @@ int OpacityOf(string strIn)
 
         if(level <2)
             elementID=0;
+#ifdef HAS_REFLEX
         if(level==0)
         {
             if(keyword=="COATINGTABLE")
@@ -1748,6 +1749,9 @@ int OpacityOf(string strIn)
             }
         }
         else if(keyword=="BEAMLINE")
+#else
+        if(keyword=="BEAMLINE")
+#endif  //HAS_REFLEX
         {
             switch(level)
             {
@@ -1794,6 +1798,7 @@ int OpacityOf(string strIn)
                     break;
                     // Regions definition at level 3
                 }
+#ifdef HAS_REFLEX
                 else if(token[0]=="COATING")
                 {
                     cout <<  "              COATING  " ;
@@ -1815,6 +1820,8 @@ int OpacityOf(string strIn)
                     cout <<   "  SET\n";
                     break;
                 }
+#endif //HAS_REFLEX
+
                 else
                 {
                     if(tokCount <2)

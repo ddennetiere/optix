@@ -202,7 +202,7 @@ class ndArray
         if(oldlength!= newlength)
         {
             if(!ownStorage)
-                throw runtime_error("Cannot realloc not owned storage");
+                throw std::runtime_error("Cannot realloc not owned storage");
             delete[] storage;
             storage=new scalar_[newlength];
         }

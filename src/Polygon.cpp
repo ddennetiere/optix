@@ -57,7 +57,7 @@ void Polygon::setRectangle(double xsize, double ysize, double xcenter, double yc
 void Polygon::changeVertex(size_t n, double x, double y)
 {
     if(n < 0 || n>= m_size)
-        throw runtime_error("invalid point number");
+        throw std::runtime_error("invalid point number");
     m_vertices(0,n)=x;
     m_vertices(1,n)=y;
     if(n==0)
@@ -70,7 +70,7 @@ void Polygon::changeVertex(size_t n, double x, double y)
 void Polygon::deleteVertex(size_t n)
 {
     if(n < 0 || n>= m_size)
-        throw runtime_error("invalid point number");
+        throw std::runtime_error("invalid point number");
     Matrix2Xd vertices=Matrix2Xd::Zero(2,m_size);
     if (n!=0)
         vertices.leftCols(n)=m_vertices.leftCols(n);
@@ -87,7 +87,7 @@ void Polygon::deleteVertex(size_t n)
 void Polygon::insertVertex(size_t pos, double x, double y)
 {
     if(pos < 0 || pos > m_size)
-        throw runtime_error("invalid point number");
+        throw std::runtime_error("invalid point number");
     Matrix2Xd vertices(2,m_size+2); //=Matrix2Xd::Zero
 
     if(pos!=0)
@@ -169,7 +169,7 @@ bool Polygon::checkConvex()
 
     double det=m_vects.rightCols(2).determinant();
     if (det ==0)
-        throw runtime_error("invalid polygon");
+        throw std::runtime_error("invalid polygon");
     bool direct= !std::signbit(det);
     for (size_t i=0 ; i< m_size; ++i)
     {
@@ -188,7 +188,7 @@ bool Polygon::checkConvex()
 
         det=m_vects.block<2,2>(0,i).determinant();
         if (det ==0)
-            throw runtime_error("invalid polygon");
+            throw std::runtime_error("invalid polygon");
 
         if(std::signbit(det)==direct)
             m_convex=false;
@@ -238,7 +238,7 @@ Location Polygon::locate(const Ref<Vector2d> &point)
                 ++numInter;
         }
         if(numInter==0)
-            throw runtime_error("Failure of the Polygon::locate algorithm");
+            throw std::runtime_error("Failure of the Polygon::locate algorithm");
         if(numInter%2==0)
             return outside;
         else

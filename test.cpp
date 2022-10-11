@@ -278,11 +278,16 @@ int OriginalTest()
         cout << "No source found \n";
     else
         cout << "Source is " << ps->getName() << endl;
+    {
+        HR_clock clock;
+        HR_clock::time_point start(clock.now());
 
-    source.alignFromHere(wavelength);
-    source.generate(wavelength);
-    source.radiate();
+        source.alignFromHere(wavelength);
+        source.generate(wavelength);
+        source.radiate();
 
+        cout << "Ray tracing; duration " << chrono::duration_cast<chrono::milliseconds>(clock.now()-start).count() << " msec\n" ;
+    }
     if(0){
         cout << "\nIMPACTS\n";
         vector<RayType> impacts;
@@ -601,7 +606,7 @@ inline void SetParamValue(size_t ID,string parmName, double value)
 {
     Parameter parm;
     if(!GetParameter(ID, parmName.c_str(),&parm) )
-        throw runtime_error("invalid object ID or parameter");
+        throw std::runtime_error("invalid object ID or parameter");
     parm.value=value;
     SetParameter(ID,parmName.c_str(),parm);
 }

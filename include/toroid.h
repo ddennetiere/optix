@@ -86,7 +86,7 @@ class Toroid : virtual public Surface
         *   \param normal adress of a vector which, if not null,  will receive the surface normal (normalized) at the intercept point
         *   \return a reference to the modified ray
         */
-        EIGEN_DEVICE_FUNC virtual VectorType intercept(RayType& ray, VectorType * normal=NULL);
+        virtual VectorType intercept(RayBaseType& ray, VectorType * normal=NULL);
 
         /**< \brief dump internal data to standard output */
         virtual void dumpData()

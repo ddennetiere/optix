@@ -32,7 +32,8 @@
     #else
         #define DLL_EXPORT __declspec(dllimport)
     #endif
-#endif
+#endif // BUILD_DLL
+
 
 #include <CoatingTable.h>
 

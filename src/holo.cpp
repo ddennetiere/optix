@@ -169,7 +169,7 @@ void Holo::getPatternInfo(double halfLength, double halfWidth, GratingPatternInf
     Surface::VectorType dir=m_surfaceDirect*Surface::VectorType::UnitZ(); // direction invariante du rayon //ON directement transformée dans repère absolu local
     Surface::VectorType position=org, normal=Surface::VectorType::UnitZ(); // dans referentiel surface pour calcul de la densité centrale
     Surface::VectorType G;
-    RayType ray;
+    RayBaseType ray;
 
     G=gratingVector(position,normal);  //grating vector at center
     double d0=G.norm();
@@ -181,7 +181,7 @@ void Holo::getPatternInfo(double halfLength, double halfWidth, GratingPatternInf
     for(Index i=0; i< X.size(); ++i)
     {
         org(0)=X(i);
-        ray=Ray(RayBaseType(m_surfaceDirect*org,dir)); // useless to set wavelength and other parameters
+        ray=RayBaseType(m_surfaceDirect*org,dir); // useless to set wavelength and other parameters
         position=m_surfaceInverse*intercept(ray,&normal);
         N(i)=gratingVector(position,normal).norm();
         cout << i << "  " << N(i) << endl;
@@ -199,12 +199,12 @@ void Holo::getPatternInfo(double halfLength, double halfWidth, GratingPatternInf
 
     org(0)=0;
     org(1)=halfWidth;
-    ray=Ray(RayBaseType(m_surfaceDirect*org,dir));
+    ray=RayBaseType(m_surfaceDirect*org,dir);
     position=m_surfaceInverse*intercept(ray,&normal);
 
     G=gratingVector(position,normal).normalized();
     org(1)=-halfWidth;
-    ray=Ray(RayBaseType(m_surfaceDirect*org,dir));
+    ray=RayBaseType(m_surfaceDirect*org,dir);
     position=m_surfaceInverse*intercept(ray,&normal);
     double theta=acos(G.dot(gratingVector(position,normal).normalized()));
     patInfo->lineCurvature=2*halfWidth/cos(patInfo->lineTilt)/theta;

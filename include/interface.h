@@ -613,6 +613,7 @@ extern "C"
      */
     DLL_EXPORT bool LoadConfigurationFile(const char* filename);
 
+ #ifdef  HAS_REFLEX
     /** \brief Assign a Coating to a reflective surface
      *
      * \param elementID The Identifier of the optical element
@@ -621,6 +622,7 @@ extern "C"
      * \return True if assignation succeeds; False otherwise. OptiXLastError should give a reason
      */
     DLL_EXPORT bool SetCoating(size_t elementID,const char* coatingTable, const char* coatingName);
+#endif // HAS_REFLEX
 
 #ifdef __cplusplus
 }

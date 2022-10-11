@@ -17,6 +17,8 @@
 #include "sources.h"
 # include <random>
 
+using namespace std;
+
 //   ----------------   XYGridSource implementation   --------------------------
 
 XYGridSource::XYGridSource(string name ,Surface * previous):Surface(true,name, previous)  // surface non réfléchissante
@@ -422,7 +424,7 @@ int AstigmaticGaussianSource::generate(const double wavelength, const char polar
     {
         org <<0, 0, 0;
         dir << 0, 0, 1.L;
-        m_impacts.push_back(RayType(RayBaseType(org,dir),wavelength)); // amplitude set to 1 and S polar
+        m_impacts.push_back(RayType(RayBaseType(org,dir), wavelength)); // amplitude set to 1 and S polar
         return nRays;
     }
     random_device rd;
@@ -442,7 +444,7 @@ int AstigmaticGaussianSource::generate(const double wavelength, const char polar
         if(sigmaY >0)
             org(1)=gaussY(rd)-waistY*dir(1);
 
-        m_impacts.push_back(RayType(RayBaseType(org,dir),wavelength,Samp,Pamp)); // amplitude set to 1 and S polar by default
+        m_impacts.push_back(RayType(RayBaseType(org,dir), wavelength,Samp,Pamp)); // amplitude set to 1 and S polar by default
     }
 
     m_OPDvalid=false;

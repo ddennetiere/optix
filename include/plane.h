@@ -57,7 +57,7 @@ class Plane : virtual public Surface
         *   \return a reference to the modified ray
         *      \todo intercept return value is never used & can be removed
         */
-        EIGEN_DEVICE_FUNC virtual VectorType intercept(RayType& ray, VectorType * normal=NULL)
+        virtual VectorType intercept(RayBaseType& ray, VectorType * normal=NULL)
         {
             ray-=m_translationFromPrevious; // change ref frame from previous to this surface
             if(ray.m_alive)

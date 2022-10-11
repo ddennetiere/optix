@@ -26,7 +26,7 @@ ArrayXXd Legendre(int Norder, const Ref<ArrayXd>& Xpos, ArrayXXd& derivative )
 {
     cout << "bounds in Legendre  " << Xpos.minCoeff() <<"  " << Xpos.maxCoeff() << endl;
     if ((Xpos.maxCoeff() > 1.) || (Xpos.minCoeff() < -1. ))
-        throw runtime_error("Values in Xpos vector should be in the [-1, +1] range");
+        throw std::runtime_error("Values in Xpos vector should be in the [-1, +1] range");
 
     int Xsize=Xpos.size();
     ArrayXXd fvalue(Xsize, Norder);

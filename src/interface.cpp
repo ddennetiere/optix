@@ -1014,6 +1014,8 @@ extern "C"
 
     }
 
+#ifdef HAS_REFLEX
+
     DLL_EXPORT bool SetCoating(size_t elementID,const char* coatingTable, const char* coatingName)
     {
         if(!System.isValidID(elementID))
@@ -1035,7 +1037,7 @@ extern "C"
 
         return psurf->setCoating(coatingTable, coatingName);
     }
-
+#endif // HAS_REFLEX
 
 #ifdef __cplusplus
 } // extern C

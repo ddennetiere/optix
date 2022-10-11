@@ -72,7 +72,7 @@ void Toroid::createSurface()
 
 }
 
-EIGEN_DEVICE_FUNC  RayBaseType::VectorType Toroid::intercept(RayType& ray, VectorType * normal)
+RayBaseType::VectorType Toroid::intercept(RayBaseType& ray, VectorType * normal)
 {
     try
     {
