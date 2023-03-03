@@ -30,8 +30,9 @@
 #include "gratingbase.h"
 #include "Poly1D.h"
 #include "holo.h"
-
-#include "Coating.h"
+#ifdef HAS_REFLEX
+  #include "Coating.h"
+#endif // HAS_REFLEX
 
 typedef map<ElementBase *, ElementBase*> ElementCopyMap;
 

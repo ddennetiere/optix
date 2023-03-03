@@ -50,7 +50,7 @@ bool SaveElementsAsXml(const char * filename, ElementCollection &system)
         {
             RecordMode rec=surf->getRecording();
             if(rec)
-                xmlNewProp (elemnode, XMLSTR "rec", XMLSTR to_string(rec).c_str());
+                xmlNewProp (elemnode, XMLSTR "rec", XMLSTR std::to_string(rec).c_str());
         }
         if(elem.getTransmissive() && elem.getOptixClass().compare(0,8,"Grating<" )!=0 ) //gratings are reflective by default
             xmlNewProp (elemnode, XMLSTR "trans", XMLSTR "true");

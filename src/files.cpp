@@ -16,7 +16,9 @@
  #include "surface.h"
  #include "collections.h"
  #include "opticalelements.h"
- #include "ReflectivityAPI.h"
+ #ifdef HAS_REFLEX
+    #include "ReflectivityAPI.h"
+ #endif // HAS_REFLEX
  #include "ApertureAPI.h"
  #include <queue>
 
@@ -159,7 +161,7 @@ struct SolemioSurface
  {
     string dummy;
     for(int i=0; i < n; ++i)
-        ::getline(*this, dummy);
+        std::getline(*this, dummy);
  }
 
  void SolemioFile::getPrefixedString(string& str)
@@ -297,7 +299,7 @@ bool getTrimmedEnding(const string &line, size_t pos, string &token)
  bool SolemioFile::check_comment(const string comment)
  {
      string rdstr;
-     ::getline(*this, rdstr);
+     std::getline(*this, rdstr);
      bool assert= (rdstr==comment);
      if(!assert)
         cout << "Invalid comment string.  <<" << rdstr << ">> found instead of <<" << comment << ">>\n";
@@ -1533,7 +1535,7 @@ int OpacityOf(string strIn)
  {
     char line[256];
     size_t level=0, tokCount, elementID=0;
-    priority_queue<size_t> indentStack;
+    std::priority_queue<size_t> indentStack;
     indentStack.push(0);
     vector<string> token;
     string keyword, object, subObject, dbasePath;

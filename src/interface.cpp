@@ -443,7 +443,7 @@ extern "C"
                 if(paramSize > maxsize)
                 {
                     SetOptiXLastError(string("Size of array parameter  ") + paramTag +
-                                " is " + to_string(paramSize) + ", which is larger than the buffer size "  , __FILE__, __func__);
+                                " is " + std::to_string(paramSize) + ", which is larger than the buffer size "  , __FILE__, __func__);
                     return false;
                 }
                 return ((ElementBase*)elementID)->getParameter(paramTag, *paramData);
