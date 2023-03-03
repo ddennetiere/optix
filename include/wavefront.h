@@ -18,7 +18,7 @@
 //             REVISIONS
 //
 ////////////////////////////////////////////////////////////////////////////////////
-#include <Eigen/Eigen>
+#include "EigenSafeInclude.h"
 #include <iostream>
 
 #include "OptixException.h"

@@ -20,7 +20,7 @@
 *
  ***************************************************************************/
 
-#include <Eigen/Eigen>
+#include "EigenSafeInclude.h"
 #include <iostream>
 #include <float.h> // pour DBL_EPSILON
 

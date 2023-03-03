@@ -241,7 +241,6 @@ public:
         }
         else
         {
-            //std::cout << "Parameter name "<< name << " is invalid\n";
             SetOptiXLastError(string("parameter name ")+ name + " is invalid",__FILE__, __func__);
             return false;
         }
@@ -258,8 +257,37 @@ public:
             return true;
         }
         else
+        {
+            SetOptiXLastError(string("parameter name ")+ name + " is invalid",__FILE__, __func__);
             return false;
+        }
     }
+
+    inline bool isParameterArray(string name, size_t * size)
+    {
+        ParamIterator it=m_parameters.find(name);
+        if (it !=m_parameters.end())
+        {
+            if (it->second.flags &ArrayType)
+            {
+                *size=it->second.paramArray->dims[0]*it->second.paramArray->dims[1];
+                return true;
+            }
+            else
+            {
+                *size=1;
+                return false;
+            }
+
+        }
+        else
+        {
+            SetOptiXLastError(string("parameter name ")+ name + " is invalid",__FILE__, __func__);
+            *size=0;
+            return false;
+        }
+    }
+
 
     inline ParamIterator parameterBegin(){return m_parameters.begin();}/**< \brief return an iterator positionned on the first element of the parameter list of this surface*/
     inline ParamIterator parameterEnd(){return m_parameters.end();}  /**< \brief return an iterator positionned after the last element of the parameter list of this surface*/

@@ -21,6 +21,9 @@
  ***************************************************************************/
 //#include <cstdint>
 #include <inttypes.h>
+#ifdef __cplusplus
+   #include "EigenSafeInclude.h"
+#endif
 
 typedef long double FloatType ;/**< \brief the base type of all floating type ray tracing computation of the library */
 
@@ -84,29 +87,108 @@ enum ParameterGroup /*:uint32_t*/{
  */
 enum ParameterFlags/*:uint32_t*/{
     NotOptimizable=1, /**< The parameter cannnot be optimized */
-
+    ArrayType=0x8
 //    Uniform=0x10,  /**< Uniform random generator (value=0)*/
 //    Gaussian=0x20, /**< Gaussian random (value=sigma) */
 //    Grided=0x80    /**< Grided (value=stepsize) */
 };
 
+typedef struct __ArrayParameter
+{
+    int  dims[2];
+    double *data;
+#ifdef __cplusplus
+    // the following functions are only defined in C++
+    /** \brief default constructor     */
+    inline Eigen::Map<Eigen::MatrixXd> matrix() {return Eigen::Map<Eigen::MatrixXd>(data, dims[0], dims[1]);}
+    /** \brief construct and reserve parameter array space
+    *   \param rows number of rows of the array
+    *   \param cols number of columns of the array
+    */
+    inline __ArrayParameter(int rows, int cols){dims[0]=rows; dims[1]= cols; data=new double[rows*cols];}
+    /** \brief copy constructor with deep copy
+    *   \param aparam the parameter array to copy
+     */
+    inline __ArrayParameter(const __ArrayParameter &aparam)
+    {
+        memcpy(dims, aparam.dims,2*sizeof(double) );
+        data=new double[dims[0]* dims[1]];
+        memcpy(data, aparam.data, sizeof(double)*dims[0]*dims[1]);
+    }
+    /** \brief deep copy assignment
+     * \param aparam the Arrayparameter to copy
+     */
+    inline __ArrayParameter& operator=(const __ArrayParameter & aparam)
+    {
+        memcpy(dims, aparam.dims,2*sizeof(double) );
+        data=new double[dims[0]* dims[1]];
+        memcpy(data, aparam.data, sizeof(double)*dims[0]*dims[1]);
+        return *this;
+    }
+    /** \brief destructor with memory cleaning
+     */
+    ~__ArrayParameter(){if(data) delete [] data;}
+#endif
+} ArrayParameter;
+
+
 /** \brief Keyed access class for the numeric parameters of an optical surface
  */
 typedef struct __Parameter{
 #ifdef __cplusplus
-    double value=0; /**< \brief the internal value for in internal unit (m, rad, etc)*/
-    double bounds[2]={0,0};/**< \brief  boundary value for optimization */
+    union {
+        double value; /**< \brief if bit x08 of flags is unset, the internal value of the parameter in internal unit (m, rad, etc)*/
+        ArrayParameter * paramArray=0; /**< \brief if bit x08 of flags is set, the address of the array parameter structure */
+    };
+    double bounds[2]={0,0};/**< \brief  boundary value for optimization, unused if ArrayType bit of flags is set*/
     double multiplier=1.; /**< \brief multiplier for display */
     UnitType type=Dimensionless;  /**< \brief type of unit. This field is read-only outside ElementBase class*/
     ParameterGroup group=BasicGroup; /**< \brief parameter group. This field is read-only outside ElementBase class*/
     uint32_t flags=0; /**< \brief non null if parameter is not optimizable. This field is read-only outside ElementBase class */
-// methods:
-    __Parameter(){}
+// methods: (only defined in C++)
+    __Parameter(){}     /**< \brief default constructor */
+    /** \brief constructor with value assignment
+     * \param newvalue the  parameter value
+     * \param newtype  UnitType of the parameter
+     * \param newmultiplier=1. multiplier value
+     */
     inline __Parameter(double newvalue, UnitType newtype, double newmultiplier=1.):/**<  \brief standard constructor sets optimization bounds to  parameter value */
-        value(newvalue), multiplier(newmultiplier), type(newtype){bounds[0]=bounds[1]=value;}
-#else
-    double value;  /**< \brief the internal value for in internal unit (m, rad, etc)*/
-    double bounds[2];  /**< \brief  boundary value for optimization */
+        value(newvalue), multiplier(newmultiplier), type(newtype){bounds[0]=bounds[1]=newvalue;}
+    /** \brief constructor with array assignment
+     * \param newparamArray the  parameter array of values
+     * \param newtype  UnitType of the parameter values
+     * \param newmultiplier=1. multiplier value
+     */
+    inline __Parameter(ArrayParameter & newparamArray, UnitType newtype, double newmultiplier=1.):/**<  \brief standard constructor sets optimization bounds to  parameter value */
+        paramArray(new ArrayParameter(newparamArray)), multiplier(newmultiplier), type(newtype), flags(ArrayType|NotOptimizable)
+        {bounds[0]=bounds[1]=0;}
+    /** \brief deep copy assignment operator
+     * \param param the parameter to be copied
+     */
+    inline __Parameter& operator=(const __Parameter & param)
+    {
+        if(param.flags & ArrayType)
+            paramArray= new ArrayParameter(*param.paramArray);
+        else
+            value=param.value;
+       memcpy(bounds,param.bounds, 3*sizeof(double)) ;
+       type=param.type;
+       group=param.group;
+       flags=param.flags;
+       return *this;
+    }
+    /** \brief destructor with memory cleaning*/
+    inline ~__Parameter()
+    {
+        if((flags & ArrayType) && paramArray)
+            delete paramArray;
+    }
+#else // the same structure viewed from C
+    union {;
+        double value;  /**< \brief if bit x08 of flags is unset, the internal value of the parameter in internal unit (m, rad, etc)*/
+        ArrayParameter * paramArray; /**< \brief the address of the array parameter structure if bit x08 of flags is set*/
+    };
+    double bounds[2];  /**< \brief  boundary value for optimization, unused if ArrayType bit of flags is set */
     double multiplier;  /**< \brief multiplier for display */
     enum UnitType type;  /**< \brief type of unit. This field is read-only outside ElementBase class*/
     enum ParameterGroup group;  /**< \brief parameter group. This field is read-only outside ElementBase class*/
@@ -114,6 +196,7 @@ typedef struct __Parameter{
 #endif // __cplusplus
 
 }Parameter;
+
 
 /** \brief Structure designed to receive spot diagram
  *

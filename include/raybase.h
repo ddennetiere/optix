@@ -21,16 +21,7 @@
 #ifndef RAYBASE_H
 #define RAYBASE_H
 
-#include "OptixException.h"
-
-#undef eigen_assert
-#define eigen_assert(x) \
-    if (!(x)) { throw (EigenException("Eigen_assert ",__FILE__, __func__, __LINE__)); }
-//  if (!(x)) { throw (std::runtime_error("Eigen assertion error")); }
-
-// in case it is required when Eigen includes cmath
-#define _USE_MATH_DEFINES
-#include <Eigen/Eigen>  // Eigen/Core includes cmath
+#include "EigenSafeInclude.h"
 
 // if the message show-up in compilation comment the pragma and uncomment M_PI and M_PI_2 definitions
 #ifndef M_PI

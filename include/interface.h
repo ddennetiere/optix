@@ -318,14 +318,26 @@ extern "C"
      */
     DLL_EXPORT bool SetParameter(size_t elementID,const char* paramTag, Parameter paramData);
 
-    /** \brief retrieves an element parameter
+    /** \brief retrieves a plane, double value,  element parameter
      *
      * \param elementID  The ID of the element to query
      * \param paramTag the name of the parameter to get
      * \param paramData a pointer to a Parameter struct to receive the parameter data
-     * \return true if the element Id is valid and the parameter was found and successfully returned;  \n false if the parameter was not found or elementId is invalid
+     * \return true if the element Id is valid and the parameter was found and successfully returned;
+     *  false if the elementId is invalid, the parameter was not found or is an Array. The OptiXlastError is set
      */
     DLL_EXPORT bool GetParameter(size_t elementID,const char* paramTag, Parameter* paramData);
+
+    /** \brief retrieve an array parameter
+     *
+     * \param elementID  The ID of the element to query
+     * \param paramTag the name of the parameter to get
+     * \param paramDataa pointer to a Parameter struct to receive the parameter data
+     * \param maxsize size_t
+     * \return DLL_EXPORT bool
+     *
+     */
+    DLL_EXPORT bool GetArrayParameter(size_t elementID, const char* paramTag, Parameter* paramData, size_t maxsize);
 
     /** \brief enumerates the parameter list of a given optical element
      *

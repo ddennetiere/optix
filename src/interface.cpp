@@ -402,7 +402,53 @@ extern "C"
     DLL_EXPORT bool GetParameter(size_t elementID, const char* paramTag, Parameter* paramData)
     {
         if(System.isValidID(elementID))
-            return ((ElementBase*)elementID)->getParameter(paramTag, *paramData);
+        {
+            size_t paramSize;
+            if(((ElementBase*)elementID)->isParameterArray(paramTag,&paramSize))
+            {
+                SetOptiXLastError(string("Array parameter  ") + paramTag  +
+                                " should be retrieved with the GetArrayParameter function"  , __FILE__, __func__);
+                return false;
+            }
+            else
+            {
+                if(paramSize ==0)
+                    return false; //if name is invalid last error is already set
+                return ((ElementBase*)elementID)->getParameter(paramTag, *paramData);
+            }
+        }
+        else
+        {
+             SetOptiXLastError("The given elementID is invalid ", __FILE__, __func__);
+             return false;
+        }
+
+    }
+
+
+    DLL_EXPORT bool GetArrayParameter(size_t elementID, const char* paramTag, Parameter* paramData, size_t maxsize)
+    {
+        if(System.isValidID(elementID))
+        {
+            size_t paramSize;
+            if(!((ElementBase*)elementID)->isParameterArray(paramTag,&paramSize))
+            {
+                if(paramSize !=0)
+                    SetOptiXLastError(string("Single value parameter  ") + paramTag  +
+                                " should be retrieved with the GetParameter function"  , __FILE__, __func__);
+                return false; //if name is invalid last error is already set
+            }
+            else
+            {
+                if(paramSize > maxsize)
+                {
+                    SetOptiXLastError(string("Size of array parameter  ") + paramTag +
+                                " is " + to_string(paramSize) + ", which is larger than the buffer size "  , __FILE__, __func__);
+                    return false;
+                }
+                return ((ElementBase*)elementID)->getParameter(paramTag, *paramData);
+            }
+        }
         else
         {
              SetOptiXLastError("The given elementID is invalid ", __FILE__, __func__);
