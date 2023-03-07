@@ -45,7 +45,7 @@ using namespace std::chrono;
                 cout  << "ERROR : " << errBuf << endl;
             }
             cout << parmname << "  " << param.value <<" [" << param.bounds[0] <<", "<< param.bounds[1] <<"] x " << param.multiplier <<
-                        " T:" << param.type << " G:" << param.group << " F:0x"<< hex << param.flags << dec << endl;
+                        " T:" << param.type << " G:" << param.group << " F:0x"<< std::hex << param.flags << std::dec << endl;
 
         }while(hParm);
 
@@ -59,7 +59,7 @@ using namespace std::chrono;
     while(elemID)
     {
         GetElementName(elemID, elname,32);
-        cout << elname << "  " << hex << elemID << dec <<endl;
+        cout << elname << "  " << std::hex << elemID << std::dec <<endl;
         elemID =GetNextElement(elemID);
     }
 
@@ -142,7 +142,8 @@ using namespace std::chrono;
             cdiagram.m_mean=new double[cdiagram.m_dim];
             cdiagram.m_sigma=new double[cdiagram.m_dim];
             cdiagram.m_spots= new double[cdiagram.m_dim*cdiagram.m_reserved];
-            cout << "cdiag struct "<< hex << cdiagram.m_min << " " << cdiagram.m_max << " " << cdiagram.m_mean << " " << cdiagram.m_sigma << dec << endl;
+            cout << "cdiag struct "<< std::hex << cdiagram.m_min << " " << cdiagram.m_max << " " << cdiagram.m_mean <<
+                " " << cdiagram.m_sigma << std::dec << endl;
 
             if(!GetSpotDiagram(GetElementID("EXP1"), &cdiagram, 0))
             {
@@ -199,7 +200,7 @@ using namespace std::chrono;
                 cout  << "ERROR : " << errBuf << endl;
             }
             cout << parmname << "  " << param.value <<" [" << param.bounds[0] <<", "<< param.bounds[1] <<"] x " << param.multiplier <<
-                        " T:" << param.type << " G:" << param.group << " F:0x"<< hex << param.flags << dec << endl;
+                        " T:" << param.type << " G:" << param.group << " F:0x"<< std::hex << param.flags << std::dec << endl;
 
         }while(hParm);
 
@@ -210,7 +211,7 @@ using namespace std::chrono;
     while(elemID)
     {
         GetElementName(elemID, elname,32);
-        cout << elname << "  " << hex << elemID << dec <<endl;
+        cout << elname << "  " << std::hex << elemID << std::dec <<endl;
         elemID =GetNextElement(elemID);
     }
 
@@ -361,7 +362,7 @@ using namespace std::chrono;
                 cout  << "ERROR : " << errBuf << endl;
             }
             cout << parmname << "  " << param.value <<" [" << param.bounds[0] <<", "<< param.bounds[1] <<"] x " << param.multiplier <<
-                        " T:" << param.type << " G:" << param.group << " F:0x"<< hex << param.flags << dec << endl;
+                        " T:" << param.type << " G:" << param.group << " F:0x"<< std::hex << param.flags << std::dec << endl;
 
         }while(hParm);
 
@@ -372,7 +373,7 @@ using namespace std::chrono;
     while(elemID)
     {
         GetElementName(elemID, elname,32);
-        cout << elname << "  " << hex << elemID << dec <<endl;
+        cout << elname << "  " << std::hex << elemID << std::dec <<endl;
         elemID =GetNextElement(elemID);
     }
 
