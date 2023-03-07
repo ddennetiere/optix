@@ -11,7 +11,7 @@ doxygen/OptiX.chm
 ~$*
 *.o
 *.a
-*.cbp
+#*.cbp
 *copie*
 *.cscope*
 *.def
