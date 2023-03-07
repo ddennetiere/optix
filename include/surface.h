@@ -232,9 +232,22 @@ public:
        *        Oversampling must be >1. The default oversampling is 4. Theta Max and Min  are stored in the array m_XYbounds
        * \param[in] distOffset Displacement of the plane of PSF determination with respect the the reference point used to determine the OPD
        */
-      void computePSF(ndArray<std::complex<double>,3 > &PSF, Array2d &pixelSizes, double lambda, double oversampling=4, double distOffset=0);
+      void computePSF(ndArray<std::complex<double>,3> &PSF, Array2d &pixelSizes, double lambda, double oversampling=4, double distOffset=0);
 
-      void computePSF(ndArray<std::complex<double>,4 > &PSF, Array2d &pixelSizes, ArrayXd &distOffset, double lambda, double oversampling=4);
+      /** \brief Compute the amplitude PSF of the S(//X) and P(//Y) component of the transmitted wavefront at a series of distance offsets
+       *
+       * \param[out] PSF A 4 dimension array where the PSFs must be returned. This ndArray must be initialized.  The slowest varying dimension (last one) should be at least 2,
+       *  so that the array will host the 2 polarization PSFs as 2 consecutive image stacks, S being first and P second.. The first dimension (fastest varying dimension)
+       *  corresponds to the X direction in the surface frame and the second one correspond to the Y direction. The two first dimensions must be initialised with the image to compute.
+       * \param[in,out] pixelSizes  On input : the requested the sampling interval of PSF, in a 2 element Eigen Array (X first).
+       *        \n on output: The effectively used pixel size after application of the minimum oversampling factor.
+       *        \n if the given sampling interval is to loose to respect the oversampling value, the pixel size is adapted to match it
+       * \param[in] distOffset an Eigen 1D array containing the offsets to the distance  where the OPD was computed, where the PSF will be evaluated
+       * \param[in] lambda the wavelength of computation (the wavelength stored in each ray is not considered)
+       * \param[in] oversampling this factor determines the maximum grid step of the computed PSF as lambda/ (ThetaMax-ThetaMin)/oversampling for each dimension
+       *        Oversampling must be >1. The default oversampling is 4. Theta Max and Min  are stored in the array m_XYbounds
+       */
+      void computePSF(ndArray<std::complex<double>,4> &PSF, Array2d &pixelSizes, ArrayXd &distOffset, double lambda, double oversampling=4);
 
      /** \brief Defines whether or not the aperture limitations of this surface are taken into account in the tray tracing
       *

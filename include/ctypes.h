@@ -93,6 +93,8 @@ enum ParameterFlags/*:uint32_t*/{
 //    Grided=0x80    /**< Grided (value=stepsize) */
 };
 
+/** \brief C struct and C++ wrapper class to manipulate array type parameters. Companion struct of Parameter struct
+ */
 typedef struct __ArrayParameter
 {
     int  dims[2];
@@ -133,6 +135,9 @@ typedef struct __ArrayParameter
 
 
 /** \brief Keyed access class for the numeric parameters of an optical surface
+ *
+ *  The object contains either a single double value in member value, or a pointer to a ArrayParameter struct containing
+ *  the array of double values, if the bit 0x08 of member flags is set
  */
 typedef struct __Parameter{
 #ifdef __cplusplus

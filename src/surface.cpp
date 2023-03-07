@@ -510,7 +510,7 @@ void Surface::computeOPD(double distance, Index Nx, Index Ny)
     m_OPDvalid=true;
 }
 
-void Surface::computePSF(ndArray<complex<double>,3> &PSF, Array2d& pixelSizes, double lambda, double oversampling, double distOffset)
+void Surface::computePSF(ndArray<std::complex<double>,3> &PSF, Array2d& pixelSizes, double lambda, double oversampling, double distOffset)
 {
     Init_Threads(); // will initialize The MT mode if not yet done
 
@@ -565,7 +565,7 @@ void Surface::computePSF(ndArray<complex<double>,3> &PSF, Array2d& pixelSizes, d
 
 }
 
-void Surface::computePSF(ndArray<complex<double>,4 > &PSF, Array2d &pixelSizes, ArrayXd &distOffset, double lambda, double oversampling)
+void Surface::computePSF(ndArray<std::complex<double>,4> &PSF, Array2d &pixelSizes, ArrayXd &distOffset, double lambda, double oversampling)
 {
     Init_Threads(); // will initialize The MT mode if not yet done
     std::array<size_t,4> dims=PSF.dimensions();

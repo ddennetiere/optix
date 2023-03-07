@@ -332,7 +332,7 @@ extern "C"
      *
      * \param elementID  The ID of the element to query
      * \param paramTag the name of the parameter to get
-     * \param paramDataa pointer to a Parameter struct to receive the parameter data
+     * \param paramData pointer to a Parameter struct to receive the parameter data
      * \param maxsize size_t
      * \return DLL_EXPORT bool
      *
