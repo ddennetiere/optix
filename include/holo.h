@@ -45,7 +45,7 @@
 /** \class Holo
  *  \brief  this class define a holographic line pattern and implements function gratingVector() of the abstract base class Pattern
  *
- *    The class has seven specific parameters belonging to the SourceGroup
+ *    The class has seven specific parameters belonging to the GratingGroup
  *   Name of parameter | UnitType | Description
  *   ----------------- | -------- | --------------
  *   \b recordingWavelength | Distance | Recording wavelength of the holographic pattern
@@ -82,7 +82,7 @@ class Holo :   virtual public Surface, virtual public Pattern
          * \param[in] normal  vector normal to the surface at position (usually position and normal are provided by the Surface::intercept() function)
          * \return the line density vector at position. it is perpendicular to normal
          */
-        virtual EIGEN_DEVICE_FUNC Surface::VectorType gratingVector(const Surface::VectorType &position, const
+        virtual Surface::VectorType gratingVector(const Surface::VectorType &position, const
                                 Surface::VectorType &normal);
 
         /** \brief Computes the orientation and curvature of the grating central line and a third order polynomial approximation

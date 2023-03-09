@@ -92,7 +92,7 @@
 		<Compiler>
 			<Add option="-fopenmp" />
 			<Add directory="include" />
-			<Add directory="D:/projets/projetsCB/eigen-3.3.9" />
+			<Add directory="D:/projets/projetsCB/eigen-3.4.0" />
 			<Add directory="D:/projets/projetsCB/OptiX/" />
 			<Add directory="../libxml2-2/include/libxml2" />
 			<Add directory="../nfft-3.5.2-dll64-openmp" />
@@ -229,6 +229,12 @@
 			<Option target="test" />
 			<Option target="Test(release)" />
 		</Unit>
+		<Unit filename="include/polynomial.h">
+			<Option target="debug" />
+			<Option target="release" />
+			<Option target="test" />
+			<Option target="Test(release)" />
+		</Unit>
 		<Unit filename="include/quadric.h">
 			<Option target="debug" />
 			<Option target="release" />
@@ -298,6 +304,17 @@
 			<Option target="release" />
 			<Option target="test" />
 			<Option target="Test(release)" />
+		</Unit>
+		<Unit filename="polynomial.h">
+			<Option target="debug" />
+			<Option target="release" />
+			<Option target="test" />
+			<Option target="Test(release)" />
+		</Unit>
+		<Unit filename="resource.rc">
+			<Option compilerVar="WINDRES" />
+			<Option target="debug" />
+			<Option target="release" />
 		</Unit>
 		<Unit filename="src/ApertureStop.cpp">
 			<Option target="debug" />

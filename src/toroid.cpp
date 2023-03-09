@@ -94,7 +94,7 @@ RayBaseType::VectorType Toroid::intercept(RayBaseType& ray, VectorType * normal)
 
     #endif // DIAG_OUTPUT
 
-        ray.moveTo(-ray.direction().dot(ray.origin()) ).rebase();   // move and rebase close to the nearest of quadric apex  (0 point)
+        ray.moveTo(-ray.direction().dot(ray.origin()) ).rebase();   // move and rebase close to the nearest of toroid apex  (0 point)
 //        cout << m_name  <<": input point (" << ray.position().transpose() << ") (" << ray.direction().transpose() <<  ")\n";
     //    cout << "input direction " << ray.direction() << endl;
     //    Matrix<FloatType,5,3> rayMat=Matrix<FloatType,5,3>::Zero(); //  matrice

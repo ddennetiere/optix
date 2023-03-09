@@ -27,10 +27,13 @@
 
 using std::cout, std::endl, std::complex ;
 
-// l'inclusion de la classe Tensor par le Header  <unsupported/Eigen/CXX11/Tensor> est incompatible avec les classes Polygon et ellipse de Aperture Api
+// Dans la version Eigen3.3.9 l'inclusion de la classe Tensor par le Header  <unsupported/Eigen/CXX11/Tensor> était
+// incompatible avec les classes Polygon et ellipse de Aperture Api
+// raison pour laquelle le calculs defront d'onde et de PSF utilisent une classe speciale ndArray (et C_ndArray)
 
-//#include <unsupported\Eigen\CXX11\src\Tensor\TensorForwardDeclarations.h>
+// le bug est désormais résolu en Eingen-3.4.0
 
+// #include <unsupported/Eigen/CXX11/Tensor>
 
 
 

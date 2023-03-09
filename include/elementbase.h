@@ -34,17 +34,6 @@ using std::vector;
 class ElementCollection;
 //class SourceBase;
 
-/** \brief series developpement of \f$ 1-\sqrt{1-x} \f$ for small \f$ x \f$
- *  \ingroup GlobalCpp
- *
- * \param x  the value of x
- * \return \f$ 1-\sqrt{1-x} \f$
- */
-inline double oneMinusSqrt1MinusX(double x)
-{
-    if(::fabs(x) > 0.01) return 1.-sqrt(1. - x);
-    return  x*(0.5 + x*(0.125 + x*(0.0625 + x*(0.0390625 + x*(0.02734375 + x*(0.0205078125 + x*0.01611328125))))));
-}
 
 extern char LastError[256];
 extern bool OptiXError;

@@ -8,7 +8,7 @@
 *      \brief         GratingBase and Pattern class declarations
 *
 *      GratingBase defines alignment and propagation function common to optical elements
-*   \n Pattern is a virtual class defining the GratingVector() function and is derived in HOlo and Poly1D classes according to the ruling type
+*   \n Pattern is a virtual class defining the GratingVector() function. It can be either the Holo or Poly1D class according to the ruling type
 *
 *      \author         François Polack <francois.polack@synchroton-soleil.fr>
 *      \date         2020-10-22  Creation
@@ -41,8 +41,8 @@ class Pattern
         virtual ~Pattern(){}
 
         /** Line density vector in  grating coordinates
-        *       \todo should be made pure virtual when derived classes are setup */
-        EIGEN_DEVICE_FUNC virtual Surface::VectorType gratingVector(const Surface::VectorType &position,
+        *   this is a pure virtual function, implemented by derived classes */
+        virtual Surface::VectorType gratingVector(const Surface::VectorType &position,
                                 const Surface::VectorType &normal=Surface::VectorType::UnitZ())=0;
 };
 

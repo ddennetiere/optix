@@ -151,7 +151,7 @@ bool Holo::setParameter(string name, Parameter& param)
     return success;
  }
 
-EIGEN_DEVICE_FUNC  Surface::VectorType Holo::gratingVector(const Surface::VectorType &position, const Surface::VectorType &normal)
+Surface::VectorType Holo::gratingVector(const Surface::VectorType &position, const Surface::VectorType &normal)
 {
  // le calcul est effectué dans le référentiel propre à la surface
     Surface::VectorType G, du;
@@ -284,7 +284,7 @@ bool Holo::setParameter(string name, Parameter& param)
  }
 
 
-EIGEN_DEVICE_FUNC  Surface::VectorType Holo::gratingVector(Surface::VectorType position, Surface::VectorType normal)
+Surface::VectorType Holo::gratingVector(Surface::VectorType position, Surface::VectorType normal)
 {
  // le calcul est effectué dans le référentiel propre à la surface
     Surface::VectorType G, du;

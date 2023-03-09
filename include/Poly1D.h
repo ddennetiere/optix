@@ -30,7 +30,7 @@
 /** \class Poly1D
  *  \brief  this class define a  variable spaced line pattern parallel to the Y axis with a polynomial spacing law. It implements the  gratingVector() functionof the abstract base class Pattern
 
- *    The class has (degree+1) specific parameters belonging to the SourceGroup
+ *    The class has (degree+1) specific parameters belonging to the GratingGroup
  *     -----------------------------------------
  *
  *   Name of parameter | UnitType | Description
@@ -65,7 +65,7 @@ class Poly1D : virtual public Surface, virtual public Pattern
          * \param[in] normal  vector normal to the surface at position (usually position and normal are provided by the Surface::intercept() function)
          * \return the line density vector at position. it is perpendicular to normal and Y (in surface reference frame)
          */
-        virtual EIGEN_DEVICE_FUNC  Surface::VectorType gratingVector(const Surface::VectorType &position,
+        virtual Surface::VectorType gratingVector(const Surface::VectorType &position,
                                const Surface::VectorType &normal);
 
     protected:

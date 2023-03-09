@@ -20,17 +20,16 @@
 ////////////////////////////////////////////////////////////////////////////////////
 #include "EigenSafeInclude.h"
 #include <iostream>
-
-#include "OptixException.h"
-
 using namespace Eigen;
 
+/* #include "OptixException.h"      This is now included by safe include
 
 #undef eigen_assert
 #define eigen_assert(x) \
   if (!(x)) { throw (std::runtime_error("Eigen assertion error")); }
-    //{ throw (EigenException("Eigen_assert ",__FILE__, __func__, __LINE__)); }
-//
+    { throw (EigenException("Eigen_assert ",__FILE__, __func__, __LINE__)); }
+*/
+
 // All functions returning arrays  used to be prefixed by EIGEN_DEVICE_FUNC.
 // It was suppressed s from V2.0 since it has no effect if CUDA is not used
 //
