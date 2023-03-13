@@ -4,6 +4,15 @@ OptiX Ray-tracing Library
 OptiX is a ray-tracer library for X-ray optics.
 All function are exposed in C form, though it is internally written in C++
 
+March 2022  
+--------------
+V2.3 
+
+New polynomial classes added : **REQUIRES last EIGEN version 3.4.0**
+- Polynomial is a generic class providing intercept computations and fitting functions
+- NaturalPolynomial is the specialization for natural polynomials
+- *LegendrePolynomial, not yet available*
+
 September 2022  
 --------------
 V2.1 

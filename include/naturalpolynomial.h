@@ -1,0 +1,43 @@
+#ifndef HEADER_33323F44985F7B41
+#define HEADER_33323F44985F7B41
+
+/**
+*************************************************************************
+*   \file       naturalpolynomial.h
+
+*
+*   \brief     definition file
+*
+*
+*
+*
+*   \author             François Polack  <francois.polack@synchroton-soleil.fr>
+*   \date               Creation : 2023-03-10
+
+*   \date               Last update: 2023-03-10
+
+*
+*
+ ***************************************************************************/
+
+#ifndef NATURALPOLYNOMIAL_H
+#define NATURALPOLYNOMIAL_H
+
+#include "polynomial.h"
+
+
+class NaturalPolynomial : public Polynomial
+{
+    public:
+        NaturalPolynomial(){}
+        virtual ~NaturalPolynomial(){}
+        virtual VectorXType getBaseValues(int Norder, FloatType Xpos, VectorXType & derivative, VectorXType &second);
+        virtual ArrayXXType getBaseValues(int Norder, const Ref<ArrayXType>& Xpos, ArrayXXType& derivative, Ref<ArrayXXType> *second=NULL );
+    protected:
+
+    private:
+};
+
+#endif // NATURALPOLYNOMIAL_H
+#endif // header guard
+

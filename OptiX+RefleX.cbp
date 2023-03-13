@@ -108,7 +108,7 @@
 			<Add option="-std=c11" />
 			<Add option="-fopenmp" />
 			<Add directory="include" />
-			<Add directory="D:/projets/projetsCB/eigen-3.3.9" />
+			<Add directory="D:/projets/projetsCB/eigen-3.4.0" />
 			<Add directory="D:/projets/projetsCB/OptiX/" />
 			<Add directory="../libxml2-2/include/libxml2" />
 			<Add directory="../nfft-3.5.2-dll64-openmp" />
@@ -236,6 +236,12 @@
 			<Option target="test" />
 			<Option target="Test(release)" />
 		</Unit>
+		<Unit filename="include/naturalpolynomial.h">
+			<Option target="debug" />
+			<Option target="release" />
+			<Option target="test" />
+			<Option target="Test(release)" />
+		</Unit>
 		<Unit filename="include/opticalelements.h">
 			<Option target="debug" />
 			<Option target="release" />
@@ -243,6 +249,12 @@
 			<Option target="Test(release)" />
 		</Unit>
 		<Unit filename="include/plane.h">
+			<Option target="debug" />
+			<Option target="release" />
+			<Option target="test" />
+			<Option target="Test(release)" />
+		</Unit>
+		<Unit filename="include/polynomial.h">
 			<Option target="debug" />
 			<Option target="release" />
 			<Option target="test" />
@@ -426,6 +438,12 @@
 			<Option target="test" />
 			<Option target="Test(release)" />
 		</Unit>
+		<Unit filename="src/naturalpolynomial.cpp">
+			<Option target="debug" />
+			<Option target="release" />
+			<Option target="test" />
+			<Option target="Test(release)" />
+		</Unit>
 		<Unit filename="src/opticalelements.cpp">
 			<Option target="debug" />
 			<Option target="release" />
@@ -433,6 +451,12 @@
 			<Option target="Test(release)" />
 		</Unit>
 		<Unit filename="src/plane.cpp">
+			<Option target="debug" />
+			<Option target="release" />
+			<Option target="test" />
+			<Option target="Test(release)" />
+		</Unit>
+		<Unit filename="src/polynomial.cpp">
 			<Option target="debug" />
 			<Option target="release" />
 			<Option target="test" />
