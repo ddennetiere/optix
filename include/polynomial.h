@@ -80,6 +80,9 @@ using namespace Eigen;
      */
     virtual VectorXType getBaseValues(int Norder, FloatType Xpos, VectorXType & derivative, VectorXType &second)=0;
 
+    virtual inline ArrayXType Xnormalize(const ArrayXd &xpos) {  return xpos.cast<FloatType>(); }
+    virtual inline ArrayXType Ynormalize(const ArrayXd &ypos) {  return ypos.cast<FloatType>(); }
+
     ArrayXXd surfaceHeight(const Ref<ArrayXd>& Xpos, const Ref<ArrayXd>& Ypos );
 
     Tensor<double,3> surfaceSlopes(const Ref<ArrayXd>& Xpos, const Ref<ArrayXd>& Ypos );

@@ -217,6 +217,12 @@
 			<Option target="test" />
 			<Option target="Test(release)" />
 		</Unit>
+		<Unit filename="include/legendrepolynomial.h">
+			<Option target="debug" />
+			<Option target="release" />
+			<Option target="test" />
+			<Option target="Test(release)" />
+		</Unit>
 		<Unit filename="include/naturalpolynomial.h">
 			<Option target="debug" />
 			<Option target="release" />
@@ -416,6 +422,12 @@
 			<Option target="Test(release)" />
 		</Unit>
 		<Unit filename="src/interface.cpp">
+			<Option target="debug" />
+			<Option target="release" />
+			<Option target="test" />
+			<Option target="Test(release)" />
+		</Unit>
+		<Unit filename="src/legendrepolynomial.cpp">
 			<Option target="debug" />
 			<Option target="release" />
 			<Option target="test" />

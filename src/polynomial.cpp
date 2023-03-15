@@ -66,9 +66,9 @@ std::pair<double,double> Polynomial::fitSlopes(int Nx, int Ny, const Ref<ArrayX4
     m_coeffs=MatrixXType::Zero(Nx,Ny);
     ArrayXXType Px, Py, dPx, dPy;
 
-    ArrayXType tmparray=slopedata.col(0).cast<FloatType>();
+    ArrayXType tmparray=Xnormalize(slopedata.col(0));
     Px=getBaseValues(Nx,tmparray, dPx);
-    tmparray=slopedata.col(1).cast<FloatType>();
+    tmparray=Ynormalize(slopedata.col(1));
     Py=getBaseValues(Ny, tmparray, dPy);
 
     MatrixXType Mat(nlines, Nx*Ny), A;
@@ -103,9 +103,9 @@ double Polynomial::fitHeights(int Nx, int Ny, const Ref<ArrayX3d>& heightdata)
     m_coeffs=MatrixXType::Zero(Nx,Ny);
     ArrayXXType Px, Py, dPx, dPy;
 
-    ArrayXType tmparray=heightdata.col(0).cast<FloatType>();
+    ArrayXType tmparray=Xnormalize(heightdata.col(0));
     Px=getBaseValues(Nx,tmparray, dPx);
-    tmparray=heightdata.col(1).cast<FloatType>();
+    tmparray=Ynormalize(heightdata.col(1));
     Py=getBaseValues(Ny, tmparray, dPy);
 
     MatrixXType Mat(numData, nvars), A;
@@ -134,9 +134,9 @@ ArrayXXd Polynomial::surfaceHeight(const Ref<ArrayXd>& Xpos, const Ref<ArrayXd>&
     ArrayXXType  dPx, dPy;
     MatrixXType Px, Py;
 
-    ArrayXType tmparray=Xpos.cast<FloatType>();
+    ArrayXType tmparray=Xnormalize(Xpos);
     Px=getBaseValues(Nx,tmparray, dPx);
-    tmparray=Ypos.cast<FloatType>();
+    tmparray=Ynormalize(Ypos);
     Py=getBaseValues(Ny, tmparray, dPy);
 
     // Px(Xpos.size(), NXorder) et Py(Xpos.size(), NYorder)
@@ -151,9 +151,9 @@ Tensor<double,3> Polynomial::surfaceSlopes(const Ref<ArrayXd>& Xpos, const Ref<A
     ArrayXXType  dPx, dPy;
     MatrixXType Px, Py;
 
-    ArrayXType tmparray=Xpos.cast<FloatType>();
+    ArrayXType tmparray=Xnormalize(Xpos);;
     Px=getBaseValues(Nx,tmparray, dPx);
-    tmparray=Ypos.cast<FloatType>();
+    tmparray=Ynormalize(Ypos);;
     Py=getBaseValues(Ny, tmparray, dPy);
 
     MatrixXType slopeX =dPx.matrix()*m_coeffs*Py.transpose();
