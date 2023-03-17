@@ -31,6 +31,8 @@ class NaturalPolynomial : public Polynomial
     public:
         NaturalPolynomial(){}
         virtual ~NaturalPolynomial(){}
+        virtual inline string getOptixClass(){return "NaturalPolynomial";}
+
         virtual VectorXType getBaseValues(int Norder, FloatType Xpos, VectorXType & derivative, VectorXType &second);
         virtual ArrayXXType getBaseValues(int Norder, const Ref<ArrayXType>& Xpos, ArrayXXType& derivative, Ref<ArrayXXType> *second=NULL );
     protected:

@@ -257,7 +257,7 @@ public:
         ParamIterator it=m_parameters.find(name);
         if (it !=m_parameters.end())
         {
-            if (it->second.flags &ArrayType)
+            if (it->second.flags & ArrayData)
             {
                 *size=it->second.paramArray->dims[0]*it->second.paramArray->dims[1];
                 return true;

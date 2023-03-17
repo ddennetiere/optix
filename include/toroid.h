@@ -57,16 +57,16 @@ class Toroid : virtual public Surface
          */
         inline bool setParameter(string name, Parameter& param)
         {
-            if(! Surface::setParameter(name, param))
+            if(! Surface::setParameter(name, param)) // this call update the parameter list but takes no action
                     return false;
-            if(name=="minor_curvature" || (name=="major_curvature" ))
+            if(name=="minor_curvature" || (name=="major_curvature" )) // do specific creation actions
                 createSurface();
             return true;
         }
 
          /** \brief Orients the toroidal surface (see important note)
          *
-         * <b> Must be called after a call to the base class function </b> Surface::align() or Grating::align() otherwise  the space transforms have old or default values
+         *  This function is called by the OpticalElement classes after a call to setFrameTransforms
          * \param wavelength  Only used by gratings
          * \return 0 if OK       */
         virtual inline int align(double wavelength=0)

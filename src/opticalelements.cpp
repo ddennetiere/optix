@@ -18,6 +18,12 @@
 #include "opticalelements.h"
 #include "sources.h"
 
+template class PolynomialSurface<NaturalPolynomial> ;
+typedef PolynomialSurface<NaturalPolynomial> NaturalPolynomialSurface;
+template class PolynomialSurface<LegendrePolynomial> ;
+typedef PolynomialSurface<LegendrePolynomial> LegendrePolynomialSurface;
+
+
 template class Mirror<Plane>;
 template class Mirror<Sphere>;
 template class Mirror<Cylinder>;

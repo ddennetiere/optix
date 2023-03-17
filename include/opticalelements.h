@@ -30,6 +30,10 @@
 #include "gratingbase.h"
 #include "Poly1D.h"
 #include "holo.h"
+#include "naturalpolynomial.h"
+#include "legendrepolynomial.h"
+#include "polynomialsurface.h"
+
 #ifdef HAS_REFLEX
   #include "Coating.h"
 #endif // HAS_REFLEX

@@ -247,6 +247,12 @@
 			<Option target="test" />
 			<Option target="Test(release)" />
 		</Unit>
+		<Unit filename="include/polynomialsurface.h">
+			<Option target="debug" />
+			<Option target="release" />
+			<Option target="test" />
+			<Option target="Test(release)" />
+		</Unit>
 		<Unit filename="include/quadric.h">
 			<Option target="debug" />
 			<Option target="release" />

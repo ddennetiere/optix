@@ -37,7 +37,7 @@ class Plane : virtual public Surface
 
         /** \brief Orients the surface plane (see important note)
          *
-         * <b> Must be called after a call to the base class function  </b> Surface::align() or Grating::align() otherwise  the space transforms have old or default values
+         *  This function is called by the OpticalElement classes after a call to setFrameTransforms
          * \param wavelength  Only used by gratings
          * \return 0 if OK       */
         virtual inline int align(double wavelength=0){

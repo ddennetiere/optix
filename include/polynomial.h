@@ -40,6 +40,30 @@ using namespace Eigen;
     typedef ArrayX<FloatType> ArrayXType;
     typedef ArrayXX<FloatType> ArrayXXType;
     Polynomial(){}      /**< \brief  default constructor */
+
+    virtual ~Polynomial(){}     /**< \brief virtual destructor */
+
+    Polynomial(double Xmin, double Xmax, double Ymin, double Ymax)
+    {
+        m_Xlimit << Xmin, Xmax;
+        m_Ylimit << Ymin, Ymax;
+        m_Kx=2./(m_Xlimit(1)-m_Xlimit(0));
+        m_X0=(m_Xlimit(1)+m_Xlimit(0))/2.;
+        m_Ky=2./(m_Ylimit(1)-m_Ylimit(0));
+        m_Y0=(m_Ylimit(1)+m_Ylimit(0))/2.;
+    }
+
+    inline void setLimits(double Xmin, double Xmax, double Ymin, double Ymax)
+    {
+        m_Xlimit << Xmin, Xmax;
+        m_Ylimit << Ymin, Ymax;
+        m_Kx=2./(m_Xlimit(1)-m_Xlimit(0));
+        m_X0=(m_Xlimit(1)+m_Xlimit(0))/2.;
+        m_Ky=2./(m_Ylimit(1)-m_Ylimit(0));
+        m_Y0=(m_Ylimit(1)+m_Ylimit(0))/2.;
+    }
+
+
     /** \brief construct a polynomial surface from the matrix of the coefficients on the polynomial base
      *
      * \param coeffs a matrix of coefficient (x, y) which will be converted to doubles
@@ -47,7 +71,7 @@ using namespace Eigen;
     template<typename derived>
     Polynomial(const Eigen::DenseBase<derived> &  coeffs):m_coeffs(coeffs){}
 
-    virtual ~Polynomial(){}     /**< \brief virtual destructor */
+    virtual string getOptixClass()=0;
 
     MatrixXType && coeffs(){return std::move(m_coeffs);}/**< \brief returns the polynomial coefficients in a Matrix of double as a Rvalue reference */
 
@@ -58,10 +82,27 @@ using namespace Eigen;
     void setCoeffs(  const  Ref<Matrix<derived,Dynamic,Dynamic> > & newcoeffs)
         { m_coeffs  =  newcoeffs.template cast<FloatType>();}
 
+
+    inline ArrayXType Xnormalize(const ArrayXd &xpos, int warnLimits=0)
+    {
+        ArrayXd xnormed=m_Kx*(xpos-m_X0);
+        if (warnLimits &((xnormed.maxCoeff() > 1.) || (xnormed.minCoeff() < -1. )))
+            throw ParameterException("Values in xpos vector should be in the [-1, +1] range", __FILE__, __func__, __LINE__);
+        return xnormed.cast<FloatType>();
+    }
+
+    inline ArrayXType Ynormalize(const ArrayXd &ypos, int warnLimits=0)
+    {
+        ArrayXd ynormed=m_Ky*(ypos-m_Y0);
+        if (warnLimits &((ynormed.maxCoeff() > 1.) || (ynormed.minCoeff() < -1. )))
+            throw ParameterException("Values in ypos vector should be in the [-1, +1] range", __FILE__, __func__, __LINE__);
+        return ynormed.cast<FloatType>();
+    }
+
     /** \brief This functions returns the values and first derivatives of the base 1D polynomial for an array of X values
      *
      * \param[in] Norder the order of the polynomial base = max degree -1)
-     * \param[in] Xpos constant array of X values
+     * \param[in] Xpos constant array of normalized X values
      * \param[in,out] derivative ArrayXXd&   reference  to an Eigen array to receive the dérivative. It will be resized
      *          to (Xpos.size(), Norder) and overwritten
      * \param[out] second pointer to an Eigen Array or Matrix to received the second derivative. If NULL it is not computed
@@ -73,15 +114,12 @@ using namespace Eigen;
     /** \brief compute the value of the polynomial base function and the 2 first derivatives at one specified point
      *
      * \param Norder order of the polynomial base
-     * \param Xpos position where values must be computed
+     * \param Xpos normalized position where values must be computed
      * \param derivative the reference of an Eigen Array to return the first derivatives
      * \param second the reference of an Eigen Array to return the first derivatives
      * \return an array containing the base polynomial values a the given position
      */
     virtual VectorXType getBaseValues(int Norder, FloatType Xpos, VectorXType & derivative, VectorXType &second)=0;
-
-    virtual inline ArrayXType Xnormalize(const ArrayXd &xpos) {  return xpos.cast<FloatType>(); }
-    virtual inline ArrayXType Ynormalize(const ArrayXd &ypos) {  return ypos.cast<FloatType>(); }
 
     ArrayXXd surfaceHeight(const Ref<ArrayXd>& Xpos, const Ref<ArrayXd>& Ypos );
 
@@ -117,8 +155,10 @@ using namespace Eigen;
      */
     RayBaseType::VectorType intercept(RayBaseType& ray, RayBaseType::VectorType * normal=NULL );
 
- protected:
+ protected  :
     MatrixXType m_coeffs;
+    Array2d  m_Xlimit, m_Ylimit;
+    double m_Kx,m_Ky, m_X0, m_Y0;
  };
 
 

@@ -25,16 +25,16 @@ RayBaseType::VectorType Polynomial::intercept(RayBaseType& ray,  RayBaseType::Ve
     for(i=0; i < maxiter; ++i, t+=dt)
     {
         VectorXType Px,Py, d1x, d1y, d2x, d2y;
-        Px=getBaseValues(m_coeffs.rows(), ray.position(t)(0), d1x, d2x);
-        Py=getBaseValues(m_coeffs.cols(), ray.position(t)(1), d1x, d2x);
+        Px=getBaseValues(m_coeffs.rows(), m_Kx*(ray.position(t)(0)-m_X0), d1x, d2x);
+        Py=getBaseValues(m_coeffs.cols(), m_Ky*(ray.position(t)(1)-m_Y0), d1x, d2x);
         FloatType DZ=ray.position(t)(3) - Px.transpose()*m_coeffs*Py;
         if(abs(DZ) <ztol)
             break;
-        gradient(0)= d1x.transpose()*m_coeffs* Py;
-        gradient(1)=Px.transpose()*m_coeffs*d1y;
-        curvature(0,0)=d2x.transpose()*m_coeffs*Py;
-        curvature(1,1)=Px.transpose()*m_coeffs*d2y;
-        curvature(0,1)=curvature(1,0)=d1x.transpose()*m_coeffs*d1y;
+        gradient(0)= m_Kx*d1x.transpose()*m_coeffs* Py;
+        gradient(1)=m_Ky*Px.transpose()*m_coeffs*d1y;
+        curvature(0,0)=m_Kx*m_Kx*d2x.transpose()*m_coeffs*Py;
+        curvature(1,1)=m_Ky*m_Ky*Px.transpose()*m_coeffs*d2y;
+        curvature(0,1)=curvature(1,0)=m_Kx*m_Ky*d1x.transpose()*m_coeffs*d1y;
         FloatType g=gradient.dot(ray.direction());
         FloatType c=ray.direction().head(2).transpose()*curvature*ray.direction().head(2);
         FloatType tau=DZ/g;
@@ -76,8 +76,8 @@ std::pair<double,double> Polynomial::fitSlopes(int Nx, int Ny, const Ref<ArrayX4
     for(j=0, k=0; j < Ny; ++j)
         for(i=0; i < Nx; ++i, ++k)
         {
-            Mat.block(0, k, numData, 1)=dPx.col(i)*Py.col(j);
-            Mat.block(numData, k, numData, 1)=Px.col(i)*dPy.col(j);
+            Mat.block(0, k, numData, 1)=m_Kx*dPx.col(i)*Py.col(j);
+            Mat.block(numData, k, numData, 1)=m_Ky*Px.col(i)*dPy.col(j);
         }
     Vprim.head(numData)=slopedata.col(2).cast<FloatType>();
     Vprim.tail(numData)=slopedata.col(3).cast<FloatType>();
@@ -85,6 +85,7 @@ std::pair<double,double> Polynomial::fitSlopes(int Nx, int Ny, const Ref<ArrayX4
     A=Mat.block(0,1,nlines,nvars).transpose()*Mat.block(0,1,nlines,nvars);
     Rhs=Mat.block(0,1,nlines,nvars).transpose()*Vprim;
 
+    m_coeffs(0,0)=0;
     Map<VectorXType> Cmap(m_coeffs.data()+1, nvars);
     Cmap=A.lu().solve(Rhs);
 
@@ -119,7 +120,7 @@ double Polynomial::fitHeights(int Nx, int Ny, const Ref<ArrayX3d>& heightdata)
     A=Mat.transpose()*Mat;
     Rhs=Mat.transpose()*Vheight;
 
-    Map<VectorXType> Cmap(m_coeffs.data()+1, nvars);
+    Map<VectorXType> Cmap(m_coeffs.data(), nvars);
     Cmap=A.lu().solve(Rhs);
 
     Vheight-= A*Cmap;

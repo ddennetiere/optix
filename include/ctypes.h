@@ -78,16 +78,11 @@ enum ParameterGroup /*:uint32_t*/{
 
 /** \ingroup enums
  * \brief modifier flags applicable to parameters
- * only NotPtimizable used presently
- *  Range   | applies to | description
- *  ------- | ---------- | ------------
- * 0 - 0xF  | any object |  optimization and computation modifiers
- * 0x10 - 0xF0 | Sources  | Type of ray generator associated with the parameter
- * flag > 0xF  | none     | reserved for future use
+ * only NotOptimizable used presently
  */
 enum ParameterFlags/*:uint32_t*/{
     NotOptimizable=1, /**< The parameter cannnot be optimized */
-    ArrayType=0x8
+    ArrayData=0x8
 //    Uniform=0x10,  /**< Uniform random generator (value=0)*/
 //    Gaussian=0x20, /**< Gaussian random (value=sigma) */
 //    Grided=0x80    /**< Grided (value=stepsize) */
@@ -101,7 +96,7 @@ typedef struct __ArrayParameter
     double *data;
 #ifdef __cplusplus
     // the following functions are only defined in C++
-    /** \brief default constructor     */
+    /** \brief return the array data as a Matrix    */
     inline Eigen::Map<Eigen::MatrixXd> matrix() {return Eigen::Map<Eigen::MatrixXd>(data, dims[0], dims[1]);}
     /** \brief construct and reserve parameter array space
     *   \param rows number of rows of the array
@@ -123,10 +118,24 @@ typedef struct __ArrayParameter
     inline __ArrayParameter& operator=(const __ArrayParameter & aparam)
     {
         memcpy(dims, aparam.dims,2*sizeof(double) );
+        if(data)
+            delete [] data;
         data=new double[dims[0]* dims[1]];
         memcpy(data, aparam.data, sizeof(double)*dims[0]*dims[1]);
         return *this;
     }
+
+    inline __ArrayParameter& operator=(const Eigen::Ref<Eigen::ArrayXXd> & dat )
+    {
+        dims[0]=dat.rows();
+        dims[1]=dat.cols();
+        if(data)
+            delete [] data;
+        data=new double[dims[0]* dims[1]];
+        memcpy(data, dat.data(), sizeof(double)*dims[0]*dims[1]);
+        return *this;
+    }
+
     /** \brief destructor with memory cleaning
      */
     ~__ArrayParameter(){if(data) delete [] data;}
@@ -145,7 +154,7 @@ typedef struct __Parameter{
         double value; /**< \brief if bit x08 of flags is unset, the internal value of the parameter in internal unit (m, rad, etc)*/
         ArrayParameter * paramArray=0; /**< \brief if bit x08 of flags is set, the address of the array parameter structure */
     };
-    double bounds[2]={0,0};/**< \brief  boundary value for optimization, unused if ArrayType bit of flags is set*/
+    double bounds[2]={0,0};/**< \brief  boundary value for optimization, unused if ArrayData bit of flags is set*/
     double multiplier=1.; /**< \brief multiplier for display */
     UnitType type=Dimensionless;  /**< \brief type of unit. This field is read-only outside ElementBase class*/
     ParameterGroup group=BasicGroup; /**< \brief parameter group. This field is read-only outside ElementBase class*/
@@ -165,14 +174,14 @@ typedef struct __Parameter{
      * \param newmultiplier=1. multiplier value
      */
     inline __Parameter(ArrayParameter & newparamArray, UnitType newtype, double newmultiplier=1.):/**<  \brief standard constructor sets optimization bounds to  parameter value */
-        paramArray(new ArrayParameter(newparamArray)), multiplier(newmultiplier), type(newtype), flags(ArrayType|NotOptimizable)
+        paramArray(new ArrayParameter(newparamArray)), multiplier(newmultiplier), type(newtype), flags(ArrayData|NotOptimizable)
         {bounds[0]=bounds[1]=0;}
     /** \brief deep copy assignment operator
      * \param param the parameter to be copied
      */
     inline __Parameter& operator=(const __Parameter & param)
     {
-        if(param.flags & ArrayType)
+        if(param.flags & ArrayData)
             paramArray= new ArrayParameter(*param.paramArray);
         else
             value=param.value;
@@ -185,7 +194,7 @@ typedef struct __Parameter{
     /** \brief destructor with memory cleaning*/
     inline ~__Parameter()
     {
-        if((flags & ArrayType) && paramArray)
+        if((flags & ArrayData) && paramArray)
             delete paramArray;
     }
 #else // the same structure viewed from C
@@ -193,7 +202,7 @@ typedef struct __Parameter{
         double value;  /**< \brief if bit x08 of flags is unset, the internal value of the parameter in internal unit (m, rad, etc)*/
         ArrayParameter * paramArray; /**< \brief the address of the array parameter structure if bit x08 of flags is set*/
     };
-    double bounds[2];  /**< \brief  boundary value for optimization, unused if ArrayType bit of flags is set */
+    double bounds[2];  /**< \brief  boundary value for optimization, unused if ArrayData bit of flags is set */
     double multiplier;  /**< \brief multiplier for display */
     enum UnitType type;  /**< \brief type of unit. This field is read-only outside ElementBase class*/
     enum ParameterGroup group;  /**< \brief parameter group. This field is read-only outside ElementBase class*/

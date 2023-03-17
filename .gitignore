@@ -23,6 +23,7 @@ doxygen/OptiX.chm
 *.res
 wigner3j.f95
 ftypes.f95
+OptiX.png
 
 # not maintained directories
 bibliography/
