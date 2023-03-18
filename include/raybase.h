@@ -209,6 +209,12 @@ public:
     EIGEN_DEVICE_FUNC inline VectorType projection(const VectorType& p){return BaseLine::projection(p);}   /**< \brief gets a reference projection of point p on this*/
     inline scalar& parameter(){return m_distance;}
 
+    inline RayBase& transform(const Transform<scalar, 3, Affine> & trans )
+    {
+       ParametrizedLine<scalar,3>::transform(trans);
+       return *this;
+    }
+
     /** \brief move the internal position at the given distance from origin
     *   \param distance the distance from orignin of the  new position*/
     inline RayBase& moveTo(scalar distance)

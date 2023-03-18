@@ -29,6 +29,7 @@
 class NaturalPolynomial : public Polynomial
 {
     public:
+        using Polynomial::VectorXType, Polynomial::MatrixXType, Polynomial::ArrayXType, Polynomial::ArrayXXType;
         NaturalPolynomial(){}
         virtual ~NaturalPolynomial(){}
         virtual inline string getOptixClass(){return "NaturalPolynomial";}

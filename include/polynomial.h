@@ -39,6 +39,7 @@ using namespace Eigen;
     typedef MatrixX<FloatType> MatrixXType;
     typedef ArrayX<FloatType> ArrayXType;
     typedef ArrayXX<FloatType> ArrayXXType;
+
     Polynomial(){}      /**< \brief  default constructor */
 
     virtual ~Polynomial(){}     /**< \brief virtual destructor */

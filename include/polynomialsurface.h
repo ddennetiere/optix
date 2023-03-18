@@ -25,10 +25,11 @@
 template<class PolyType>
 class PolynomialSurface:public Surface, public PolyType
 {
-    using PolyType::m_coeffs, PolyType::m_Xlimit, PolyType::m_Ylimit;
-    using Polynomial::MatrixXType;
-
     public:
+        using PolyType::m_coeffs, PolyType::m_Xlimit, PolyType::m_Ylimit;
+        using Polynomial::MatrixXType;
+
+
         PolynomialSurface(string name="", Surface *previous=NULL);
         virtual  ~PolynomialSurface(){}
 
@@ -44,6 +45,16 @@ class PolynomialSurface:public Surface, public PolyType
 
         virtual VectorType intercept(RayBaseType& ray, VectorType * normal=NULL)
         {
+            ray-=m_translationFromPrevious; // change ref fram from previous to this surface  ray is not rebased
+            if(ray.m_alive)
+            {
+                ray.transform(m_surfaceInverse);
+                VectorType ntemp;
+                PolyType::intercept(ray,&ntemp); // move the ray to intercept and rebase it, in surface frame
+                ray.transform(m_surfaceDirect);
+                if(normal)
+                    *normal=m_frameDirect*ntemp;
+            }
             return ray.position();
         };
 

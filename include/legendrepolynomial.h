@@ -29,6 +29,8 @@
 class LegendrePolynomial : public Polynomial
 {
     public:
+        using Polynomial::VectorXType, Polynomial::MatrixXType, Polynomial::ArrayXType, Polynomial::ArrayXXType;
+
         LegendrePolynomial(){}
 
         virtual ~LegendrePolynomial(){}

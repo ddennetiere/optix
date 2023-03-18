@@ -13,13 +13,10 @@
 
 #include "naturalpolynomial.h"
 
-typedef Polynomial::VectorXType VectorXType;
-typedef Polynomial::MatrixXType MatrixXType;
-typedef Polynomial::ArrayXType ArrayXType;
-typedef Polynomial::ArrayXXType ArrayXXType;
 
-VectorXType NaturalPolynomial::getBaseValues(int Norder, FloatType Xpos, VectorXType & derivative, VectorXType &second)
+Polynomial::VectorXType NaturalPolynomial::getBaseValues(int Norder, FloatType Xpos, VectorXType & derivative, VectorXType &second)
 {
+
     VectorXType value=VectorXType::Ones(Norder);
     derivative=second= VectorXType::Zero(Norder);
     for(int i=1, im1=0; i <Norder ; ++i, ++im1)
@@ -31,7 +28,7 @@ VectorXType NaturalPolynomial::getBaseValues(int Norder, FloatType Xpos, VectorX
     return value;
 }
 
-ArrayXXType NaturalPolynomial::getBaseValues(int Norder, const Ref<ArrayXType>& Xpos, ArrayXXType& derivative, Ref<ArrayXXType> *second)
+Polynomial::ArrayXXType NaturalPolynomial::getBaseValues(int Norder, const Ref<ArrayXType>& Xpos, ArrayXXType& derivative, Ref<ArrayXXType> *second)
 {
     int Xsize=Xpos.size();
     ArrayXXType fvalue(Xsize, Norder);

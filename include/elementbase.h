@@ -380,7 +380,7 @@ protected:
 
     IsometryType m_surfaceDirect; /**<  \brief fait passer la surface du repère surface (= de définition ie.normale selonZ ) au repère local redressé */
     IsometryType m_surfaceInverse;  /**<  \brief ramène  du repère local redressé  au  repère surface ( normale à S selon Z) */
-    VectorType m_translationFromPrevious;   /**< \brief Translation  from previous local fraee to this local frame */
+    VectorType m_translationFromPrevious;   /**< \brief Translation  from previous local frame to this local frame */
     RotationType m_frameDirect;  /**<  \brief rotation part of the transform expressing absolute frame coordinates from local frame ccordinates
     *
     *     == m_exitFrame.linear()   le doublon est-il utile ?*/

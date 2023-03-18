@@ -53,6 +53,8 @@ RayBaseType::VectorType Polynomial::intercept(RayBaseType& ray,  RayBaseType::Ve
             sprintf(msg, "Intercept tolerance %Lg not achieved in %d iterations", ztol, maxiter);
         throw RayException(msg, __FILE__, __func__, __LINE__);
     }
+    if(normal)
+        *normal=-gradient.normalized();
     ray.moveTo(t).rebase();
     return ray.position();
 }

@@ -14,12 +14,7 @@
 #include "legendrepolynomial.h"
 
 
-typedef Polynomial::VectorXType VectorXType;
-typedef Polynomial::MatrixXType MatrixXType;
-typedef Polynomial::ArrayXType ArrayXType;
-typedef Polynomial::ArrayXXType ArrayXXType;
-
-VectorXType LegendrePolynomial::getBaseValues(int Norder, FloatType Xpos, VectorXType & derivative, VectorXType &second)
+Polynomial::VectorXType LegendrePolynomial::getBaseValues(int Norder, FloatType Xpos, VectorXType & derivative, VectorXType &second)
 {
     // pos values must be  normalized € [-1,+1]
     VectorXType value=VectorXType::Ones(Norder);
@@ -41,7 +36,7 @@ VectorXType LegendrePolynomial::getBaseValues(int Norder, FloatType Xpos, Vector
     return value;
 }
 
-ArrayXXType LegendrePolynomial::getBaseValues(int Norder, const Ref<ArrayXType>& Xpos, ArrayXXType& derivative, Ref<ArrayXXType> *second)
+Polynomial::ArrayXXType LegendrePolynomial::getBaseValues(int Norder, const Ref<ArrayXType>& Xpos, ArrayXXType& derivative, Ref<ArrayXXType> *second)
 {
     // pos vector is called normalized € [-1,+1]
     int Xsize=Xpos.size();
