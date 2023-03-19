@@ -75,9 +75,9 @@ ArrayXXd LegendreIntegrateSlopes(int Nx, int Ny, const Ref<ArrayX4d>& WFdata, co
 
     for(j=0, k=0; j < Ny; ++j)
         for(i=0; i < Nx; ++i, ++k)
-        {
-            Mat.block(0, k, numData, 1)=LPx.col(i)*Ly.col(j);
-            Mat.block(numData, k, numData, 1)=Lx.col(i)*LPy.col(j);
+        {               //  Derivation normalization factor added 19/03/2023
+            Mat.block(0, k, numData, 1)=Kx*LPx.col(i)*Ly.col(j);
+            Mat.block(numData, k, numData, 1)=Ky*Lx.col(i)*LPy.col(j);
         }
     Vprim.segment(0, numData)=WFdata.col(0);
     Vprim.segment(numData, numData)=WFdata.col(1);
