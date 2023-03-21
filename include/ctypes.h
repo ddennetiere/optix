@@ -81,11 +81,8 @@ enum ParameterGroup /*:uint32_t*/{
  * only NotOptimizable used presently
  */
 enum ParameterFlags/*:uint32_t*/{
-    NotOptimizable=1, /**< The parameter cannnot be optimized */
-    ArrayData=0x8
-//    Uniform=0x10,  /**< Uniform random generator (value=0)*/
-//    Gaussian=0x20, /**< Gaussian random (value=sigma) */
-//    Grided=0x80    /**< Grided (value=stepsize) */
+    NotOptimizable=1, /**< The Parameter cannnot be optimized */
+    ArrayData=0x8      /**< The Parameter contains an array of double \n pointed by the Parameter::paramArray member */
 };
 
 /** \brief C struct and C++ wrapper class to manipulate array type parameters. Companion struct of Parameter struct
@@ -140,7 +137,7 @@ typedef struct __ArrayParameter
      */
     ~__ArrayParameter(){if(data) delete [] data;}
 #endif
-} ArrayParameter;
+} ArrayParameter; /**< \brief struct defining an Array type parameter for the interface functions and inside a \ref Parameter struct  */
 
 
 /** \brief Keyed access class for the numeric parameters of an optical surface
@@ -209,7 +206,7 @@ typedef struct __Parameter{
     uint32_t flags;  /**< \brief non null if parameter is not optimizable. This field is read-only outside ElementBase class */
 #endif // __cplusplus
 
-}Parameter;
+}Parameter; /**< \brief Struct defining a parameter for the interface functions */
 
 
 /** \brief Structure designed to receive spot diagram
@@ -229,7 +226,7 @@ typedef struct __C_DiagramStruct
     double* m_sigma;  /**< \brief RMS value of each of the components. This array must be allocated with a minimum size of m_dim */
     double* m_spots; /**<  \brief reference of an array the size of which must be larger than  m_dim* m_reserved, into which the spot vectors will be stored in component major order. */
 
-}C_DiagramStruct;
+}C_DiagramStruct; /**< \brief struct for returning a spot diagram through the interface functions */
 
 
 /** \brief C equivalent structure to WavefrontData, holding a Wavefront map */
@@ -238,7 +235,7 @@ typedef struct __C_WFtype
   double m_bounds[4];       /**< aray conntaining the X and Y bounds of the mapped area in order X min, X max, Ymin, Ymax */
   double * m_WFdata;        /**< pointer to the WF height data in memory */
   size_t m_dataSize[2];     /**< dimensions of the mapped array in order nX, nY */
-}C_WFtype;
+}C_WFtype; /**< \brief struct containing wavefrontdata returned by some  interface functions  */
 
 /** \brief C structure to get pattern info from an holographic grating
  */

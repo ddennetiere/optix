@@ -22,6 +22,22 @@
 #include "surface.h"
 #include "polynomial.h"
 
+/** \brief Template class describing a surface defined by an expansion on polynomial basis functions \f$ P_n(X) P_m(Y) \f$
+ *
+ * The class depends on the template parameter PolyType, which defines the polynomial functions of the base.
+ * Two bases are presently available : Natural polynomials  and  Legendre Polynomial
+  *  \see Polynomial, NaturalPolynomial, LegendrePolynomial
+ *
+ *  The class defines two parameters of  Array Type
+ *     -----------------------------------------
+ *
+ *   Name of parameter | UnitType | Description
+ *   ----------------- | -------- | --------------
+ *   \b surfaceLimits  | distance | The limits inside which the polynomials are defined and \f$ abs(P_n(X)) < 1. \f$ \n a 2 x 2 \ref ArrayParameter defining \f$ X_{min} , X_{max} , Y_{min} , Y_{max} \f$ , in this order
+ *   \b coefficients   | distance | The coefficients of the polynomial expansion\n (X dimension varying fastest)
+ *
+ *  these parameters belong to the \ref ShapeGroup They have an array type and cannot be optimized ( Parameter::flags set to 1 | #ArrayData )
+ */
 template<class PolyType>
 class PolynomialSurface:virtual public Surface, public PolyType
 {
