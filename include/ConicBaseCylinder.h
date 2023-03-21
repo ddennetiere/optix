@@ -67,6 +67,8 @@ class ConicBaseCylinder : virtual public Surface, public Quadric
 
         /** \brief return the derived class name ie. ConicBaseCylinder */
         virtual inline string getOptixClass(){return "ConicBaseCylinder";}
+        virtual inline string getSurfaceClass(){return "ConicBaseCylinder";}/**< \brief return the most derived shape class name of this object */
+
 
         /** \brief Change parameters and recaculate the surface if needed
          * \param name parameter name

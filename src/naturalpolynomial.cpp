@@ -14,12 +14,12 @@
 #include "naturalpolynomial.h"
 
 
-Polynomial::VectorXType NaturalPolynomial::getBaseValues(int Norder, FloatType Xpos, VectorXType & derivative, VectorXType &second)
+Polynomial::VectorXType NaturalPolynomial::getBaseValues(Index Norder, FloatType Xpos, VectorXType & derivative, VectorXType &second)
 {
 
     VectorXType value=VectorXType::Ones(Norder);
     derivative=second= VectorXType::Zero(Norder);
-    for(int i=1, im1=0; i <Norder ; ++i, ++im1)
+    for(Index i=1, im1=0; i <Norder ; ++i, ++im1)
     {
         value(i)=Xpos*value(im1);
         derivative(i)=i*value(im1);
@@ -28,9 +28,9 @@ Polynomial::VectorXType NaturalPolynomial::getBaseValues(int Norder, FloatType X
     return value;
 }
 
-Polynomial::ArrayXXType NaturalPolynomial::getBaseValues(int Norder, const Ref<ArrayXType>& Xpos, ArrayXXType& derivative, Ref<ArrayXXType> *second)
+Polynomial::ArrayXXType NaturalPolynomial::getBaseValues(Index Norder, const Ref<ArrayXType>& Xpos, ArrayXXType& derivative, Ref<ArrayXXType> *second)
 {
-    int Xsize=Xpos.size();
+    Index Xsize=Xpos.size();
     ArrayXXType fvalue(Xsize, Norder);
     derivative.resize(Xsize, Norder);
     fvalue.col(0).setOnes();
@@ -40,7 +40,7 @@ Polynomial::ArrayXXType NaturalPolynomial::getBaseValues(int Norder, const Ref<A
         second->resize(Xsize,Norder);
         second->col(0).setZero();
     }
-    for(int i=1, im1=0; i <Norder ; ++i, ++im1)
+    for(Index i=1, im1=0; i <Norder ; ++i, ++im1)
     {
         fvalue.col(i)=Xpos*fvalue.col(im1);
         derivative.col(i)= i*fvalue.col(im1);

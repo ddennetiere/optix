@@ -69,6 +69,8 @@ class RevolutionQuadric : public virtual Surface, public Quadric
 
         /** \brief return the derived class name ie. RevolutionQuadric */
         virtual inline string getOptixClass(){return "RevolutionQuadric";}
+        virtual inline string getSurfaceClass(){return "RevolutionQuadric";}/**< \brief return the most derived shape class name of this object */
+
 
         /** \brief Change parameters and recaculate the surface if needed
          * \param name parameter name

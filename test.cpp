@@ -234,7 +234,8 @@ int OriginalTest()
 //    inray=RayType (RayBaseType(ldpos,RayType::VectorType::UnitZ() ,3.));
 //    cout << "new inray   " << inray << endl;
 //
-
+    LegendrePolynomialMirror lpMirror("LPM1");
+    cout <<"LPM1: surface class " << lpMirror.getSurfaceClass() << endl;
     XYGridSource source("Source") ;
     //PlaneMirror mirror("MP", &source);
     SphericalMirror mirror1("SM1",&source);

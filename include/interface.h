@@ -44,6 +44,9 @@
 *       A template style name, Name<class1[,class2]>, or a capitalized name with internal capital letters (camel case).
 *       The GetElementType() C function calls ElementBase::getOptixClass(), and  always returns the template style name.
 *
+*       In the special case of polynomial surfaces based on polynomial surface the typedef  \ref NaturalPolynomialSurface and \ref LegendrePolynomialSurface
+*       are used instead of the templates \ref PolynomialSurface< \ref NaturalPolynomial>  and \ref PolynomialSurface< \ref LegendrePolynomial>
+*
 *       The actual underlying class is not always templated. When it is a template the template style name is the internal class name, and the simple name is a C++ typedef.
 *       When the underlying class is not templated, e.g. case of sources, the templated style name is an alias only recognized by the CreateElement() / CreateElementObject() functions.
 *
@@ -310,6 +313,7 @@ extern "C"
     /** \brief Modifies an element parameter
      *
      * <b>The type, group and flags of a parameter are internally defined and will not be changed no matter how they are defined</b>
+     * The function will fail if
      * \param elementID The ID of the element to modify
      * \param paramTag the name of the parameter to change
      * \param[in] paramData the new parameter data as a Parameter struct
@@ -318,7 +322,7 @@ extern "C"
      */
     DLL_EXPORT bool SetParameter(size_t elementID,const char* paramTag, Parameter paramData);
 
-    /** \brief retrieves a plane, double value,  element parameter
+    /** \brief retrieves an element ordinary parameter (defined by a single double-type value)
      *
      * \param elementID  The ID of the element to query
      * \param paramTag the name of the parameter to get
@@ -328,16 +332,27 @@ extern "C"
      */
     DLL_EXPORT bool GetParameter(size_t elementID,const char* paramTag, Parameter* paramData);
 
-    /** \brief retrieve an array parameter
+    /** \brief retrieve an array parameter (
      *
      * \param elementID  The ID of the element to query
      * \param paramTag the name of the parameter to get
-     * \param paramData pointer to a Parameter struct to receive the parameter data
-     * \param maxsize size_t
-     * \return DLL_EXPORT bool
-     *
+     * \param paramData pointer to a Parameter struct to receive the parameter data. This structure **must have the ArrayData flag bit
+     *  set and theparamArray member must point to an initialized ParameterArray struct  able to store at least maxsize array
+     *  elements. This structure is owned by the caller, which is in charge of its creation and destruction.
+     * \param maxsize The size of the provided storage the ParameterArray struct pointed by paramArray.
+     * \return false if an error occurred in which case OptixLastError is set. Otherwise return true;
      */
     DLL_EXPORT bool GetArrayParameter(size_t elementID, const char* paramTag, Parameter* paramData, size_t maxsize);
+
+    /** \brief
+     *
+     * \param elementID  The ID of the element to query
+     * \param paramTag the name of the parameter to get
+     * \param size a size_t location to retrun the parameter array size (ndim(0)*ndim(1))
+     * \return false if elementID is invalid or if the parameter is not found or is not an array, true otherwise
+     */
+    DLL_EXPORT bool GetParameterArraySize(size_t elementID, const char* paramTag, size_t * size);
+
 
     /** \brief enumerates the parameter list of a given optical element
      *
@@ -359,6 +374,43 @@ extern "C"
      *
      */
     DLL_EXPORT void ReleaseParameterEnumHandle(size_t handle);
+
+    /** \brief This function defines a polynomial surface to fit the given height data (Only apply to polynomial surfaces)
+     *
+     * The basis polynomial function are separable products of Legendre Polynomials in respectively X and Y.
+     * If the surface is known to be a pure cylinder, just set the degree of freedom in the constant direction to N=1
+     * \param elementID The Id of the element to define
+     * \param Nx The degree of freedom of polynomial in X (polynomial degree - 1)
+     * \param Ny The degree of freedom of polynomial in Y (polynomial degree - 1)
+     * \param limits The boundaries of the definition domain. The given array must have a size of 4 at least, and contain the values
+     *  of xmin, xmax, ymin, ymax. All base polynomials have a value of 1 at definition limits
+     * \param heights address of an ArrayParameter struct containing the height data to fit, in a 3 column array X, Y, Z, in this order.
+     * The dims array contain the number of data points in dims[0] and dims[1] should be 3. Data are read in column major,
+     *    Point number is incremented the fastest.
+     * \param sigmah location where the sigma of the fit height residuals will be returned, if this address is valid
+     * \return true if the function succeeds; otherwise it will return false and the reason will be given by OptixLastError.
+     *
+     */
+    DLL_EXPORT bool FitSurfaceToHeights(size_t elementID, int64_t Nx, int64_t Ny, const double *limits, const ArrayParameter *heights, double *sigmah);
+
+    /** \brief This function defines a polynomial surface to fit the given height data (Only apply to polynomial surfaces)
+     *
+     * The basis polynomial function are separable products of Legendre Polynomials in respectively X and Y.
+     * If the surface is known to be a pure cylinder, just set the degree of freedom in the constant direction to N=1
+     * \param elementID The Id of the element to define
+     * \param Nx The degree of freedom of polynomial in X (polynomial degree - 1)
+     * \param Ny The degree of freedom of polynomial in Y (polynomial degree - 1)
+     * \param limits The boundaries of the definition domain. The given array must have a size of 4 at least, and contain the values
+     *  of xmin, xmax, ymin, ymax. All base polynomials have a value of 1 at definition limits
+     * \param slopes address of an ArrayParameter struct containing the slope data to fit, in a 4 column array X, Y, dZ/dx, dZ/dY, in this order.
+     *   The dims array contain the number of data points in dims[0] and dims[1] should be 4. Data are read in column major,
+     *    Point number is incremented the fastest.
+     * \param sigmasx  location where the sigma of the X slope fit residuals will be returned, if this address is valid
+     * \param sigmasy  location where the sigma of the Y slope fit residuals will be returned, if this address is valid
+     * \return true if the function succeeds; otherwise it will return false and the reason will be given by OptixLastError.
+     *
+     */
+    DLL_EXPORT bool FitSurfaceToSlopes(size_t elementID, int64_t Nx, int64_t Ny, const double *limits, const ArrayParameter *slopes, double * sigmasx, double* sigmasy);
 
     /** \brief Align the element chain starting from the given element
      *

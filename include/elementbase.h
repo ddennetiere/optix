@@ -210,10 +210,11 @@ public:
 
     /** \brief Modifies an existing  named numeric parameter
     *
-    * The type, group and flags of a parameter are internally defined and cannot be changed. Their actual values will be reflected in param on return
+    * The type and group and flags of a parameter are internally defined and cannot be changed. Their actual values will be reflected in param on return
+    * if the array flags are not identical OpticsLastError will be set and the function  will reteurn false
     * \param name the name of parameter to set
     * \param param the new parameter  object
-    * \return  true if parameters was changed , false if parameter doesn't belong to the object
+    * \return  true if parameters was changed , false if parameter doesn't belong to the object of has a different array flag
     */
     inline virtual  bool setParameter(string name, Parameter& param)
     {
@@ -222,6 +223,17 @@ public:
         {
             param.type=it->second.type; // type, flags and group of a parameter must not be modified
             param.group=it->second.group;
+            if( (param.flags&ArrayData) != (it->second.flags&ArrayData))
+            {
+                string reason;
+                if(it->second.flags&ArrayData)
+                    reason=" has an array type but the given parameter has a single value type";
+                else
+                    reason=" has a single value type but the given parameter has an array type";
+
+                SetOptiXLastError(string("parameter name ")+ name +reason,__FILE__, __func__);
+                return false;
+            }
             param.flags=it->second.flags;
             it->second=param;
             m_isaligned=false;
@@ -236,7 +248,13 @@ public:
     }
 
     /** \brief retrieves a numeric parameter by its name
-    */
+     *
+     *  If the parameter is an array le param.paramArray member will point to a ParameterArray struct containing the array dimensions
+     *  and data This struct is owned by the parameter object and destroyed with it
+     * \param name The parameter name
+     * \param param a parameter object Parameter to be modified on return
+     * \return true if parameter is valid, false otherwise
+     */
     inline bool getParameter(string name, Parameter& param)
     {
         ParamIterator it=m_parameters.find(name);
@@ -252,10 +270,22 @@ public:
         }
     }
 
-    inline bool isParameterArray(string name, size_t * size)
+    /** \brief Check if the parameter is an array and retrieves its memory size
+     *
+     * \param name The name of the parameter to query
+     * \param size integer location which will receive the memory size of the array (dim(0)*dim(1)) or 1 if the parameter is a simple value
+     * \return true if the parameter is an array, false if it is a single value.
+     *
+     */
+    inline bool getParameterArraySize(string name, size_t * size)
     {
         ParamIterator it=m_parameters.find(name);
-        if (it !=m_parameters.end())
+        if(!size)
+        {
+            SetOptiXLastError(string("Invalid size parameter"),__FILE__, __func__);
+            return false;
+        }
+        else if (it !=m_parameters.end())
         {
             if (it->second.flags & ArrayData)
             {
@@ -264,7 +294,7 @@ public:
             }
             else
             {
-                *size=1;
+               SetOptiXLastError(string("parameter name ")+ name + " has not an array type",__FILE__, __func__);
                 return false;
             }
 
@@ -272,11 +302,24 @@ public:
         else
         {
             SetOptiXLastError(string("parameter name ")+ name + " is invalid",__FILE__, __func__);
-            *size=0;
             return false;
         }
     }
 
+    inline bool getParameterFlags(string name, uint32_t &flags)
+    {
+        ParamIterator it=m_parameters.find(name);
+        if (it !=m_parameters.end())
+        {
+            flags=it->second.flags;
+            return true;
+        }
+        else
+        {
+            SetOptiXLastError(string("parameter name ")+ name + " is invalid",__FILE__, __func__);
+            return false;
+        }
+    }
 
     inline ParamIterator parameterBegin(){return m_parameters.begin();}/**< \brief return an iterator positionned on the first element of the parameter list of this surface*/
     inline ParamIterator parameterEnd(){return m_parameters.end();}  /**< \brief return an iterator positionned after the last element of the parameter list of this surface*/

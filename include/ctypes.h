@@ -92,7 +92,7 @@ enum ParameterFlags/*:uint32_t*/{
  */
 typedef struct __ArrayParameter
 {
-    int  dims[2];
+    int64_t  dims[2];
     double *data;
 #ifdef __cplusplus
     // the following functions are only defined in C++

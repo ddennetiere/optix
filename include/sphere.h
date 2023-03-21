@@ -43,6 +43,9 @@ class Sphere :  virtual public Surface, public Quadric
         /**< \brief return the derived class name ie. Sphere */
         virtual inline string getOptixClass(){return "Sphere";}
 
+        virtual inline string getSurfaceClass(){return "Sphere";}/**< \brief return the most derived shape class name of this object */
+
+
         /** \brief Change parameters and recaculate the surface if needed
          * \param name parameter name
          * \param param parameter

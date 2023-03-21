@@ -50,6 +50,9 @@ class Plane : virtual public Surface
 
         virtual inline string getOptixClass(){return "Plane";}/**< return the derived class name ie. Plane */
 
+        virtual inline string getSurfaceClass(){return "Plane";}/**< \brief return the most derived shape class name of this object */
+
+
         /** \brief computes the intercept of ray with this plane surface  in the surface local absolute frame and sets the new origin at the intercept
         *
         *   \param  ray  on input : the ray in the previous surface frame. in output the ray positionned on the surface in this surface frame

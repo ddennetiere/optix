@@ -59,7 +59,7 @@ RayBaseType::VectorType Polynomial::intercept(RayBaseType& ray,  RayBaseType::Ve
     return ray.position();
 }
 
-std::pair<double,double> Polynomial::fitSlopes(int Nx, int Ny, const Ref<ArrayX4d>& slopedata)
+std::pair<double,double> Polynomial::fitSlopes(Index Nx, Index Ny, const Ref<ArrayX4d>& slopedata)
 {
     Index numData=slopedata.rows(), nvars=Nx*Ny-1;
     Index nlines=2*numData, i=0,j=0, k=0;
@@ -97,7 +97,7 @@ std::pair<double,double> Polynomial::fitSlopes(int Nx, int Ny, const Ref<ArrayX4
     return std::make_pair(sigmax,sigmay);
 }
 
-double Polynomial::fitHeights(int Nx, int Ny, const Ref<ArrayX3d>& heightdata)
+double Polynomial::fitHeights(Index Nx, Index Ny, const Ref<ArrayX3d>& heightdata)
 {
     Index numData=heightdata.rows(), nvars=Nx*Ny;
     Index i=0,j=0, k=0;

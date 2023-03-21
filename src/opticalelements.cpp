@@ -19,9 +19,7 @@
 #include "sources.h"
 
 template class PolynomialSurface<NaturalPolynomial> ;
-typedef PolynomialSurface<NaturalPolynomial> NaturalPolynomialSurface;
 template class PolynomialSurface<LegendrePolynomial> ;
-typedef PolynomialSurface<LegendrePolynomial> LegendrePolynomialSurface;
 
 
 template class Mirror<Plane>;
@@ -30,11 +28,15 @@ template class Mirror<Cylinder>;
 template class Mirror<Toroid>;
 template class Mirror<ConicBaseCylinder>;
 template class Mirror<RevolutionQuadric>;
+template class Mirror<NaturalPolynomialSurface>;
+template class Mirror<LegendrePolynomialSurface>;
 
 template class Film<Plane>;
 template class Film<Sphere>;
 template class Film<Cylinder>;
 template class Film<Toroid>;
+template class Film<NaturalPolynomialSurface>;
+template class Film<LegendrePolynomialSurface>;
 
 template class Grating<Holo,Plane>;
 template class Grating<Holo,Sphere>;
@@ -83,6 +85,11 @@ ElementBase* CreateElementObject(string s_type, string name)
         elem= new Mirror<ConicBaseCylinder>(name);
     else if (s_type=="Mirror<RevolutionQuadric>" || s_type=="RevolutionQuadricMirror")
         elem= new Mirror<RevolutionQuadric>(name);
+    else if (s_type=="Mirror<NaturalPolynomialSurface>" || s_type=="NaturalPolynomialMirror")
+        elem= new Mirror<NaturalPolynomialSurface>(name);
+    else if (s_type=="Mirror<LegendrePolynomialSurface>" || s_type=="LegendrePolynomialMirror")
+        elem= new Mirror<LegendrePolynomialSurface>(name);
+
 
     else if (s_type=="Film<Plane>" || s_type=="PlaneFilm")
         elem= new Film<Plane>(name);
@@ -96,6 +103,10 @@ ElementBase* CreateElementObject(string s_type, string name)
         elem= new Film<ConicBaseCylinder>(name);
     else if (s_type=="Film<RevolutionQuadric>" || s_type=="RevolutionQuadricFilm")
         elem= new Film<RevolutionQuadric>(name);
+    else if (s_type=="Film<NaturalPolynomialSurface>" || s_type=="NaturalPolynomialFilm")
+        elem= new Film<NaturalPolynomialSurface>(name);
+    else if (s_type=="Film<LegendrePolynomialSurface>" || s_type=="LegendrePolynomialFilm")
+        elem= new Film<LegendrePolynomialSurface>(name);
 
     else if (s_type=="Grating<Holo,Plane>" || s_type=="PlaneHoloGrating")
         elem= new Grating<Holo,Plane>(name);
@@ -155,6 +166,10 @@ ElementBase * ElementCopy(ElementBase* source)
         Copy= new Mirror<ConicBaseCylinder>(*dynamic_cast<Mirror<ConicBaseCylinder>*>(source));
     else if (s_type=="Mirror<RevolutionQuadric>" || s_type=="RevolutionQuadricMirror")
         Copy= new Mirror<RevolutionQuadric>(*dynamic_cast<Mirror<RevolutionQuadric>*>(source));
+    else if (s_type=="Mirror<NaturalPolynomialSurface>" || s_type=="NaturalPolynomialMirror")
+        Copy= new Mirror<NaturalPolynomialSurface>(*dynamic_cast<Mirror<NaturalPolynomialSurface>*>(source));
+    else if (s_type=="Mirror<LegendrePolynomialSurface>" || s_type=="LegendrePolynomialMirror")
+        Copy= new Mirror<LegendrePolynomialSurface>(*dynamic_cast<Mirror<LegendrePolynomialSurface>*>(source));
 
     else if (s_type=="Film<Plane>" || s_type=="PlaneFilm")
         Copy= new Film<Plane>(*dynamic_cast<Film<Plane>*>(source));
@@ -168,6 +183,10 @@ ElementBase * ElementCopy(ElementBase* source)
         Copy= new Film<ConicBaseCylinder>(*dynamic_cast<Film<ConicBaseCylinder>*>(source));
     else if (s_type=="Film<RevolutionQuadric>" || s_type=="RevolutionQuadricFilm")
         Copy= new Film<RevolutionQuadric>(*dynamic_cast<Film<RevolutionQuadric>*>(source));
+    else if (s_type=="Film<NaturalPolynomialSurface>" || s_type=="NaturalPolynomialFilm")
+        Copy= new Film<NaturalPolynomialSurface>(*dynamic_cast<Film<NaturalPolynomialSurface>*>(source));
+    else if (s_type=="Film<LegendrePolynomialSurface>" || s_type=="LegendrePolynomialFilm")
+        Copy= new Film<LegendrePolynomialSurface>(*dynamic_cast<Film<LegendrePolynomialSurface>*>(source));
 
     else if (s_type=="Grating<Holo,Plane>" || s_type=="PlaneHoloGrating")
         Copy= new Grating<Holo,Plane>(*dynamic_cast<Grating<Holo,Plane>*>(source));

@@ -49,6 +49,9 @@ class Quadric : virtual public Surface
 
         virtual inline string getOptixClass(){return "Quadric";}/**< return the derived class name ie. Quadric */
 
+        virtual inline string getSurfaceClass(){return "Quadric";}/**< \brief return the most derived shape class name of this object */
+
+
         /** \brief computes the intercept of ray with this quadric surface in the surface local absolute frame and sets the new origin at the intercept
         *
         *   \param  ray  on input : the ray in the previous surface frame. in output the ray positionned on the surface in this surface frame

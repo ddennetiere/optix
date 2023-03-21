@@ -44,6 +44,9 @@ class Toroid : virtual public Surface
 
         virtual inline string getOptixClass(){return "Toroid";}/**< \brief return the derived class name ie. Toroid */
 
+        virtual inline string getSurfaceClass(){return "Toroid";}/**< \brief return the most derived shape class name of this object */
+
+
         /** \brief Change parameters and recaculate the surface if needed
 
          * \param name parameter name

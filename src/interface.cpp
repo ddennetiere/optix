@@ -188,6 +188,114 @@ extern "C"
             delete (map<string, ElementBase*>::iterator*) handle;
     }
 
+
+    DLL_EXPORT bool FitSurfaceToHeights(size_t elementID, int64_t Nx, int64_t Ny, const double *limits, const ArrayParameter *heights, double* sigmah)
+    {
+        if(!System.isValidID(elementID))
+        {
+            SetOptiXLastError("invalid element ID", __FILE__, __func__);
+            return false;
+        }
+        string surfaceClass=((Surface*)elementID)->getSurfaceClass();
+        if(surfaceClass!="NaturalPolynomialSurface" || surfaceClass!="LegendrePolynomialSurface")
+        {
+            SetOptiXLastError(string("Function not supported by the element base class ")+surfaceClass, __FILE__, __func__);
+            return false;
+        }
+        Parameter param;
+        ((Surface*)elementID)->getParameter("surfaceLimits", param);
+        if(!(param.flags&ArrayData) || (param.paramArray->dims[0]!=2) ||(param.paramArray->dims[1]!=2) )
+        {
+            SetOptiXLastError("invalid surfaceLimits parameter", __FILE__, __func__);
+            return false;
+        }
+        memcpy(param.paramArray->data,limits,4*sizeof(double));
+        double s=0;
+        try
+        {
+            if(surfaceClass=="NaturalPolynomialSurface")
+            {
+                NaturalPolynomialSurface* polysurf=(NaturalPolynomialSurface*)elementID;
+                polysurf->setParameter("surfaceLimits",param);
+                s= polysurf->fitHeightData(Nx,Ny, *heights);
+            }
+            else if(surfaceClass=="LegendrePolynomialSurface")
+            {
+                LegendrePolynomialSurface* polysurf=(LegendrePolynomialSurface*)elementID;
+                polysurf->setParameter("surfaceLimits",param);
+                s= polysurf->fitHeightData(Nx,Ny, *heights);
+
+            }
+
+
+        }
+        catch(ParameterException & excpt)
+        {
+            SetOptiXLastError(excpt.what(), __FILE__, __func__);
+            return false;
+        }
+        if(sigmah)
+            *sigmah=s;
+
+        return true;
+    }
+
+
+    DLL_EXPORT bool FitSurfaceToSlopes(size_t elementID, int64_t Nx, int64_t Ny, const double *limits, const ArrayParameter *slopes, double* sigmasx, double* sigmasy)
+    {
+        if(!System.isValidID(elementID))
+        {
+            SetOptiXLastError("invalid element ID", __FILE__, __func__);
+            return false;
+        }
+        string surfaceClass=((Surface*)elementID)->getSurfaceClass();
+        if(surfaceClass!="NaturalPolynomialSurface" || surfaceClass!="LegendrePolynomialSurface")
+        {
+            SetOptiXLastError(string("Function not supported by the element base class ")+surfaceClass, __FILE__, __func__);
+            return false;
+        }
+        Parameter param;
+        ((Surface*)elementID)->getParameter("surfaceLimits", param);
+        if(!(param.flags&ArrayData) || (param.paramArray->dims[0]!=2) ||(param.paramArray->dims[1]!=2) )
+        {
+            SetOptiXLastError("invalid surfaceLimits parameter", __FILE__, __func__);
+            return false;
+        }
+        memcpy(param.paramArray->data,limits,4*sizeof(double));
+
+        pair<double,double> sigmas;
+
+        try
+        {
+            if(surfaceClass=="NaturalPolynomialSurface")
+            {
+                NaturalPolynomialSurface* polysurf=(NaturalPolynomialSurface*)elementID;
+                polysurf->setParameter("surfaceLimits",param);
+                sigmas= polysurf->fitSlopeData(Nx,Ny, *slopes);
+            }
+            else if(surfaceClass=="LegendrePolynomialSurface")
+            {
+                LegendrePolynomialSurface* polysurf=(LegendrePolynomialSurface*)elementID;
+                polysurf->setParameter("surfaceLimits",param);
+                sigmas= polysurf->fitSlopeData(Nx,Ny, *slopes);
+            }
+
+
+        }
+        catch(ParameterException & excpt)
+        {
+            SetOptiXLastError(excpt.what(), __FILE__, __func__);
+            return false;
+        }
+        if(sigmasx)
+            *sigmasx=sigmas.first;
+        if(sigmasy)
+            *sigmasy=sigmas.second;
+        return true;
+    }
+
+
+
     DLL_EXPORT size_t GetElementID(const char* elementName)
     {
 
@@ -403,19 +511,17 @@ extern "C"
     {
         if(System.isValidID(elementID))
         {
-            size_t paramSize;
-            if(((ElementBase*)elementID)->isParameterArray(paramTag,&paramSize))
+            uint32_t flags;
+            if(!((ElementBase*)elementID)->getParameterFlags(paramTag,flags))
+                return false; //if name is invalid last error is already set
+            if (flags & ArrayData)
             {
                 SetOptiXLastError(string("Array parameter  ") + paramTag  +
                                 " should be retrieved with the GetArrayParameter function"  , __FILE__, __func__);
                 return false;
             }
             else
-            {
-                if(paramSize ==0)
-                    return false; //if name is invalid last error is already set
                 return ((ElementBase*)elementID)->getParameter(paramTag, *paramData);
-            }
         }
         else
         {
@@ -425,35 +531,64 @@ extern "C"
 
     }
 
-
-    DLL_EXPORT bool GetArrayParameter(size_t elementID, const char* paramTag, Parameter* paramData, size_t maxsize)
-    {
-        if(System.isValidID(elementID))
-        {
-            size_t paramSize;
-            if(!((ElementBase*)elementID)->isParameterArray(paramTag,&paramSize))
-            {
-                if(paramSize !=0)
-                    SetOptiXLastError(string("Single value parameter  ") + paramTag  +
-                                " should be retrieved with the GetParameter function"  , __FILE__, __func__);
-                return false; //if name is invalid last error is already set
-            }
-            else
-            {
-                if(paramSize > maxsize)
-                {
-                    SetOptiXLastError(string("Size of array parameter  ") + paramTag +
-                                " is " + std::to_string(paramSize) + ", which is larger than the buffer size "  , __FILE__, __func__);
-                    return false;
-                }
-                return ((ElementBase*)elementID)->getParameter(paramTag, *paramData);
-            }
-        }
-        else
+     DLL_EXPORT bool GetParameterArraySize(size_t elementID, const char* paramTag, size_t * size)
+     {
+        if(!System.isValidID(elementID))
         {
              SetOptiXLastError("The given elementID is invalid ", __FILE__, __func__);
              return false;
         }
+
+        uint32_t flags;
+        if(!((ElementBase*)elementID)->getParameterFlags(paramTag,flags))
+            return false; //if name is invalid last error is already set
+        if (flags & ArrayData)
+        {
+            if( ((ElementBase*)elementID)->getParameterArraySize(paramTag, size))
+                return true;
+            else
+                return false;  // OptixLastError is already set
+        }
+        else
+        {
+            SetOptiXLastError(string("Array parameter  ") + paramTag  +
+                            " should be retrieved with the GetArrayParameter function"  , __FILE__, __func__);
+            return false;
+        }
+
+
+     }
+
+    DLL_EXPORT bool GetArrayParameter(size_t elementID, const char* paramTag, Parameter* paramData, size_t maxsize)
+    {
+        if( ! System.isValidID(elementID))
+        {
+            SetOptiXLastError("The given elementID is invalid ", __FILE__, __func__);
+            return false;
+        }
+
+        size_t paramSize;
+        uint32_t flags;
+        if(!((ElementBase*)elementID)->getParameterFlags(paramTag,flags))
+            return false; // parameter not found OptixLastError already set
+        if(flags & ArrayData)
+        {
+            if(!((ElementBase*)elementID)->getParameterArraySize(paramTag,&paramSize))
+                return false; //if anaything is invalid last error is already set
+
+            if(paramSize > maxsize)
+            {
+                SetOptiXLastError(string("Size of array parameter  ") + paramTag +
+                            " is " + std::to_string(paramSize) + ", which is larger than the buffer size "  , __FILE__, __func__);
+                return false;
+            }
+            return ((ElementBase*)elementID)->getParameter(paramTag, *paramData);
+        }
+        SetOptiXLastError(string("Single value parameter  ") + paramTag  +
+            " should be retrieved with the GetParameter function"  , __FILE__, __func__);
+        return false;
+
+
 
     }
 

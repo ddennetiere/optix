@@ -109,8 +109,8 @@ using namespace Eigen;
      * \param[out] second pointer to an Eigen Array or Matrix to received the second derivative. If NULL it is not computed
      * \return an Eigen Array of size (Xpos.size(), Norder)  containing the values of each base polynomial at the given X values
      */
-    virtual ArrayXXType getBaseValues(int Norder, const Ref<ArrayXType>& Xpos, ArrayXXType& derivative, Ref<ArrayXXType> *second=NULL )=0;
-//  virtual ArrayXXd getBaseValues(int Norder, const Ref<ArrayXd>& Xpos, ArrayXXd& derivative, Ref<ArrayXXd> *second=NULL )=0;
+    virtual ArrayXXType getBaseValues(Index Norder, const Ref<ArrayXType>& Xpos, ArrayXXType& derivative, Ref<ArrayXXType> *second=NULL )=0;
+//  virtual ArrayXXd getBaseValues(Index Norder, const Ref<ArrayXd>& Xpos, ArrayXXd& derivative, Ref<ArrayXXd> *second=NULL )=0;
 
     /** \brief compute the value of the polynomial base function and the 2 first derivatives at one specified point
      *
@@ -120,7 +120,7 @@ using namespace Eigen;
      * \param second the reference of an Eigen Array to return the first derivatives
      * \return an array containing the base polynomial values a the given position
      */
-    virtual VectorXType getBaseValues(int Norder, FloatType Xpos, VectorXType & derivative, VectorXType &second)=0;
+    virtual VectorXType getBaseValues(Index Norder, FloatType Xpos, VectorXType & derivative, VectorXType &second)=0;
 
     ArrayXXd surfaceHeight(const Ref<ArrayXd>& Xpos, const Ref<ArrayXd>& Ypos );
 
@@ -134,7 +134,7 @@ using namespace Eigen;
      * \param heightdata the data to be fitted in a 3 columns array. Columns are X, Y, Z in this order
      * \return the rms of fit residuals
      */
-    double fitHeights(int Nx, int Ny, const Ref<ArrayX3d>& heightdata);
+    double fitHeights(Index Nx, Index Ny, const Ref<ArrayX3d>& heightdata);
 
     /** \brief fits the surface whose slopes are given in input by a polynomial of specified order
      *
@@ -145,12 +145,12 @@ using namespace Eigen;
      * \return std::pair<double,double>
      *
      */
-    std::pair<double,double> fitSlopes(int Nx, int Ny, const Ref<ArrayX4d>& slopedata);
+    std::pair<double,double> fitSlopes(Index Nx, Index Ny, const Ref<ArrayX4d>& slopedata);
 
     /** \brief Compute the ray intercept in the surface reference frame
      *
      * \param ray the ray the intercept is looked for (in the surface reference frame)
-     * \param normal=NULL optional vector to return the normalized normal vector
+     * \param normal optional vector to return the normalized normal vector
      * \return the computed intercept. If algorithm fails, the function  will throw an OptiXException.
      *  If no solution is found the ray will be marked as lost
      */

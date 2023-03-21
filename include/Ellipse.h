@@ -36,6 +36,8 @@ class Ellipse: public Region
 
         virtual inline std::string getOptixClass(){return "Ellipse";}
 
+        virtual inline string getSurfaceClass(){return "Ellipse";}/**< \brief return the most derived shape class name of this object */
+
         /** \brief Defines an elliptical region from axis sizes, center position and orientation angle
          *
          * \param a Half length of the large axis

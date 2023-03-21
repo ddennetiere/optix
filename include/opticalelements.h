@@ -88,6 +88,10 @@ public:
     }
 } ;
 
+typedef PolynomialSurface<NaturalPolynomial> NaturalPolynomialSurface; /**< Implements a surface the shape of which is described by a product of natural polynomials in X and Y  */
+typedef PolynomialSurface<LegendrePolynomial> LegendrePolynomialSurface;  /**<  Implements a surface the shape of which is described by a product of Legendre polynomials in X and Y  */
+
+
 /** \ingroup elemClasses
 * \{
 */
@@ -98,6 +102,8 @@ typedef Mirror<Cylinder> CylindricalMirror; /**<  \brief Implements a Mirror, th
 typedef Mirror<Toroid> ToroidalMirror;      /**<  \brief Implements a Mirror, the Surface of which has a Toroid shape \n The Major curvatur of the unrotated surface is in the tangential plane*/
 typedef Mirror<ConicBaseCylinder> ConicBaseCylindricalMirror; /**< \brief Implements a Mirror, the Surface of which has a ConicBaseCylinder shape \n The directrix the unrotated surface is a conic in the tangential plane */
 typedef Mirror<RevolutionQuadric> RevolutionQuadricMirror; /**< \brief Implements a Mirror, the Surface of which has a RevolutionQuadric shape \n The foci of the unrotated surface ly in the sagittal plane*/
+typedef Mirror<NaturalPolynomialSurface> NaturalPolynomialMirror; /**< \brief Implements a Mirror, the Surface of which has a NaturalPolynomialSurface  shape\ the shape can be defined by the coefficients, or by a height or slope fit*/
+typedef Mirror<LegendrePolynomialSurface> LegendrePolynomialMirror; /**< \brief Implements a Mirror, the Surface of which has a LegendrePolynomialSurface  shape\ the shape can be defined by the coefficients, or by a height or slope fit*/
 
 
 /** \} */  //end of ingroup bloc
@@ -149,6 +155,8 @@ typedef Film<Cylinder> CylindricalFilm;  /**<  \brief Implements a Film, the Sur
 typedef Film<Toroid> ToroidalFilm;       /**<  \brief Implements a Film, the Surface of which has a Toroid shape and main curvature in X plane*/
 typedef Film<ConicBaseCylinder> ConicBaseCylindricalFilm; /**< \brief Implements a Film, the Surface of which has a ConicBaseCylinder shape \n The directrix the unrotated surface is a conic in the tangential plane */
 typedef Film<RevolutionQuadric> RevolutionQuadricFilm; /**< \brief Implements a Film, the Surface of which has a RevolutionQuadric shape \n The foci of the unrotated surface ly in the sagittal plane*/
+typedef Film<NaturalPolynomialSurface> NaturalPolynomialFilm; /**< \brief Implements a Film, the Surface of which has a NaturalPolynomialSurface  shape\ the shape can be defined by the coefficients, or by a height or slope fit*/
+typedef Film<LegendrePolynomialSurface> LegendrePolynomialFilm; /**< \brief Implements a Film, the Surface of which has a LegendrePolynomialSurface  shape\ the shape can be defined by the coefficients, or by a height or slope fit*/
 
 /** \} */  //end of group
 

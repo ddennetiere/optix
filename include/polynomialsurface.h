@@ -23,7 +23,7 @@
 #include "polynomial.h"
 
 template<class PolyType>
-class PolynomialSurface:public Surface, public PolyType
+class PolynomialSurface:virtual public Surface, public PolyType
 {
     public:
         using PolyType::m_coeffs, PolyType::m_Xlimit, PolyType::m_Ylimit;
@@ -35,10 +35,13 @@ class PolynomialSurface:public Surface, public PolyType
 
         virtual inline string getOptixClass(){return PolyType::getOptixClass()+"Surface";}
 
+        virtual inline string getSurfaceClass(){return PolyType::getOptixClass()+"Surface";}/**< \brief return the most derived shape class name of this object */
+
+
         /** \brief This function is called by the OpticalElement classes after a call to setFrameTransforms but does nothing
          *
          * The surface is aligned with respect to the definition plane, irrespectively to the normal orientation at origin point
-         * \param wavelength=0 unused
+         * \param wavelength unused
          * \return always 0
          */
         virtual inline int align(double wavelength=0){return 0;} // La surface est alignée sur le plan de définition pas sur la normale à l'origine
@@ -68,7 +71,7 @@ class PolynomialSurface:public Surface, public PolyType
          *      aligned in column major order, point index dimension (paramarray.dim[0]) varying fastest.
          * \return the rms height value of fit residuals
          */
-        double fitHeightData(int Nx, int Ny, const ArrayParameter & paramarray);
+        double fitHeightData(Index Nx, Index Ny, const ArrayParameter & paramarray);
 
 
         /** \brief fits the polynomial surface to the given height data
@@ -79,7 +82,7 @@ class PolynomialSurface:public Surface, public PolyType
          *      aligned in column major order, point index dimension (paramarray.dim[0]) varying fastest.
          * \return  the rms x and y slope values of fit residuals
          */
-        std::pair<double,double>  fitSlopeData(int Nx, int Ny, const ArrayParameter & paramarray);
+        std::pair<double,double>  fitSlopeData(Index Nx, Index Ny, const ArrayParameter & paramarray);
 
 
     protected:
@@ -129,7 +132,7 @@ bool PolynomialSurface<PolyType>::setParameter(string name, Parameter& param)
 
 
 template<class PolyType>
-double PolynomialSurface<PolyType>::fitHeightData(int Nx, int Ny, const ArrayParameter & paramarray)
+double PolynomialSurface<PolyType>::fitHeightData(Index Nx, Index Ny, const ArrayParameter & paramarray)
 {
     if(paramarray.dims[1] <3 )
         throw ParameterException("paramarray parameter should have at least 3 columns (dim[1])", __FILE__, __func__, __LINE__);
@@ -149,7 +152,7 @@ double PolynomialSurface<PolyType>::fitHeightData(int Nx, int Ny, const ArrayPar
 }
 
 template<class PolyType>
-std::pair<double,double>  PolynomialSurface<PolyType>::fitSlopeData(int Nx, int Ny, const ArrayParameter & paramarray)
+std::pair<double,double>  PolynomialSurface<PolyType>::fitSlopeData(Index Nx, Index Ny, const ArrayParameter & paramarray)
 {
     if(paramarray.dims[1] <4 )
         throw ParameterException("paramarray parameter should have at least 4 columns (dim[1])", __FILE__, __func__, __LINE__);

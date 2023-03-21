@@ -79,7 +79,9 @@ public:
 #endif // HAS_REFLEX
     virtual ~Surface(){}    /**< \brief virtual destructor */
 
-    virtual inline string getOptixClass(){return "Surface";}/**< \brief return the derived class name of this object */
+    virtual inline string getOptixClass(){return "Surface";}/**< \brief return the most derived class name of this object */
+
+    virtual inline string getSurfaceClass(){return "Surface";}/**< \brief return the most derived shape class name of this object */
 
     /** \brief pure virtual defined in derived class Align this surface with respect to the main incident ray according to the parameters,
     *        and defines the related geometric space transforms

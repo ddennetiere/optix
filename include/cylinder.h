@@ -41,6 +41,8 @@ class Cylinder : public Quadric
         /** Default destructor */
         virtual ~Cylinder(){}
         virtual inline string getOptixClass(){return "Cylinder";}
+        virtual inline string getSurfaceClass(){return "Cylinder";}/**< \brief return the most derived shape class name of this object */
+
 
         /** \brief Change parameters and recaculate the surface if needed
          * \param name parameter name
