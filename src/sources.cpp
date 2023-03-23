@@ -452,3 +452,123 @@ int AstigmaticGaussianSource::generate(const double wavelength, const char polar
     return nRays;
 }
 
+
+
+//   ----------------   BMtypeGaussianSource implementation   --------------------------
+
+
+BMtypeGaussianSource::BMtypeGaussianSource(string name ,Surface * previous):Surface(true,name, previous)
+{
+    cout << "creating BMtype gaussian source " << name << endl;
+    Parameter param;
+    param.type=Dimensionless;
+    param.group=SourceGroup;
+    param.value=1000.;
+    param.flags=NotOptimizable;
+    defineParameter("nRays", param);  // 1000 points par défaut
+
+    param.type=Distance;
+    param.value=0;
+    param.flags=0;
+    defineParameter("sigmaX", param);  //
+    defineParameter("sigmaY", param);  // default sigma source = 0 (source ponctuelle)
+    param.value=1.;
+    defineParameter("trajectoryRadius", param);  // default value 1. m
+
+
+
+    param.type=Angle ;
+    param.value=0.35e-3;
+    defineParameter("sigmaYdiv", param); // default round source dsigma div = 350 µrad
+    param.value=1e-3;
+    defineParameter("apertureX", param); //1/2 aperture angle in the deflection plane default +/- 1 mrad
+
+
+
+    setHelpstring("nRays", " number of rays to be generated");  // complete la liste de infobulles de la classe Surface
+    setHelpstring("sigmaX", "RMS source size in X direction");
+    setHelpstring("sigmaY", "RMS source size in Y direction");
+    setHelpstring("trajectoryRadius", "Radius of the mean electron trajectory in the BM");
+    setHelpstring("apertureX", "RMS collection aperture in the deflection plalne (X direction)");
+    setHelpstring("sigmaYdiv", "RMS source divergence in y direction");
+
+}
+
+int BMtypeGaussianSource::generate(const double wavelength, const char polar)
+{
+    int nRays;
+    FloatType sigmaX, sigmaY, divX, sigmaYprim, radius;
+
+    Parameter param;
+    getParameter("nRays",param);
+    nRays=lround(param.value);
+    if(nRays<1)
+        nRays=1;
+    getParameter("sigmaX", param);
+    sigmaX=param.value;
+    getParameter("sigmaY", param);
+    sigmaY=param.value;
+    getParameter("apertureX", param);
+    divX=param.value;
+    getParameter("sigmaYdiv", param);
+    sigmaYprim=param.value;
+    getParameter("trajectoryRadius", param);
+    radius=param.value;
+
+    RayType::ComplexType Samp, Pamp;
+    if(polar=='S')
+        Samp=1., Pamp=0;
+    else if(polar=='P')
+        Samp=0, Pamp=1.;
+    else if(polar=='R')
+        Samp=sqrt(2.), Pamp=complex<double>(0,-sqrt(2.));
+    else if(polar=='L')
+        Samp=sqrt(2.), Pamp=complex<double>(0,sqrt(2.));
+    else
+        throw ParameterException("invalid polarization (S, P, R or L only are  allowed)", __FILE__, __func__, __LINE__);
+
+
+    normal_distribution<FloatType> gaussX(0.,sigmaX);
+
+    normal_distribution<FloatType> gaussY(0., sigmaY);
+
+    uniform_real_distribution<FloatType> uniformXprim(-divX, divX);
+
+    normal_distribution<FloatType> gaussYprim(0., sigmaYprim);
+
+    reserveImpacts(m_impacts.size() + nRays);
+    VectorType org=VectorType::Zero(),dir=VectorType::Zero();
+
+    if(nRays==1) // retourne le rayon axial
+    {
+        org <<0, 0, 0;
+        dir << 0, 0, 1.L;
+        m_impacts.push_back(RayType(RayBaseType(org,dir), wavelength)); // amplitude set to 1 and S polar
+        return nRays;
+    }
+    random_device rd;
+    // if not clean enough use a Mersenne twister as mt19937 gen{rd()};
+    for(int i=0; i<nRays; ++ i)
+    {
+        dir << 0, 0, 1.L;
+        if(divX > 0)
+            dir(0)=uniformXprim(rd);
+        if(sigmaYprim > 0)
+            dir(1)=gaussYprim(rd);
+        dir.normalize();
+
+        org <<0, 0, 0;
+        if(sigmaX > 0)
+            org(0)=gaussX(rd)-radius*oneMinusSqrt1MinusX(dir(0)*dir(0)); // ici on confond sinus et tangente
+        if(sigmaY >0)
+            org(1)=gaussY(rd);
+
+        m_impacts.push_back(RayType(RayBaseType(org,dir), wavelength,Samp,Pamp)); // amplitude set to 1 and S polar by default
+    }
+
+    m_OPDvalid=false;
+
+    return nRays;
+}
+
+

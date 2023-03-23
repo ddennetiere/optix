@@ -113,10 +113,21 @@ PolynomialSurface<PolyType>::PolynomialSurface(string name, Surface *previous):S
     param.type=Distance;
     param.group=ShapeGroup;
     param.flags=NotOptimizable | ArrayData;
-    defineParameter("coefficients", param);  // courbure par défaut 0
+    param.paramArray=new ArrayParameter(1,1);
+    param.paramArray->data[0]=0.;
+ //   cout << "paramArray defined\n";
+    defineParameter("coefficients", param);  // Definition makes a deep copy of param, so it can be reused
+ //   cout << "coefficients are set\n";
     setHelpstring("coefficients", "Array of coefficients of the polynomial function");  // complete la liste de infobulles de la classe Surface
-    defineParameter("surfaceLimits", param);  // courbure par défaut 0
+    Array22d limits;
+    limits << -1., 1., -1., 1. ;
+ //   cout << "defining limits\n";
+    *param.paramArray=limits;
+ //  cout << "limits are assigned\n";
+    defineParameter("surfaceLimits", param);
+ //   cout << "surfaceLimits are defined\n";
     setHelpstring("surfaceLimits", "Rectangular area on which the polynomial base is defined,\n in an array of 4 numbers (Xmin, Xmax, Ymin, Ymax).  ");  // complete la liste de infobulles dea classe Surface
+ //   cout << "deleting temp param struct\n";
 }
 
 template<class PolyType>

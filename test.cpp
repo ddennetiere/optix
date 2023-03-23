@@ -235,7 +235,14 @@ int OriginalTest()
 //    cout << "new inray   " << inray << endl;
 //
     LegendrePolynomialMirror lpMirror("LPM1");
+
     cout <<"LPM1: surface class " << lpMirror.getSurfaceClass() << endl;
+    size_t paramsize=0;
+    lpMirror.getParameterArraySize("surfaceLimits", &paramsize );
+    cout << "size of limits array =" << paramsize << endl;
+    lpMirror.getParameterArraySize("coefficients", &paramsize );
+    cout << "size of coefficients array =" << paramsize << endl;
+
     XYGridSource source("Source") ;
     //PlaneMirror mirror("MP", &source);
     SphericalMirror mirror1("SM1",&source);

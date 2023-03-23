@@ -23,6 +23,7 @@
 #include <inttypes.h>
 #ifdef __cplusplus
    #include "EigenSafeInclude.h"
+   #include <iostream>
 #endif
 
 typedef long double FloatType ;/**< \brief the base type of all floating type ray tracing computation of the library */
@@ -78,7 +79,7 @@ enum ParameterGroup /*:uint32_t*/{
 
 /** \ingroup enums
  * \brief modifier flags applicable to parameters
- * only NotOptimizable used presently
+ *
  */
 enum ParameterFlags/*:uint32_t*/{
     NotOptimizable=1, /**< The Parameter cannnot be optimized */
@@ -89,8 +90,8 @@ enum ParameterFlags/*:uint32_t*/{
  */
 typedef struct __ArrayParameter
 {
-    int64_t  dims[2];
-    double *data;
+    int64_t  dims[2]; /**< \brief The dimensions of the array*/
+    double *data; /**< \brief a pointer to the first element of the array. The array is owned by the creator, who is in charge of its deletion*/
 #ifdef __cplusplus
     // the following functions are only defined in C++
     /** \brief return the array data as a Matrix    */
@@ -100,23 +101,29 @@ typedef struct __ArrayParameter
     *   \param cols number of columns of the array
     */
     inline __ArrayParameter(int rows, int cols){dims[0]=rows; dims[1]= cols; data=new double[rows*cols];}
+
+
     /** \brief copy constructor with deep copy
     *   \param aparam the parameter array to copy
      */
     inline __ArrayParameter(const __ArrayParameter &aparam)
     {
-        memcpy(dims, aparam.dims,2*sizeof(double) );
+        // std::cout <<"construct a copy of a " << aparam.dims[0] << " x " << aparam.dims[1] << " elements array\n";
+        memcpy(dims, aparam.dims,2*sizeof(int64_t) );
         data=new double[dims[0]* dims[1]];
         memcpy(data, aparam.data, sizeof(double)*dims[0]*dims[1]);
     }
+
     /** \brief deep copy assignment
      * \param aparam the Arrayparameter to copy
      */
     inline __ArrayParameter& operator=(const __ArrayParameter & aparam)
     {
-        memcpy(dims, aparam.dims,2*sizeof(double) );
+      //  std::cout <<"assign a copy of a " << aparam.dims[0] << " x " << aparam.dims[1] << " elements array\n";
+        memcpy(dims, aparam.dims,2*sizeof(int64_t) );
         if(data)
             delete [] data;
+    //    std::cout << "Array parameter data was re-assigned\n";
         data=new double[dims[0]* dims[1]];
         memcpy(data, aparam.data, sizeof(double)*dims[0]*dims[1]);
         return *this;
@@ -124,10 +131,12 @@ typedef struct __ArrayParameter
 
     inline __ArrayParameter& operator=(const Eigen::Ref<Eigen::ArrayXXd> & dat )
     {
+    //    std::cout << " reassigning array from eigen " << dat.rows() << " x " << dat.cols() << std::endl;
         dims[0]=dat.rows();
         dims[1]=dat.cols();
         if(data)
             delete [] data;
+     //  std::cout << "Array parameter data was re-defined\n";
         data=new double[dims[0]* dims[1]];
         memcpy(data, dat.data(), sizeof(double)*dims[0]*dims[1]);
         return *this;
@@ -173,13 +182,38 @@ typedef struct __Parameter{
     inline __Parameter(ArrayParameter & newparamArray, UnitType newtype, double newmultiplier=1.):/**<  \brief standard constructor sets optimization bounds to  parameter value */
         paramArray(new ArrayParameter(newparamArray)), multiplier(newmultiplier), type(newtype), flags(ArrayData|NotOptimizable)
         {bounds[0]=bounds[1]=0;}
+
+    /** \brief Copy constructor with internal array management
+     *
+     * \param param The parameter to deep copy
+     *
+     */
+    inline __Parameter(const __Parameter & param)
+    {
+        if(param.flags & ArrayData)
+        {
+           // std::cout <<"Construct a copy of a parameter containing a " << param.paramArray->dims[0] << " x " << param.paramArray->dims[1] << " elements array\n";
+            paramArray= new ArrayParameter(*param.paramArray);
+        }
+        else
+            value=param.value;
+       memcpy(bounds,param.bounds, 3*sizeof(double)) ;
+       type=param.type;
+       group=param.group;
+       flags=param.flags;
+    }
     /** \brief deep copy assignment operator
      * \param param the parameter to be copied
      */
     inline __Parameter& operator=(const __Parameter & param)
     {
         if(param.flags & ArrayData)
+        {
+           // std::cout <<"assign a copy of a parameter containing a " << param.paramArray->dims[0] << " x " << param.paramArray->dims[1] << " elements array\n";
+            if(paramArray)
+               delete paramArray;
             paramArray= new ArrayParameter(*param.paramArray);
+        }
         else
             value=param.value;
        memcpy(bounds,param.bounds, 3*sizeof(double)) ;
@@ -192,7 +226,10 @@ typedef struct __Parameter{
     inline ~__Parameter()
     {
         if((flags & ArrayData) && paramArray)
+        {
             delete paramArray;
+     //       std::cout <<"Array parameter was destroyed\n";
+        }
     }
 #else // the same structure viewed from C
     union {;

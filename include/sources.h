@@ -39,7 +39,7 @@
  *   \b sizeY | Distance | 1/2 source size in the vertical plane
  *   \b nXsize | Dimensionless | Number of steps in horizontal 1/2 size
  *   \b nYsize | Dimensionless | Number of steps in vertical 1/2 size
- *   All parameters are defined and store as double. nXsize, nYsize,  nXdiv, nYdiv  will be rounded to the nearest integer
+ *   All parameters are defined and stored as double. nXsize, nYsize,  nXdiv, nYdiv  will be rounded to the nearest integer
  */
 class XYGridSource: public virtual SourceBase
 {
@@ -148,6 +148,23 @@ public:
     virtual ~AstigmaticGaussianSource(){}
     virtual inline string getOptixClass(){return "Source<Astigmatic,Gaussian>";}   /**< return the derived class name ie. Source<Astigmatic,Gaussian> */
     virtual int generate(const double wavelength, const char polar='S');    /**< implementation of SourceBase::generate for an AstigmaticGaussianSource() */
+    //public members
+
+};
+
+/** \brief  class to emulate a bending magnet source\n <b>This class is still under development </b>
+ *
+ *      This class is under development. It should not be used yet!
+ */
+class BMtypeGaussianSource: public virtual SourceBase
+{
+public:
+    /** Default constructor */
+    BMtypeGaussianSource(string name="" ,Surface * previous=NULL);
+    /** Default destructor */
+    virtual ~BMtypeGaussianSource(){}
+    virtual inline string getOptixClass(){return "Source<BMtype,Gaussian>";}   /**< return the derived class name ie. Source<BMtype,Gaussian> */
+    virtual int generate(const double wavelength, const char polar='S');    /**< implementation of SourceBase::generate for an BMtypeGaussianSource() */
     //public members
 
 };

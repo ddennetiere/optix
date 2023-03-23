@@ -20,6 +20,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <iostream>
 
 #include "types.h"
 #include "files.h"
@@ -388,10 +389,17 @@ protected:
 
     /** \brief Creates and sets a new named numeric parameter
     */
-    inline ParamIterator defineParameter(string name, Parameter& param)    {
+    inline ParamIterator defineParameter(string name,const Parameter& param)    {
+//        if (param.flags & ArrayData)
+//            std::cout << "defining parameter  array " << name << " of size " << param.paramArray->dims[0] << " x " << param.paramArray->dims[1] <<
+//              " data  address " << param.paramArray  <<std::endl;
         pair<ParamIterator,bool> result= m_parameters.insert(make_pair(name,param));
         if(!result.second)
           result.first->second=param;
+//        if (param.flags & ArrayData)
+//            std::cout << "Created parameter  array " << name << " of size " << result.first->second.paramArray->dims[0] << " x " << result.first->second.paramArray->dims[1] <<
+//            " data  address " << result.first->second.paramArray <<std::endl;
+
         m_isaligned=false;  //maybe some changes do not require this
         return result.first;
     }
