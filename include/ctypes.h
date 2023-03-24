@@ -145,6 +145,19 @@ typedef struct __ArrayParameter
     /** \brief destructor with memory cleaning
      */
     ~__ArrayParameter(){if(data) delete [] data;}
+
+    void dump()
+    {
+        std::cout << "\t\t dims=[" << dims[0] << ", " << dims[1] << "]\n";
+        std::cout << "\t\t data @ " << data << "\n";
+        for(int j=0, k=0; j< dims[1]; ++j)
+        {
+            std::cout << "\t\t\t";
+            for(int i=0; i< dims[0]; ++i,++k)
+                std::cout << data[k] << " ";
+            std::cout << "\n";
+        }
+    }
 #endif
 } ArrayParameter; /**< \brief struct defining an Array type parameter for the interface functions and inside a \ref Parameter struct  */
 
@@ -231,6 +244,23 @@ typedef struct __Parameter{
      //       std::cout <<"Array parameter was destroyed\n";
         }
     }
+
+    void dump()
+    {  if(flags & ArrayData)
+       {
+           std::cout << "\t ArrayParameter @ " <<  paramArray << "\n";
+           paramArray->dump();
+       }
+        else
+            std::cout << "\t value=" << value << "\n";
+
+       std::cout << "\t bounds=[" << bounds[0] << ", " << bounds[1] << "]\n";
+       std::cout << "\t multiplier=" << multiplier << "\n";
+       std::cout << "\t type=" << type << "\n";
+       std::cout << "\t group=" << group << "\n";
+       std::cout << "\t flags=" <<std::hex << flags << std::dec << "\n";
+    }
+
 #else // the same structure viewed from C
     union {;
         double value;  /**< \brief if bit x08 of flags is unset, the internal value of the parameter in internal unit (m, rad, etc)*/

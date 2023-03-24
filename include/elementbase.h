@@ -248,6 +248,24 @@ public:
         }
     }
 
+    inline virtual  bool dumpParameter(string name, Parameter& param)
+    {
+        std::cout << "New data for parameter " << name << "\n";
+        param.dump();
+        ParamIterator it=m_parameters.find(name);
+        if (it !=m_parameters.end())
+        {
+            std::cout << "Old data in parameter " << name << "\n";
+            it->second.dump();
+            return true;
+        }
+        else
+        {
+            SetOptiXLastError(string("parameter name ")+ name + " is invalid",__FILE__, __func__);
+            return false;
+        }
+    }
+
     /** \brief retrieves a numeric parameter by its name
      *
      *  If the parameter is an array le param.paramArray member will point to a ParameterArray struct containing the array dimensions

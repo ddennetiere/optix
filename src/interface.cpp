@@ -507,6 +507,17 @@ extern "C"
         }
     }
 
+    DLL_EXPORT bool DumpParameter(size_t elementID, const char* paramTag,  Parameter paramData)
+    {
+        if(System.isValidID(elementID))
+            return ((ElementBase*)elementID)->dumpParameter(paramTag, paramData);
+        else
+        {
+             SetOptiXLastError("The given elementID is invalid ", __FILE__, __func__);
+             return false;
+        }
+    }
+
     DLL_EXPORT bool GetParameter(size_t elementID, const char* paramTag, Parameter* paramData)
     {
         if(System.isValidID(elementID))
