@@ -243,6 +243,43 @@ int OriginalTest()
     lpMirror.getParameterArraySize("coefficients", &paramsize );
     cout << "size of coefficients array =" << paramsize << endl;
 
+    Parameter aparam(2,2, Distance, ShapeGroup);
+//    double * pdata=aparam.paramArray->data;
+//    lpMirror.dumpParameter("surfaceLimits", aparam);
+
+    double data[4];
+    data[0]=-.1;
+    data[1]=+.1;
+    data[2]=-.1;
+    data[3]=+.1;
+
+
+    char msg[256];
+    size_t lpmID= CreateElement("LegendrePolynomialMirror", "LPM2");
+    if(!lpmID)
+    {
+        cout <<"could not create LegendrePolynomialMirror LPM2\n";
+        return 0;
+    }
+    if(!DumpParameter(lpmID,"surfaceLimits", aparam))
+    {
+        GetOptiXLastError(msg,256);
+        cout <<"could not first dump parameter reason\n" <<msg << endl;
+    }
+    if(!SetArrayParameter(lpmID, "surfaceLimits", 2,2, data ))
+    {
+        GetOptiXLastError(msg,256);
+        cout <<"could not set array parameter reason\n" <<msg << endl;
+    }
+     if(!DumpParameter(lpmID,"surfaceLimits", aparam))
+    {
+        GetOptiXLastError(msg,256);
+        cout <<"could not last dump parameter reason\n" <<msg << endl;
+    }
+ //   lpMirror.dumpParameter("surfaceLimits", aparam);
+
+
+
     XYGridSource source("Source") ;
     //PlaneMirror mirror("MP", &source);
     SphericalMirror mirror1("SM1",&source);

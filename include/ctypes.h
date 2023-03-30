@@ -185,15 +185,15 @@ typedef struct __Parameter{
      * \param newtype  UnitType of the parameter
      * \param newmultiplier=1. multiplier value
      */
-    inline __Parameter(double newvalue, UnitType newtype, double newmultiplier=1.):/**<  \brief standard constructor sets optimization bounds to  parameter value */
-        value(newvalue), multiplier(newmultiplier), type(newtype){bounds[0]=bounds[1]=newvalue;}
+    inline __Parameter(double newvalue, UnitType newtype, ParameterGroup newgroup, double newmultiplier=1.):/**<  \brief standard constructor sets optimization bounds to  parameter value */
+        value(newvalue), multiplier(newmultiplier), type(newtype),group(newgroup), flags(0) {bounds[0]=bounds[1]=newvalue;}
     /** \brief constructor with array assignment
      * \param newparamArray the  parameter array of values
      * \param newtype  UnitType of the parameter values
      * \param newmultiplier=1. multiplier value
      */
-    inline __Parameter(ArrayParameter & newparamArray, UnitType newtype, double newmultiplier=1.):/**<  \brief standard constructor sets optimization bounds to  parameter value */
-        paramArray(new ArrayParameter(newparamArray)), multiplier(newmultiplier), type(newtype), flags(ArrayData|NotOptimizable)
+    inline __Parameter(uint64_t Nx, uint64_t Ny, UnitType newtype, ParameterGroup newgroup, double newmultiplier=1.):/**<  \brief standard constructor sets optimization bounds to  parameter value */
+        paramArray(new ArrayParameter(Nx,Ny)), multiplier(newmultiplier), type(newtype), group(newgroup), flags(ArrayData|NotOptimizable)
         {bounds[0]=bounds[1]=0;}
 
     /** \brief Copy constructor with internal array management

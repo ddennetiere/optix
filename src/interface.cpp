@@ -507,6 +507,27 @@ extern "C"
         }
     }
 
+
+    DLL_EXPORT bool SetArrayParameter(size_t elementID, const char* paramTag, size_t fastindex, size_t slowindex, double *data)
+    {
+        if(!System.isValidID(elementID))
+        {
+             SetOptiXLastError("The given elementID is invalid ", __FILE__, __func__);
+             return false;
+        }
+        Parameter aparam;
+        if(!((ElementBase*)elementID)->getParameter(paramTag, aparam ))
+        {
+             SetOptiXLastError( string("The element doen't have a parammeter named ")+paramTag, __FILE__, __func__);
+             return false;
+        }
+        aparam.paramArray->dims[0]=fastindex;
+        aparam.paramArray->dims[1]=slowindex;
+        aparam.paramArray->data=data;
+        return ((ElementBase*)elementID)->setParameter(paramTag, aparam );
+    }
+
+
     DLL_EXPORT bool DumpParameter(size_t elementID, const char* paramTag,  Parameter paramData)
     {
         if(System.isValidID(elementID))
