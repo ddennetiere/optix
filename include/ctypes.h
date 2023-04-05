@@ -88,7 +88,7 @@ enum ParameterFlags/*:uint32_t*/{
 
 /** \brief C struct and C++ wrapper class to manipulate array type parameters. Companion struct of Parameter struct
  */
-typedef struct __ArrayParameter
+typedef struct alignas(16) __ArrayParameter
 {
     int64_t  dims[2]; /**< \brief The dimensions of the array*/
     double *data; /**< \brief a pointer to the first element of the array. The array is owned by the creator, who is in charge of its deletion*/
@@ -100,7 +100,7 @@ typedef struct __ArrayParameter
     *   \param rows number of rows of the array
     *   \param cols number of columns of the array
     */
-    inline __ArrayParameter(int rows, int cols){dims[0]=rows; dims[1]= cols; data=new double[rows*cols];}
+    inline __ArrayParameter(int rows, int cols){dims[0]=rows; dims[1]= cols; data=new alignas(16) double[rows*cols];}
 
 
     /** \brief copy constructor with deep copy
@@ -110,7 +110,7 @@ typedef struct __ArrayParameter
     {
         // std::cout <<"construct a copy of a " << aparam.dims[0] << " x " << aparam.dims[1] << " elements array\n";
         memcpy(dims, aparam.dims,2*sizeof(int64_t) );
-        data=new double[dims[0]* dims[1]];
+        data=new alignas(16) double[dims[0]* dims[1]];
         memcpy(data, aparam.data, sizeof(double)*dims[0]*dims[1]);
     }
 
@@ -124,7 +124,7 @@ typedef struct __ArrayParameter
         if(data)
             delete [] data;
     //    std::cout << "Array parameter data was re-assigned\n";
-        data=new double[dims[0]* dims[1]];
+        data=new alignas(16) double[dims[0]* dims[1]];
         memcpy(data, aparam.data, sizeof(double)*dims[0]*dims[1]);
         return *this;
     }
@@ -137,7 +137,7 @@ typedef struct __ArrayParameter
         if(data)
             delete [] data;
      //  std::cout << "Array parameter data was re-defined\n";
-        data=new double[dims[0]* dims[1]];
+        data=new alignas(16) double[dims[0]* dims[1]];
         memcpy(data, dat.data(), sizeof(double)*dims[0]*dims[1]);
         return *this;
     }

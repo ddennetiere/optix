@@ -341,11 +341,10 @@ extern "C"
      *
      * \param elementID size_t
      * \param paramTag const char*
-     * \param paramData Parameter
      * \return DLL_EXPORT bool
      *
      */
-    DLL_EXPORT bool DumpParameter(size_t elementID, const char* paramTag,  Parameter paramData);
+    DLL_EXPORT bool DumpParameter(size_t elementID, const char* paramTag);
 
 
     /** \brief retrieves an element ordinary parameter (defined by a single double-type value)

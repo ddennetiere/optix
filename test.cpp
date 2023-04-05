@@ -253,6 +253,10 @@ int OriginalTest()
     data[2]=-.1;
     data[3]=+.1;
 
+    cout << "aligment(double)=" << alignof(double) <<endl;
+    cout << "aligment(size_t)=" << alignof(size_t) <<endl;
+    cout << "aligment(Maxtrix4d)=" << alignof(Matrix4d) << endl;
+    cout << "aligment(MaxtrixXd)=" << alignof(MatrixXd) << endl;
 
     char msg[256];
     size_t lpmID= CreateElement("LegendrePolynomialMirror", "LPM2");
@@ -261,7 +265,7 @@ int OriginalTest()
         cout <<"could not create LegendrePolynomialMirror LPM2\n";
         return 0;
     }
-    if(!DumpParameter(lpmID,"surfaceLimits", aparam))
+    if(!DumpParameter(lpmID,"surfaceLimits"))
     {
         GetOptiXLastError(msg,256);
         cout <<"could not first dump parameter reason\n" <<msg << endl;
@@ -271,7 +275,7 @@ int OriginalTest()
         GetOptiXLastError(msg,256);
         cout <<"could not set array parameter reason\n" <<msg << endl;
     }
-     if(!DumpParameter(lpmID,"surfaceLimits", aparam))
+     if(!DumpParameter(lpmID,"surfaceLimits"))
     {
         GetOptiXLastError(msg,256);
         cout <<"could not last dump parameter reason\n" <<msg << endl;
