@@ -266,18 +266,20 @@ int OriginalTest()
         GetOptiXLastError(msg,256);
         cout <<"could not first dump parameter reason\n" <<msg << endl;
     }
+    cout << "limit parameter dump tested" <<endl;
     if(!SetArrayParameter(lpmID, "surfaceLimits", 2,2, data ))
     {
         GetOptiXLastError(msg,256);
         cout <<"could not set array parameter reason\n" <<msg << endl;
     }
+    cout << "limit set parameter tested" <<endl;
      if(!DumpParameter(lpmID,"surfaceLimits", aparam))
     {
         GetOptiXLastError(msg,256);
         cout <<"could not last dump parameter reason\n" <<msg << endl;
     }
  //   lpMirror.dumpParameter("surfaceLimits", aparam);
-
+    cout << "array parameter tested" <<endl;
 
 
     XYGridSource source("Source") ;

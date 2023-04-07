@@ -498,6 +498,8 @@ extern "C"
 
     DLL_EXPORT bool SetParameter(size_t elementID, const char* paramTag,  Parameter paramData)
     {
+        char what[256];
+        sprintf(what,"parameter data recieved", paramData);
         if(System.isValidID(elementID))
             return ((ElementBase*)elementID)->setParameter(paramTag, paramData);
         else
