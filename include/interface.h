@@ -369,15 +369,25 @@ extern "C"
      */
     DLL_EXPORT bool GetArrayParameter(size_t elementID, const char* paramTag, Parameter* paramData, size_t maxsize);
 
-    /** \brief
+    /** \brief Retrieves the total number of elements of the parameter array
      *
      * \param elementID  The ID of the element to query
      * \param paramTag the name of the parameter to get
-     * \param size a size_t location to retrun the parameter array size (ndim(0)*ndim(1))
+     * \param size a size_t location to return the parameter array size (ndim(0)*ndim(1))
      * \return false if elementID is invalid or if the parameter is not found or is not an array, true otherwise
      */
     DLL_EXPORT bool GetParameterArraySize(size_t elementID, const char* paramTag, size_t * size);
 
+
+    /** \brief Retrieves the total number of elements of the parameter array
+     *
+     * \param elementID  The ID of the element to query
+     * \param paramTag the name of the parameter to get
+     * \param dims a pointer to an array of two int64_t numbers in which the dimensions of the parameter array will be copied
+     *      ( dims[0] will return the number of elements in the fast varying dimension)
+     * \return false if elementID is invalid or if the parameter is not found or is not an array, or the dims pointer is invalid, true otherwise
+     */
+    DLL_EXPORT bool GetParameterArrayDims(size_t elementID, const char* paramTag, int64_t (*dims)[2]);
 
     /** \brief enumerates the parameter list of a given optical element
      *

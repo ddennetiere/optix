@@ -235,6 +235,37 @@ typedef struct __Parameter{
        flags=param.flags;
        return *this;
     }
+
+    /** \brief Copy the Parameter object into the parameter struct passed in argument.
+     * (This function makes limited checking of the destination structure validity and must be used with caution)
+     *
+     * \param destParam destination Parameter struct in which the object will be copied. NO Check is done on the available
+     *      memory size of the destinationparamArray
+     * \return 0 when successful;  1 if  if the flags members of both parameter don't match, 2 if the paramArray pointer of the destination struct is invalid
+     */
+    inline int copy(__Parameter &destParam)
+    {
+        if((flags & ArrayData)!= (destParam.flags & ArrayData))
+            return 1;
+
+        if(flags & ArrayData)
+        {
+
+            if(!destParam.paramArray)
+                return 2;
+
+            memcpy(destParam.paramArray->dims,paramArray->dims,2*sizeof(int64_t));
+            memcpy(destParam.paramArray->data,paramArray->data,paramArray->dims[0]*paramArray->dims[1]*sizeof(double) );
+        }
+        else
+            destParam.value=value;
+       memcpy(destParam.bounds,bounds, 3*sizeof(double)) ;
+       destParam.type=type;
+       destParam.group=group;
+       destParam.flags=flags;
+       return 0;
+    }
+
     /** \brief destructor with memory cleaning*/
     inline ~__Parameter()
     {

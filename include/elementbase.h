@@ -279,7 +279,34 @@ public:
         ParamIterator it=m_parameters.find(name);
         if (it !=m_parameters.end())
         {
-            param=it->second;
+            switch(it->second.copy(param))
+            {
+            case 0:
+                return true;
+            case 1:
+                SetOptiXLastError("In Parameter::copy, the array flags of the source and destination Parameter structs do not match",__FILE__, __func__);
+                return false;
+            case 2:
+                SetOptiXLastError("In Parameter::copy, the array pointer of the destination Parameter is invalid",__FILE__, __func__);
+                return false;
+            default:
+                SetOptiXLastError("Invalid return value or Parameter::copy function ",__FILE__, __func__);
+                return false;
+            }
+        }
+        else
+        {
+            SetOptiXLastError(string("parameter name ")+ name + " is invalid",__FILE__, __func__);
+            return false;
+        }
+    }
+
+    inline bool getParameterRef(string name, Parameter *paramRef)
+    {
+        ParamIterator it=m_parameters.find(name);
+        if (it !=m_parameters.end())
+        {
+            paramRef=&(it->second);
             return true;
         }
         else
@@ -309,6 +336,39 @@ public:
             if (it->second.flags & ArrayData)
             {
                 *size=it->second.paramArray->dims[0]*it->second.paramArray->dims[1];
+                return true;
+            }
+            else
+            {
+               SetOptiXLastError(string("parameter name ")+ name + " has not an array type",__FILE__, __func__);
+                return false;
+            }
+
+        }
+        else
+        {
+            SetOptiXLastError(string("parameter name ")+ name + " is invalid",__FILE__, __func__);
+            return false;
+        }
+    }
+
+
+    /** \brief Check if the parameter is an array and retrieves its memory size
+     *
+     * \param name The name of the parameter to query
+     * \param dims pointer to the array of two int64_t numbers containing the dimensions of the parameter array (dims[0]correspond to the fast varying index)
+     * \return  true if the parameter is an array, false if it is a single value.
+     *
+     */
+    inline bool getParameterArrayDims(string name, int64_t (*dims)[2])
+    {
+        ParamIterator it=m_parameters.find(name);
+        if (it !=m_parameters.end())
+        {
+            if (it->second.flags & ArrayData)
+            {
+           //     int64_t(&dimref)[2]=it->second.paramArray->dims;
+                dims=&(it->second.paramArray->dims);
                 return true;
             }
             else
