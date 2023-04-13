@@ -248,14 +248,14 @@ public:
         }
     }
 
-    inline virtual  bool dumpParameter(string name, Parameter& param)
+    inline virtual  bool dumpParameter(string name)
     {
-        std::cout << "New data for parameter " << name << "\n";
-        param.dump();
+//        std::cout << "New data for parameter " << name << "\n";
+//        param.dump();
         ParamIterator it=m_parameters.find(name);
         if (it !=m_parameters.end())
         {
-            std::cout << "Old data in parameter " << name << "\n";
+            std::cout << "Data in parameter " << name << "\n";
             it->second.dump();
             return true;
         }

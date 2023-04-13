@@ -489,8 +489,8 @@ BMtypeGaussianSource::BMtypeGaussianSource(string name ,Surface * previous):Surf
     setHelpstring("sigmaX", "RMS source size in X direction");
     setHelpstring("sigmaY", "RMS source size in Y direction");
     setHelpstring("trajectoryRadius", "Radius of the mean electron trajectory in the BM");
-    setHelpstring("apertureX", "RMS collection aperture in the deflection plalne (X direction)");
-    setHelpstring("sigmaYdiv", "RMS source divergence in y direction");
+    setHelpstring("apertureX", "collection aperture in the deflection plane (X direction)");
+    setHelpstring("sigmaYdiv", "RMS source divergence in the y direction");
 
 }
 
@@ -516,16 +516,17 @@ int BMtypeGaussianSource::generate(const double wavelength, const char polar)
     radius=param.value;
 
     RayType::ComplexType Samp, Pamp;
+    double t2=0, twopisigma2=2.*M_PI*sigmaYprim*sigmaYprim; // used by P polar only
     if(polar=='S')
         Samp=1., Pamp=0;
     else if(polar=='P')
         Samp=0, Pamp=1.;
-    else if(polar=='R')
-        Samp=sqrt(2.), Pamp=complex<double>(0,-sqrt(2.));
-    else if(polar=='L')
-        Samp=sqrt(2.), Pamp=complex<double>(0,sqrt(2.));
+//    else if(polar=='R')
+//        Samp=sqrt(2.), Pamp=complex<double>(0,-sqrt(2.));
+//    else if(polar=='L')
+//        Samp=sqrt(2.), Pamp=complex<double>(0,sqrt(2.));
     else
-        throw ParameterException("invalid polarization (S, P, R or L only are  allowed)", __FILE__, __func__, __LINE__);
+        throw ParameterException("invalid polarization (S or P only are  allowed for BMtype sources)", __FILE__, __func__, __LINE__);
 
 
     normal_distribution<FloatType> gaussX(0.,sigmaX);
@@ -533,6 +534,7 @@ int BMtypeGaussianSource::generate(const double wavelength, const char polar)
     normal_distribution<FloatType> gaussY(0., sigmaY);
 
     uniform_real_distribution<FloatType> uniformXprim(-divX, divX);
+    uniform_real_distribution<double> valid_P(0,1.);
 
     normal_distribution<FloatType> gaussYprim(0., sigmaYprim);
 
@@ -554,7 +556,21 @@ int BMtypeGaussianSource::generate(const double wavelength, const char polar)
         if(divX > 0)
             dir(0)=uniformXprim(rd);
         if(sigmaYprim > 0)
-            dir(1)=gaussYprim(rd);
+        {
+
+            if(polar == 'P')
+                dir(1)=gaussYprim(rd);
+            else
+            {
+                do
+                {
+                    dir(1)=gaussYprim(rd);
+                    t2=dir(1)*dir(1);
+                }while(valid_P(rd) > t2/(t2+twopisigma2) );
+                Pamp=(dir(1)< 0)? -1.: 1.;
+            }
+        }
+
         dir.normalize();
 
         org <<0, 0, 0;

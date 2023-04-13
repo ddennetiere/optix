@@ -39,7 +39,7 @@
  *   \b sizeY | Distance | 1/2 source size in the vertical plane
  *   \b nXsize | Dimensionless | Number of steps in horizontal 1/2 size
  *   \b nYsize | Dimensionless | Number of steps in vertical 1/2 size
- *   All parameters are defined and stored as double. nXsize, nYsize,  nXdiv, nYdiv  will be rounded to the nearest integer
+ *   All parameters are defined and stored as doubles. nXsize, nYsize,  nXdiv, nYdiv  will be rounded to the nearest integer
  */
 class XYGridSource: public virtual SourceBase
 {
@@ -68,7 +68,7 @@ public:
  *   \b sizeR | Distance | Radius of the  source
  *   \b nRsize | Dimensionless | Number of radial steps in source radius
  *   \b nTheta_size | Dimensionless | Number of  source azimuth steps in 2 Pi
- *   All parameters are defined and store as double. nRsize, nTheta_size,  nRdiv, nTheta_div  will be rounded to the nearest integer
+ *   All parameters are defined and stored as doubles. nRsize, nTheta_size,  nRdiv, nTheta_div  will be rounded to the nearest integer
  */
 class RadialGridSource: public virtual SourceBase
 {
@@ -101,7 +101,7 @@ public:
  *   \b sigmaXdiv | Angle | RMS source divergence in X direction
  *   \b sigmaYdiv | Angle | RMS source divergence in Y direction
  *  \note
- *  All parameters are defined and store as double. nRays will be rounded to the nearest integer
+ *  All parameters are defined and stored as doubles. nRays will be rounded to the nearest integer
  */
 class GaussianSource: public virtual SourceBase
 {
@@ -152,9 +152,28 @@ public:
 
 };
 
-/** \brief  class to emulate a bending magnet source\n <b>This class is still under development </b>
+/** \ingroup elemClasses
+ *  \brief alias Source<BMtype,Gaussian> \n class emulating a bending magnet source
  *
- *      This class is under development. It should not be used yet!
+ *    The class has five specific parameters belonging to the SourceGroup
+ *     -----------------------------------------
+ *
+ *   Name of parameter | UnitType | Description
+ *   ----------------- | -------- | --------------
+ *   \b nRays | Dimensionless | number of rays to be generated
+ *   \b trajectoryRadius | Distance | Radius of the trajectory in the simulated bending magnet
+ *   \b sigmaX | Distance | RMS source size in the X direction
+ *   \b sigmaY | Distance | RMS source size in the Y direction
+ *   \b apertureX | Angle | collection aperture in the deflection plane (X direction)
+ *   \b sigmaYdiv | Angle | RMS source divergence in Y direction
+ *
+ *   When polarization is S, the source angular distribution is is approximated by a gauss function of width sigmaYdiv
+ *
+ *   When polarization is P, the source angular distribution is approximated by the function
+ *  \f$ \frac{ \theta^2} { \theta^2 + 2 \pi \: { \sigma'}^2} exp[ - \frac {\theta^2 }{2 \: {\sigma'}^2} ] \f$, where \f$ \sigma'=sigmaYdiv \f$ \n
+ *  This function has maxima at \f$ \pm \: {[ \pi \: ( \sqrt {\frac {2} {\pi} + 1 } - 1) \: ]}^{\frac {1}{2}}  \sigma' \approx \pm \: 0.94 \:\sigma' \f$
+ *  \note
+ *  All parameters are defined and stored as doubles. nRays will be rounded to the nearest integer
  */
 class BMtypeGaussianSource: public virtual SourceBase
 {
