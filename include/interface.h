@@ -387,7 +387,7 @@ extern "C"
      *      ( dims[0] will return the number of elements in the fast varying dimension)
      * \return false if elementID is invalid or if the parameter is not found or is not an array, or the dims pointer is invalid, true otherwise
      */
-    DLL_EXPORT bool GetParameterArrayDims(size_t elementID, const char* paramTag, int64_t (*dims)[2]);
+    DLL_EXPORT bool GetParameterArrayDims(size_t elementID, const char* paramTag, int64_t * dims);
 
     /** \brief enumerates the parameter list of a given optical element
      *

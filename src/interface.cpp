@@ -590,7 +590,7 @@ extern "C"
      }
 
 
-    DLL_EXPORT bool GetParameterArrayDims(size_t elementID, const char* paramTag, int64_t (*dims)[2])
+    DLL_EXPORT bool GetParameterArrayDims(size_t elementID, const char* paramTag, int64_t *dims)
     {
         if(!System.isValidID(elementID))
         {
