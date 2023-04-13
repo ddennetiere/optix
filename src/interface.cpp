@@ -587,8 +587,41 @@ extern "C"
                             " should be retrieved with the GetArrayParameter function"  , __FILE__, __func__);
             return false;
         }
+     }
 
 
+    DLL_EXPORT bool GetParameterArrayDims(size_t elementID, const char* paramTag, int64_t (*dims)[2])
+    {
+        if(!System.isValidID(elementID))
+        {
+             SetOptiXLastError("The given elementID is invalid ", __FILE__, __func__);
+             return false;
+        }
+        if(!dims)
+        {
+             SetOptiXLastError("The dims parameter is an invalid pointer ", __FILE__, __func__);
+             return false;
+        }
+        uint32_t flags;
+        if(!((ElementBase*)elementID)->getParameterFlags(paramTag,flags))
+            return false; //if name is invalid last error is already set
+        if (flags & ArrayData)
+        {
+            int64_t (*dimref)[2]=NULL;
+            if( ((ElementBase*)elementID)->getParameterArrayDims(paramTag, dimref))
+            {
+                memcpy(dims,dimref, 2*sizeof(int64_t));
+                return true;
+            }
+            else
+                return false;  // OptixLastError is already set
+        }
+        else
+        {
+            SetOptiXLastError(string("Array parameter  ") + paramTag  +
+                            " should be retrieved with the GetArrayParameter function"  , __FILE__, __func__);
+            return false;
+        }
      }
 
     DLL_EXPORT bool GetArrayParameter(size_t elementID, const char* paramTag, Parameter* paramData, size_t maxsize)
@@ -657,6 +690,7 @@ extern "C"
         * pHandle=(size_t) pRef;
         return true;
     }
+
 
     DLL_EXPORT void ReleaseParameterEnumHandle(size_t handle)
     {
