@@ -346,6 +346,8 @@ extern "C"
      */
     DLL_EXPORT bool DumpParameter(size_t elementID, const char* paramTag);
 
+    DLL_EXPORT void DumpArgParameter(Parameter* param);
+
 
     /** \brief retrieves an element ordinary parameter (defined by a single double-type value)
      *

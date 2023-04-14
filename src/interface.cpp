@@ -539,6 +539,11 @@ extern "C"
         }
     }
 
+    DLL_EXPORT void DumpArgParameter(Parameter* param)
+    {
+        param->dump();
+    }
+
     DLL_EXPORT bool GetParameter(size_t elementID, const char* paramTag, Parameter* paramData)
     {
         if(System.isValidID(elementID))
