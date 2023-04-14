@@ -284,7 +284,11 @@ public:
             case 0:
                 return true;
             case 1:
-                SetOptiXLastError("In Parameter::copy, the array flags of the source and destination Parameter structs do not match",__FILE__, __func__);
+                char msg[256];
+                sprintf(msg, "In Parameter::copy, the array flags of the source struct(%X) and destination struct (%X) do not match",
+                        it->second.flags, param.flags);
+                SetOptiXLastError(msg,__FILE__, __func__);
+
                 return false;
             case 2:
                 SetOptiXLastError("In Parameter::copy, the array pointer of the destination Parameter is invalid",__FILE__, __func__);
