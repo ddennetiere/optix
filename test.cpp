@@ -66,13 +66,15 @@ int main()
     v1= v1.binaryExpr(v2, minOf2Op<double>());
 
     cout << v1.transpose() << endl <<endl;
+    cout << "sizeof(UnitType) " << sizeof(UnitType) << endl ;
+    cout << "sizeof(ParameterGroup) " <<  sizeof(ParameterGroup) << endl << endl;
 
 //    return SolemioTest();
     return OriginalTest();
 //    return SphereTest();
 //    return QuickTest();
 //    return TestEllipse();   // modifié pour test grating
-    cout << "sizeof(bool) " << sizeof(bool) << endl << endl;
+    cout << "sizeof(bool) " << sizeof(bool) << endl ;
      Polygon rectangle;
      bool cvx;
      Array2d point, trans,vect;
@@ -243,9 +245,11 @@ int OriginalTest()
     lpMirror.getParameterArraySize("coefficients", &paramsize );
     cout << "size of coefficients array =" << paramsize << endl;
 
-    Parameter aparam(2,2, Distance, ShapeGroup);
+    Parameter aparam(2,2, Distance, ShapeGroup); // this creates an array parameter of size 2,2
 //    double * pdata=aparam.paramArray->data;
 //    lpMirror.dumpParameter("surfaceLimits", aparam);
+    cout << "size of Parameter struct " << sizeof(Parameter) <<endl;
+    MemoryDump((void*) &aparam, sizeof(Parameter));
 
     double data[4];
     data[0]=-.1;
@@ -270,15 +274,55 @@ int OriginalTest()
         GetOptiXLastError(msg,256);
         cout <<"could not first dump parameter reason\n" <<msg << endl;
     }
-    if(!SetArrayParameter(lpmID, "surfaceLimits", 2,2, data ))
+    cout <<" get surfaceLimits parameter\n";
+    Parameter lparam;
+    uint32_t flags;
+    GetParameterFlags(lpmID,"surfaceLimits",&flags);
+    if( flags & 0X08)
     {
-        GetOptiXLastError(msg,256);
-        cout <<"could not set array parameter reason\n" <<msg << endl;
+        int64_t dims[2];
+        GetParameterArrayDims(lpmID,"surfaceLimits",&dims);
+        lparam.paramArray=new ArrayParameter;
+        lparam.paramArray->dims[0]=dims[0];
+        lparam.paramArray->dims[1]=dims[1];
+        lparam.paramArray->data=new double[dims[0]*dims[1]];
+        lparam.flags=9;
+        cout << dims[0] << " x " <<dims[1] <<endl;
+        DumpArgParameter(&lparam);
+        if( !GetArrayParameter(lpmID,"surfaceLimits",&lparam, dims[0]*dims[1]))
+        {
+            GetOptiXLastError(msg,256);
+            cout <<"cannot get parameter reason\n" <<msg << endl;
+        }
+
     }
+    else
+        cout << "surfaceLimits is not an array\n";
+    cout << "surfaceLimits is\n";
+    DumpArgParameter(&lparam);
+
+    delete [] lparam.paramArray->data;
+    lparam.paramArray->data=data;
+
+    cout << "setting new surfaceLimits\n";
+    SetParameter(lpmID,"surfaceLimits", lparam);
+
+
+//    SetArray Parameter was removed from the C API
+//    if(!SetArrayParameter(lpmID, "surfaceLimits", 2,2, data ))
+//    {
+//        GetOptiXLastError(msg,256);
+//        cout <<"could not set array parameter reason\n" <<msg << endl;
+//    }
      if(!DumpParameter(lpmID,"surfaceLimits"))
     {
         GetOptiXLastError(msg,256);
         cout <<"could not last dump parameter reason\n" <<msg << endl;
+    }
+     if(!DumpParameter(lpmID,"coefficients"))
+    {
+        GetOptiXLastError(msg,256);
+        cout <<"could not =dump parameter 'coefficients';  reason\n" <<msg << endl;
     }
  //   lpMirror.dumpParameter("surfaceLimits", aparam);
 

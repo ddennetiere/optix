@@ -508,24 +508,24 @@ extern "C"
     }
 
 
-    DLL_EXPORT bool SetArrayParameter(size_t elementID, const char* paramTag, size_t fastindex, size_t slowindex, double *data)
-    {
-        if(!System.isValidID(elementID))
-        {
-             SetOptiXLastError("The given elementID is invalid ", __FILE__, __func__);
-             return false;
-        }
-        Parameter aparam;
-        if(!((ElementBase*)elementID)->getParameter(paramTag, aparam ))
-        {
-             SetOptiXLastError( string("The element doen't have a parammeter named ")+paramTag, __FILE__, __func__);
-             return false;
-        }
-        aparam.paramArray->dims[0]=fastindex;
-        aparam.paramArray->dims[1]=slowindex;
-        aparam.paramArray->data=data;
-        return ((ElementBase*)elementID)->setParameter(paramTag, aparam );
-    }
+//    DLL_EXPORT bool SetArrayParameter(size_t elementID, const char* paramTag, size_t fastindex, size_t slowindex, double *data)
+//    {
+//        if(!System.isValidID(elementID))
+//        {
+//             SetOptiXLastError("The given elementID is invalid ", __FILE__, __func__);
+//             return false;
+//        }
+//        Parameter aparam;
+//        if(!((ElementBase*)elementID)->getParameter(paramTag, aparam ))
+//        {
+//             SetOptiXLastError( string("The element doen't have a parammeter named ")+paramTag, __FILE__, __func__);
+//             return false;
+//        }
+//        aparam.paramArray->dims[0]=fastindex;
+//        aparam.paramArray->dims[1]=slowindex;
+//        aparam.paramArray->data=data;
+//        return ((ElementBase*)elementID)->setParameter(paramTag, aparam );
+//    }
 
 
     DLL_EXPORT bool DumpParameter(size_t elementID, const char* paramTag)
@@ -542,6 +542,26 @@ extern "C"
     DLL_EXPORT void DumpArgParameter(Parameter* param)
     {
         param->dump();
+    }
+
+    DLL_EXPORT void MemoryDump(void* address, uint64_t size)
+    {
+        memoryDump(address, size);
+    }
+
+    DLL_EXPORT bool GetParameterFlags(size_t elementID, const char* paramTag, uint32_t *flags)
+    {
+        if(System.isValidID(elementID))
+        {
+            if(!((ElementBase*)elementID)->getParameterFlags(paramTag,*flags))
+                return false; //if name is invalid last error is already set
+        }
+        else
+        {
+             SetOptiXLastError("The given elementID is invalid ", __FILE__, __func__);
+             return false;
+        }
+        return true;
     }
 
     DLL_EXPORT bool GetParameter(size_t elementID, const char* paramTag, Parameter* paramData)
@@ -565,7 +585,6 @@ extern "C"
              SetOptiXLastError("The given elementID is invalid ", __FILE__, __func__);
              return false;
         }
-
     }
 
      DLL_EXPORT bool GetParameterArraySize(size_t elementID, const char* paramTag, size_t * size)
@@ -595,8 +614,9 @@ extern "C"
      }
 
 
-    DLL_EXPORT bool GetParameterArrayDims(size_t elementID, const char* paramTag, int64_t *dims)
+    DLL_EXPORT bool GetParameterArrayDims(size_t elementID, const char* paramTag, int64_t (*dims)[2])
     {
+       // cout << "in GetParameterArrayDims  sizeof i =" << sizeof(*dims)/sizeof (int64_t) <<endl;
         if(!System.isValidID(elementID))
         {
              SetOptiXLastError("The given elementID is invalid ", __FILE__, __func__);
@@ -612,10 +632,10 @@ extern "C"
             return false; //if name is invalid last error is already set
         if (flags & ArrayData)
         {
-            int64_t (*dimref)[2]=NULL;
-            if( ((ElementBase*)elementID)->getParameterArrayDims(paramTag, dimref))
+            int64_t (*dimptr)[2]=0;
+            if( ((ElementBase*)elementID)->getParameterArrayDims(paramTag, &dimptr))
             {
-                memcpy(dims,dimref, 2*sizeof(int64_t));
+                memcpy(*dims,*dimptr, 2*sizeof(int64_t));
                 return true;
             }
             else

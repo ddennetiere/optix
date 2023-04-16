@@ -211,6 +211,24 @@ void ElementBase::dumpData()
     cout  <<  "m_frameInverse" << endl << m_frameInverse.matrix() << endl<<endl;
 }
 
+void memoryDump(void* address, uint64_t size)
+{
+    uint64_t index=0;
+    uint8_t * pos=(uint8_t*)address;
+    cout << "memory dump from address " << std::hex << address << endl;
+    while(index < size)
+    {
+        // cout << std::setw(2) <<  std::hex <<  *pos ;
+        printf("%02X ", *pos);
+        if(index%16==15)
+            cout << endl;
+        else if(index%8==7)
+            cout << ' ';
+        ++ pos;
+        ++ index;
+    }
+    cout  << endl;
+}
 
 TextFile& operator<<(TextFile& file,  ElementBase& elem)
 {

@@ -322,19 +322,20 @@ extern "C"
      */
     DLL_EXPORT bool SetParameter(size_t elementID,const char* paramTag, Parameter paramData);
 
-    /** \brief Modifies an array type parameter of an optical element
-     *
-     * <b>The type, group and flags of a parameter are internally defined and will not be changed no matter how they are defined</b>
-     * The function will fail if the element or tag doesn't exist
-     * \param elementID The ID of the element to modify
-     * \param paramTag the name of the parameter to change
-     * \param fastindex the dimension of the fast varying index
-     * \param slowindex he dimension of the slow varying index
-     * \param data a pointer to the array of parameter values whose dimensions are given by the two previous parameters
-     * \return true if the element ID is valid and the parameter was found and successfully changed;
-     *      \n false if the parameter was not found or cannot be modified; OptiXLast error is set in this case
-     */
-    DLL_EXPORT bool SetArrayParameter(size_t elementID, const char* paramTag, size_t fastindex, size_t slowindex, double *data);
+//  The following function is useless
+//    /** \brief Modifies an array type parameter of an optical element
+//     *
+//     * <b>The type, group and flags of a parameter are internally defined and will not be changed no matter how they are defined</b>
+//     * The function will fail if the element or tag doesn't exist
+//     * \param elementID The ID of the element to modify
+//     * \param paramTag the name of the parameter to change
+//     * \param fastindex the dimension of the fast varying index
+//     * \param slowindex he dimension of the slow varying index
+//     * \param data a pointer to the array of parameter values whose dimensions are given by the two previous parameters
+//     * \return true if the element ID is valid and the parameter was found and successfully changed;
+//     *      \n false if the parameter was not found or cannot be modified; OptiXLast error is set in this case
+//     */
+//    DLL_EXPORT bool SetArrayParameter(size_t elementID, const char* paramTag, size_t fastindex, size_t slowindex, double *data);
 
 
     /** \brief dump and compare given parameter with stored data
@@ -348,6 +349,8 @@ extern "C"
 
     DLL_EXPORT void DumpArgParameter(Parameter* param);
 
+    DLL_EXPORT void MemoryDump(void* address, uint64_t size)
+;
 
     /** \brief retrieves an element ordinary parameter (defined by a single double-type value)
      *
@@ -371,6 +374,16 @@ extern "C"
      */
     DLL_EXPORT bool GetArrayParameter(size_t elementID, const char* paramTag, Parameter* paramData, size_t maxsize);
 
+    /** \brief retieves the flags field of a prameter
+     *
+     * \param elementID  The ID of the element to query
+     * \param paramTag the name of the parameter to get
+     * \param flags uint32_t location to receive the flags field
+     * \return false if an error occurred in which case OptixLastError is set. Otherwise return true;
+     */
+    DLL_EXPORT bool GetParameterFlags(size_t elementID, const char* paramTag, uint32_t *flags);
+
+
     /** \brief Retrieves the total number of elements of the parameter array
      *
      * \param elementID  The ID of the element to query
@@ -389,7 +402,7 @@ extern "C"
      *      ( dims[0] will return the number of elements in the fast varying dimension)
      * \return false if elementID is invalid or if the parameter is not found or is not an array, or the dims pointer is invalid, true otherwise
      */
-    DLL_EXPORT bool GetParameterArrayDims(size_t elementID, const char* paramTag, int64_t * dims);
+    DLL_EXPORT bool GetParameterArrayDims(size_t elementID, const char* paramTag,  int64_t (*dims)[2]);
 
     /** \brief enumerates the parameter list of a given optical element
      *

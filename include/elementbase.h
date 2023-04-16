@@ -59,6 +59,8 @@ inline void SetOptiXLastError(string what, const char* filename, const char* fun
 inline void ClearOptiXError() {OptiXError=false;}
 
 
+void memoryDump(void* address, uint64_t size);
+
 /** \brief Abstract base class of all optical elements, surfaces and groups
 *
 *
@@ -364,7 +366,7 @@ public:
      * \return  true if the parameter is an array, false if it is a single value.
      *
      */
-    inline bool getParameterArrayDims(string name, int64_t (*dims)[2])
+    inline bool getParameterArrayDims(string name, int64_t (**dims)[2])
     {
         ParamIterator it=m_parameters.find(name);
         if (it !=m_parameters.end())
@@ -372,7 +374,7 @@ public:
             if (it->second.flags & ArrayData)
             {
            //     int64_t(&dimref)[2]=it->second.paramArray->dims;
-                dims=&(it->second.paramArray->dims);
+                *dims=&(it->second.paramArray->dims);
                 return true;
             }
             else
