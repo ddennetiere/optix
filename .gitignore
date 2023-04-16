@@ -24,12 +24,14 @@ doxygen/doxyfile
 wigner3j.f95
 ftypes.f95
 OptiX.png
+*.pptx
+
 
 # not maintained directories
 bibliography/
 removed/
 bin/
 solemio/
-
+__*/
 
 
