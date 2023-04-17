@@ -102,6 +102,7 @@ typedef struct alignas(16) __ArrayParameter
     */
     inline __ArrayParameter(int rows, int cols){dims[0]=rows; dims[1]= cols; data=new alignas(16) double[rows*cols];}
 
+    inline __ArrayParameter(){}/**< \brief default empty constructor */
 
     /** \brief copy constructor with deep copy
     *   \param aparam the parameter array to copy
