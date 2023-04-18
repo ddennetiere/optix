@@ -111,8 +111,9 @@ typedef struct alignas(16) __ArrayParameter
     {
         // std::cout <<"construct a copy of a " << aparam.dims[0] << " x " << aparam.dims[1] << " elements array\n";
         memcpy(dims, aparam.dims,2*sizeof(int64_t) );
-        data=new alignas(16) double[dims[0]* dims[1]];
-        memcpy(data, aparam.data, sizeof(double)*dims[0]*dims[1]);
+        int64_t n=dims[0]* dims[1];
+        data=new alignas(16) double[n];
+        memcpy(data, aparam.data, n*sizeof(double));
     }
 
     /** \brief deep copy assignment
@@ -120,13 +121,20 @@ typedef struct alignas(16) __ArrayParameter
      */
     inline __ArrayParameter& operator=(const __ArrayParameter & aparam)
     {
-      //  std::cout <<"assign a copy of a " << aparam.dims[0] << " x " << aparam.dims[1] << " elements array\n";
-        memcpy(dims, aparam.dims,2*sizeof(int64_t) );
+        //on fait le ménage mémoire avant de changer dims
+//        std::cout << "cleaning old pointer\n";
         if(data)
             delete [] data;
-    //    std::cout << "Array parameter data was re-assigned\n";
-        data=new alignas(16) double[dims[0]* dims[1]];
-        memcpy(data, aparam.data, sizeof(double)*dims[0]*dims[1]);
+
+//        std::cout << "copying dims\n";
+        memcpy(dims, aparam.dims,2*sizeof(int64_t) );
+
+        int64_t n = dims[0]* dims[1];
+//        std::cout << "creating  " << n << " doubles\n";
+        data=new alignas(16) double[n];
+//        std::cout << "copying data\n";
+        memcpy(data, aparam.data, n*sizeof(double));
+//        std::cout << "done\n";
         return *this;
     }
 
@@ -138,14 +146,18 @@ typedef struct alignas(16) __ArrayParameter
         if(data)
             delete [] data;
      //  std::cout << "Array parameter data was re-defined\n";
-        data=new alignas(16) double[dims[0]* dims[1]];
-        memcpy(data, dat.data(), sizeof(double)*dims[0]*dims[1]);
+        int64_t n=dims[0]* dims[1];
+        data=new alignas(16) double[n];
+        memcpy(data, dat.data(), n* sizeof(double));
         return *this;
     }
 
     /** \brief destructor with memory cleaning
      */
-    ~__ArrayParameter(){if(data) delete [] data;}
+    ~__ArrayParameter()
+    {   if(data)
+            delete [] data;
+    }
 
     void dump()
     {
@@ -211,7 +223,7 @@ typedef struct __Parameter{
         }
         else
             value=param.value;
-       memcpy(bounds,param.bounds, 3*sizeof(double)) ;
+       memcpy(bounds,param.bounds, 3*sizeof(double)) ; // copy bounds and multiplier
        type=param.type;
        group=param.group;
        flags=param.flags;
@@ -221,19 +233,23 @@ typedef struct __Parameter{
      */
     inline __Parameter& operator=(const __Parameter & param)
     {
-        if(param.flags & ArrayData)
+        if((param.flags &ArrayData) !=(flags&ArrayData))
         {
-           // std::cout <<"assign a copy of a parameter containing a " << param.paramArray->dims[0] << " x " << param.paramArray->dims[1] << " elements array\n";
-            if(paramArray)
-               delete paramArray;
-            paramArray= new ArrayParameter(*param.paramArray);
+            std::cout << "invalid parameter copy\n";
+            exit(10);
         }
+        // détruit les array data si lle flag est mis
+        if(flags & ArrayData)
+            delete paramArray;
+        if(param.flags & ArrayData)
+            paramArray= new ArrayParameter(*param.paramArray);
         else
             value=param.value;
-       memcpy(bounds,param.bounds, 3*sizeof(double)) ;
+       memcpy(bounds,param.bounds, 3*sizeof(double)) ; // copy bounds and multiplier
        type=param.type;
        group=param.group;
        flags=param.flags;
+       //std::cout <<"returning copied param\n";
        return *this;
     }
 
