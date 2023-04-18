@@ -14,8 +14,9 @@ global OptiX
 class Bounds(Structure):
     _fields_ = [("min", DOUBLE),
                 ("max", DOUBLE)]
-    def toString(self):
-        print("[",self.min,self.max,"]")
+
+    def __repr__(self):
+        return f"Parameter bounds [{self.min}, {self.max}]"
         
 class ParamArray(Structure):
     _fields_ = [('dims', c_int64 * 2),
@@ -27,7 +28,11 @@ class uData(Union):
                 ("p_array", POINTER(ParamArray))]
 
 class Parameter(Structure):
-    #_pack_ = 8
+    """
+    C structure defining modifiable fields of optix optical element parameters. Note bounds type is Bounds. See Bounds
+    docstring.
+    """
+    # _pack_ = 8
     _anonymous_ = ("u",)
     _fields_ = [("u", uData),
                 ("bounds", Bounds),
@@ -36,32 +41,64 @@ class Parameter(Structure):
                 ("group", INT),
                 ("flags", UINT),
                 ]
-    def __init__(self):
-        self.array=None
 
-    # 
-    # np_array doit être un numpy ndarray
-    # this function sets self.array, the array flag bit, and the required pointer and dims fields of the Parameter.paramArray sub structure
-    def setArray(self, np_array):
-        # self.array=ParamArray()
-        # self.array.dims[0]=np_array.shape[1]
-        # self.array.dims[1]=np_array.shape[0]
-        # self.array.data=np_array.ctypes.data_as(POINTER(c_double))
-        # self.p_array=pointer(self.array)
+    def __init__(self):
+        super().__init__()
+        self._array = None
+
+    @property
+    def array(self):
+        return self._array
+
+    @array.setter
+    def array(self, np_array):
+        """
+        np_array doit être un numpy ndarray
+        this function sets self.array, the array flag bit, and the required pointer and dims fields of
+        the Parameter.paramArray sub structure
+
+        :param np_array: array value
+        :type np_array: numpy.ndarray
+        :return: None
+        :rtype: Nonetype
+        """
         if not isinstance(np_array, np.ndarray):
-            print("a 'ndarray' argument was expected ,but the received argument type is ", type(np_array).__name__ )
+            print("a 'ndarray' argument was expected ,but the received argument type is ", type(np_array).__name__)
             return
-        if np_array.dtype.name ==  'float64':
-            self.array=np_array
+        if np_array.dtype.name == 'float64':
+            self._array = np_array
         else:
-            self.array=np_array.astype('float64')
-        pa=ParamArray()
-        pa.dims[0]=self.array.shape[1]
-        pa.dims[1]=self.array.shape[0]
-        pa.data=self.array.ctypes.data_as(POINTER(c_double))
-        self.p_array=pointer(pa)
+            self._array = np_array.astype('float64')
+        pa = ParamArray()
+        pa.dims[0] = self._array.shape[1]
+        pa.dims[1] = self._array.shape[0]
+        pa.data = self._array.ctypes.data_as(POINTER(c_double))
+        self.p_array = pointer(pa)
         # pa peut être retrouvé par pa=p_array.contents
-        self.flags=self.flags | 0x08
+        self.flags |= 1 << 3
+
+    def __repr__(self):
+        if self.flags & 1 << 3:
+            data_length = self.p_array.contents.dims[0]*self.p_array.contents.dims[1]
+            data_address = self.p_array.contents.data.contents
+            data = np.ctypeslib.as_array((ctypes.c_double * data_length).from_address(ctypes.addressof(data_address)))
+            return f"Param object containing:\n" \
+                   f"\t ParamArray dimension {self.p_array.contents.dims[0]}*{self.p_array.contents.dims[1]}, " \
+                   f"@ {hex(ctypes.addressof(self.p_array))}\n" \
+                   f"\t\twith data = {data} @ {hex(ctypes.addressof(data_address))}\n" \
+                   f"\t Bounds {self.bounds}\n" \
+                   f"\t multiplier {self.multiplier}\n" \
+                   f"\t type {self.type}\n" \
+                   f"\t group {self.group}\n" \
+                   f"\t flags {self.flags}\n"
+        else:
+            return f"Param object containing:\n" \
+                   f"\t Value {self.value}\n" \
+                   f"\t Bounds {self.bounds}\n" \
+                   f"\t multiplier {self.multiplier}\n" \
+                   f"\t type {self.type}\n" \
+                   f"\t group {self.group}\n" \
+                   f"\t flags {self.flags}\n"
     
 
 
@@ -187,7 +224,7 @@ def getParameter(elemID,paramName, parameter):
             #the paracmeter contains an array
             dims=(c_int64 * 2)()
             if OptiX.GetParameterArrayDims(elemID, paramName.encode(), byref(dims) ) != 0 :
-                parameter.setArray(np.empty([dims[1],dims[0]]))
+                parameter.array = np.empty([dims[1],dims[0]])
                 if OptiX.GetArrayParameter(elemID, paramName.encode(), byref(parameter), dims[0]*dims[1] ) != 0 :
                     return
         else:
@@ -216,11 +253,19 @@ def paramTest():
     param=Parameter()
     getParameter(NPmirrorID,"surfaceLimits",param)
     dumpArgParameter(param)
-    param.setArray(np.array([[-10,10],[-5,5]]))
+    param.array = np.array([[-10,10],[-5,5]])
     setParameter(NPmirrorID,"surfaceLimits",param)
     param2=Parameter()
     getParameter(NPmirrorID,"surfaceLimits",param2)
     dumpArgParameter(param2)
+    param3=Parameter()
+    getParameter(NPmirrorID,"coefficients",param3)
+    dumpArgParameter(param3)
+    param3.array = np.zeros((1,1))
+    dumpArgParameter(param3)
+    print(param3)
+    setParameter(NPmirrorID,"coefficients",param3)
+    
 
 
 if __name__ == "__main__":
@@ -232,4 +277,6 @@ if __name__ == "__main__":
         Load_OptiX()
         print("OptiX library initialized")
     paramTest()
+    print("\n"*3)
+    # test(1e-9)
   
