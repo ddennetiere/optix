@@ -94,12 +94,14 @@ def Load_OptiX():
     OptiX.GetParameterArrayDims.argtypes = [HANDLE, LPCSTR, POINTER(ARRAY(c_int64,2)) ]
     OptiX.GetParameterArrayDims.restype = BYTE
     # SetParameter(size_t elementID, const char* paramTag,  Parameter paramData)
-    OptiX.SetParameter.argtypes = [HANDLE, LPCSTR, Parameter]
+    OptiX.SetParameter.argtypes = [HANDLE, LPCSTR, POINTER(Parameter)]
     OptiX.SetParameter.restype = BYTE
     OptiX.CreateElement.argtypes = [LPCSTR, LPCSTR]
     OptiX.CreateElement.restype = HANDLE
     OptiX.MemoryDump.argtypes = [c_voidp, c_uint64] 
-    OptiX.DumpArgParameter.argtypes = [POINTER(Parameter)] 
+    OptiX.DumpArgParameter.argtypes = [POINTER(Parameter)]
+    OptiX.DumpParameter.argtypes = [HANDLE, LPCSTR]
+
 
 def Release_OptiX():
     global OptiX
@@ -173,6 +175,9 @@ def createElement(elemType, elemName):
 def dumpArgParameter(parameter):
     OptiX.DumpArgParameter(byref(parameter))
 
+def dumpParameter(elemID, paramName):
+    OptiX.DumpParameter(elemID, paramName.encode())
+    
 def memoryDump(address, size):
     OptiX.MemoryDump(address,size)
 
@@ -199,7 +204,7 @@ def getParameter(elemID,paramName, parameter):
     outputError("Get parameter Error:")
 
 def setParameter(elemID,paramName, parameter):
-    if OptiX.SetParameter(elemID, paramName.encode(), parameter) == 0 :
+    if OptiX.SetParameter(elemID, paramName.encode(), byref(parameter)) == 0 :
         outputError("Get parameter Error:")
 
 
@@ -210,7 +215,7 @@ def test(wavelength):
     clearImpacts(source)
     print(generate(source, wavelength), " rays")
     radiate(source)
-    
+    7
 def paramTest():
     NPmirrorID=createElement("NaturalPolynomialMirror","NPmirror")
     param=Parameter()
@@ -221,6 +226,9 @@ def paramTest():
     param2=Parameter()
     getParameter(NPmirrorID,"surfaceLimits",param2)
     dumpArgParameter(param2)
+    print("getting coefficients")
+    getParameter(NPmirrorID,"coefficients",param)
+    dumpArgParameter(param)
 
 
 # initialisation auto    
