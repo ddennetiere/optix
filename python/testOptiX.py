@@ -18,6 +18,7 @@ class Bounds(Structure):
         print("[",self.min,self.max,"]")
         
 class ParamArray(Structure):
+    _pack_ = 16
     _fields_ = [('dims', c_int64 * 2),
                 ('data', POINTER(DOUBLE))]
 
@@ -93,8 +94,7 @@ def Load_OptiX():
     OptiX.GetArrayParameter.restype = BYTE
     OptiX.GetParameterArrayDims.argtypes = [HANDLE, LPCSTR, POINTER(ARRAY(c_int64,2)) ]
     OptiX.GetParameterArrayDims.restype = BYTE
-    # SetParameter(size_t elementID, const char* paramTag,  Parameter paramData)
-    OptiX.SetParameter.argtypes = [HANDLE, LPCSTR, Parameter]
+    OptiX.SetParameter.argtypes = [HANDLE, LPCSTR, POINTER(Parameter)]
     OptiX.SetParameter.restype = BYTE
     OptiX.CreateElement.argtypes = [LPCSTR, LPCSTR]
     OptiX.CreateElement.restype = HANDLE
@@ -199,7 +199,7 @@ def getParameter(elemID,paramName, parameter):
     outputError("Get parameter Error:")
 
 def setParameter(elemID,paramName, parameter):
-    if OptiX.SetParameter(elemID, paramName.encode(), parameter) == 0 :
+    if OptiX.SetParameter(elemID, paramName.encode(), byref(parameter)) == 0 :
         outputError("Get parameter Error:")
 
 
