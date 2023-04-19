@@ -191,9 +191,6 @@ def getParameter(elemID,paramName, parameter):
                 if OptiX.GetArrayParameter(elemID, paramName.encode(), byref(parameter), dims[0]*dims[1] ) != 0 :
                     return
         else:
-            # release the array data and unset flags array bit, if needed 
-            parameter.array = None
-            parameter.flags=0
             if OptiX.GetParameter(elemID, paramName.encode(), byref(parameter)) != 0 :
                 return 
     outputError("Get parameter Error:")
