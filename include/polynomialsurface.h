@@ -156,12 +156,13 @@ bool PolynomialSurface<PolyType>::setParameter(string name, Parameter& param)
         cout << "setting PolynomialSurface coeffs\n";
         if(!(param.flags & ArrayData))
         {
-             SetOptiXLastError("coefficients must be an array type parameter", __FILE__, __func__);
-             return false;
+
+            SetOptiXLastError("coefficients must be an array type parameter", __FILE__, __func__);
+            return false;
         }
-        if(param.paramArray->dims[0]*param.paramArray->dims[1]<4)
+        if(param.paramArray->dims[0]*param.paramArray->dims[1]<1)
         {
-            SetOptiXLastError("Array size of coefficients parameter must be at least 3", __FILE__, __func__);
+            SetOptiXLastError("Array size of coefficients parameter must be at least 1", __FILE__, __func__);
             return false;
         }
      //   MatrixXd && dcoeff=param.paramArray->matrix();
