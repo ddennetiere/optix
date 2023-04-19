@@ -274,11 +274,16 @@ int OriginalTest()
         GetOptiXLastError(msg,256);
         cout <<"could not first dump parameter reason\n" <<msg << endl;
     }
+<<<<<<< HEAD
+    cout << "limit parameter dump tested" <<endl;
+    if(!SetArrayParameter(lpmID, "surfaceLimits", 2,2, data ))
+=======
     cout <<" get surfaceLimits parameter\n";
     Parameter lparam;
     uint32_t flags;
     GetParameterFlags(lpmID,"surfaceLimits",&flags);
     if( flags & 0X08)
+>>>>>>> ce8a81f7c624b26d9bd666d79bf8c95d097f1e01
     {
         int64_t dims[2];
         GetParameterArrayDims(lpmID,"surfaceLimits",&dims);
@@ -296,6 +301,11 @@ int OriginalTest()
         }
 
     }
+<<<<<<< HEAD
+    cout << "limit set parameter tested" <<endl;
+     //if(!DumpParameter(lpmID,"surfaceLimits", aparam))
+
+=======
     else
         cout << "surfaceLimits is not an array\n";
     cout << "surfaceLimits is\n";
@@ -314,6 +324,7 @@ int OriginalTest()
 //        GetOptiXLastError(msg,256);
 //        cout <<"could not set array parameter reason\n" <<msg << endl;
 //    }
+>>>>>>> ce8a81f7c624b26d9bd666d79bf8c95d097f1e01
      if(!DumpParameter(lpmID,"surfaceLimits"))
     {
         GetOptiXLastError(msg,256);
@@ -325,7 +336,7 @@ int OriginalTest()
         cout <<"could not =dump parameter 'coefficients';  reason\n" <<msg << endl;
     }
  //   lpMirror.dumpParameter("surfaceLimits", aparam);
-
+    cout << "array parameter tested" <<endl;
 
 
     XYGridSource source("Source") ;

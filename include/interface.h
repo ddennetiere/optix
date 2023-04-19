@@ -316,11 +316,11 @@ extern "C"
      * The function will fail if the element or tag doesn't exist
      * \param elementID The ID of the element to modify
      * \param paramTag the name of the parameter to change
-     * \param[in] paramData the new parameter data as a Parameter struct
+     * \param[in] paramData a pointer to the new parameter data in a Parameter struct. The variable content is not modified by the function
      * \return true if the element ID is valid and the parameter was found and successfully changed;
      *      \n false if the parameter was not found or cannot be modified; OptiXLast error is set in this case
      */
-    DLL_EXPORT bool SetParameter(size_t elementID,const char* paramTag, Parameter paramData);
+    DLL_EXPORT bool SetParameter(size_t elementID,const char* paramTag, Parameter * paramData);
 
 //  The following function is useless
 //    /** \brief Modifies an array type parameter of an optical element

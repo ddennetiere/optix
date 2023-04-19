@@ -219,13 +219,11 @@ public:
     * \param param the new parameter  object
     * \return  true if parameters was changed , false if parameter doesn't belong to the object of has a different array flag
     */
-    inline virtual  bool setParameter(string name, Parameter& param)
+    inline virtual  bool setParameter(string name,const Parameter& param)
     {
         ParamIterator it=m_parameters.find(name);
         if (it !=m_parameters.end())
         {
-            param.type=it->second.type; // type, flags and group of a parameter must not be modified
-            param.group=it->second.group;
             if( (param.flags&ArrayData) != (it->second.flags&ArrayData))
             {
                 string reason;
@@ -237,10 +235,18 @@ public:
                 SetOptiXLastError(string("parameter name ")+ name +reason,__FILE__, __func__);
                 return false;
             }
-            param.flags=it->second.flags;
+
+            UnitType type=it->second.type;
+            ParameterGroup group=it->second.group;
+           // uint32_t flags=it->second.flags; //   L'utilisateur doit pouvoir changer les flags autres que ArrayData
+
             it->second=param;
+
+            it->second.type=type;
+            it->second.group=group;
+           // it->second.flags=flags;
             m_isaligned=false;
-//            cout << "parameter "<< name <<  " set to " << param.value << endl;
+           // std::cout << "parameter "<< name <<  " set \n";   //to " << param.value << endl;
             return true;
         }
         else

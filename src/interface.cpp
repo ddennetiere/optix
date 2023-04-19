@@ -496,10 +496,17 @@ extern "C"
         return true;
     }
 
-    DLL_EXPORT bool SetParameter(size_t elementID, const char* paramTag,  Parameter paramData)
+    DLL_EXPORT bool SetParameter(size_t elementID, const char* paramTag,  Parameter *paramData)
     {
+        char what[256];
+        sprintf(what,"parameter data recieved", paramData);
         if(System.isValidID(elementID))
-            return ((ElementBase*)elementID)->setParameter(paramTag, paramData);
+        {
+            // bool status=true;
+            return ((ElementBase*)elementID)->setParameter(paramTag, *paramData);
+           // std::cout << "returning status " << status << "\n";std::cout.flush();
+            // return status;
+        }
         else
         {
              SetOptiXLastError("The given elementID is invalid ", __FILE__, __func__);
@@ -1096,7 +1103,7 @@ extern "C"
                file >> param;
                if(file.fail())
                     { SetOptiXLastError("File reading error",__FILE__,__func__);  return false; }
-               if(!SetParameter(ElementBaseID, paramName.c_str(), param))
+               if(!SetParameter(ElementBaseID, paramName.c_str(), &param))
                {
                     char errstr[128];
                     sprintf(errstr, "Cannot create element %s of type %s", sName.c_str(), sClass.c_str());
