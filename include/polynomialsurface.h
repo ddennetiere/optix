@@ -77,7 +77,7 @@ class PolynomialSurface:virtual public Surface, public PolyType
             return ray.position();
         };
 
-        bool setParameter(string name, Parameter& param);
+        bool setParameter(string name,  Parameter& param);
 
         /** \brief fits the polynomial surface to the given height data
          *
@@ -133,24 +133,38 @@ PolynomialSurface<PolyType>::PolynomialSurface(string name, Surface *previous):S
 template<class PolyType>
 bool PolynomialSurface<PolyType>::setParameter(string name, Parameter& param)
 {
-
+    cout << "in PolynomialSurface setParameter\n";
     if(! Surface::setParameter(name, param)) // this call update the parameter list but takes no action
             return false;
     if(name=="surfaceLimits") // do specific creation actions
     {
         if(!(param.flags & ArrayData))
-            throw ParameterException("surfaceLimits must be an array type parameter", __FILE__, __func__, __LINE__);
+        {
+            SetOptiXLastError("surfaceLimits must be an array type parameter", __FILE__, __func__);
+            return false;
+        }
         if(param.paramArray->dims[0]*param.paramArray->dims[1]<4)
-            throw ParameterException("Array size of surfaceLimits parameter must be at least 4", __FILE__, __func__, __LINE__);
+        {
+            SetOptiXLastError("Array size of surfaceLimits parameter must be at least 4", __FILE__, __func__);
+            return false;
+        }
         double * lim= param.paramArray->data;
         Polynomial::setLimits(lim[0], lim[1], lim[2], lim[3]);
     }
     if(name=="coefficients") // do specific creation actions
     {
+        cout << "setting PolynomialSurface coeffs\n";
         if(!(param.flags & ArrayData))
-            throw ParameterException("coefficients must be an array type parameter", __FILE__, __func__, __LINE__);
-        if(param.paramArray->dims[0]*param.paramArray->dims[1]<4)
-            throw ParameterException("Array size of coefficients parameter must be at least 3", __FILE__, __func__, __LINE__);
+        {
+
+            SetOptiXLastError("coefficients must be an array type parameter", __FILE__, __func__);
+            return false;
+        }
+        if(param.paramArray->dims[0]*param.paramArray->dims[1]<1)
+        {
+            SetOptiXLastError("Array size of coefficients parameter must be at least 1", __FILE__, __func__);
+            return false;
+        }
      //   MatrixXd && dcoeff=param.paramArray->matrix();
         m_coeffs=param.paramArray->matrix().template cast<long double>();
     }
