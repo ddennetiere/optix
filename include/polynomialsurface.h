@@ -133,7 +133,7 @@ PolynomialSurface<PolyType>::PolynomialSurface(string name, Surface *previous):S
 template<class PolyType>
 bool PolynomialSurface<PolyType>::setParameter(string name, Parameter& param)
 {
-    cout << "in PolynomialSurface setParameter\n";
+   // cout << "in PolynomialSurface setParameter\n";
     if(! Surface::setParameter(name, param)) // this call update the parameter list but takes no action
             return false;
     if(name=="surfaceLimits") // do specific creation actions
@@ -153,7 +153,7 @@ bool PolynomialSurface<PolyType>::setParameter(string name, Parameter& param)
     }
     if(name=="coefficients") // do specific creation actions
     {
-        cout << "setting PolynomialSurface coeffs\n";
+        //cout << "setting PolynomialSurface coeffs\n";
         if(!(param.flags & ArrayData))
         {
 

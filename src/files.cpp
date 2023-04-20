@@ -1850,7 +1850,7 @@ int OpacityOf(string strIn)
                         param.bounds[0]=ValueOf(token[1]);
                         param.bounds[1]=ValueOf(token[3]);
                     }
-                    if(!SetParameter(elementID, token[0].c_str(), &param))
+                    if(!SetParameter(elementID, token[0].c_str(), param))
                     {
                         cout << "  Can get but not set parameter : " << token[0] <<endl;
                         return false ;
