@@ -106,7 +106,7 @@ class Parameter(Structure):
 def Load_OptiX():
     global OptiX
     print("intialzing SR library")
-    OptiX=cdll.LoadLibrary(r'D:\Dennetiere\optix\release/OptiX.dll')
+    OptiX=cdll.LoadLibrary(r'D:/projets/projetsCB/OptiX/release/OptiX.dll')
     OptiX.LoadSolemioFile.restype=BYTE      # gcc bool match to ctypes BYTE 
     OptiX.LoadSolemioFile.argtypes=[LPCSTR]
     OptiX.GetOptiXLastError.restype=BYTE
@@ -263,7 +263,7 @@ def paramTest():
     param3=Parameter()
     getParameter(NPmirrorID,"coefficients",param3)
     dumpArgParameter(param3)
-    param3.array = np.zeros((1,1))
+    param3.array = np.zeros((3,1))
     dumpArgParameter(param3)
     print(param3)
     setParameter(NPmirrorID,"coefficients",param3)

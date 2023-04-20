@@ -92,16 +92,16 @@
 		<Compiler>
 			<Add option="-fopenmp" />
 			<Add directory="include" />
-			<Add directory="eigen/eigen" />
-			<Add directory="../optix" />
-			<Add directory="../libxml2/libxml2-2/include/libxml2" />
-			<Add directory="../Programmes_C++/nfft-3.5.3-dll64-openmp" />
+			<Add directory="D:/projets/projetsCB/eigen-3.4.0" />
+			<Add directory="D:/projets/projetsCB/OptiX/" />
+			<Add directory="../libxml2-2/include/libxml2" />
+			<Add directory="../nfft-3.5.2-dll64-openmp" />
 		</Compiler>
 		<Linker>
 			<Add library="libxml2-2" />
 			<Add library="nfft3_threads-4" />
-			<Add directory="../libxml2/libxml2-2/bin" />
-			<Add directory="../Programmes_C++/nfft-3.5.3-dll64-openmp" />
+			<Add directory="../libxml2-2/bin" />
+			<Add directory="../nfft-3.5.2-dll64-openmp" />
 		</Linker>
 		<Unit filename="LibTest.c">
 			<Option compilerVar="CC" />
@@ -380,7 +380,6 @@
 			<Option target="Test(release)" />
 		</Unit>
 		<Unit filename="src/Wigner3j.f95">
-			<Option weight="0" />
 			<Option target="&lt;{~None~}&gt;" />
 		</Unit>
 		<Unit filename="src/apertureAPI.cpp">
@@ -414,7 +413,6 @@
 			<Option target="Test(release)" />
 		</Unit>
 		<Unit filename="src/ftypes.f95">
-			<Option weight="0" />
 			<Option target="&lt;{~None~}&gt;" />
 		</Unit>
 		<Unit filename="src/gratingbase.cpp">
