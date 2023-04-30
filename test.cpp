@@ -69,8 +69,8 @@ int main()
     cout << "sizeof(UnitType) " << sizeof(UnitType) << endl ;
     cout << "sizeof(ParameterGroup) " <<  sizeof(ParameterGroup) << endl << endl;
 
-//    return SolemioTest();
-    return OriginalTest();
+    return SolemioTest();
+//    return OriginalTest();
 //    return SphereTest();
 //    return QuickTest();
 //    return TestEllipse();   // modifié pour test grating

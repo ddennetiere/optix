@@ -26,11 +26,18 @@ using namespace std::chrono;
  int SolemioTest()
  {
     //ReadSolemioFile("R:\\Partage\\SOLEMIO\\CASSIOPEE");
-    SolemioImport("D:\\projets\\projetsCB\\OptiX\\solemio\\CASSIOPEE");
+//    SolemioImport("D:\\projets\\projetsCB\\OptiX\\solemio\\CASSIOPEE");
+    if(! SolemioImport("D:\\projets\\projetsCB\\OptiX\\solemio\\DESIRSvrai.sole"))
+    {
+        char buf[512];
+        GetOptiXLastError(buf,511);
+        cout << "Solemio import error:\n" << buf <<endl;
+        exit(100);
+    }
     size_t hSys=0, hParm=0, elemID=0;
     char elname[32], name2[32],parmname[48], errBuf[256];
     Parameter param;
-
+    cout << "list of defined elements\n";
     do
     {
         EnumerateElements(&hSys,&elemID, elname,32);
@@ -50,7 +57,7 @@ using namespace std::chrono;
         }while(hParm);
 
     }while(hSys);
-
+    cout << "system END\n";
     size_t sourceID=elemID=GetElementID("S_ONDUL1");
 //    size_t pupID=GetElementID("pupille");
 //    ChainElement_byID(pupID,0);
@@ -79,19 +86,37 @@ using namespace std::chrono;
        cout << "Source generation error : " << errBuf << endl;
        return -1;
     }
+    cout << "source generated\n";
     {
-        GratingBase* grating=dynamic_cast<GratingBase *> ((ElementBase*)GetElementID("Reseau_400H"));
-        Surface* screen=dynamic_cast<Surface*> ((ElementBase*)GetElementID("EXP1")); //S_ONDUL1, pupille, Reseau_400H, Fente, planfocH
+        GratingBase* grating=dynamic_cast<GratingBase *> ((ElementBase*)GetElementID("reseaumiroir"));  // "Reseau_400H"
+//        GratingBase* grating=dynamic_cast<GratingBase *> ((ElementBase*)GetElementID("Reseau_400H"));
+
+//        Surface* screen=dynamic_cast<Surface*> ((ElementBase*)GetElementID("EXP1")); //"EXP1", S_ONDUL1, pupille, Reseau_400H, Fente, planfocH
+        Surface* screen=dynamic_cast<Surface*> ((ElementBase*)GetElementID("fenteentree")); //"EXP1", S_ONDUL1, pupille, Reseau_400H, Fente, planfocH
+
+        if(grating)
+        {
+                cout << "grating defined\n";
+            for(double x=-2e-2; x  < 2.1e-2; x+=1e-2)
+            {
+                Surface::VectorType pos=Surface::VectorType::Zero();
+                pos(0)=x;
+                cout << x << "   " << grating->gratingVector(pos).transpose() << endl;
+            }
+        }
+        else cout << "grating not defined\n";
+
+        if(screen) cout << "screen defined\n";
+        else
+        {
+            cout << "screen not defined\n";
+            return 10;
+        }
+
         screen->setRecording(RecordOutput);
+        cout << "done\n";
         cout << "recording mode " << screen->getRecording() << endl;
 
-
-        for(double x=-2e-2; x  < 2.1e-2; x+=1e-2)
-        {
-            Surface::VectorType pos=Surface::VectorType::Zero();
-            pos(0)=x;
-            cout << x << "   " << grating->gratingVector(pos).transpose() << endl;
-        }
 
         high_resolution_clock clock;
         high_resolution_clock::time_point start(clock.now());

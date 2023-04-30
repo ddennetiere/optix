@@ -221,11 +221,11 @@ typedef struct __Parameter{
      */
     inline __Parameter& operator=(const __Parameter & param)
     {
+        if( (flags & ArrayData) && paramArray )
+           delete paramArray;
         if(param.flags & ArrayData)
         {
            // std::cout <<"assign a copy of a parameter containing a " << param.paramArray->dims[0] << " x " << param.paramArray->dims[1] << " elements array\n";
-            if(paramArray)
-               delete paramArray;
             paramArray= new ArrayParameter(*param.paramArray);
         }
         else
@@ -242,7 +242,9 @@ typedef struct __Parameter{
      *
      * \param destParam destination Parameter struct in which the object will be copied. NO Check is done on the available
      *      memory size of the destinationparamArray
-     * \return 0 when successful;  1 if  if the flags members of both parameter don't match, 2 if the paramArray pointer of the destination struct is invalid
+     * \return 0 when successful;  1 if  if the flags members of both parameter don't match, 2 if the paramArray pointer
+     *  of the destination struct is invalid, 3 if the data pointer is invalid or the product of dimensions of destination
+     *  is smaller than the source one
      */
     inline int copy(__Parameter &destParam)
     {
@@ -254,7 +256,10 @@ typedef struct __Parameter{
 
             if(!destParam.paramArray)
                 return 2;
-
+            int64_t Ndest=destParam.paramArray->dims[0]*destParam.paramArray->dims[1];
+            int64_t Nsrc=paramArray->dims[0]*paramArray->dims[1];
+            if((!destParam.paramArray->data)  || (Ndest < Nsrc ))
+               return 3;
             memcpy(destParam.paramArray->dims,paramArray->dims,2*sizeof(int64_t));
             memcpy(destParam.paramArray->data,paramArray->data,paramArray->dims[0]*paramArray->dims[1]*sizeof(double) );
         }

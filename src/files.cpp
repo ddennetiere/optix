@@ -831,21 +831,69 @@ bool getTrimmedEnding(const string &line, size_t pos, string &token)
             if(pelemID)
             {
                 if(SSurf.param[2]!=0 || SSurf.param[3]!=0 || SSurf.param[4]!=0 || SSurf.param[5]!=0 )
-                    cout << "Toroid deformation is not implemented under OptiX\n";
-
-                *pelemID=CreateElement("Mirror<Toroid>",name.c_str());
-                elem=(ElementBase*)*pelemID;
-                Parameter param;
-                elem->getParameter("major_curvature", param);
-                param.value=1./SSurf.param[0];
-                param.bounds[0]=1./SSurf.varparamax[0];
-                param.bounds[1]=1./SSurf.varparamin[0];
-                elem->setParameter("major_curvature", param);
-                elem->getParameter("minor_curvature", param);
-                param.value=1./SSurf.param[1];
-                param.bounds[0]=1./SSurf.varparamax[1];
-                param.bounds[1]=1./SSurf.varparamin[1];
-                elem->setParameter("minor_curvature", param);
+                {
+                    cout << "Toroid deformation will be replaced  by a polynomial surface \n please input the surface limits: Xmin Xmax Ymine Ymax\n";
+                    double Xmin,Xmax, Ymin,Ymax;
+                    std::cin >> Xmin >> Xmax >> Ymin >> Ymax;
+                    cout << "coefficients will be computed inside rectangle " << Xmin << ", "<< Xmax << ", " << Ymin << ", " << Ymax << endl;
+                    *pelemID=CreateElement("Mirror<NaturalPolynomialSurface>",name.c_str());
+                    elem=(ElementBase*)*pelemID;
+                    Parameter param(2, 2, Distance, ShapeGroup); // create an array parameter
+                    if(!elem->getParameter("surfaceLimits",param))
+                    {
+                        ForwardOptiXLastError(__FILE__, __func__, __LINE__);
+                        return false;
+                    }
+                    auto mat=param.paramArray->matrix();
+                    mat << Xmin, Xmax, Ymin, Ymax;
+                    DumpArgParameter(&param);
+                    elem->setParameter("surfaceLimits",param);
+                    elem->dumpParameter("surfaceLimits");
+                    int nx=2,ny=1;
+                    if(SSurf.param[3] !=0)
+                        ny=3;
+                    if(SSurf.param[5] !=0)
+                        nx=6;
+                    else if(SSurf.param[4] !=0)
+                        nx=5;
+                    else if(SSurf.param[2] !=0)
+                        nx=4;
+                    param=Parameter(nx,ny,Distance,ShapeGroup);
+//                    if(!elem->getParameter("coefficients",param))
+//                    {
+//                        ForwardOptiXLastError(__FILE__, __func__, __LINE__);
+//                        return false;
+//                    }
+//                    mat=param.paramArray->matrix();
+//                    mat.setZero();
+//                    if(SSurf.param[3] !=0)
+//                        mat(1,2)=SSurf.param[3]*Xmax*Ymax*Ymax;
+//                    if(SSurf.param[5] !=0)
+//                        mat(5,0)=SSurf.param[3]*pow(Xmax,5);
+//                    else  if(SSurf.param[4] !=0)
+//                        mat(4,0)=SSurf.param[3]*pow(Xmax,4);
+//                    else  if(SSurf.param[2] !=0)
+//                        mat(3,0)=SSurf.param[3]*pow(Xmax,3);
+//                    DumpArgParameter(&param);
+//                    elem->setParameter("coefficents",param);
+//                    elem->dumpParameter("coefficents");
+                }
+                else
+                {
+                    *pelemID=CreateElement("Mirror<Toroid>",name.c_str());
+                    elem=(ElementBase*)*pelemID;
+                    Parameter param;
+                    elem->getParameter("major_curvature", param);
+                    param.value=1./SSurf.param[0];
+                    param.bounds[0]=1./SSurf.varparamax[0];
+                    param.bounds[1]=1./SSurf.varparamin[0];
+                    elem->setParameter("major_curvature", param);
+                    elem->getParameter("minor_curvature", param);
+                    param.value=1./SSurf.param[1];
+                    param.bounds[0]=1./SSurf.varparamax[1];
+                    param.bounds[1]=1./SSurf.varparamin[1];
+                    elem->setParameter("minor_curvature", param);
+                }
             }
         }
         break;
@@ -1089,9 +1137,32 @@ bool getTrimmedEnding(const string &line, size_t pos, string &token)
         {
             cout <<"add waist position from script variables\n";
             double lambda= SSurf.param[1] ;
-            double centerOnd=stod(tclDict["Cond"]);
+            double centerOnd=0,sdOffset=0;
+            bool csdRef=false;
+            if( tclDict.find("Cond")!= tclDict.end())
+            {
+                if(tclDict["Cond"]!="")
+                {
+                    centerOnd=stod(tclDict["Cond"]);
+                    sdOffset=0;
+                    csdRef=true;
+                }
+            }
+            cout << "ondulator referred to CSD " << csdRef <<endl;
+            if( (!csdRef) && tclDict.find("Csd")!=tclDict.end())
+            {
+              sdOffset=stod(tclDict["Csd"]);
+              centerOnd=  -sdOffset;
+            }
+            else
+            {
+                SetOptiXLastError("Unknown undulator script type",__FILE__,__func__, __LINE__);
+                return false;
+            }
             double longOnd=stod(tclDict["Lond"]);
-            double detuningFactor=stod(tclDict["Ka"]);
+            double detuningFactor=1.;
+            if(tclDict.find("Ka")!= tclDict.end())
+                detuningFactor=stod(tclDict["Ka"]);
             double sigmaH=stod(tclDict["Sh"]);
             double sigmaV=stod(tclDict["Sv"]);
             double sigmaPrimH=stod(tclDict["Sph"]);
@@ -1102,10 +1173,10 @@ bool getTrimmedEnding(const string &line, size_t pos, string &token)
             double diffSizeSquare=lambda*longOnd/(detuningFactor*8* M_PI*M_PI);
             double diffDivSquare=lambda*detuningFactor/(longOnd*2);
             double temp=sigmaPrimH*sigmaPrimH+diffDivSquare;
-            double waistH=centerOnd*diffDivSquare/ temp ;
+            double waistH=sdOffset+centerOnd*diffDivSquare/ temp ;
             double sigmaPrimTotH=  sqrt(temp)  ;
             temp=sigmaPrimV*sigmaPrimV+diffDivSquare;
-            double waistV=centerOnd*diffDivSquare/temp ;
+            double waistV=sdOffset+centerOnd*diffDivSquare/temp ;
             double sigmaPrimTotV=sqrt(temp);
             temp=centerOnd*centerOnd;
             double sigmaWidenH2=temp/(1./(sigmaPrimH*sigmaPrimH)+1./diffDivSquare);
@@ -1382,7 +1453,7 @@ bool getTrimmedEnding(const string &line, size_t pos, string &token)
     if(! Sfile.check_comment(" numero_elementivirtuali  "))
     {
          errstr="Format error  while reading file  " + filename;
-         SetOptiXLastError(errstr, __FILE__, __func__);
+         SetOptiXLastError(errstr, __FILE__, __func__, __LINE__);
          return false;
     }
     Sfile >> numElem  ;
@@ -1396,8 +1467,11 @@ bool getTrimmedEnding(const string &line, size_t pos, string &token)
         cout << "ELEMENT " << i <<endl << endl;
         if (!Sfile.get_element((size_t*) &pelement))
         {
-             errstr="Format error  while getting  an element in file  " + filename + " loading stopped";
-             SetOptiXLastError(errstr, __FILE__, __func__);
+             char buf[256];
+             sprintf(buf,"Format error  while getting element #%d in file %s loading stopped:\n", i, filename.c_str());
+             errstr=buf;
+             GetOptiXLastError(buf,256);
+             SetOptiXLastError(errstr+buf, __FILE__, __func__, __LINE__);
              return false;
         }
 
