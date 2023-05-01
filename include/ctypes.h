@@ -151,10 +151,11 @@ typedef struct alignas(16) __ArrayParameter
     {
         std::cout << "\t\t dims=[" << dims[0] << ", " << dims[1] << "]\n";
         std::cout << "\t\t data @ " << data << "\n";
-        for(int j=0, k=0; j< dims[1]; ++j)
+        for(int i=0, k=0; i< dims[0]; ++i)
         {
+            k=i;
             std::cout << "\t\t\t";
-            for(int i=0; i< dims[0]; ++i,++k)
+            for(int j=0; j< dims[1]; ++j,k+=dims[0])
                 std::cout << data[k] << " ";
             std::cout << "\n";
         }
