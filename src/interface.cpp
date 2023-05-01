@@ -767,18 +767,18 @@ extern "C"
         {
             delete pRef;
             *pHandle=0;
+            if(paramData->flags & ArrayData) // clear Array data if any
+            {
+                if(paramData->paramArray)
+                {
+                    delete paramData->paramArray;
+                    paramData->flags &= ~ArrayData;
+                    paramData->value=0;
+                }
+            }
             return true;
         }
         * pHandle=(size_t) pRef;
-        if(paramData->flags & ArrayData) // clear Array data if any
-        {
-            if(paramData->paramArray)
-            {
-                delete paramData->paramArray;
-                paramData->flags &= ~ArrayData;
-                paramData->value=0;
-            }
-        }
         return true;
     }
 
