@@ -411,7 +411,9 @@ extern "C"
      *  \n on output, a handle to underlying enumerator of the parameter list or 0 if the retrieved element is the last one
      * \param[out] tagBuffer char* a character buffer to receive the retrieved parameter name.
      * \param[in] bufSize The size of the tag buffer
-     * \param[out] paramData a pointer to a Parameter struct to receive the parameter data
+     * \param[out] paramData a pointer to a Parameter struct to receive the parameter data. This parameter must not have an Array type
+     *      when called for the first time. Array, if any, will be allocated by C and should be copied. They will be cleared by the next
+     *      call to the function
      * \return true if a new parameter was found and returned without error ; false if elementID was invalid or the buffer was too small, and OptixLastError is set
      * in this latter case, the parameter name is truncated and the enumerator is  invalidated  and set to 0
      * Memory leaks will occur if the handle is dropped before it is returned as 0. If needed clear a non zero hande with ReleaseParameterHandle()
@@ -421,9 +423,9 @@ extern "C"
     /** \brief release a parameter enumeration handle returned by EnumerateParameter()
      *
      * \param handle a non null handle returned by EnumerateParameter()
-     *
+     * \param paramData (optional) pointer to the Parameter struct used to iterate. If given will clear paramArray struct created by the iterator
      */
-    DLL_EXPORT void ReleaseParameterEnumHandle(size_t handle);
+    DLL_EXPORT void ReleaseParameterEnumHandle(size_t handle, Parameter *paramData =0);
 
     /** \brief This function defines a polynomial surface to fit the given height data (Only apply to polynomial surfaces)
      *

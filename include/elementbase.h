@@ -299,27 +299,8 @@ public:
         ParamIterator it=m_parameters.find(name);
         if (it !=m_parameters.end())
         {
-            switch(it->second.copy(param))
-            {
-            case 0:
-                return true;
-            case 1:
-                char msg[256];
-                sprintf(msg, "In Parameter::copy, the array flags of the source struct(%X) and destination struct (%X) do not match",
-                        it->second.flags, param.flags);
-                SetOptiXLastError(msg,__FILE__, __func__);
-
-                return false;
-            case 2:
-                SetOptiXLastError("In Parameter::copy, the array pointer of the destination Parameter is invalid",__FILE__, __func__);
-                return false;
-            case 3:
-                SetOptiXLastError("In Parameter::copy, the data memory pointer of destination is invalid or points to insufficient memory",__FILE__, __func__);
-                return false;
-            default:
-                SetOptiXLastError("Invalid return value or Parameter::copy function ",__FILE__, __func__);
-                return false;
-            }
+            param=it->second;
+            return true;
         }
         else
         {
