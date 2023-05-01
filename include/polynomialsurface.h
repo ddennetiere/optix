@@ -120,7 +120,7 @@ PolynomialSurface<PolyType>::PolynomialSurface(string name, Surface *previous):S
  //   cout << "coefficients are set\n";
     setHelpstring("coefficients", "Array of coefficients of the polynomial function");  // complete la liste de infobulles de la classe Surface
     Array22d limits;
-    limits << -1., 1., -1., 1. ;
+    limits << -1., -1., 1., 1. ;
  //   cout << "defining limits\n";
     *param.paramArray=limits;
  //  cout << "limits are assigned\n";
@@ -170,6 +170,24 @@ bool PolynomialSurface<PolyType>::setParameter(string name, Parameter& param)
     }
     return true;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 template<class PolyType>
