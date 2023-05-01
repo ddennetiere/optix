@@ -23,12 +23,14 @@
 #include "interface.h"
 
 #define XMLSTR (xmlChar*)
+#define MAXBUF 512
 
 bool SaveElementsAsXml(const char * filename, ElementCollection &system)
 {
-    char cvbuf[16];
+
+    char cvbuf[MAXBUF];
     xmlDocPtr doc;
-    xmlNodePtr sysnode, elemnode, parmnode;
+    xmlNodePtr sysnode, elemnode, parmnode, arraynode;
 //    xmlAttrPtr attr;
     doc = xmlNewDoc(XMLSTR "1.0");
     sysnode = xmlNewDocRawNode(doc, NULL, (const xmlChar*)"system", NULL);
@@ -61,8 +63,22 @@ bool SaveElementsAsXml(const char * filename, ElementCollection &system)
         {
             parmnode=xmlNewTextChild(elemnode,NULL,XMLSTR "param", XMLSTR it->first.c_str());
             Parameter &param=it->second;
-            sprintf(cvbuf,"%.8g",param.value);
-            xmlNewProp (parmnode, XMLSTR "val", XMLSTR cvbuf);
+            if(param.flags & ArrayData)
+            {
+                arraynode=xmlNewTextChild(parmnode,NULL,XMLSTR "array", NULL);
+                sprintf(cvbuf,"%Ld, %Ld", param.paramArray->dims[0], param.paramArray->dims[1]);
+                xmlNewProp (arraynode, XMLSTR "dims", XMLSTR cvbuf);
+                char *pbuf=cvbuf;
+                pbuf+=sprintf(pbuf,"%.8g", param.paramArray->data[0]);
+                for(int i=1; i<  param.paramArray->dims[0]*param.paramArray->dims[1]; ++i)
+                    pbuf+=sprintf(pbuf,", %.8g", param.paramArray->data[i]);
+                xmlNewProp (arraynode, XMLSTR "data", XMLSTR cvbuf);
+            }
+            else
+            {
+                sprintf(cvbuf,"%.8g",param.value);
+                xmlNewProp (parmnode, XMLSTR "val", XMLSTR cvbuf);
+            }
             if(param.bounds[0]!=0)
             {
                 sprintf(cvbuf,"%.8g",param.bounds[0]);
@@ -99,8 +115,34 @@ void PrintParameters(xmlDocPtr doc, xmlNodePtr cur)
 		    printf("parameter: %s",name);
             xmlFree(name);
 		    att= xmlGetProp(cur, XMLSTR "val");
-		    printf("  value: %s", att );
-		    xmlFree(att);
+		    if(att)
+            {
+                printf("  value: %s", att );
+                xmlFree(att);
+            }
+            else
+            {
+                xmlNodePtr arraynode=cur->xmlChildrenNode->next;
+                if(arraynode)
+                {
+                   // int dim0, dim1;
+                    att=xmlGetProp(arraynode, XMLSTR "dims");
+                    if(att)
+                    {
+                        printf("    Array %s ", att);
+                      //  sscanf(att,"%d, %d", dim0,dim1);
+                        xmlFree(att);
+                    }
+                    att=xmlGetProp(arraynode, XMLSTR "data");
+                    if(att)
+                    {
+                        printf("\n           %s ", att);
+                        xmlFree(att);
+                    }
+                }
+                else
+                    printf(" INCOMPLETE parameter no value found");
+            }
 		    att= xmlGetProp(cur, XMLSTR "min");
             if(att)
             {
@@ -207,8 +249,51 @@ bool SetXmlParameters(xmlDocPtr doc, ElementBase* elem, xmlNodePtr cur)
 		    if(elem->getParameter((char*) name, param))
             {
                 att= xmlGetProp(cur, XMLSTR "val");
-                param.value=atof((char*)att);
-                xmlFree(att);
+                if(att)
+                {
+                    param.value=atof((char*)att);
+                    xmlFree(att);
+                }
+                else
+                {
+                    xmlNodePtr arraynode=cur->xmlChildrenNode->next;
+                    if(arraynode)
+                    {
+                        int dim0=0, dim1=0;
+                        att=xmlGetProp(arraynode, XMLSTR "dims");
+                        if(att)
+                        {
+                            printf("    Array %s ", att);
+                            sscanf((char*)att,"%d, %d", &dim0, &dim1);
+                            xmlFree(att);
+                        }
+                        att=xmlGetProp(arraynode, XMLSTR "data");
+                        if(att)
+                        {
+                            printf("\n           %s \n", att);
+                            int N=dim0*dim1;
+                            if(N)
+                            {
+                                if(param.paramArray)
+                                    delete param.paramArray;
+                                param.paramArray=new ArrayParameter(dim0,dim1);
+                                double * pdat=param.paramArray->data;
+                                char *pbuf= (char*)att;
+                                sscanf(pbuf, "%lg", pdat);
+
+                                for (int i=1; i <N; ++i)
+                                {
+                                    pbuf=strchr(pbuf,',');
+                                    sscanf(++pbuf, "%lg", ++pdat);
+                                }
+                            }
+                            xmlFree(att);
+                        }
+                    }
+                    else
+                        printf(" INCOMPLETE parameter no value found");
+                }
+
 
                 att= xmlGetProp(cur, XMLSTR "min");
                 if(att)
@@ -230,6 +315,8 @@ bool SetXmlParameters(xmlDocPtr doc, ElementBase* elem, xmlNodePtr cur)
                 }
 
                 elem->setParameter((char*) name, param) ;
+                if(param.flags &ArrayData)
+                    elem->dumpParameter((char*) name) ;
             }
             else
             {

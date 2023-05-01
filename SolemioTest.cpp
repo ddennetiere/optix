@@ -192,8 +192,9 @@ using namespace std::chrono;
         else cout <<" No spot on screen\n";
     }
      SaveSystemAsXml("system.xml");
+     cout << "system saved as 'system.xml'\n";
      DumpXmlSys("system.xml");
-
+     cout << "Loading system from 'system.xml'\n";
      LoadSystemFromXml("system.xml");
 
     return 0;

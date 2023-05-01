@@ -845,7 +845,7 @@ bool getTrimmedEnding(const string &line, size_t pos, string &token)
                         return false;
                     }
                     auto mat=param.paramArray->matrix();
-                    mat << Xmin, Xmax, Ymin, Ymax;
+                    mat << Xmin, Ymin, Xmax, Ymax;
                     DumpArgParameter(&param);
                     elem->setParameter("surfaceLimits",param);
                     elem->dumpParameter("surfaceLimits");
