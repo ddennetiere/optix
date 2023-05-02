@@ -158,8 +158,9 @@ using namespace Eigen;
 
  protected  :
     MatrixXType m_coeffs;
-    Array2d  m_Xlimit, m_Ylimit;
-    double m_Kx,m_Ky, m_X0, m_Y0;
+    Array2d  m_Xlimit, m_Ylimit; /**< Definition rectangle */
+    double m_Kx,m_Ky; /**< normalisation coordinate scale */
+    double m_X0, m_Y0;  /**< definition rectangle offset */
  };
 
 

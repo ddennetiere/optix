@@ -9,6 +9,8 @@
 *   \author             François Polack  <francois.polack@synchroton-soleil.fr>
 *   \date               Creation: 2023-03-12
 *   \date               Last update: 2023-03-12
+*
+*   \todo Cleaning of exception catching
  ***************************************************************************/
 
 #include "polynomial.h"
@@ -25,28 +27,34 @@ RayBaseType::VectorType Polynomial::intercept(RayBaseType& ray,  RayBaseType::Ve
     for(i=0; i < maxiter; ++i, t+=dt)
     {
         VectorXType Px,Py, d1x, d1y, d2x, d2y;
-        Px=getBaseValues(m_coeffs.rows(), m_Kx*(ray.position(t)(0)-m_X0), d1x, d2x);
-        Py=getBaseValues(m_coeffs.cols(), m_Ky*(ray.position(t)(1)-m_Y0), d1x, d2x);
-        FloatType DZ=ray.position(t)(3) - Px.transpose()*m_coeffs*Py;
-        if(abs(DZ) <ztol)
-            break;
-        gradient(0)= m_Kx*d1x.transpose()*m_coeffs* Py;
-        gradient(1)=m_Ky*Px.transpose()*m_coeffs*d1y;
-        curvature(0,0)=m_Kx*m_Kx*d2x.transpose()*m_coeffs*Py;
-        curvature(1,1)=m_Ky*m_Ky*Px.transpose()*m_coeffs*d2y;
-        curvature(0,1)=curvature(1,0)=m_Kx*m_Ky*d1x.transpose()*m_coeffs*d1y;
-        FloatType g=gradient.dot(ray.direction());
-        FloatType c=ray.direction().head(2).transpose()*curvature*ray.direction().head(2);
-        FloatType tau=DZ/g;
-        FloatType gamma=c*tau/g;
-        if (abs(gamma) >0.5)
-        {
-            std::cout << "Local curvature is too large\n";
-            dt=tau;
+        int curline=0;
+        try {
+            Px=getBaseValues(m_coeffs.rows(), m_Kx*(ray.position(t)(0)-m_X0), d1x, d2x);curline=__LINE__;
+            Py=getBaseValues(m_coeffs.cols(), m_Ky*(ray.position(t)(1)-m_Y0), d1y, d2y);curline=__LINE__;
+            FloatType DZ=ray.position(t)(2) - Px.transpose()*m_coeffs*Py;curline=__LINE__;
+            if(abs(DZ) <ztol)
+                break;
+            gradient(0)= m_Kx*d1x.transpose()*m_coeffs* Py;curline=__LINE__;
+            gradient(1)=m_Ky*Px.transpose()*m_coeffs*d1y;curline=__LINE__;
+            curvature(0,0)=m_Kx*m_Kx*d2x.transpose()*m_coeffs*Py;curline=__LINE__;
+            curvature(1,1)=m_Ky*m_Ky*Px.transpose()*m_coeffs*d2y;curline=__LINE__;
+            curvature(0,1)=curvature(1,0)=m_Kx*m_Ky*d1x.transpose()*m_coeffs*d1y;curline=__LINE__;
+            FloatType g=gradient.dot(ray.direction());curline=__LINE__;
+            FloatType c=ray.direction().head(2).transpose()*curvature*ray.direction().head(2);curline=__LINE__;
+            FloatType tau=DZ/g;
+            FloatType gamma=c*tau/g;
+            if (abs(gamma) >0.5)
+            {
+                std::cout << "Local curvature is too large\n";
+                dt=tau;
+            }
+            else
+                dt=tau*(1.-gamma*(1.-gamma*(2.-5.*gamma)));
+        } catch (EigenException  & excpt ) {
+            throw( EigenException(string("Rethrowing exception from ")+excpt.what(), __FILE__, __func__, curline));
         }
-        else
-            dt=tau*(1.-gamma*(1.-gamma*(2.-5.*gamma)));
     }
+//    std::cout <<"iter=" << i << std::endl;
     if(i == maxiter)
     {
         char msg[80];
