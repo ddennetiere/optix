@@ -844,8 +844,10 @@ bool getTrimmedEnding(const string &line, size_t pos, string &token)
                         ForwardOptiXLastError(__FILE__, __func__, __LINE__);
                         return false;
                     }
-                    auto mat=param.paramArray->matrix();
+                    cout << "Setting surfaceLimits \n";
+                    ArrayXXd mat(2,2);
                     mat << Xmin, Ymin, Xmax, Ymax;
+                    *param.paramArray=mat;
                     DumpArgParameter(&param);
                     elem->setParameter("surfaceLimits",param);
                     elem->dumpParameter("surfaceLimits");
@@ -859,24 +861,27 @@ bool getTrimmedEnding(const string &line, size_t pos, string &token)
                     else if(SSurf.param[2] !=0)
                         nx=4;
                     param=Parameter(nx,ny,Distance,ShapeGroup);
-//                    if(!elem->getParameter("coefficients",param))
-//                    {
-//                        ForwardOptiXLastError(__FILE__, __func__, __LINE__);
-//                        return false;
-//                    }
-//                    mat=param.paramArray->matrix();
-//                    mat.setZero();
-//                    if(SSurf.param[3] !=0)
-//                        mat(1,2)=SSurf.param[3]*Xmax*Ymax*Ymax;
-//                    if(SSurf.param[5] !=0)
-//                        mat(5,0)=SSurf.param[3]*pow(Xmax,5);
-//                    else  if(SSurf.param[4] !=0)
-//                        mat(4,0)=SSurf.param[3]*pow(Xmax,4);
-//                    else  if(SSurf.param[2] !=0)
-//                        mat(3,0)=SSurf.param[3]*pow(Xmax,3);
-//                    DumpArgParameter(&param);
-//                    elem->setParameter("coefficents",param);
-//                    elem->dumpParameter("coefficents");
+                    if(!elem->getParameter("coefficients",param))
+                    {
+                        ForwardOptiXLastError(__FILE__, __func__, __LINE__);
+                        return false;
+                    }
+                    cout << "Setting coefficients \n";
+                    mat=ArrayXXd::Zero(nx,ny);
+                    if(SSurf.param[3] !=0)
+                        mat(1,2)=SSurf.param[3]*Xmax*Ymax*Ymax;
+                    if(SSurf.param[5] !=0)
+                        mat(5,0)=SSurf.param[5]*pow(Xmax,5);
+                    else  if(SSurf.param[4] !=0)
+                        mat(4,0)=SSurf.param[4]*pow(Xmax,4);
+                    else  if(SSurf.param[2] !=0)
+                        mat(3,0)=SSurf.param[2]*pow(Xmax,3);
+                    *param.paramArray=mat;
+                    DumpArgParameter(&param);
+
+                    elem->setParameter("coefficients",param);
+                    elem->dumpParameter("coefficients");
+                    cout << "parameter set\n";
                 }
                 else
                 {

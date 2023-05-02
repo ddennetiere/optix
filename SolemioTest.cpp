@@ -51,14 +51,23 @@ using namespace std::chrono;
                 GetOptiXLastError( errBuf,256);
                 cout  << "ERROR : " << errBuf << endl;
             }
-            cout << parmname << "  " << param.value <<" [" << param.bounds[0] <<", "<< param.bounds[1] <<"] x " << param.multiplier <<
+            if(param.flags & ArrayData)
+            {
+                cout << parmname << "  ARRAY" <<" [" << param.bounds[0] <<", "<< param.bounds[1] <<"] x " << param.multiplier <<
+                        " T:" << param.type << " G:" << param.group << " F:0x"<< std::hex << param.flags << std::dec << endl;
+                param.paramArray->dump();
+            }
+
+            else
+                cout << parmname << "  " << param.value <<" [" << param.bounds[0] <<", "<< param.bounds[1] <<"] x " << param.multiplier <<
                         " T:" << param.type << " G:" << param.group << " F:0x"<< std::hex << param.flags << std::dec << endl;
 
         }while(hParm);
 
     }while(hSys);
     cout << "system END\n";
-    size_t sourceID=elemID=GetElementID("S_ONDUL1");
+    size_t sourceID=elemID=GetElementID("S_ONDUL");
+//    size_t sourceID=elemID=GetElementID("S_ONDUL1");
 //    size_t pupID=GetElementID("pupille");
 //    ChainElement_byID(pupID,0);
 //    ChainElement_byName("pupille","");
@@ -170,7 +179,8 @@ using namespace std::chrono;
             cout << "cdiag struct "<< std::hex << cdiagram.m_min << " " << cdiagram.m_max << " " << cdiagram.m_mean <<
                 " " << cdiagram.m_sigma << std::dec << endl;
 
-            if(!GetSpotDiagram(GetElementID("EXP1"), &cdiagram, 0))
+//            if(!GetSpotDiagram(GetElementID("EXP1"), &cdiagram, 0))
+            if(!GetSpotDiagram(GetElementID("fenteentree"), &cdiagram, 0))
             {
                 char errbuf[256];
                 GetOptiXLastError(errbuf, 256);
