@@ -851,9 +851,10 @@ bool getTrimmedEnding(const string &line, size_t pos, string &token)
                     DumpArgParameter(&param);
                     elem->setParameter("surfaceLimits",param);
                     elem->dumpParameter("surfaceLimits");
-                    int nx=2,ny=1;
-                    if(SSurf.param[3] !=0)
-                        ny=3;
+//                    int nx=2,ny=1;
+//                    if(SSurf.param[3] !=0)
+//                        ny=3;
+                    int nx=3,ny=3;
                     if(SSurf.param[5] !=0)
                         nx=6;
                     else if(SSurf.param[4] !=0)
@@ -868,6 +869,8 @@ bool getTrimmedEnding(const string &line, size_t pos, string &token)
                     }
                     cout << "Setting coefficients \n";
                     mat=ArrayXXd::Zero(nx,ny);
+                    mat(2,0)=1./(2.*SSurf.param[0]);
+                    mat(0,2)=1./(2.*SSurf.param[1]);
                     if(SSurf.param[3] !=0)
                         mat(1,2)=SSurf.param[3]*Xmax*Ymax*Ymax;
                     if(SSurf.param[5] !=0)
