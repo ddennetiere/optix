@@ -23,7 +23,7 @@ RayBaseType::VectorType Polynomial::intercept(RayBaseType& ray,  RayBaseType::Ve
     gradient << 0,0,-1.;
     // iteration loop
     int i, maxiter=20;
-    FloatType ztol=1e-9,  t=0, dt=0;
+    FloatType ztol=1e-11,  t=0, dt=0;
     for(i=0; i < maxiter; ++i, t+=dt)
     {
         VectorXType Px,Py, d1x, d1y, d2x, d2y;

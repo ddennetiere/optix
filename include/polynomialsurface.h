@@ -72,7 +72,7 @@ class PolynomialSurface:virtual public Surface, public PolyType
                 PolyType::intercept(ray,&ntemp); // move the ray to intercept and rebase it, in surface frame
                 ray.transform(m_surfaceDirect);
                 if(normal)
-                    *normal=m_frameDirect*ntemp;
+                    *normal=m_surfaceDirect*ntemp;
             }
             return ray.position();
         };

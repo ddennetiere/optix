@@ -180,7 +180,7 @@ using namespace std::chrono;
                 " " << cdiagram.m_sigma << std::dec << endl;
 
 //            if(!GetSpotDiagram(GetElementID("EXP1"), &cdiagram, 0))
-            if(!GetSpotDiagram(GetElementID("fenteentree"), &cdiagram, 0))
+            if(!GetSpotDiagram(GetElementID("imageFE"), &cdiagram, 0))
             {
                 char errbuf[256];
                 GetOptiXLastError(errbuf, 256);
