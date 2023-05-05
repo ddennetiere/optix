@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import ctypes, os
+import ctypes, os, array
 #from ctypes import cdll, windll, Structure
 from ctypes.wintypes import *
 from ctypes import *
@@ -138,6 +138,8 @@ def Load_OptiX():
     OptiX.MemoryDump.argtypes = [c_voidp, c_uint64] 
     OptiX.DumpArgParameter.argtypes = [POINTER(Parameter)]
     OptiX.DumpParameter.argtypes = [HANDLE, LPCSTR]
+    OptiX.EnumerateParameters.argtypes = [HANDLE, HANDLE, LPCSTR, INT, HANDLE]
+    OptiX.EnumerateParameters.restype = INT
 
 
 def Release_OptiX():
@@ -237,10 +239,41 @@ def getParameter(elemID,paramName, parameter):
                 return 
     outputError("Get parameter Error:")
 
+def safe_enumerate_parameters(element_id, handle_param, parameter_name, parameter):
+    c_param=Parameter()
+    ret = OptiX.EnumerateParameters(element_id, ctypes.byref(handle_param), parameter_name, 48, ctypes.byref(c_param))
+    if ret:
+        parameter.bounds.min=c_param.bounds.min
+        parameter.bounds.max=c_param.bounds.max
+        parameter.multiplier=c_param.multiplier
+        parameter.type=c_param.type
+        parameter.group=c_param.group
+        parameter.flags=c_param.flags
+        if c_param.flags & 1 << 3:
+            pa=ParamArray()
+            
+            ppa_src=c_param.p_array
+            cast(ppa_src, POINTER(ParamArray))
+            pa_src=ppa_src.contents
+            pa.dims[0]=pa_src.dims[0]
+            pa.dims[1]=pa_src.dims[1]
+            # print("array dims ", pa.dims[0], " x ", pa.dims[1])
+            size=pa.dims[0]*pa.dims[1]
+            # d'après mes lectures fromiter réalise une copie dans un nouveau buffer
+            databuf=np.fromiter(pa_src.data,np.float64,count=size)
+            # on peut donc attacher ce buffer au parameter._array
+            parameter._array=np.ndarray((pa.dims[1],pa.dims[0]), dtype=np.float64, buffer=databuf)
+            #parameter._array=array_src.copy()
+            pa.data=parameter._array.ctypes.data_as(POINTER(c_double))
+            parameter.p_array = pointer(pa)
+        else:
+            parameter.value=c_param.value
+    return ret
+
+
 def setParameter(elemID,paramName, parameter):
     if OptiX.SetParameter(elemID, paramName.encode(), byref(parameter)) == 0 :
         outputError("Get parameter Error:")
-
 
 def test(wavelength):
     loadSolemioFile(r"D:\Dennetiere\optix\\solemio\\CASSIOPEE")
@@ -249,7 +282,8 @@ def test(wavelength):
     clearImpacts(source)
     print(generate(source, wavelength), " rays")
     radiate(source)
-    7
+
+
 def paramTest():
     NPmirrorID=createElement("NaturalPolynomialMirror","NPmirror")
     param=Parameter()
@@ -263,13 +297,28 @@ def paramTest():
     param3=Parameter()
     getParameter(NPmirrorID,"coefficients",param3)
     dumpArgParameter(param3)
-    param3.array = np.zeros((3,1))
+    param3.array = np.array([[0.1,0.2,0.3,0.4],[0.5,0.3,0.2,0]])
     dumpArgParameter(param3)
     print(param3)
     setParameter(NPmirrorID,"coefficients",param3)
     print("getting coefficients")
     getParameter(NPmirrorID,"coefficients",param)
     dumpArgParameter(param)
+    
+    print("----------------  end param setting  -----------")
+    
+    hparam = HANDLE(0)
+    param_name = create_string_buffer(48)
+    safe_enumerate_parameters(NPmirrorID, hparam, param_name, param)
+    while hparam:
+        print("\t", f"{param_name.value.decode()}: {repr(param)}")
+        # if param.flags & 1 << 3:
+            # print("\t", f"{param_name.value.decode()}:")
+            # dumpArgParameter(param)
+        # else:
+            # print("\t", f"{param_name.value.decode()}: {param.value} [{param.bounds.min}, {param.bounds.max}],"
+                        # f"x{param.multiplier}, type {param.type}, groupe {param.group}, flags {param.flags}")
+        safe_enumerate_parameters(NPmirrorID, hparam, param_name, param)
 
 
 if __name__ == "__main__":
