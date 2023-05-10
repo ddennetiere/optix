@@ -100,8 +100,9 @@
 		<Linker>
 			<Add library="libxml2-2" />
 			<Add library="nfft3_threads-4" />
-			<Add directory="../libxml2/libxml2-2/bin" />
+			<Add directory="../libxml2-2/bin" />
 			<Add directory="../Programmes_C++/nfft-3.5.3-dll64-openmp" />
+			<Add directory="../libxml2/libxml2-2/bin" />
 		</Linker>
 		<Unit filename="LibTest.c">
 			<Option compilerVar="CC" />
