@@ -496,17 +496,10 @@ extern "C"
         return true;
     }
 
-    DLL_EXPORT bool SetParameter(size_t elementID, const char* paramTag,  Parameter *paramData)
+    DLL_EXPORT bool SetParameter(size_t elementID, const char* paramTag,  Parameter paramData)
     {
-        char what[256];
-        sprintf(what,"parameter data recieved", paramData);
         if(System.isValidID(elementID))
-        {
-            // bool status=true;
-            return ((ElementBase*)elementID)->setParameter(paramTag, *paramData);
-           // std::cout << "returning status " << status << "\n";std::cout.flush();
-            // return status;
-        }
+            return ((ElementBase*)elementID)->setParameter(paramTag, paramData);
         else
         {
              SetOptiXLastError("The given elementID is invalid ", __FILE__, __func__);
@@ -585,7 +578,32 @@ extern "C"
                 return false;
             }
             else
-                return ((ElementBase*)elementID)->getParameter(paramTag, *paramData);
+            {
+                Parameter param;
+                if(! ((ElementBase*)elementID)->getParameter(paramTag, param))
+                    return false ;
+                switch(param.copy(*paramData))
+                {
+                case 0:
+                    return true;
+                case 1:
+                    char msg[256];
+                    sprintf(msg, "In Parameter::copy, the array flags of the source struct(%X) and destination struct (%X) do not match",
+                            param.flags, paramData->flags);
+                    SetOptiXLastError(msg,__FILE__, __func__);
+                    return false;
+                case 2:
+                    SetOptiXLastError("In Parameter::copy, the array pointer of the destination Parameter is invalid",__FILE__, __func__);
+                    return false;
+                case 3:
+                    SetOptiXLastError("In Parameter::copy, the data memory pointer of destination is invalid or points to insufficient memory",__FILE__, __func__);
+                    return false;
+                default:
+                    SetOptiXLastError("Invalid return value or Parameter::copy function ",__FILE__, __func__);
+                    return false;
+                }
+
+            }
         }
         else
         {
@@ -679,7 +697,30 @@ extern "C"
                             " is " + std::to_string(paramSize) + ", which is larger than the buffer size "  , __FILE__, __func__);
                 return false;
             }
-            return ((ElementBase*)elementID)->getParameter(paramTag, *paramData);
+//            return ((ElementBase*)elementID)->getParameter(paramTag, *paramData);
+            Parameter param;
+            if(! ((ElementBase*)elementID)->getParameter(paramTag, param))
+                return false ;
+            switch(param.copy(*paramData))
+            {
+            case 0:
+                return true;
+            case 1:
+                char msg[256];
+                sprintf(msg, "In Parameter::copy, the array flags of the source struct(%X) and destination struct (%X) do not match",
+                        param.flags, paramData->flags);
+                SetOptiXLastError(msg,__FILE__, __func__);
+                return false;
+            case 2:
+                SetOptiXLastError("In Parameter::copy, the array pointer of the destination Parameter is invalid",__FILE__, __func__);
+                return false;
+            case 3:
+                SetOptiXLastError("In Parameter::copy, the data memory pointer of destination is invalid or points to insufficient memory",__FILE__, __func__);
+                return false;
+            default:
+                SetOptiXLastError("Invalid return value or Parameter::copy function ",__FILE__, __func__);
+                return false;
+            }
         }
         SetOptiXLastError(string("Single value parameter  ") + paramTag  +
             " should be retrieved with the GetParameter function"  , __FILE__, __func__);
@@ -710,6 +751,15 @@ extern "C"
             SetOptiXLastError("Buffer too small", __FILE__, __func__);
             delete pRef;
             *pHandle=0;
+            if(paramData->flags & ArrayData) // clear Array data if any
+            {
+                if(paramData->paramArray)
+                {
+                    delete paramData->paramArray;
+                    paramData->flags &= ~ArrayData;
+                    paramData->value=0;
+                }
+            }
             return false;
         }
 
@@ -717,6 +767,15 @@ extern "C"
         {
             delete pRef;
             *pHandle=0;
+            if(paramData->flags & ArrayData) // clear Array data if any
+            {
+                if(paramData->paramArray)
+                {
+                    delete paramData->paramArray;
+                    paramData->flags &= ~ArrayData;
+                    paramData->value=0;
+                }
+            }
             return true;
         }
         * pHandle=(size_t) pRef;
@@ -724,10 +783,20 @@ extern "C"
     }
 
 
-    DLL_EXPORT void ReleaseParameterEnumHandle(size_t handle)
+    DLL_EXPORT void ReleaseParameterEnumHandle(size_t handle, Parameter *paramData)
     {
         if(handle)
             delete (map<string, Parameter>::iterator*) handle;
+        if(paramData)
+            if(paramData->flags & ArrayData) // clear Array data if any
+            {
+                if(paramData->paramArray)
+                {
+                    delete paramData->paramArray;
+                    paramData->flags &= ~ArrayData;
+                    paramData->value=0;
+                }
+            }
     }
 
 
@@ -1103,7 +1172,7 @@ extern "C"
                file >> param;
                if(file.fail())
                     { SetOptiXLastError("File reading error",__FILE__,__func__);  return false; }
-               if(!SetParameter(ElementBaseID, paramName.c_str(), &param))
+               if(!SetParameter(ElementBaseID, paramName.c_str(), param))
                {
                     char errstr[128];
                     sprintf(errstr, "Cannot create element %s of type %s", sName.c_str(), sClass.c_str());

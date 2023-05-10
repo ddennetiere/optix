@@ -44,10 +44,10 @@ public:
 class EigenException:public runtime_error
 {
 public:
-    EigenException(string what ="", string file="", string callingFunction="", int line=-1 ):runtime_error("EigenException")
+    EigenException(string cause ="", string file="", string callingFunction="", int line=-1 ):runtime_error("EigenBaseException")
     {
         char str[256];
-        sprintf(str, "%s in %s  %s line %d", what.empty()?"EigenException":what.c_str(), file.c_str(), callingFunction.c_str(), line);
+        sprintf(str, "%s in %s  %s line %d", cause.empty()?"EigenException":cause.c_str(), file.c_str(), callingFunction.c_str(), line);
         what_str=str;
     }
     virtual ~EigenException() {}

@@ -35,8 +35,8 @@ using std::vector;
 class ElementCollection;
 //class SourceBase;
 
-
-extern char LastError[256];
+#define  ERROR_MAXSIZE 1024
+extern char LastError[ERROR_MAXSIZE];
 extern bool OptiXError;
 
 /** \brief  set the global error message  to b retrieved by from the C interface
@@ -45,12 +45,30 @@ extern bool OptiXError;
  * \param what the error string
  * \param filename file where the error occured (use __FILE__)
  * \param funcname function where the error occured (use __func__)
+ * \param line (optional) line where the error occurred (use __LINE__)
  */
-inline void SetOptiXLastError(string what, const char* filename, const char* funcname )
+inline void SetOptiXLastError(string what, const char* filename, const char* funcname, const int line=0 )
 {
     OptiXError=true;
-    sprintf(LastError, "%s in function %s of file %s", what.c_str(), funcname, filename);
+    if(line==0)
+        sprintf(LastError, "%s in function %s of file %s", what.c_str(), funcname, filename);
+    else
+        sprintf(LastError, "%s in function %s, line %d of file %s", what.c_str(), funcname, line, filename);
 
+}
+
+inline void ForwardOptiXLastError(const char* filename, const char* funcname, const int line=0 )
+{
+    OptiXError=true;
+    char * pst= LastError+ strlen(LastError);
+    char buf[256];
+    if(line==0)
+        sprintf(buf, "\ncalled by function %s of file %s", funcname, filename);
+    else
+        sprintf(buf, "\ncalled by function %s, line %d of file %s", funcname, line, filename);
+    if(strlen(LastError)+strlen(buf)>= ERROR_MAXSIZE)
+        throw runtime_error("Error buffer overflow");
+    strcpy(pst,buf);
 }
 
 /** \brief Reset the internal error
@@ -219,11 +237,13 @@ public:
     * \param param the new parameter  object
     * \return  true if parameters was changed , false if parameter doesn't belong to the object of has a different array flag
     */
-    inline virtual  bool setParameter(string name,const Parameter& param)
+    inline virtual  bool setParameter(string name, Parameter& param)
     {
         ParamIterator it=m_parameters.find(name);
         if (it !=m_parameters.end())
         {
+            param.type=it->second.type; // type, flags and group of a parameter must not be modified
+            param.group=it->second.group;
             if( (param.flags&ArrayData) != (it->second.flags&ArrayData))
             {
                 string reason;
@@ -235,18 +255,10 @@ public:
                 SetOptiXLastError(string("parameter name ")+ name +reason,__FILE__, __func__);
                 return false;
             }
-
-            UnitType type=it->second.type;
-            ParameterGroup group=it->second.group;
-           // uint32_t flags=it->second.flags; //   L'utilisateur doit pouvoir changer les flags autres que ArrayData
-
+            param.flags=it->second.flags;
             it->second=param;
-
-            it->second.type=type;
-            it->second.group=group;
-           // it->second.flags=flags;
             m_isaligned=false;
-           // std::cout << "parameter "<< name <<  " set \n";   //to " << param.value << endl;
+//            cout << "parameter "<< name <<  " set to " << param.value << endl;
             return true;
         }
         else
@@ -287,24 +299,8 @@ public:
         ParamIterator it=m_parameters.find(name);
         if (it !=m_parameters.end())
         {
-            switch(it->second.copy(param))
-            {
-            case 0:
-                return true;
-            case 1:
-                char msg[256];
-                sprintf(msg, "In Parameter::copy, the array flags of the source struct(%X) and destination struct (%X) do not match",
-                        it->second.flags, param.flags);
-                SetOptiXLastError(msg,__FILE__, __func__);
-
-                return false;
-            case 2:
-                SetOptiXLastError("In Parameter::copy, the array pointer of the destination Parameter is invalid",__FILE__, __func__);
-                return false;
-            default:
-                SetOptiXLastError("Invalid return value or Parameter::copy function ",__FILE__, __func__);
-                return false;
-            }
+            param=it->second;
+            return true;
         }
         else
         {

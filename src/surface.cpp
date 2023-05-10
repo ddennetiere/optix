@@ -92,7 +92,10 @@ RayType& Surface::reflect(RayType& ray)    /*  this implementation simply reflec
             m_OPDvalid=false;
 
         return ray;
-    } catch(std::exception & excpt)
+    } catch(EigenException & eigexcpt) {
+        cout << "Exception catch in " << m_name << " reflect \n" << eigexcpt.what();
+        exit(-1);
+    }catch(std::exception & excpt)
     {
         cout << "Exception catch in " << m_name << " reflect \n" << excpt.what();
         exit(-1);
