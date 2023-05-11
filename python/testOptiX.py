@@ -5,11 +5,41 @@ from ctypes.wintypes import *
 from ctypes import *
 #from ctypes import WINFUNCTYPE, Structure, pointer,byref, POINTER,  c_char_p, c_void_p, c_double, c_float
 import numpy as np
-
+import pandas as pd
 
 
 global OptiX
 
+
+class Diagram(Structure):
+    """
+    C structure for accessing optix spot diagrams
+    """
+    _fields_ = [("dim", c_int),
+                ("reserved", c_int),
+                ("count", c_int),
+                ("lost", c_int),
+                ("min", POINTER(c_double)),
+                ("max", POINTER(c_double)),
+                ("mean", POINTER(c_double)),
+                ("sigma", POINTER(c_double)),
+                ("spots", POINTER(c_double)),
+                ]
+
+    def __init__(self, nreserved=0, ndim=5):
+        super().__init__()
+        self.dim = ndim
+        self.reserved = nreserved
+        p_min = (c_double * ndim)()
+        self.min = cast(p_min, POINTER(c_double))
+        p_max = (c_double * ndim)()
+        self.max = cast(p_max, POINTER(c_double))
+        p_mean = (c_double * ndim)()
+        self.mean = cast(p_mean, POINTER(c_double))
+        p_sigma = (c_double * ndim)()
+        self.sigma = cast(p_sigma, POINTER(c_double))
+        p_spots = (c_double * ndim * nreserved)()
+        self.spots = cast(p_spots, POINTER(c_double))
 
 class Bounds(Structure):
     _fields_ = [("min", DOUBLE),
@@ -106,7 +136,7 @@ class Parameter(Structure):
 def Load_OptiX():
     global OptiX
     print("intialzing SR library")
-    OptiX=cdll.LoadLibrary(r'D:/projets/projetsCB/OptiX/release/OptiX.dll')
+    OptiX=cdll.LoadLibrary(r'D:/Dennetiere/optix/release/OptiX.dll')
     OptiX.LoadSolemioFile.restype=BYTE      # gcc bool match to ctypes BYTE 
     OptiX.LoadSolemioFile.argtypes=[LPCSTR]
     OptiX.GetOptiXLastError.restype=BYTE
@@ -140,6 +170,9 @@ def Load_OptiX():
     OptiX.DumpParameter.argtypes = [HANDLE, LPCSTR]
     OptiX.EnumerateParameters.argtypes = [HANDLE, HANDLE, LPCSTR, INT, HANDLE]
     OptiX.EnumerateParameters.restype = INT
+    
+    OptiX.GetSpotDiagram.argtypes = (HANDLE, HANDLE, DOUBLE)
+    OptiX.GetSpotDiagram.restype = INT
 
 
 def Release_OptiX():
@@ -169,7 +202,7 @@ def outputError(message):
     buf = ctypes.create_string_buffer(256) # create a 128 byte buffer
     OptiX.GetOptiXLastError(buf,256)
     print(message)
-    print(buf.value)
+    print(buf.value.decode())
     
 def loadSolemioFile(name):
     if OptiX.LoadSolemioFile(name.encode()) == 0 :
@@ -241,6 +274,7 @@ def getParameter(elemID,paramName, parameter):
 
 def safe_enumerate_parameters(element_id, handle_param, parameter_name, parameter):
     c_param=Parameter()
+    
     ret = OptiX.EnumerateParameters(element_id, ctypes.byref(handle_param), parameter_name, 48, ctypes.byref(c_param))
     if ret:
         parameter.bounds.min=c_param.bounds.min
@@ -275,13 +309,39 @@ def setParameter(elemID,paramName, parameter):
     if OptiX.SetParameter(elemID, paramName.encode(), byref(parameter)) == 0 :
         outputError("Get parameter Error:")
 
+def getDiagram(element_id, diagram, distance):
+    if not OptiX.GetSpotDiagram(element_id, ctypes.byref(diagram), DOUBLE(distance)):
+        outputError("Get parameter Error:")
+    spots = pd.DataFrame(np.copy(np.ctypeslib.as_array(diagram.spots, shape=(diagram.reserved, diagram.dim))),
+                         columns=("X", "Y", "dX", "dY", "Lambda"))
+    return spots
+
 def test(wavelength):
-    loadSolemioFile(r"D:\Dennetiere\optix\\solemio\\CASSIOPEE")
-    source=getElementID("S_ONDUL1")
+    loadSolemioFile(r"D:\Dennetiere\optix\\solemio\\DESIRSvraiM3coefAx3=62")
+    source=getElementID("S_ONDUL")
+    print(getNextElement("S_ONDUL"))
     align(source, wavelength)
     clearImpacts(source)
-    print(generate(source, wavelength), " rays")
+    nrays=generate(source, wavelength)
+    print(nrays, " rays")
     radiate(source)
+    print("rays propagated")
+    diagram = Diagram(ndim=5, nreserved=int(nrays))
+    OptiX.SaveSystemAsXml("desirs.xml".encode())
+    diag= getDiagram(getElementID("fenteentree"), diagram, 0)
+    print(diag)
+    print(diag["X"].std())
+    print(diag["Y"].std())
+    print(diagram)
+    hparam = HANDLE(0)
+    first=True
+    param_name = create_string_buffer(48)
+    param = Parameter()
+    while hparam or first:
+        first = False
+        safe_enumerate_parameters(getElementID("M3"), hparam, param_name, param)
+        print(param_name.value.decode(), param)
+
 
 
 def paramTest():
@@ -324,12 +384,12 @@ def paramTest():
 if __name__ == "__main__":
     # initialisation auto    
     try:
-        test=OptiX
-        print(test, "  already initialized")
+        ret_test=OptiX
+        print(ret_test, "  already initialized")
     except NameError:    
         Load_OptiX()
         print("OptiX library initialized")
     paramTest()
     print("\n"*3)
-    # test(1e-9)
+    test(1e-9)
   
