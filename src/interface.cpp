@@ -980,7 +980,7 @@ extern "C"
         }
         if(polar!='S'||polar!='P' || polar!='R'||  polar!='L')
         {
-            SetOptiXLastError("Invalid Polarization: 'S', 'P', 'R', 'L' only are valid", __FILE__, __func__);
+            SetOptiXLastError(string("Invalid Polarization: '") +polar +"'; 'S', 'P', 'R', 'L' only are valid", __FILE__, __func__);
             return 0;
         }
              printf("generating rays in %s  at WL %g \n", ((ElementBase*)elementID)->getName().c_str(),wavelength );
