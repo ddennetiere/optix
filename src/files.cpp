@@ -1157,10 +1157,18 @@ bool getTrimmedEnding(const string &line, size_t pos, string &token)
                 }
             }
             cout << "ondulator referred to CSD " << csdRef <<endl;
-            if( (!csdRef) && tclDict.find("Csd")!=tclDict.end())
+            cout << "ondulator Cond = " << centerOnd <<endl;
+            cout << "ondulator CSD in dict : " << tclDict["Csd"] <<endl;
+            if(tclDict["Csd"] == "\"\""){
+                    cout << "Csd read as empty string, setting to 0" << endl;
+                    tclDict["Csd"] = "0";
+            }
+            cout << "ondulator CSD = " << stod(tclDict["Csd"]) <<endl;
+            cout<<"csd ref " <<csdRef << " csd found "<<(tclDict.find("Csd")!=tclDict.end())<< " =>condition " << ((!csdRef) && tclDict.find("Csd")!=tclDict.end())<<endl;
+            if( tclDict.find("Csd")!=tclDict.end())
             {
               sdOffset=stod(tclDict["Csd"]);
-              centerOnd=  -sdOffset;
+              centerOnd -= sdOffset;
             }
             else
             {
