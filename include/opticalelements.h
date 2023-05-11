@@ -33,6 +33,7 @@
 #include "naturalpolynomial.h"
 #include "legendrepolynomial.h"
 #include "polynomialsurface.h"
+#include "cone.h"
 
 #ifdef HAS_REFLEX
   #include "Coating.h"
@@ -102,6 +103,7 @@ typedef Mirror<Cylinder> CylindricalMirror; /**<  \brief Implements a Mirror, th
 typedef Mirror<Toroid> ToroidalMirror;      /**<  \brief Implements a Mirror, the Surface of which has a Toroid shape \n The Major curvatur of the unrotated surface is in the tangential plane*/
 typedef Mirror<ConicBaseCylinder> ConicBaseCylindricalMirror; /**< \brief Implements a Mirror, the Surface of which has a ConicBaseCylinder shape \n The directrix the unrotated surface is a conic in the tangential plane */
 typedef Mirror<RevolutionQuadric> RevolutionQuadricMirror; /**< \brief Implements a Mirror, the Surface of which has a RevolutionQuadric shape \n The foci of the unrotated surface ly in the sagittal plane*/
+typedef Mirror<Cone> ConicalMirror;      /**<  \brief Implements a Mirror, the Surface of which has a cone shape \n and the apex on the X axis*/
 typedef Mirror<NaturalPolynomialSurface> NaturalPolynomialMirror; /**< \brief Implements a Mirror, the Surface of which has a NaturalPolynomialSurface  shape\ the shape can be defined by the coefficients, or by a height or slope fit*/
 typedef Mirror<LegendrePolynomialSurface> LegendrePolynomialMirror; /**< \brief Implements a Mirror, the Surface of which has a LegendrePolynomialSurface  shape\ the shape can be defined by the coefficients, or by a height or slope fit*/
 
@@ -152,7 +154,8 @@ public:
 typedef Film<Plane> PlaneFilm;           /**<  \brief Implements a Film, the Surface of which has a Plane shape */
 typedef Film<Sphere> SphericalFilm ;     /**<  \brief Implements a Film, the Surface of which has a Sphere shape */
 typedef Film<Cylinder> CylindricalFilm;  /**<  \brief Implements a Film, the Surface of which has a Cylinder shape with generatrix in the Y direction*/
-typedef Film<Toroid> ToroidalFilm;       /**<  \brief Implements a Film, the Surface of which has a Toroid shape and main curvature in X plane*/
+typedef Film<Toroid> ToroidalFilm;       /**<  \brief Implements a Film, the Surface of which has a Toroid shape and main curvature in XZ plane*/
+typedef Film<Cone> ConicalFilm;       /**<  \brief Implements a Film, the Surface of which has a Cone shape and apex on the X axis */
 typedef Film<ConicBaseCylinder> ConicBaseCylindricalFilm; /**< \brief Implements a Film, the Surface of which has a ConicBaseCylinder shape \n The directrix the unrotated surface is a conic in the tangential plane */
 typedef Film<RevolutionQuadric> RevolutionQuadricFilm; /**< \brief Implements a Film, the Surface of which has a RevolutionQuadric shape \n The foci of the unrotated surface ly in the sagittal plane*/
 typedef Film<NaturalPolynomialSurface> NaturalPolynomialFilm; /**< \brief Implements a Film, the Surface of which has a NaturalPolynomialSurface  shape\ the shape can be defined by the coefficients, or by a height or slope fit*/

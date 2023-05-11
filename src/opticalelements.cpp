@@ -28,6 +28,7 @@ template class Mirror<Cylinder>;
 template class Mirror<Toroid>;
 template class Mirror<ConicBaseCylinder>;
 template class Mirror<RevolutionQuadric>;
+template class Mirror<Cone>;
 template class Mirror<NaturalPolynomialSurface>;
 template class Mirror<LegendrePolynomialSurface>;
 
@@ -35,6 +36,7 @@ template class Film<Plane>;
 template class Film<Sphere>;
 template class Film<Cylinder>;
 template class Film<Toroid>;
+template class Film<Cone>;
 template class Film<NaturalPolynomialSurface>;
 template class Film<LegendrePolynomialSurface>;
 
@@ -85,6 +87,8 @@ ElementBase* CreateElementObject(string s_type, string name)
         elem= new Mirror<ConicBaseCylinder>(name);
     else if (s_type=="Mirror<RevolutionQuadric>" || s_type=="RevolutionQuadricMirror")
         elem= new Mirror<RevolutionQuadric>(name);
+    else if (s_type=="Mirror<Cone>" || s_type=="ConicalMirror")
+        elem= new Mirror<Cone>(name);
     else if (s_type=="Mirror<NaturalPolynomialSurface>" || s_type=="NaturalPolynomialMirror")
         elem= new Mirror<NaturalPolynomialSurface>(name);
     else if (s_type=="Mirror<LegendrePolynomialSurface>" || s_type=="LegendrePolynomialMirror")
@@ -99,6 +103,8 @@ ElementBase* CreateElementObject(string s_type, string name)
         elem= new Film<Cylinder>(name);
     else if (s_type=="Film<Toroid>" || s_type=="ToroidalFilm")
         elem= new Film<Toroid>(name);
+    else if (s_type=="Film<Cone>" || s_type=="ConicalFilm")
+        elem= new Film<Cone>(name);
     else if (s_type=="Film<ConicBaseCylinder>" || s_type=="ConicBaseCylindricalFilm")
         elem= new Film<ConicBaseCylinder>(name);
     else if (s_type=="Film<RevolutionQuadric>" || s_type=="RevolutionQuadricFilm")
@@ -166,6 +172,8 @@ ElementBase * ElementCopy(ElementBase* source)
         Copy= new Mirror<ConicBaseCylinder>(*dynamic_cast<Mirror<ConicBaseCylinder>*>(source));
     else if (s_type=="Mirror<RevolutionQuadric>" || s_type=="RevolutionQuadricMirror")
         Copy= new Mirror<RevolutionQuadric>(*dynamic_cast<Mirror<RevolutionQuadric>*>(source));
+    else if (s_type=="Mirror<Cone>" || s_type=="ConicalMirror")
+        Copy= new Mirror<Cone>(*dynamic_cast<Mirror<Cone>*>(source));
     else if (s_type=="Mirror<NaturalPolynomialSurface>" || s_type=="NaturalPolynomialMirror")
         Copy= new Mirror<NaturalPolynomialSurface>(*dynamic_cast<Mirror<NaturalPolynomialSurface>*>(source));
     else if (s_type=="Mirror<LegendrePolynomialSurface>" || s_type=="LegendrePolynomialMirror")
@@ -179,6 +187,8 @@ ElementBase * ElementCopy(ElementBase* source)
         Copy= new Film<Cylinder>(*dynamic_cast<Film<Cylinder>*>(source));
     else if (s_type=="Film<Toroid>" || s_type=="ToroidalFilm")
         Copy= new Film<Toroid>(*dynamic_cast<Film<Toroid>*>(source));
+    else if (s_type=="Film<Cone>" || s_type=="ConicalFilm")
+        Copy= new Film<Cone>(*dynamic_cast<Film<Cone>*>(source));
     else if (s_type=="Film<ConicBaseCylinder>" || s_type=="ConicBaseCylindricalFilm")
         Copy= new Film<ConicBaseCylinder>(*dynamic_cast<Film<ConicBaseCylinder>*>(source));
     else if (s_type=="Film<RevolutionQuadric>" || s_type=="RevolutionQuadricFilm")
