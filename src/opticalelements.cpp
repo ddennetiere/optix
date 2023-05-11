@@ -74,6 +74,8 @@ ElementBase* CreateElementObject(string s_type, string name)
         elem= new GaussianSource(name);
     else if (s_type=="Source<Astigmatic,Gaussian>" || s_type=="AstigmaticGaussianSource")
         elem= new AstigmaticGaussianSource(name);
+    else if (s_type=="Source<BMtype,Gaussian>" || s_type=="BMtypeGaussianSource")
+        elem= new BMtypeGaussianSource(name);
 
     else if (s_type=="Mirror<Plane>" || s_type=="PlaneMirror")
         elem= new Mirror<Plane>(name);
@@ -159,6 +161,8 @@ ElementBase * ElementCopy(ElementBase* source)
         Copy= new GaussianSource(*dynamic_cast<GaussianSource*>(source));
     else if (s_type=="Source<Astigmatic,Gaussian>" || s_type=="AstigmaticGaussianSource")
         Copy= new AstigmaticGaussianSource(*dynamic_cast<AstigmaticGaussianSource*>(source));
+    else if (s_type=="Source<BMtype,Gaussian>" || s_type=="BMtypeGaussianSource")
+        Copy= new BMtypeGaussianSource(*dynamic_cast<BMtypeGaussianSource*>(source));
 
     else if (s_type=="Mirror<Plane>" || s_type=="PlaneMirror")
         Copy= new Mirror<Plane>(*dynamic_cast<Mirror<Plane>*>(source));
