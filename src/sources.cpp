@@ -558,7 +558,7 @@ int BMtypeGaussianSource::generate(const double wavelength, const char polar)
         if(sigmaYprim > 0)
         {
 
-            if(polar == 'P')
+            if(polar == 'S')
                 dir(1)=gaussYprim(rd);
             else
             {
