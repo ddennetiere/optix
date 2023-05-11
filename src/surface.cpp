@@ -56,6 +56,7 @@ RayType& Surface::reflect(RayType& ray)    /*  this implementation simply reflec
 
         intercept(ray, &normal);
 
+
         if(ray.m_alive)
         {
             if(!inhibitApertureLimit && m_apertureActive)
@@ -93,13 +94,18 @@ RayType& Surface::reflect(RayType& ray)    /*  this implementation simply reflec
 
         return ray;
     } catch(EigenException & eigexcpt) {
-        cout << "Exception catch in " << m_name << " reflect \n" << eigexcpt.what();
+        cout << "EigenException catch in " << m_name << " reflect \n" << eigexcpt.what() <<endl;
         exit(-1);
-    }catch(std::exception & excpt)
+    }catch(RayException & excpt)
     {
-        cout << "Exception catch in " << m_name << " reflect \n" << excpt.what();
+        cout << "RayException catch in " << m_name << " reflect \n" << excpt.what()<<endl;
+        exit(-1);
+    }catch(...)
+    {
+        cout << "Unknown Exception catch in " << m_name << " reflect \n" ;
         exit(-1);
     }
+
 }
 
 
