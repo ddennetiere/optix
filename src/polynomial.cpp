@@ -36,6 +36,17 @@ RayBaseType::VectorType Polynomial::intercept(RayBaseType& ray,  RayBaseType::Ve
             Px=getBaseValues(m_coeffs.rows(), m_Kx*(ray.position(t)(0)-m_X0), d1x, d2x);curline=__LINE__;
             Py=getBaseValues(m_coeffs.cols(), m_Ky*(ray.position(t)(1)-m_Y0), d1y, d2y);curline=__LINE__;
             FloatType DZ=ray.position(t)(2) - Px.transpose()*m_coeffs*Py;curline=__LINE__;
+            if(isnan(DZ))
+            {
+                std::cout << "invalid surface distance at t="<< t<< "   position " << ray.position(t).transpose()
+                          << "   direction: " << ray.direction().transpose() << std::endl;
+#ifdef VERBOSE
+                std::cout << "X Poly values: "  << Px.transpose() <<std::endl;
+                std::cout << "Y Poly values: "  << Py.transpose() <<std::endl;
+                std::cout << "coeff dump:\n" << m_coeffs <<std::endl;
+#endif // VERBOSE
+                exit(-1);
+            }
             if(abs(DZ) <ztol)
                 break;
             gradient(0)= m_Kx*d1x.transpose()*m_coeffs* Py;curline=__LINE__;
@@ -68,7 +79,7 @@ RayBaseType::VectorType Polynomial::intercept(RayBaseType& ray,  RayBaseType::Ve
         char msg[80];
             sprintf(msg, "Intercept tolerance %Lg not achieved in %d iterations", ztol, maxiter);
 #ifdef VERBOSE
-        std::cout << "Ray input: " << ray.position().transpose() << " direction: " << ray.direction().transpose() << std::endl;
+        std::cout << "Ray input: " << ray.position().transpose() << "   direction: " << ray.direction().transpose() << std::endl;
         std::cout << "Ray output:" << ray.position(t).transpose()  << std::endl;
         std::cout << "t=" << t << " dt=" << dt << "     trace:\n";
         std::cout  << trace <<std::endl;
