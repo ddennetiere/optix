@@ -697,7 +697,7 @@ bool getTrimmedEnding(const string &line, size_t pos, string &token)
 
             if(pelemID)
             {
-                *pelemID=CreateElement("Grating<Holo,Plane>",name.c_str());
+                *pelemID=CreateElement("Grating<Poly1D,Plane>",name.c_str());
                 elem=(ElementBase*)*pelemID;
                 Parameter param;
                 // non variable parameters from GratingBase

@@ -14,6 +14,7 @@
  ***************************************************************************/
 
 #include "polynomial.h"
+#define VERBOSE
 
 RayBaseType::VectorType Polynomial::intercept(RayBaseType& ray,  RayBaseType::VectorType * normal )
 {
@@ -23,6 +24,9 @@ RayBaseType::VectorType Polynomial::intercept(RayBaseType& ray,  RayBaseType::Ve
     gradient << 0,0,-1.;
     // iteration loop
     int i, maxiter=20;
+#ifdef VERBOSE
+    ArrayXXd trace(2, maxiter);
+#endif // VERBOSE
     FloatType ztol=1e-11,  t=0, dt=0;
     for(i=0; i < maxiter; ++i, t+=dt)
     {
@@ -50,6 +54,10 @@ RayBaseType::VectorType Polynomial::intercept(RayBaseType& ray,  RayBaseType::Ve
             }
             else
                 dt=tau*(1.-gamma*(1.-gamma*(2.-5.*gamma)));
+#ifdef VERBOSE
+            trace(0,i)=dt;
+            trace(1,i)=DZ;
+#endif // VERBOSE
         } catch (EigenException  & excpt ) {
             throw( EigenException(string("Rethrowing exception from ")+excpt.what(), __FILE__, __func__, curline));
         }
@@ -59,6 +67,13 @@ RayBaseType::VectorType Polynomial::intercept(RayBaseType& ray,  RayBaseType::Ve
     {
         char msg[80];
             sprintf(msg, "Intercept tolerance %Lg not achieved in %d iterations", ztol, maxiter);
+#ifdef VERBOSE
+        std::cout << "Ray input: " << ray.position().transpose() << " direction: " << ray.direction().transpose() << std::endl;
+        std::cout << "Ray output:" << ray.position(t).transpose()  << std::endl;
+        std::cout << "t=" << t << " dt=" << dt << "     trace:\n";
+        std::cout  << trace <<std::endl;
+
+#endif // VERBOSE
         throw RayException(msg, __FILE__, __func__, __LINE__);
     }
     if(normal)
