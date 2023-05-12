@@ -133,6 +133,7 @@ PolynomialSurface<PolyType>::PolynomialSurface(string name, Surface *previous):S
 template<class PolyType>
 bool PolynomialSurface<PolyType>::setParameter(string name, Parameter& param)
 {
+    char errmsg[80];
    // cout << "in PolynomialSurface setParameter\n";
     if(! Surface::setParameter(name, param)) // this call update the parameter list but takes no action
             return false;
@@ -149,6 +150,18 @@ bool PolynomialSurface<PolyType>::setParameter(string name, Parameter& param)
             return false;
         }
         double * lim= param.paramArray->data;
+        if(lim[0] == lim[1])
+        {
+            sprintf(errmsg,"X-range of surfaceLimits [%g,%g], has a null extent",lim[0],lim[1]);
+            SetOptiXLastError(errmsg, __FILE__, __func__);
+            return false;
+        }
+        if(lim[2] == lim[3])
+        {
+            sprintf(errmsg,"Y-range of surfaceLimits [%g,%g], has a null extent",lim[2],lim[3]);
+            SetOptiXLastError(errmsg, __FILE__, __func__);
+            return false;
+        }
         Polynomial::setLimits(lim[0], lim[1], lim[2], lim[3]);
     }
     if(name=="coefficients") // do specific creation actions

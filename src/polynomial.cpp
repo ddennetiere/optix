@@ -14,10 +14,13 @@
  ***************************************************************************/
 
 #include "polynomial.h"
+#include <sstream>
+
 #define VERBOSE
 
 RayBaseType::VectorType Polynomial::intercept(RayBaseType& ray,  RayBaseType::VectorType * normal )
 {
+    std::stringstream errmsg;
     ray.moveTo(-ray.direction().dot(ray.origin()) ).rebase();   // move and rebase at the nearest of surface origin
     Vector<FloatType,3> gradient;
     Matrix<FloatType,2,2> curvature;
@@ -36,16 +39,17 @@ RayBaseType::VectorType Polynomial::intercept(RayBaseType& ray,  RayBaseType::Ve
             Px=getBaseValues(m_coeffs.rows(), m_Kx*(ray.position(t)(0)-m_X0), d1x, d2x);curline=__LINE__;
             Py=getBaseValues(m_coeffs.cols(), m_Ky*(ray.position(t)(1)-m_Y0), d1y, d2y);curline=__LINE__;
             FloatType DZ=ray.position(t)(2) - Px.transpose()*m_coeffs*Py;curline=__LINE__;
-            if(isnan(DZ))
+            if(!isnormal(DZ))
             {
-                std::cout << "invalid surface distance at t="<< t<< "   position " << ray.position(t).transpose()
+
+                errmsg << "invalid surface distance at t="<< t<< "   position " << ray.position(t).transpose()
                           << "   direction: " << ray.direction().transpose() << std::endl;
 #ifdef VERBOSE
                 std::cout << "X Poly values: "  << Px.transpose() <<std::endl;
                 std::cout << "Y Poly values: "  << Py.transpose() <<std::endl;
                 std::cout << "coeff dump:\n" << m_coeffs <<std::endl;
 #endif // VERBOSE
-                exit(-1);
+                throw RayException(errmsg.str(), __FILE__, __func__, __LINE__);
             }
             if(abs(DZ) <ztol)
                 break;
@@ -76,8 +80,7 @@ RayBaseType::VectorType Polynomial::intercept(RayBaseType& ray,  RayBaseType::Ve
 //    std::cout <<"iter=" << i << std::endl;
     if(i == maxiter)
     {
-        char msg[80];
-            sprintf(msg, "Intercept tolerance %Lg not achieved in %d iterations", ztol, maxiter);
+        errmsg << "Intercept tolerance " << ztol << " not achieved in " << maxiter << "  iterations"<<std::endl;
 #ifdef VERBOSE
         std::cout << "Ray input: " << ray.position().transpose() << "   direction: " << ray.direction().transpose() << std::endl;
         std::cout << "Ray output:" << ray.position(t).transpose()  << std::endl;
@@ -85,7 +88,7 @@ RayBaseType::VectorType Polynomial::intercept(RayBaseType& ray,  RayBaseType::Ve
         std::cout  << trace <<std::endl;
 
 #endif // VERBOSE
-        throw RayException(msg, __FILE__, __func__, __LINE__);
+        throw RayException(errmsg.str(), __FILE__, __func__, __LINE__);
     }
     if(normal)
         *normal=-gradient.normalized();
