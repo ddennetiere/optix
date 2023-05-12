@@ -978,7 +978,7 @@ extern "C"
             SetOptiXLastError("Invalid wavelength", __FILE__, __func__);
             return 0;
         }
-        if(polar!='S'||polar!='P' || polar!='R'||  polar!='L')
+        if(polar!='S'&&polar!='P' && polar!='R'&&  polar!='L')
         {
             SetOptiXLastError(string("Invalid Polarization: '") +polar +"'; 'S', 'P', 'R', 'L' only are valid", __FILE__, __func__);
             return 0;
