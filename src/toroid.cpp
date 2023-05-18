@@ -120,7 +120,7 @@ RayBaseType::VectorType Toroid::intercept(RayBaseType& ray, VectorType * normal)
         switch (nsols)
         {
         case 0 :
-            cout << "no solution found\n";
+            //cout << "no solution found\n";
             ray.m_alive=false;
             return ray.position();
             break;

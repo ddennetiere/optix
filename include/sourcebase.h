@@ -86,16 +86,22 @@ class SourceBase : public virtual Surface
         }
 
         /** \brief propagate all generated rays stored in impacts
-         * \todo This function need to be parallelized
+         * \todo This function need to be parallelized. it would need to create system clones fro thread safety
          */
-        inline void radiate()
+        inline int radiate()
         {
+            int losses=0;
             if(m_next==0)
-                return;
+                return 0;
             vector<RayType>::iterator it;
             RayType propRay;
             for(it=m_impacts.begin(); it != m_impacts.end(); ++it)
+            {
                 m_next->propagate(propRay=*it);   // on propage une cope de *it. La propagation modifie directement le rayon propagé
+                if(! propRay.m_alive)
+                    ++losses;
+            }
+            return losses;
         }
 
         /** \brief  Start a specific ray tracing for Wavefront extraction and PSF computation

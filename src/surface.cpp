@@ -113,6 +113,7 @@ void Surface::clearImpacts()
 {
     m_impacts.clear();
     m_OPDvalid=false;
+    m_lostCount=0;
     if(m_next!=NULL)
     {
         Surface* psurf=dynamic_cast<Surface*>(m_next);
@@ -125,7 +126,8 @@ void Surface::clearImpacts()
 
 void Surface::reserveImpacts(int n)
 {
-    m_impacts.reserve(n);
+    if(m_recording!=RecordNone) // added 18/05/23 (no reason to reserve space for non recording surfaces)
+        m_impacts.reserve(n);
     if(m_next!=NULL)
         dynamic_cast<Surface*>(m_next)->reserveImpacts(n);
 }

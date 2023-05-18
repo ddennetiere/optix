@@ -93,8 +93,8 @@ void memoryDump(void* address, uint64_t size);
 *   ----------------- | -------- | --------------
 *   \b distance | Distance | Distance to the preceeding element. (see note)
 *   \b theta | Angle | Chief ray half-deviation
-*   \b phi | Angle | Roatation angle of the surface reference frame around the incident chief ray
-*   \b psi | Angle | Roatation angle of the surface reference frame around its normal
+*   \b phi | Angle | Rotation angle of the surface reference frame around the incident chief ray
+*   \b psi | Angle | Rotation angle of the surface reference frame around its normal
 *   \b Dtheta | Angle | Correction to the incidence angle theta
 *   \b Dphi | Angle | Correction to phi rotation angle
 *   \b Dpsi | Angle | Correction to in-plane rotation angle psi
