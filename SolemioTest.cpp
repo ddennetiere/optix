@@ -23,6 +23,116 @@ using namespace std::chrono;
 
 #include "xmlfile.h"
 
+int XmlTest()
+{
+    size_t sourceID, elemID;
+    char elname[32], errBuf[256]; // ,parmname[48]
+
+    LoadSystemFromXml("Hermes_DTheta.xml");
+
+    sourceID=elemID=GetElementID("S_ONDUL_BiPer");
+
+    while(elemID)
+    {
+        GetElementName(elemID, elname,32);
+        cout << elname << "  " << std::hex << elemID << std::dec <<endl;
+        elemID =GetNextElement(elemID);
+    }
+
+//    GetParameter(sourceID,"nRays", &param);
+//    param.value=50000;
+//    SetParameter(sourceID,"nRays",param);
+
+    double lambda=7.e-8;
+
+    if(!Align(sourceID,lambda))
+    {
+       GetOptiXLastError(errBuf,256);
+       cout << "Alignment error : " << errBuf << endl;
+       return -1;
+    }
+    if(!Generate(sourceID, lambda))
+    {
+       GetOptiXLastError(errBuf,256);
+       cout << "Source generation error : " << errBuf << endl;
+       return -1;
+    }
+    cout << "source generated\n";
+
+    high_resolution_clock clock;
+    high_resolution_clock::time_point start(clock.now());
+
+    if(!Radiate(sourceID))
+    {
+       GetOptiXLastError(errBuf,256);
+       if(strncmp(errBuf,"WARNING",7)==0)
+        cout << errBuf <<endl;
+       else
+       {
+            cout << "Radiation error : " << errBuf << endl;
+            return -1;
+       }
+    }
+    cout << "propagation computation time :" << duration_cast<milliseconds>(clock.now()-start).count() << " msec\n" ;
+
+            C_DiagramStruct cdiagram={5,10000,0,0};
+
+            cdiagram.m_min=new double[cdiagram.m_dim];
+            cdiagram.m_max=new double[cdiagram.m_dim];
+            cdiagram.m_mean=new double[cdiagram.m_dim];
+            cdiagram.m_sigma=new double[cdiagram.m_dim];
+            cdiagram.m_spots= new double[cdiagram.m_dim*cdiagram.m_reserved];
+//            cout << "cdiag struct "<< std::hex << cdiagram.m_min << " " << cdiagram.m_max << " " << cdiagram.m_mean <<
+//                " " << cdiagram.m_sigma << std::dec << endl;
+
+//            if(!GetSpotDiagram(GetElementID("EXP1"), &cdiagram, 0))
+            if(!GetSpotDiagram(GetElementID("foca"), &cdiagram, 0))
+            {
+                char errbuf[256];
+                GetOptiXLastError(errbuf, 256);
+                cout << "GetSpotDiagram failed :  "<< errbuf << endl;
+            }
+            else
+            {
+                cout  <<  "GetSpotDiagram succeeded\n  counts=" << cdiagram.m_count << "   lost=" << cdiagram.m_lost  <<endl;
+                DiagramToFile("cSpotDiag_foca.sdg", &cdiagram);
+            }
+
+            if(!GetSpotDiagram(GetElementID("Reseau_200"), &cdiagram, 0))
+            {
+                char errbuf[256];
+                GetOptiXLastError(errbuf, 256);
+                cout << "GetSpotDiagram failed :  "<< errbuf << endl;
+            }
+            else
+            {
+                cout  <<  "GetSpotDiagram succeeded\n  counts=" << cdiagram.m_count << "   lost=" << cdiagram.m_lost  <<endl;
+                DiagramToFile("cSpotDiag_R200.sdg", &cdiagram);
+            }
+
+            if(!GetSpotDiagram(GetElementID("Fente"), &cdiagram, 0))
+            {
+                char errbuf[256];
+                GetOptiXLastError(errbuf, 256);
+                cout << "GetSpotDiagram failed :  "<< errbuf << endl;
+            }
+            else
+            {
+                cout  <<  "GetSpotDiagram succeeded\n  counts=" << cdiagram.m_count << "   lost=" << cdiagram.m_lost  <<endl;
+                DiagramToFile("cSpotDiag_Fente.sdg", &cdiagram);
+            }
+
+
+
+            delete [] cdiagram.m_min;
+            delete [] cdiagram.m_max;
+            delete [] cdiagram.m_mean;
+            delete [] cdiagram.m_sigma;
+            delete [] cdiagram.m_spots;
+
+    return 0;
+}
+
  int SolemioTest()
  {
     //ReadSolemioFile("R:\\Partage\\SOLEMIO\\CASSIOPEE");
