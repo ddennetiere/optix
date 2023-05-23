@@ -189,6 +189,44 @@ public:
 };
 
 
+class SecondarySource: public virtual SourceBase
+{
+public:
+    /** Default constructor */
+    SecondarySource(string name="" ,Surface * previous=NULL);
+    /** Default destructor */
+    virtual ~SecondarySource(){}
+    virtual inline string getOptixClass(){return "Source<Secondary>";}   /**< return the derived class name ie. Source<Secondary> */
+
+    inline virtual void propagate(RayType& ray) /**< the propagated ray */
+    {
+        try{
+            transmit(ray); // a secondary source cannot be combined with a mirror' This all will fill the impact vector
+
+            if(! ray.m_alive)
+                ++m_lostCount;
+               // cout << m_name << " ray lost : " << "(" << ray.position().transpose() << ") (" << ray.direction().transpose() << ")\n";
+        }
+        catch( EigenException & excpt){
+            throw (EigenException(excpt.what()+ " in element " + getName() +"\nre-thrown from",__FILE__, __func__, __LINE__));
+        }
+        // do not propagate any furtherc
+    }
+
+    /** \brief implementation of generate for a SecondarySource calls the generator of the corresponding primary source
+     *
+     * \param wavelength The generation wavelength
+     * \param polar The radiation polarisation
+     * \return  the number of rays generated in this call
+     *
+     */
+    virtual int generate(const double wavelength, const char polar='S');
+    //public members
+protected:
+    SourceBase * primarySource;
+
+};
+
 
 
 #endif // SOURCES_H

@@ -1001,8 +1001,16 @@ extern "C"
             SetOptiXLastError("Element is not a source", __FILE__, __func__);
             return false;
         }
-        dynamic_cast<SourceBase*>((ElementBase*)elementID)->radiate();
-        return true;
+        int losses=dynamic_cast<SourceBase*>((ElementBase*)elementID)->radiate();
+        if(losses==0)
+            return true;
+        else
+        {
+            char buffer[80];
+            sprintf(buffer,"WARNING: %d rays lost in propagation", losses);
+            SetOptiXLastError(buffer, __FILE__, __func__);
+            return false;
+        }
     }
 
     DLL_EXPORT bool RadiateAt(size_t elementID, double wavelength)
@@ -1024,8 +1032,16 @@ extern "C"
             return false;
         }
         dynamic_cast<SourceBase*>((ElementBase*)elementID)->setWavelength(wavelength);
-        dynamic_cast<SourceBase*>((ElementBase*)elementID)->radiate();
-        return true;
+        int losses=dynamic_cast<SourceBase*>((ElementBase*)elementID)->radiate();
+        if(losses==0)
+            return true;
+        else
+        {
+            char buffer[80];
+            sprintf(buffer,"WARNING: %d rays lost in propagation", losses);
+            SetOptiXLastError(buffer, __FILE__, __func__);
+            return false;
+        }
     }
 
     DLL_EXPORT bool GetSpotDiagram(size_t elementID,  C_DiagramStruct * diagram, double distance)

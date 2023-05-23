@@ -228,8 +228,8 @@ ElementBase * ElementCopy(ElementBase* source)
         Copy= new Grating<Poly1D,ConicBaseCylinder>(*dynamic_cast<Grating<Poly1D,ConicBaseCylinder>*>(source));
     else if (s_type=="Grating<Poly1D,RevolutionQuadric>" || s_type=="RevolutionQuadricPoly1DGrating")
         Copy= new Grating<Poly1D,RevolutionQuadric>(*dynamic_cast<Grating<Poly1D,RevolutionQuadric>*>(source));
-//    else
-//        return NULL; // creation failed bad type
+    else // Copy is still NULL
+        SetOptiXLastError(string("Unknown element class '") +s_type+ "'", __FILE__, __func__, __LINE__ );
 //
 //    // reset the link pointers
     Copy->setPrevious(NULL);
@@ -247,7 +247,9 @@ bool DuplicateChain(ElementBase * source, ChainCopy& newChain)
     ElementBase* elemCopy=ElementCopy(source);
 //    stype=elemCopy->getOptixClass();
     if(elemCopy==NULL)
-        return false;   // Classtype invalid  -should not happen
+    {
+        return false;   // Classtype invalid  -should not happen unles ElementCopy is missing some type
+    }
     if(newChain.copyMap.empty())
     {
         newChain.First=elemCopy;

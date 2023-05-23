@@ -32,31 +32,42 @@ class spotdiag(Structure):
                 ("counts", c_uint),
                 ("lost", c_uint) ]
                 
-    def __init__(self):
-        self.vmin=array.array('d')
-        self.vmax=array.array('d')
-        self.vmean=array.array('d')
-        self.vsigma=array.array('d')
-        self.data=None
+    def __init__(self, filepath=''):
+        self.load()
+        if self.filepath=='':
+            self.vmin=None
+            self.vmax=None
+            self.vmean=None
+            self.vsigma=None
+            self.data=None
+            print('No file loaded')
         
     def load(self, filepath=''):
-        if not Path(filepath).is_file():
+        self.filepath=filepath
+        if not Path(self.filepath).is_file():
             tkinter.Tk().withdraw()
             self.filepath=filedialog.askopenfilename(title="open a .sdg file", filetypes=(("spotdiag file","*.sdg"), ("all","*.*") ) )
+        if self.filepath=='':
+            return 
         print("Opening:", self.filepath)
         
         with open(self.filepath,'rb') as file:
-           file.readinto(self)
-           print('spot dimension', self.vdim, '    number of spots', self.counts)
-           self.vmin.fromfile(file,self.vdim)
-           self.vmax.fromfile(file,self.vdim)
-           self.vmean.fromfile(file,self.vdim)
-           self.vsigma.fromfile(file,self.vdim)
-           databuf=array.array('d')
-           databuf.fromfile(file, self.vdim*self.counts)
-           self.data=np.ndarray((self.counts,self.vdim), dtype=np.float64, buffer=databuf)
+            file.readinto(self)
+            print('spot dimension', self.vdim, '    number of spots', self.counts)
+            self.vmin=array.array('d')
+            self.vmax=array.array('d')
+            self.vmean=array.array('d')
+            self.vsigma=array.array('d')
+            self.vmin.fromfile(file,self.vdim)
+            self.vmax.fromfile(file,self.vdim)
+            self.vmean.fromfile(file,self.vdim)
+            self.vsigma.fromfile(file,self.vdim)
+            databuf=array.array('d')
+            databuf.fromfile(file, self.vdim*self.counts)
+            self.data=np.ndarray((self.counts,self.vdim), dtype=np.float64, buffer=databuf)
         for i in range(self.vdim):
             print(i, self.vmin[i], self.vmax[i], self.vmean[i], self.vsigma[i] )
+        return 
     
     def view(self,x_axis='x', y_axis='y'):
         naxis=dict( x=0, y=1, xp=2, yp=3)
@@ -67,7 +78,7 @@ class spotdiag(Structure):
         xstep=(self.vmax[naxis[x_axis]]-self.vmin[naxis[x_axis]])/(xsize-1)
         x0=self.vmin[naxis[x_axis]]+xstep/2
         ystep=(self.vmax[naxis[y_axis]]-self.vmin[naxis[y_axis]])/(ysize-1)
-        y0=self.vmin[1]+ystep/2
+        y0=self.vmin[naxis[y_axis]]+ystep/2
         for spot in range(self.counts):
             ix= int((self.data[spot,naxis[x_axis]]-x0)/xstep)
             iy= int((self.data[spot,naxis[y_axis]]-y0)/ystep)
@@ -106,4 +117,3 @@ if __name__ == "__main__":
     # initialisation auto  
      global diagram
      diagram=spotdiag()
-     diagram.load()

@@ -79,15 +79,17 @@
 *   Any Element based on a Surface class has an ApertureStop member, which is composed of an array of superimposed stopping \ref Region Regions or Stops;\n
 *   * Each Region is a simply connected domain, which can be either a Polygon or an Ellipse.\n
 *       \e Mind that no check is made on the simply connected character of a polygon when created
-*   * The optical transmittance associated  to a Region is defined by the Opacity boolean parameter of the interface functions.
-*       - if Opacity=true, the transmittance  is 0 inside the Region, and it is 1. outside;*
-*       - if Opacity=false, The transmittance is 1. inside the Region, and 0. outside.
-*   * The transmittance of the aperture is a logical combination of the opacities of the successive Regions or Stops.
-*       - if the (inside) opacity of the added Region is 0, it combines with the total opacity of the underlying Regions with a OR (||) operator.
-*       - if the (inside) opacity of the added Region is 1, it combines with the total opacity of the underlying Regions with a AND (&&) operator.
+*   * Each region defines the opacity of its inside area and imposes it over all underlying regions.
+*   * It doesn't define the opacity of its outside area unless it is the bottom element of the stack.
+*       - if the region Opacity=true, the optical transmittance  is 0 inside the region
+*       - if the region Opacity=false, the optical transmittance is 1. inside the region
+*   * The opacity of the intersection of all outside areas of all regions, is the opposite of the opacity of the bottom region
+*       (first define in the stack)
 *
-*       In other words,  adding an opaque Region obstruct the transmission under the region area \n
-*       while adding a transparent Region opens an aperture though all the stacked stops . This is intended to allow rounding of squared apertures.
+*       In other words,  the first stop defines an opacity in all space.\n
+*       Adding an opaque Region obstructs the transmission under the region area, but does not change the outside \n
+*       while adding a transparent Region opens an aperture though all the stacked stops &nd still does not change the outside \n
+*   *   The logical stack should define reducing region sizes from bottom to top. This is intended to allow rounding of squared apertures and stops.
 *
 *   All functions of the Aperture API are returning a size_t value. A negative return value, actually -1, means an error occurred and the GetOptiXLastError can be checked for a reason.
 *

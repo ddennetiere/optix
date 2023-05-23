@@ -54,10 +54,15 @@ int SolemioTest();
 int SphereTest();
 int QuickTest();
 int TestEllipse();
+int XmlTest();
 
 int main()
 {
     cout << "starting \n";
+
+    return XmlTest();
+
+
     ArrayXd v1(7), v2(7), v3;
     v1 << 4,8,5.2,8.5, 9,14,18 ;
     v2 << 3,9.5,7, 13.2, 6, 15, 19;

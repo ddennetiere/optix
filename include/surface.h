@@ -72,10 +72,10 @@ public:
     /** \brief default  constructor (Film) with explicit chaining to previous
     */
     Surface(bool transparent=true, string name="", Surface * previous=NULL):ElementBase(transparent,name,previous),m_recording(RecordNone),
-             m_apertureActive(false), m_pCoating(NULL){}
+             , m_pCoating(NULL), m_lostCount(0), m_apertureActive(false){}
 #else
     Surface(bool transparent=true, string name="", Surface * previous=NULL):ElementBase(transparent,name,previous),m_recording(RecordNone),
-             m_apertureActive(false){}
+              m_lostCount(0), m_apertureActive(false){}
 #endif // HAS_REFLEX
     virtual ~Surface(){}    /**< \brief virtual destructor */
 
@@ -121,30 +121,21 @@ public:
             *   \n All implementations <b> must take care of recording impacts </b> in entrance or exit plane as required. */
 
 /** \brief  call transmit or reflect according to surface type ray and iterate to the next surface*/
-    inline  void propagate(RayType& ray) /**< the propagated ray */
+    inline virtual void propagate(RayType& ray) /**< the propagated ray */
     {
         try{
             if(m_transmissive)
-             {
-//                 cout << m_name << " transmit\n";
                  transmit(ray);
-             }
             else
-            {
-//                cout << m_name << " reflect\n";
                 reflect(ray);
-            }
-            if(ray.m_alive)
-            {
-                if(m_next!=NULL )  // FP
-                    m_next->propagate(ray);
-            }
-            else
-                cout << m_name << " ray lost : " << "(" << ray.position().transpose() << ") (" << ray.direction().transpose() << ")\n";
-        }
-        catch( EigenException & excpt)
-        {
 
+            if(m_next!=NULL )  // FP
+                m_next->propagate(ray);
+            if(! ray.m_alive)
+                ++m_lostCount;
+               // cout << m_name << " ray lost : " << "(" << ray.position().transpose() << ") (" << ray.direction().transpose() << ")\n";
+        }
+        catch( EigenException & excpt){
             throw (EigenException(excpt.what()+ " in element " + getName() +"\nre-thrown from",__FILE__, __func__, __LINE__));
         }
     }
@@ -288,10 +279,11 @@ public:
 protected:
     vector<RayType> m_impacts; /**<  \brief the ray impacts on the surfaces in absolute local element space before or after reflection/transmission */
     RecordMode m_recording; /**<  \brief flag defining whether or not the ray impacts on this surface are recorded and before or after reflection/transmission   */
-    bool m_apertureActive;  /**<  \brief boolean flag for taking the aperture active area into account */
 #ifdef HAS_REFLEX
     Coating *m_pCoating=NULL; /**< \brief a pointer to a instance of Coating class to be used in reflectivity (or to be done transmittance) computations */
 #endif // HAS_REFLEX
+    int m_lostCount=0;        /**<  \brief Count of rays lost in this surface at transmission or reflexion */
+    bool m_apertureActive;  /**<  \brief boolean flag for taking the aperture active area into account */
     bool m_OPDvalid=false;  /**< \brief boolean flag for keeping track of the validity of the OPD of the rays stored in the m_impacts vector */
     int m_NxOPD=0;          /**< \brief degree of Legendre polynomials of the X variable used to interpolate the OPD*/
     int m_NyOPD=0;          /**< \brief degree of Legendre polynomials of the Y variable used to interpolate the OPD */

@@ -29,7 +29,7 @@ using std::cout, std::endl;
  *  \ingroup GlobalCpp
  * \param solutions The return complex Eigen vectors
  * \param matSys The complex Matrix the Eigen vectors of which are requested
- * \return 2 if computation succeeds, -1 if tit fails
+ * \return 2 if computation succeeds, -1 if it fails
  *
  *  This is part of  the intercept function of toroid class.*/
 int ComplexVpSolver(Matrix<FloatType,2,Dynamic> &solutions,Matrix<complex<FloatType>,3,3> &matSys);
