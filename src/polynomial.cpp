@@ -14,7 +14,7 @@
  ***************************************************************************/
 
 #include "polynomial.h"
-#define VERBOSE
+//#define VERBOSE
 
 RayBaseType::VectorType Polynomial::intercept(RayBaseType& ray,  RayBaseType::VectorType * normal )
 {
