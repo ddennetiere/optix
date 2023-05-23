@@ -170,6 +170,9 @@ RayType& GratingBase::transmit(RayType& ray)
     intercept(ray, &normal);    // intercept effectue le changement de repère entrée/sortie (update seulement si alive)
     if(ray.m_alive)
     {
+        if(m_recording==RecordInput)
+            m_impacts.push_back(ray);
+
         if(!inhibitApertureLimit && m_apertureActive)
         {
             Vector2d pos=(m_surfaceInverse*ray.position()).head(2).cast<double>();
@@ -177,8 +180,6 @@ RayType& GratingBase::transmit(RayType& ray)
             ray.m_amplitude_P*=T;
             ray.m_amplitude_S*=T;
         }
-        if(m_recording==RecordInput)
-            m_impacts.push_back(ray);
 
         VectorType G=m_surfaceDirect*gratingVector(m_surfaceInverse*ray.position(), m_surfaceInverse*normal)*m_useOrder*ray.m_wavelength; // le vecteur réseau exprimé dans le repère de calcul (absolu local)
         // G par  construction est dans le plan tangent G. Normal=0
@@ -196,7 +197,7 @@ RayType& GratingBase::transmit(RayType& ray)
         if(m_recording==RecordOutput)
             m_impacts.push_back(ray);
     }
-    else if(m_recording!=RecordNone)
+    else if(m_recording)
             m_impacts.push_back(ray);
 
     if(m_OPDvalid && m_recording)
@@ -212,6 +213,10 @@ RayType& GratingBase::reflect(RayType& ray)
     intercept(ray, &normal);    // intercept effectue le changement de repère entrée/sortie
     if(ray.m_alive)
     {
+
+        if(m_recording==RecordInput)
+            m_impacts.push_back(ray);
+
         if(!inhibitApertureLimit && m_apertureActive)
         {
             Vector2d pos=(m_surfaceInverse*ray.position()).head(2).cast<double>();
@@ -219,9 +224,6 @@ RayType& GratingBase::reflect(RayType& ray)
             ray.m_amplitude_P*=T;
             ray.m_amplitude_S*=T;
         }
-
-        if(m_recording==RecordInput)
-            m_impacts.push_back(ray);
 
         VectorType G=m_surfaceDirect*gratingVector(m_surfaceInverse*ray.position(), m_surfaceInverse*normal)*m_useOrder*ray.m_wavelength; // le vecteur réseau exprimé dans le repère de calcul (absolu local)
         // G par  construction est dans le plan tangent G.Normal=0
@@ -239,7 +241,7 @@ RayType& GratingBase::reflect(RayType& ray)
         if(m_recording==RecordOutput)
             m_impacts.push_back(ray);
     }
-    else if(m_recording!=RecordNone)
+    else if(m_recording)
             m_impacts.push_back(ray);
 
     if(m_OPDvalid && m_recording)

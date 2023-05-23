@@ -33,19 +33,28 @@ RayType& Surface::transmit(RayType& ray)
 {
 
     intercept(ray); // intercept effectue le changement de repère previous to this. The position is updated only if the ray is alive
-    if(ray.m_alive && !inhibitApertureLimit && m_apertureActive)
+    if(ray.m_alive)
     {
-        Vector2d pos=(m_surfaceInverse*ray.position()).head(2).cast<double>();
-        double T=m_aperture.getTransmissionAt(pos);
-        ray.m_amplitude_P*=T;
-        ray.m_amplitude_S*=T;
+        if(m_recording==RecordInput)
+            m_impacts.push_back(ray);
+
+        if(!inhibitApertureLimit && m_apertureActive)
+        {
+            Vector2d pos=(m_surfaceInverse*ray.position()).head(2).cast<double>();
+            double T=m_aperture.getTransmissionAt(pos);
+            ray.m_amplitude_P*=T;
+            ray.m_amplitude_S*=T;
+        }
+
+        if(m_recording==RecordInput)
+            m_impacts.push_back(ray);
     }
-    if(m_recording!=RecordNone)
-    {
+    else if(m_recording)
         m_impacts.push_back(ray);
-        if(m_OPDvalid)
-            m_OPDvalid=false;
-    }
+
+    if(m_OPDvalid && m_recording)
+        m_OPDvalid=false;
+
     return ray;
 }
 
@@ -56,9 +65,11 @@ RayType& Surface::reflect(RayType& ray)    /*  this implementation simply reflec
 
         intercept(ray, &normal);
 
-
         if(ray.m_alive)
         {
+            if(m_recording==RecordInput)
+                m_impacts.push_back(ray);
+
             if(!inhibitApertureLimit && m_apertureActive)
             {
                 Vector2d pos=(m_surfaceInverse*ray.position()).head(2).cast<double>();
@@ -66,8 +77,7 @@ RayType& Surface::reflect(RayType& ray)    /*  this implementation simply reflec
                 ray.m_amplitude_P*=T;
                 ray.m_amplitude_S*=T;
             }
-            if(m_recording==RecordInput)
-                m_impacts.push_back(ray);
+
             VectorType indir=ray.direction();
             double singrazing=-ray.direction().dot(normal);
             ray.direction()+=2.*singrazing*normal;
@@ -86,7 +96,7 @@ RayType& Surface::reflect(RayType& ray)    /*  this implementation simply reflec
             if(m_recording==RecordOutput)
                 m_impacts.push_back(ray);
         }
-        else if(m_recording!=RecordNone)
+        else if(m_recording)
                 m_impacts.push_back(ray);
 
         if(m_OPDvalid && m_recording)

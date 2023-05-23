@@ -128,7 +128,7 @@ public:
                  transmit(ray);
             else
                 reflect(ray);
-
+            // the ray is propagated even though it could be dead in order to keep the same ray index in all impact vectors
             if(m_next!=NULL )  // FP
                 m_next->propagate(ray);
             if(! ray.m_alive)
