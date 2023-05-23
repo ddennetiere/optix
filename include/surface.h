@@ -121,32 +121,21 @@ public:
             *   \n All implementations <b> must take care of recording impacts </b> in entrance or exit plane as required. */
 
 /** \brief  call transmit or reflect according to surface type ray and iterate to the next surface*/
-    inline  void propagate(RayType& ray) /**< the propagated ray */
+    inline virtual void propagate(RayType& ray) /**< the propagated ray */
     {
         try{
             if(m_transmissive)
-             {
-//                 cout << m_name << " transmit\n";
                  transmit(ray);
-             }
             else
-            {
-//                cout << m_name << " reflect\n";
                 reflect(ray);
-            }
-//            if(ray.m_alive)
-//            {
+
             if(m_next!=NULL )  // FP
                 m_next->propagate(ray);
-//            }
-//            else
             if(! ray.m_alive)
                 ++m_lostCount;
                // cout << m_name << " ray lost : " << "(" << ray.position().transpose() << ") (" << ray.direction().transpose() << ")\n";
         }
-        catch( EigenException & excpt)
-        {
-
+        catch( EigenException & excpt){
             throw (EigenException(excpt.what()+ " in element " + getName() +"\nre-thrown from",__FILE__, __func__, __LINE__));
         }
     }

@@ -73,16 +73,23 @@ Region* ApertureStop::getRegion(size_t index)
 
 double ApertureStop::getTransmissionAt(const Ref<Vector2d> &point)
 {
-    vector<Region*>::iterator it;
-    bool  transmission=true;
-    for (it=m_regions.begin(); it != m_regions.end(); ++it)
+    if(m_regions.size()==0)
+        return 1.;
+
+//    bool  transmission=true;
+    vector<Region*>::reverse_iterator it;
+
+    for (it=m_regions.rbegin(); it != m_regions.rend(); ++it)
     {
-        if((*it)->isTransparent())
-            transmission = transmission || ((*it)->locate(point)> 0);
-        else
-            transmission = transmission && ((*it)->locate(point)< 0);
+        if((*it)->locate(point) > 0) // region acts only when ray is inside
+            return (*it)->isTransparent() ? 1. : 0;
+////        if((*it)->isTransparent())
+////            transmission = transmission || ((*it)->locate(point)> 0);
+////        else
+////            transmission = transmission && ((*it)->locate(point)< 0);
     }
-    if(transmission)
-       return 1.;
-    return 0;
+//    if(transmission)
+//       return 1.;
+    // ray is outside all regions
+    return m_regions[0]->isTransparent() ? 0 : 1. ;
 }
