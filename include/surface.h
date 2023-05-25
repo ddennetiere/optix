@@ -256,6 +256,12 @@ public:
       * \return the aperture activity setting of this surface
       */
      inline bool getApertureActive(){return m_apertureActive;}
+     inline double getApertureTransmissionAt(const Ref<Vector2d> & point){
+         if(m_apertureActive)
+            return m_aperture.getTransmissionAt(point);
+         else
+            return 1.;
+     }
      inline bool isOPDvalid(){return m_OPDvalid;}/**< \brief check validity  of OPD data before computing a PSF \return true if OPD data are valid*/
 #ifdef HAS_REFLEX
      /** \brief sets or replaces the Coating that will be used in reflectivity computations if enabled \see useReflectivity
