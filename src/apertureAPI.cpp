@@ -100,6 +100,7 @@ DLL_EXPORT size_t GetApertureActivity(size_t element_ID, bool * status)
 }
 
 
+
 DLL_EXPORT size_t GetApertureTransmissionAt(size_t element_ID, double x, double y, double * T)
 {
     if(!System.isValidID(element_ID))
