@@ -89,6 +89,16 @@ extern "C"
      */
     DLL_EXPORT size_t GetApertureActivity(size_t element_ID, bool* status);
 
+/** \brief Return the aperture transmission at a specified location
+ *
+ * \param element_ID The ID of the optical element to inquire for.
+ * \param x X coordinate in the surface frame
+ * \param y Y coordinate in the surface frame
+ * \param T location to receive the transmission value (can be either 1. or 0)
+ * \return true if it succeeds, otherwise return false and set OptiXlastError
+ */
+    DLL_EXPORT size_t GetTransmissionAt(size_t element_ID, double x, double y, double * T);
+
 
     /** \brief Returns the parameters defining a polygonal Region
      *

@@ -100,6 +100,27 @@ DLL_EXPORT size_t GetApertureActivity(size_t element_ID, bool * status)
 }
 
 
+DLL_EXPORT size_t GetTransmissionAt(size_t element_ID, double x, double y, double * T)
+{
+    if(!System.isValidID(element_ID))
+    {
+        SetOptiXLastError("invalid element ID", __FILE__, __func__);
+        return -1;
+    }
+    Surface * psurf=dynamic_cast<Surface*>((ElementBase*)element_ID);
+    if(! psurf )
+    {
+        SetOptiXLastError("element is not an OptiX Surface", __FILE__, __func__);
+        return -1;
+    }
+    Vector2d point;
+    point << x,y;
+    *T=psurf->getApertureTransmissionAt(point);
+    return 0;
+}
+
+
+
 DLL_EXPORT size_t GetPolygonParameters(size_t element_ID, size_t index, size_t arrayWidth, double* vertexArray, bool *opacity)
 {
     if(!System.isValidID(element_ID))
