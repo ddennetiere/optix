@@ -189,7 +189,23 @@ RayType& GratingBase::transmit(RayType& ray)
             FloatType KoutPerp2= 1.L - KoutParal.squaredNorm();
 
             if(KoutPerp2 >0)
+            {
+                VectorType indir(ray.direction()); //memorize input direction
                 ray.direction()=KoutParal+copysignl(sqrtl(KoutPerp2), KinPerp)* normal ;
+                // see Surface::reflect()
+                Matrix<double,3,2> pol0, pol;  // 2D frames of polarizations
+                pol0.col(0)=ray.m_vector_S.cast<double>(); // S direction in exit space of previous
+                pol0.col(1)=indir.cross(ray.m_vector_S).cast<double>(); // P  direction in exit space of previous
+
+                pol.col(0)=indir.cross(normal).normalized().cast<double>();// new S direction for this element (in inpout and output spaces)
+                pol.col(1)=indir.cross(ray.m_vector_S).cast<double>(); //new P direction of this element in input space
+                Vector2cd A0, A;
+                A0 << ray.m_amplitude_S, ray.m_amplitude_P;
+                A=pol.transpose()*pol0 *A0; // les matrices pol sont unitaires
+                ray.m_amplitude_S=A(0);
+                ray.m_amplitude_P=A(1);
+                ray.m_vector_S=ray.direction().cross(normal).normalized(); // new S direction for this element in  output space)
+            }
             else
                 ray.m_alive=false; // evanescent
 
@@ -233,7 +249,23 @@ RayType& GratingBase::reflect(RayType& ray)
             FloatType KoutPerp2= 1.L - KoutParal.squaredNorm();
 
             if(KoutPerp2 >0)
+            {
+                VectorType indir(ray.direction()); //memorize input direction
                 ray.direction()=KoutParal-copysignl(sqrtl(KoutPerp2), KinPerp)* normal ;
+
+                Matrix<double,3,2> pol0, pol;  // 2D frames of polarizations
+                pol0.col(0)=ray.m_vector_S.cast<double>(); // S direction in exit space of previous
+                pol0.col(1)=indir.cross(ray.m_vector_S).cast<double>(); // P  direction in exit space of previous
+
+                pol.col(0)=normal.cross(indir).normalized().cast<double>();// new S direction for this element (in inpout and output spaces)
+                pol.col(1)=indir.cross(ray.m_vector_S).cast<double>(); //new P direction of this element in input space
+                Vector2cd A0, A;
+                A0 << ray.m_amplitude_S, ray.m_amplitude_P;
+                A=pol.transpose()*pol0 *A0; // les matrices pol sont unitaires
+                ray.m_amplitude_S=A(0);
+                ray.m_amplitude_P=A(1);
+                ray.m_vector_S=ray.direction().cross(normal).normalized(); // new S direction for this element in  output space)
+            }
             else
                 ray.m_alive=false; // evanescent
 

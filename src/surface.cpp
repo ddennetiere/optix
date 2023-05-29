@@ -78,21 +78,25 @@ RayType& Surface::reflect(RayType& ray)    /*  this implementation simply reflec
                 ray.m_amplitude_S*=T;
             }
 
-            VectorType indir=ray.direction();
+            VectorType indir(ray.direction());  // we need to make a full copy here
             double singrazing=-ray.direction().dot(normal);
             ray.direction()+=2.*singrazing*normal;
 
-            if(singrazing> 1e-6) // compute polar frame if grazing angle  > 1µrad ; si singrazing  <0 on a un problème
-            {
-                VectorType S0(ray.m_vector_S);
-                VectorType P0=indir.cross(S0);
-                ray.m_vector_S=indir.cross(ray.direction()).normalized();
-                double ca=S0.dot(ray.m_vector_S), sa=P0.dot(ray.m_vector_S);
-                complex<double> As=ca*ray.m_amplitude_S+sa*ray.m_amplitude_P;
-                complex<double> Ap=ca*ray.m_amplitude_P-sa*ray.m_amplitude_S;
-                ray.m_amplitude_S=As;
-                ray.m_amplitude_P=Ap;
-            }
+// On convertit la polarisation dans l'espace d'entrée. les polarisation frames sont toujours alignées ou tournées autour du rayon entrant
+// si les surfaces sont alignées la transformation pol.transpose()*pol0 est l'identité
+            Matrix<double,3,2> pol0, pol;  // 2D frames of polarizations
+            pol0.col(0)=ray.m_vector_S.cast<double>(); // S direction in exit space of previous
+            pol0.col(1)=indir.cross(ray.m_vector_S).cast<double>(); // P  direction in exit space of previous
+
+            ray.m_vector_S=normal.cross(indir).normalized(); // new S direction for this element (in input and output spaces)
+            pol.col(0)=ray.m_vector_S.cast<double>();
+            pol.col(1)=indir.cross(ray.m_vector_S).cast<double>(); //new P direction of this element in input space
+            Vector2cd A0, A;
+            A0 << ray.m_amplitude_S, ray.m_amplitude_P;
+            A=pol.transpose()*pol0 *A0; // les matrices pol sont unitaires
+            ray.m_amplitude_S=A(0);
+            ray.m_amplitude_P=A(1);
+
             if(m_recording==RecordOutput)
                 m_impacts.push_back(ray);
         }
