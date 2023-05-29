@@ -616,6 +616,30 @@ extern "C"
      */
     DLL_EXPORT bool GetImpactsData(size_t elementID, C_DiagramStruct * diagram, enum FrameID frame);
 
+    /** \brief return the exit frame orientation and position of the given element in the absolute frame
+     *
+     *  The function return an array of four vectors of size 3, in the location pointed by frame_vectors.
+     *  They are respectively and in this order, the unit vectors in X, Y, and Z,
+     *  followed by the position of the frame origin in the absolute frame
+     * \param elementID the element ID
+     * \param frame_vectors Pointer to a location of 12 doubles at least, where the frame vectors will be returned
+     *      CAUTION: no check can be done on the size of this location
+     * \return  a boolean value, true for success, false if function fails and  OptixLastError was set.
+     */
+    DLL_EXPORT bool GetExitFrame(size_t elementID, double* frame_vectors);
+
+    /** \brief  return the surface frame orientation and position of the given element in the absolute frame
+     *
+     *  The function return an array of four vectors of size 3, in the location pointed by frame_vectors.
+     *  They are respectively and in this order, the unit vectors in X, Y, and Z,
+     *  followed by the position of the frame origin in the absolute frame
+     * \param elementID the element ID
+     * \param frame_vectors Pointer to a location of 12 doubles at least, where the frame vectors will be returned
+     *      CAUTION: no check can be done on the size of this location
+     * \return a boolean value, true for success, false if function fails and  OptixLastError was set.
+     */
+    DLL_EXPORT bool GetSurfaceFrame(size_t elementID, double* frame_vectors);
+
     /** \brief Write a C_DiagramStruct to a file in binary format <i>(it is questionnable whether it should be maintained as is,in the interface)</i>
      *
      *  The format follows closely the structure pattern. 4 int32 with the nthe dimension m_dim of the arrays, maximum capacity, spot count, and lost rays,

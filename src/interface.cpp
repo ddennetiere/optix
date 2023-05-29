@@ -1111,6 +1111,34 @@ extern "C"
         return false;
     }
 
+    DLL_EXPORT bool GetExitFrame(size_t elementID, double* frame_vectors)
+    {
+        ClearOptiXError();
+        if(!System.isValidID(elementID))
+        {
+            SetOptiXLastError("Invalid element ID", __FILE__, __func__);
+            return false;
+        }
+        Map<MatrixXd> mat(frame_vectors,3,4);
+        mat=((ElementBase*)elementID)->exitFrame().matrix().topRows(3).cast<double>();
+        return true;
+    }
+
+
+    DLL_EXPORT bool GetSurfaceFrame(size_t elementID, double* frame_vectors)
+    {
+        ClearOptiXError();
+        if(!System.isValidID(elementID))
+        {
+            SetOptiXLastError("Invalid element ID", __FILE__, __func__);
+            return false;
+        }
+        Map<MatrixXd> mat(frame_vectors,3,4);
+        mat=((ElementBase*)elementID)->surfaceFrame().matrix().topRows(3).cast<double>();
+        return true;    }
+
+
+
     DLL_EXPORT bool ClearImpacts(size_t elementID)
     {
         ClearOptiXError();

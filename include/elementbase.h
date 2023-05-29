@@ -454,6 +454,13 @@ public:
 
     EIGEN_DEVICE_FUNC inline IsometryType& exitFrame(){return m_exitFrame;}  /**< \brief returns a reference to the space transform from laboratory oriented frame to exit space of this element */
 
+    inline IsometryType surfaceFrame()
+    {
+        IsometryType sframe(m_surfaceDirect);
+        sframe.translation()=m_exitFrame.translation();
+        return sframe;
+    }
+
     int alignFromHere(double wavelength);/**< \brief Align the whole surface chain;  stops at first error and return the error code
                             *    \return  0 if OK; the error code which stopped the alignment */
 
