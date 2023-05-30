@@ -46,7 +46,7 @@ RayType& Surface::transmit(RayType& ray)
             ray.m_amplitude_S*=T;
         }
 
-        if(m_recording==RecordInput)
+        if(m_recording==RecordOutput)
             m_impacts.push_back(ray);
     }
     else if(m_recording)
