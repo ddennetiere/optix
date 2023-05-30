@@ -44,14 +44,16 @@ public:
      * \param amplitudeP The complex amplitude of P polarization (unit is free)
 
      */
-    Ray(RayBase<scalar>&& base,  double wavelength=0, ComplexType amplitudeS=1., ComplexType amplitudeP=0, VectorType Splane_normal=VectorType::UnitZ()) :
+    Ray(RayBase<scalar>&& base,  double wavelength=0, ComplexType amplitudeS=1., ComplexType amplitudeP=0,
+        VectorType Splane_normal=VectorType::UnitZ()) :
         RayBase<scalar>(base), m_wavelength(wavelength), m_amplitude_S(amplitudeS), m_amplitude_P(amplitudeP)
         {
             m_vector_S=this->direction().cross(Splane_normal).normalized();
         }
 
     template<typename otherScalar>
-    inline Ray(RayBase<otherScalar>&& base, double wavelength=0, ComplexType amplitudeS=1., ComplexType amplitudeP=0, VectorType Splane_normal=VectorType::UnitZ()) :
+    inline Ray(RayBase<otherScalar>&& base, double wavelength=0, ComplexType amplitudeS=1., ComplexType amplitudeP=0):
+        //  ;VectorType Splane_normal=VectorType::UnitZ()) :
         RayBase<scalar>(base), m_wavelength(wavelength), m_amplitude_S(amplitudeS), m_amplitude_P(amplitudeP)/**<  \brief   type conversion constructor with meta parameters    */
        { } // {m_vector_S=base.direction().cross(Splane_normal).normalized();}
 

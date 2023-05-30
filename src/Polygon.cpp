@@ -200,7 +200,9 @@ Location Polygon::locate(const Ref<Vector2d> &point)
 {
     if(m_size <3)
     {
-        return undetermined;
+       // return undetermined;
+       throw std::runtime_error("Polygon does not define an area");
+
     }
     if(m_convex)
     {
@@ -245,6 +247,7 @@ Location Polygon::locate(const Ref<Vector2d> &point)
             return inside;
 
     }
-    return undetermined; // ne passe jamais ici
+    //return undetermined; // ne passe jamais ici
+
 }
 
