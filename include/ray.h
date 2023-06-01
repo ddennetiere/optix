@@ -45,10 +45,10 @@ public:
 
      */
     Ray(RayBase<scalar>&& base,  double wavelength=0, ComplexType amplitudeS=1., ComplexType amplitudeP=0,
-        VectorType Splane_normal=VectorType::UnitZ()) :
+        VectorType Splane_normal=VectorType::UnitY()) :
         RayBase<scalar>(base), m_wavelength(wavelength), m_amplitude_S(amplitudeS), m_amplitude_P(amplitudeP)
         {
-            m_vector_S=this->direction().cross(Splane_normal).normalized();
+            m_vector_S=Splane_normal.cross(this->direction()).normalized();
         }
 
     template<typename otherScalar>
