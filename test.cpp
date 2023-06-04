@@ -51,6 +51,7 @@ template<typename Scalar_>  struct minOf2Op
 using namespace std;
 int OriginalTest();
 int SolemioTest();
+int Solemio2Xml(string filename);
 int SphereTest();
 int QuickTest();
 int TestEllipse();
@@ -59,6 +60,8 @@ int XmlTest();
 int main()
 {
     cout << "starting \n";
+
+    return Solemio2Xml("D:\\Documents SOLEIL\\Dossiers-Lignes\\Disco\\Solemio\\DISCOdefinitif.sole");
 
     return XmlTest();
 
