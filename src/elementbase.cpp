@@ -101,8 +101,9 @@ int ElementBase::setFrameTransforms(double wavelength)
 
     getParameter("theta",param);
     angle=param.value;
-    if(!m_transmissive) // si la surface est transmissive l'axe d'alignement de sortie reste celui d'entrée mais la rotation phi change
+    // si la surface est transmissive l'axe d'alignement de sortie reste celui d'entrée mais la rotation phi change
                 // le trièdre.   La normale pointe vers l'aval et theta donne le désalignement de la surface / l'axe d'entrée autour de OX
+    if(!m_transmissive)
         m_exitFrame*=AngleAxis<FloatType>(-2.*angle,VectorType::UnitX()) ; // axe X nouveau
 
     getParameter("Dtheta",param);
