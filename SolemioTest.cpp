@@ -23,12 +23,14 @@ using namespace std::chrono;
 
 #include "xmlfile.h"
 
+
 int XmlTest()
 {
     size_t sourceID, elemID;
     char elname[32], errBuf[256]; // ,parmname[48]
 
     LoadSystemFromXml("Hermes_DTheta.xml");
+;
 
     sourceID=elemID=GetElementID("S_ONDUL_BiPer");
 
@@ -132,6 +134,38 @@ int XmlTest()
 
     return 0;
 }
+
+int DiscoTest()
+{
+    size_t sourceID, elemID;
+    char elname[32], errBuf[256]; // ,parmname[48]
+    LoadSystemFromXml("..\\..\\xml\\Disco_sm.xml");
+    sourceID=elemID=GetElementID("sourceA");
+
+    while(elemID)
+    {
+        GetElementName(elemID, elname,32);
+        cout << elname << "  " << std::hex << elemID << std::dec <<endl;
+        elemID =GetNextElement(elemID);
+    }
+
+//    GetParameter(sourceID,"nRays", &param);
+//    param.value=50000;
+//    SetParameter(sourceID,"nRays",param);
+
+    double lambda=2.e-7;
+
+    if(!Align(sourceID,lambda))
+    {
+       GetOptiXLastError(errBuf,256);
+       cout << "Alignment error : " << errBuf << endl;
+       return -1;
+    }
+    return 0;
+}
+
+
+
 int Solemio2Xml(string filename)
 {
         if(! SolemioImport(filename))

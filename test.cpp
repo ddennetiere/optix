@@ -52,6 +52,7 @@ using namespace std;
 int OriginalTest();
 int SolemioTest();
 int Solemio2Xml(string filename);
+int DiscoTest();
 int SphereTest();
 int QuickTest();
 int TestEllipse();
@@ -61,7 +62,8 @@ int main()
 {
     cout << "starting \n";
 
-    return Solemio2Xml("D:\\Documents SOLEIL\\Dossiers-Lignes\\Disco\\Solemio\\DISCOdefinitif.sole");
+//    return Solemio2Xml("D:\\Documents SOLEIL\\Dossiers-Lignes\\Disco\\Solemio\\DISCOdefinitif.sole");
+    return DiscoTest();
 
     return XmlTest();
 

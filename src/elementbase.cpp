@@ -137,6 +137,12 @@ int ElementBase::setFrameTransforms(double wavelength)
     surfShift(2)=param.value;
     m_surfaceDirect.pretranslate(surfShift);
     m_surfaceInverse=m_surfaceDirect.inverse();
+
+#ifdef ALIGNMENT_DUMP
+    cout << m_name <<" surface_direct:\n" << m_surfaceDirect.matrix() << endl;
+    cout << "           exit frame:\n" << m_exitFrame.matrix() <<endl <<endl;
+#endif // ALIGNMENT_DUMP
+
     return 0;
 }
 

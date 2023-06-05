@@ -1,0 +1,567 @@
+<?xml version="1.0"?>
+<system>
+  <element name="CD" class="Film&lt;Plane&gt;" next="MiroirTor" rec="1" trans="true">
+    <param val="0">DX</param>
+    <param val="0">DY</param>
+    <param val="0">DZ</param>
+    <param val="0">Dphi</param>
+    <param val="0">Dpsi</param>
+    <param val="0">Dtheta</param>
+    <param val="0.5">distance</param>
+    <param val="0">phi</param>
+    <param val="0">psi</param>
+    <param val="0">theta</param>
+  </element>
+  <element name="Fente`sorte`Masse" class="Film&lt;Plane&gt;" next="Pomp" rec="2" trans="true">
+    <param val="0">DX</param>
+    <param val="0">DY</param>
+    <param val="0">DZ</param>
+    <param val="0">Dphi</param>
+    <param val="0">Dpsi</param>
+    <param val="0">Dtheta</param>
+    <param val="5">distance</param>
+    <param val="-1.5707963">phi</param>
+    <param val="0">psi</param>
+    <param val="0">theta</param>
+  </element>
+  <element name="FocH" class="Film&lt;Plane&gt;" next="M3" rec="2" trans="true">
+    <param val="0">DX</param>
+    <param val="0">DY</param>
+    <param val="0">DZ</param>
+    <param val="0">Dphi</param>
+    <param val="0">Dpsi</param>
+    <param val="0">Dtheta</param>
+    <param val="8">distance</param>
+    <param val="1.5707963">phi</param>
+    <param val="0">psi</param>
+    <param val="0">theta</param>
+  </element>
+  <element name="GB_Jobyn" class="Grating&lt;Holo,Plane&gt;" rec="2">
+    <param val="0">DX</param>
+    <param val="0">DY</param>
+    <param val="0">DZ</param>
+    <param val="0">Dphi</param>
+    <param val="0">Dpsi</param>
+    <param val="-0">Dtheta</param>
+    <param val="0">azimuthAngle1</param>
+    <param val="0">azimuthAngle2</param>
+    <param val="10">distance</param>
+    <param val="-0.87266412" min="-0.85" max="-0.7">elevationAngle1</param>
+    <param val="-0.15596901" min="-0.1086957" max="-0.25">inverseDist1</param>
+    <param val="-0.15596901" min="-0.1111111" max="-0.3333333">inverseDist2</param>
+    <param val="250000">lineDensity</param>
+    <param val="1">order_align</param>
+    <param val="1">order_use</param>
+    <param val="3.1415927">phi</param>
+    <param val="0">psi</param>
+    <param val="3.511e-07">recordingWavelength</param>
+    <param val="0.26179939">theta</param>
+  </element>
+  <element name="M1" class="Mirror&lt;Toroid&gt;" next="M2" rec="2">
+    <param val="0">DX</param>
+    <param val="0">DY</param>
+    <param val="0">DZ</param>
+    <param val="0">Dphi</param>
+    <param val="0">Dpsi</param>
+    <param val="-0">Dtheta</param>
+    <param val="0">distance</param>
+    <param val="1e-12" min="inf" max="inf">major_curvature</param>
+    <param val="-0.013333333" min="-0.02" max="-0.0083333333">minor_curvature</param>
+    <param val="0">phi</param>
+    <param val="0">psi</param>
+    <param val="0.39269908">theta</param>
+  </element>
+  <element name="M2" class="Mirror&lt;Toroid&gt;" next="FocH" rec="2">
+    <param val="0">DX</param>
+    <param val="0">DY</param>
+    <param val="0">DZ</param>
+    <param val="0">Dphi</param>
+    <param val="0">Dpsi</param>
+    <param val="-0">Dtheta</param>
+    <param val="0.28284257">distance</param>
+    <param val="0.047528517" min="0.04" max="0.05">major_curvature</param>
+    <param val="0.3910833" min="0.25" max="0.5">minor_curvature</param>
+    <param val="3.1415927">phi</param>
+    <param val="0">psi</param>
+    <param val="0.39269908">theta</param>
+  </element>
+  <element name="M3" class="Mirror&lt;NaturalPolynomialSurface&gt;" next="M4" rec="2">
+    <param val="0">DX</param>
+    <param val="0">DY</param>
+    <param val="0">DZ</param>
+    <param val="0">Dphi</param>
+    <param val="0">Dpsi</param>
+    <param val="-0">Dtheta</param>
+    <param>coefficients<array dims="4, 3" data="0, 0, 0.0501002, -1.15e-05, 0, 0, 0, 0, -0.0016666667, 0, 0, 0"/></param>
+    <param val="2.6">distance</param>
+    <param val="0">phi</param>
+    <param val="0">psi</param>
+    <param>surfaceLimits<array dims="2, 2" data="-0.1, 0.1, -0.1, 0.1"/></param>
+    <param val="0.39269908">theta</param>
+  </element>
+  <element name="M4" class="Mirror&lt;Toroid&gt;" next="P-inter" rec="2">
+    <param val="0">DX</param>
+    <param val="0">DY</param>
+    <param val="0">DZ</param>
+    <param val="0">Dphi</param>
+    <param val="0">Dpsi</param>
+    <param val="-0">Dtheta</param>
+    <param val="0.283">distance</param>
+    <param val="1e-12" min="0.01" max="1">major_curvature</param>
+    <param val="1e-14" min="0.1" max="5">minor_curvature</param>
+    <param val="3.1415927">phi</param>
+    <param val="0">psi</param>
+    <param val="0.39269908">theta</param>
+  </element>
+  <element name="M51" class="Mirror&lt;Sphere&gt;" next="M52bis" rec="2">
+    <param val="0.042">DX</param>
+    <param val="-0.0003">DY</param>
+    <param val="0.0065">DZ</param>
+    <param val="0">Dphi</param>
+    <param val="0">Dpsi</param>
+    <param val="-0">Dtheta</param>
+    <param val="-0.02808989" min="-0.02" max="-0.1">curvature</param>
+    <param val="1.221">distance</param>
+    <param val="-1.5707963">phi</param>
+    <param val="0">psi</param>
+    <param val="0.39269908">theta</param>
+  </element>
+  <element name="M52bis" class="Mirror&lt;Toroid&gt;" next="pupIma" rec="2">
+    <param val="0">DX</param>
+    <param val="0">DY</param>
+    <param val="0">DZ</param>
+    <param val="0">Dphi</param>
+    <param val="0">Dpsi</param>
+    <param val="0.0014">Dtheta</param>
+    <param val="0.8">distance</param>
+    <param val="0.00047103156" min="inf" max="inf">major_curvature</param>
+    <param val="0.48780488" min="inf" max="inf">minor_curvature</param>
+    <param val="3.1415927">phi</param>
+    <param val="0">psi</param>
+    <param val="0.36041049">theta</param>
+  </element>
+  <element name="M53" class="Mirror&lt;Toroid&gt;" next="M54" rec="2">
+    <param val="0">DX</param>
+    <param val="0">DY</param>
+    <param val="0">DZ</param>
+    <param val="0">Dphi</param>
+    <param val="0">Dpsi</param>
+    <param val="-0">Dtheta</param>
+    <param val="0">distance</param>
+    <param val="0.21119324" min="0.16666667" max="0.25">major_curvature</param>
+    <param val="1.3927577" min="0.66666667" max="2.5">minor_curvature</param>
+    <param val="1.5707963">phi</param>
+    <param val="0">psi</param>
+    <param val="0.38920842" min="0.38397244" max="0.40142573">theta</param>
+  </element>
+  <element name="M54" class="Mirror&lt;Toroid&gt;" next="foyer`Imagerie" rec="2">
+    <param val="0">DX</param>
+    <param val="0">DY</param>
+    <param val="0">DZ</param>
+    <param val="0">Dphi</param>
+    <param val="0">Dpsi</param>
+    <param val="-0">Dtheta</param>
+    <param val="0.2">distance</param>
+    <param val="0.12886598" min="0.083333333" max="0.2">major_curvature</param>
+    <param val="0.89686099" min="0.33333333" max="1.25">minor_curvature</param>
+    <param val="0">phi</param>
+    <param val="0">psi</param>
+    <param val="0.39618984" min="0.38397244" max="1.5591026">theta</param>
+  </element>
+  <element name="M6A" class="Mirror&lt;Toroid&gt;" next="fenteCD" rec="2">
+    <param val="0">DX</param>
+    <param val="0">DY</param>
+    <param val="0">DZ</param>
+    <param val="0">Dphi</param>
+    <param val="0">Dpsi</param>
+    <param val="-0">Dtheta</param>
+    <param val="0.2">distance</param>
+    <param val="0.1270648" min="0.125" max="0.13157895">major_curvature</param>
+    <param val="0.17985612" min="0.14285714" max="0.25">minor_curvature</param>
+    <param val="3.1415927">phi</param>
+    <param val="0">psi</param>
+    <param val="1.3089969">theta</param>
+  </element>
+  <element name="M6B" class="Mirror&lt;Toroid&gt;" next="M7" rec="2">
+    <param val="0">DX</param>
+    <param val="0">DY</param>
+    <param val="0">DZ</param>
+    <param val="0">Dphi</param>
+    <param val="0">Dpsi</param>
+    <param val="-0">Dtheta</param>
+    <param val="0.4">distance</param>
+    <param val="0.028490028" min="0.022222222" max="0.03030303">major_curvature</param>
+    <param val="0.028490028" min="0.02" max="0.1">minor_curvature</param>
+    <param val="3.1415927">phi</param>
+    <param val="0">psi</param>
+    <param val="0.27544333" min="0.23561945" max="0.28797933">theta</param>
+  </element>
+  <element name="M6BSpecial" class="Mirror&lt;Toroid&gt;" next="M7Special" rec="2">
+    <param val="0">DX</param>
+    <param val="0">DY</param>
+    <param val="0">DZ</param>
+    <param val="0">Dphi</param>
+    <param val="0">Dpsi</param>
+    <param val="-0">Dtheta</param>
+    <param val="0.4">distance</param>
+    <param val="0.025695269" min="0.023809524" max="0.028571429">major_curvature</param>
+    <param val="0.025695711" min="0.33333333" max="1">minor_curvature</param>
+    <param val="3.1415927">phi</param>
+    <param val="0">psi</param>
+    <param val="0.26179939">theta</param>
+  </element>
+  <element name="M7" class="Mirror&lt;Toroid&gt;" next="Fente`sorte`Masse" rec="2">
+    <param val="0">DX</param>
+    <param val="0">DY</param>
+    <param val="0">DZ</param>
+    <param val="0">Dphi</param>
+    <param val="0">Dpsi</param>
+    <param val="-0">Dtheta</param>
+    <param val="3">distance</param>
+    <param val="0.026518165" min="0.022222222" max="0.028571429">major_curvature</param>
+    <param val="1e-14" min="inf" max="inf">minor_curvature</param>
+    <param val="1.5707963">phi</param>
+    <param val="0">psi</param>
+    <param val="0.19546379" min="0.17453293" max="0.20943951">theta</param>
+  </element>
+  <element name="M7Special" class="Mirror&lt;Toroid&gt;" next="PompDif1_Special" rec="2">
+    <param val="0">DX</param>
+    <param val="0">DY</param>
+    <param val="0">DZ</param>
+    <param val="0">Dphi</param>
+    <param val="0">Dpsi</param>
+    <param val="-0">Dtheta</param>
+    <param val="3">distance</param>
+    <param val="0.049105567" min="0.005" max="0.1">major_curvature</param>
+    <param val="1e-14" min="inf" max="inf">minor_curvature</param>
+    <param val="1.5707963">phi</param>
+    <param val="0">psi</param>
+    <param val="0.19198622">theta</param>
+  </element>
+  <element name="M8" class="Mirror&lt;NaturalPolynomialSurface&gt;" next="PompDif2_Special" rec="2">
+    <param val="0">DX</param>
+    <param val="0">DY</param>
+    <param val="0">DZ</param>
+    <param val="0">Dphi</param>
+    <param val="0">Dpsi</param>
+    <param val="-0">Dtheta</param>
+    <param>coefficients<array dims="4, 3" data="0, 0, 0.063218014, 3.037187e-05, 0, 0, 0, 0, 5e-15, 0, 0, 0"/></param>
+    <param val="1">distance</param>
+    <param val="0">phi</param>
+    <param val="0">psi</param>
+    <param>surfaceLimits<array dims="2, 2" data="-0.1, 0.1, -0.1, 0.1"/></param>
+    <param val="0.19198622" min="0.15707963" max="0.21816616">theta</param>
+  </element>
+  <element name="MiroirCyl" class="Mirror&lt;Toroid&gt;" next="fenteSpect" rec="2">
+    <param val="0">DX</param>
+    <param val="0">DY</param>
+    <param val="0">DZ</param>
+    <param val="0">Dphi</param>
+    <param val="0">Dpsi</param>
+    <param val="-0">Dtheta</param>
+    <param val="0.04">distance</param>
+    <param val="2.1233316" min="0.2" max="5">major_curvature</param>
+    <param val="2.1233316" min="0.5" max="5">minor_curvature</param>
+    <param val="0">phi</param>
+    <param val="0">psi</param>
+    <param val="1.1780972">theta</param>
+  </element>
+  <element name="MiroirSph2" class="Mirror&lt;Toroid&gt;" rec="2">
+    <param val="0">DX</param>
+    <param val="0">DY</param>
+    <param val="0">DZ</param>
+    <param val="0">Dphi</param>
+    <param val="0">Dpsi</param>
+    <param val="-0">Dtheta</param>
+    <param val="0.2">distance</param>
+    <param val="1.2499277" min="0.5" max="5">major_curvature</param>
+    <param val="1.3353779" min="0.5" max="5">minor_curvature</param>
+    <param val="1.5707963">phi</param>
+    <param val="0">psi</param>
+    <param val="1.4835299">theta</param>
+  </element>
+  <element name="MiroirTor" class="Mirror&lt;Toroid&gt;" next="MiroirCyl" rec="2">
+    <param val="0">DX</param>
+    <param val="0">DY</param>
+    <param val="0">DZ</param>
+    <param val="0">Dphi</param>
+    <param val="0">Dpsi</param>
+    <param val="-0">Dtheta</param>
+    <param val="1.5">distance</param>
+    <param val="3.4949955" min="0.5" max="10">major_curvature</param>
+    <param val="1e-12" min="0.5" max="5">minor_curvature</param>
+    <param val="1.5707963">phi</param>
+    <param val="0">psi</param>
+    <param val="1.1780972">theta</param>
+  </element>
+  <element name="P-inter" class="Film&lt;Plane&gt;" next="reseauCD_GA400Holo351nm" rec="1" trans="true">
+    <param val="0">DX</param>
+    <param val="0">DY</param>
+    <param val="0">DZ</param>
+    <param val="0">Dphi</param>
+    <param val="0">Dpsi</param>
+    <param val="0">Dtheta</param>
+    <param val="1.929">distance</param>
+    <param val="-1.5707963">phi</param>
+    <param val="0">psi</param>
+    <param val="0">theta</param>
+  </element>
+  <element name="P1" class="Film&lt;Plane&gt;" next="M1" rec="2" trans="true">
+    <param val="0">DX</param>
+    <param val="0">DY</param>
+    <param val="0">DZ</param>
+    <param val="0">Dphi</param>
+    <param val="0">Dpsi</param>
+    <param val="0">Dtheta</param>
+    <param val="5.8">distance</param>
+    <param val="0">phi</param>
+    <param val="0">psi</param>
+    <param val="0">theta</param>
+  </element>
+  <element name="Pomp" class="Film&lt;Plane&gt;" next="fenteHMasse" rec="1" trans="true">
+    <param val="0">DX</param>
+    <param val="0">DY</param>
+    <param val="0">DZ</param>
+    <param val="0">Dphi</param>
+    <param val="0">Dpsi</param>
+    <param val="0">Dtheta</param>
+    <param val="0.25">distance</param>
+    <param val="0">phi</param>
+    <param val="0">psi</param>
+    <param val="0">theta</param>
+  </element>
+  <element name="PompDif1_Special" class="Film&lt;Plane&gt;" next="M8" rec="2" trans="true">
+    <param val="0">DX</param>
+    <param val="0">DY</param>
+    <param val="0">DZ</param>
+    <param val="0">Dphi</param>
+    <param val="0">Dpsi</param>
+    <param val="0">Dtheta</param>
+    <param val="2.5">distance</param>
+    <param val="0">phi</param>
+    <param val="0">psi</param>
+    <param val="0">theta</param>
+  </element>
+  <element name="PompDif2_Special" class="Film&lt;Plane&gt;" next="fenteMasseSpecial" rec="2" trans="true">
+    <param val="0">DX</param>
+    <param val="0">DY</param>
+    <param val="0">DZ</param>
+    <param val="0">Dphi</param>
+    <param val="0">Dpsi</param>
+    <param val="0">Dtheta</param>
+    <param val="2.3">distance</param>
+    <param val="1.5707963">phi</param>
+    <param val="0">psi</param>
+    <param val="0">theta</param>
+  </element>
+  <element name="fenteCD" class="Film&lt;Plane&gt;" next="CD" rec="1" trans="true">
+    <param val="0">DX</param>
+    <param val="0">DY</param>
+    <param val="0">DZ</param>
+    <param val="0">Dphi</param>
+    <param val="0">Dpsi</param>
+    <param val="0">Dtheta</param>
+    <param val="5.79">distance</param>
+    <param val="3.1415927">phi</param>
+    <param val="0">psi</param>
+    <param val="0">theta</param>
+  </element>
+  <element name="fenteHMasse" class="Film&lt;Plane&gt;" rec="1" trans="true">
+    <param val="0">DX</param>
+    <param val="0">DY</param>
+    <param val="0">DZ</param>
+    <param val="0">Dphi</param>
+    <param val="0">Dpsi</param>
+    <param val="0">Dtheta</param>
+    <param val="0.84">distance</param>
+    <param val="0">phi</param>
+    <param val="0">psi</param>
+    <param val="0">theta</param>
+  </element>
+  <element name="fenteMasseSpecial" class="Film&lt;Plane&gt;" rec="1" trans="true">
+    <param val="0">DX</param>
+    <param val="0">DY</param>
+    <param val="0">DZ</param>
+    <param val="0">Dphi</param>
+    <param val="0">Dpsi</param>
+    <param val="0">Dtheta</param>
+    <param val="0.7">distance</param>
+    <param val="0">phi</param>
+    <param val="0">psi</param>
+    <param val="0">theta</param>
+  </element>
+  <element name="fenteSpect" class="Film&lt;Plane&gt;" next="planR" rec="2" trans="true">
+    <param val="0">DX</param>
+    <param val="0">DY</param>
+    <param val="0">DZ</param>
+    <param val="0">Dphi</param>
+    <param val="0">Dpsi</param>
+    <param val="0">Dtheta</param>
+    <param val="0.07">distance</param>
+    <param val="-1.5707963">phi</param>
+    <param val="0">psi</param>
+    <param val="0">theta</param>
+  </element>
+  <element name="foyer`Imagerie" class="Film&lt;Plane&gt;" next="planPup" rec="2" trans="true">
+    <param val="0">DX</param>
+    <param val="0">DY</param>
+    <param val="0">DZ</param>
+    <param val="0">Dphi</param>
+    <param val="0">Dpsi</param>
+    <param val="0">Dtheta</param>
+    <param val="0.4947721">distance</param>
+    <param val="1.5707963">phi</param>
+    <param val="0">psi</param>
+    <param val="0">theta</param>
+  </element>
+  <element name="planPup" class="Film&lt;Plane&gt;" rec="2" trans="true">
+    <param val="0">DX</param>
+    <param val="0">DY</param>
+    <param val="0">DZ</param>
+    <param val="0">Dphi</param>
+    <param val="0">Dpsi</param>
+    <param val="0">Dtheta</param>
+    <param val="1">distance</param>
+    <param val="0">phi</param>
+    <param val="0">psi</param>
+    <param val="0">theta</param>
+  </element>
+  <element name="planR" class="Film&lt;Plane&gt;" rec="2" trans="true">
+    <param val="0">DX</param>
+    <param val="0">DY</param>
+    <param val="0">DZ</param>
+    <param val="0">Dphi</param>
+    <param val="0">Dpsi</param>
+    <param val="0">Dtheta</param>
+    <param val="0.3">distance</param>
+    <param val="0">phi</param>
+    <param val="0">psi</param>
+    <param val="0">theta</param>
+  </element>
+  <element name="pup2" class="Film&lt;Plane&gt;" next="pup3" rec="2" trans="true">
+    <param val="0">DX</param>
+    <param val="0">DY</param>
+    <param val="0">DZ</param>
+    <param val="0">Dphi</param>
+    <param val="0">Dpsi</param>
+    <param val="0">Dtheta</param>
+    <param val="14">distance</param>
+    <param val="0">phi</param>
+    <param val="0">psi</param>
+    <param val="0">theta</param>
+  </element>
+  <element name="pup3" class="Film&lt;Plane&gt;" next="M53" rec="2" trans="true">
+    <param val="0">DX</param>
+    <param val="0">DY</param>
+    <param val="0">DZ</param>
+    <param val="0">Dphi</param>
+    <param val="0">Dpsi</param>
+    <param val="0">Dtheta</param>
+    <param val="6.8">distance</param>
+    <param val="0">phi</param>
+    <param val="0">psi</param>
+    <param val="0">theta</param>
+  </element>
+  <element name="pupIma" class="Film&lt;Plane&gt;" next="pup2" rec="2" trans="true">
+    <param val="0">DX</param>
+    <param val="0">DY</param>
+    <param val="0">DZ</param>
+    <param val="0">Dphi</param>
+    <param val="0">Dpsi</param>
+    <param val="0">Dtheta</param>
+    <param val="3">distance</param>
+    <param val="1.5707963">phi</param>
+    <param val="0">psi</param>
+    <param val="0">theta</param>
+  </element>
+  <element name="pupilleMasse" class="Film&lt;Plane&gt;" rec="1" trans="true">
+    <param val="0">DX</param>
+    <param val="0">DY</param>
+    <param val="0">DZ</param>
+    <param val="0">Dphi</param>
+    <param val="0">Dpsi</param>
+    <param val="0">Dtheta</param>
+    <param val="1">distance</param>
+    <param val="0">phi</param>
+    <param val="0">psi</param>
+    <param val="0">theta</param>
+  </element>
+  <element name="reseauCD_GA400Holo351nm" class="Grating&lt;Holo,Plane&gt;" next="M6A" rec="2">
+    <param val="0">DX</param>
+    <param val="0">DY</param>
+    <param val="0">DZ</param>
+    <param val="0">Dphi</param>
+    <param val="0">Dpsi</param>
+    <param val="-0">Dtheta</param>
+    <param val="0">azimuthAngle1</param>
+    <param val="0">azimuthAngle2</param>
+    <param val="10">distance</param>
+    <param val="-1.2217285" min="-0.6" max="-0.5">elevationAngle1</param>
+    <param val="-0.1281894" min="-0.1111111" max="-0.3333333">inverseDist1</param>
+    <param val="-0.125" min="-0.1111111" max="-0.3333333">inverseDist2</param>
+    <param val="400000">lineDensity</param>
+    <param val="1">order_align</param>
+    <param val="1">order_use</param>
+    <param val="3.1415927">phi</param>
+    <param val="0">psi</param>
+    <param val="3.511e-07">recordingWavelength</param>
+    <param val="1.3089969">theta</param>
+  </element>
+  <element name="reseauMasse250Holo351nm" class="Grating&lt;Holo,Plane&gt;" next="M6B" rec="2">
+    <param val="0">DX</param>
+    <param val="0">DY</param>
+    <param val="0">DZ</param>
+    <param val="0">Dphi</param>
+    <param val="0">Dpsi</param>
+    <param val="-0">Dtheta</param>
+    <param val="0">azimuthAngle1</param>
+    <param val="0">azimuthAngle2</param>
+    <param val="10">distance</param>
+    <param val="-0.52359958" min="-0.85" max="-0.7">elevationAngle1</param>
+    <param val="-0.1111111" min="-0.1086957" max="-0.25">inverseDist1</param>
+    <param val="-0.1120466" min="-0.1111111" max="-0.3333333">inverseDist2</param>
+    <param val="250000">lineDensity</param>
+    <param val="1">order_align</param>
+    <param val="1">order_use</param>
+    <param val="3.1415927">phi</param>
+    <param val="0">psi</param>
+    <param val="3.511e-07">recordingWavelength</param>
+    <param val="0.2754435" min="0.2443461" max="0.28797933">theta</param>
+  </element>
+  <element name="sourceA" class="Source&lt;BMtype,Gaussian&gt;" next="P1" rec="2" trans="true">
+    <param val="0">DX</param>
+    <param val="0">DY</param>
+    <param val="0">DZ</param>
+    <param val="0">Dphi</param>
+    <param val="0">Dpsi</param>
+    <param val="0">Dtheta</param>
+    <param val="0.02">apertureX</param>
+    <param val="0">distance</param>
+    <param val="3000">nRays</param>
+    <param val="0">phi</param>
+    <param val="0">psi</param>
+    <param val="0.00015">sigmaX</param>
+    <param val="3e-05">sigmaY</param>
+    <param val="0.0019217773">sigmaYdiv</param>
+    <param val="0" min="0.017453293" max="0.034906585">theta</param>
+    <param val="5.3">trajectoryRadius</param>
+  </element>
+  <element name="sourceM0" class="Source&lt;BMtype,Gaussian&gt;" next="sourceA" rec="2" trans="true">
+    <param val="0">DX</param>
+    <param val="0">DY</param>
+    <param val="0">DZ</param>
+    <param val="0">Dphi</param>
+    <param val="0">Dpsi</param>
+    <param val="0">Dtheta</param>
+    <param val="0.005">apertureX</param>
+    <param val="0">distance</param>
+    <param val="10000">nRays</param>
+    <param val="0">phi</param>
+    <param val="0">psi</param>
+    <param val="0.00015">sigmaX</param>
+    <param val="3e-05">sigmaY</param>
+    <param val="0.006">sigmaYdiv</param>
+    <param val="0" min="0.017453293" max="0.034906585">theta</param>
+    <param val="5.3">trajectoryRadius</param>
+  </element>
+</system>
