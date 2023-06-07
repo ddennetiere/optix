@@ -114,7 +114,7 @@ extern "C"
         if(OptiXError )
         {
             if(buffer)
-                strncpy(buffer,LastError, bufferSize);
+                strncpy(buffer,LastError.c_str(), bufferSize);
             OptiXError=false;
             return true;
         }
