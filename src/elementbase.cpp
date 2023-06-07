@@ -24,6 +24,7 @@ FloatType ElementBase::m_FlipSurfCoefs[]={0, 0, 1, 0,  1, 0, 0, 0,  0, 1, 0, 0, 
 //
 //char LastError[ERROR_MAXSIZE];
 string LastError;
+char noerror[]="No error";
 bool OptiXError=false;
 
 //char* LastError=LastErrorBuffer;

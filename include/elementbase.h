@@ -38,6 +38,7 @@ class ElementCollection;
 //#define  ERROR_MAXSIZE 1024
 //extern char LastError[ERROR_MAXSIZE];
 extern string LastError;  // changed 07/06/2023
+extern  char noerror[];
 extern bool OptiXError;
 
 /** \brief  set the global error message  to b retrieved by from the C interface
@@ -87,7 +88,7 @@ inline void ForwardOptiXLastError(const char* filename, const char* funcname, co
 /** \brief Reset the internal error
  *  \ingroup GlobalCpp
  */
-inline void ClearOptiXError() {OptiXError=false;}
+inline void ClearOptiXError() {OptiXError=false;  LastError.clear();}
 
 
 void memoryDump(void* address, uint64_t size);

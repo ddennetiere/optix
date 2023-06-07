@@ -165,6 +165,13 @@ extern "C"
      */
     DLL_EXPORT bool GetOptiXLastError(char* buffer, int bufferSize);
 
+    /** \brief  check and reset the error status
+     *
+     * \param errstring_ptr a pointer to the error string. **This is a read only location, dont try to modify this string**
+     * \return the error flag. Error status is reset to no error on exit.
+     */
+    DLL_EXPORT bool GetOptiXError( char** errstring_ptr);
+
     /** \brief enumerates the element list of the current system
      *
 
