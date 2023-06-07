@@ -1049,6 +1049,38 @@ bool getTrimmedEnding(const string &line, size_t pos, string &token)
             for(int j=0; j < numParameters[type]; ++j )
                 cout << nom[j] << " " << SSurf.param[j] <<  ((j%2) ? "\n" : "         " );
 
+                            if(pelemID)
+            {
+              //  cout << "Waist Z shifts are not implemented under OptiX\n";
+                *pelemID=CreateElement("Source<BMtype,Gaussian>",name.c_str());
+                elem=(ElementBase*)*pelemID;
+                Parameter param;
+                elem->getParameter("nRays", param);
+                param.value=SSurf.param[0];
+                elem->setParameter("nRays", param);
+
+                elem->getParameter("sigmaX", param);
+                param.value=SSurf.param[2];
+//                param.bounds[0]=SSurf.varparamin[2];  // 09/07/21 ces valeurs ne semblent fas figurer dans le fichier Solemio
+//                param.bounds[1]=SSurf.varparamax[2];
+                elem->setParameter("sigmaX", param);
+
+                elem->getParameter("sigmaY", param);
+                param.value=SSurf.param[3];
+                elem->setParameter("sigmaY", param);
+
+                elem->getParameter("apertureX", param);
+                param.value=(SSurf.param[4]-SSurf.param[5])/2;
+                elem->setParameter("apertureX", param);
+
+                elem->getParameter("sigmaYdiv", param);
+                param.value=SSurf.param[6];
+                elem->setParameter("sigmaYdiv", param);
+
+                elem->getParameter("trajectoryRadius", param);
+                param.value=SSurf.param[7];
+                elem->setParameter("trajectoryRadius", param);
+            }
         }
         break;
     default:  // cas d'appel à serializza() de la classe de base Surface
@@ -1059,7 +1091,7 @@ bool getTrimmedEnding(const string &line, size_t pos, string &token)
      //                          distfor=9, algtLambda=10,OsloBack=11,clipX1=12,clipX2=13,clipY1=14,clipY2=15
      if(!elem)
      {
-        // cout << "error return from get_element\n";
+         cout << "element not created. Check creation rule of " << SolemioElements[type] <<"\n";
          return false;
      }
      Parameter param;

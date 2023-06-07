@@ -23,12 +23,14 @@ using namespace std::chrono;
 
 #include "xmlfile.h"
 
+
 int XmlTest()
 {
     size_t sourceID, elemID;
     char elname[32], errBuf[256]; // ,parmname[48]
 
     LoadSystemFromXml("Hermes_DTheta.xml");
+;
 
     sourceID=elemID=GetElementID("S_ONDUL_BiPer");
 
@@ -132,6 +134,85 @@ int XmlTest()
 
     return 0;
 }
+
+int DiscoTest()
+{
+    size_t sourceID, elemID;
+    char elname[32], errBuf[256]; // ,parmname[48]
+    LoadSystemFromXml("..\\..\\xml\\Disco_sm.xml");
+    sourceID=elemID=GetElementID("sourceA");
+
+    while(elemID)
+    {
+        GetElementName(elemID, elname,32);
+        cout << elname << "  " << std::hex << elemID << std::dec <<endl;
+        elemID =GetNextElement(elemID);
+    }
+
+//    GetParameter(sourceID,"nRays", &param);
+//    param.value=50000;
+//    SetParameter(sourceID,"nRays",param);
+
+    double lambda=2.e-7;
+
+    if(!Align(sourceID,lambda))
+    {
+       GetOptiXLastError(errBuf,256);
+       cout << "Alignment error : " << errBuf << endl;
+       return -1;
+    }
+    return 0;
+}
+
+
+
+int Solemio2Xml(string filename)
+{
+        if(! SolemioImport(filename))
+    {
+        char buf[512];
+        GetOptiXLastError(buf,511);
+        cout << "Solemio import error:\n" << buf <<endl;
+        exit(100);
+    }
+    size_t hSys=0, hParm=0, elemID=0;
+    char elname[32], name2[32],parmname[48], errBuf[256];
+    Parameter param;
+    cout << "list of defined elements\n";
+    do
+    {
+        EnumerateElements(&hSys,&elemID, elname,32);
+        GetElementName(elemID, name2,32);
+        cout << endl << elname <<  "   (" << name2 <<")\n";
+        hParm=0;
+        do
+        {
+            if(!EnumerateParameters(elemID, &hParm, parmname, 48, &param))
+            {
+                GetOptiXLastError( errBuf,256);
+                cout  << "ERROR : " << errBuf << endl;
+            }
+            if(param.flags & ArrayData)
+            {
+                cout << parmname << "  ARRAY" <<" [" << param.bounds[0] <<", "<< param.bounds[1] <<"] x " << param.multiplier <<
+                        " T:" << param.type << " G:" << param.group << " F:0x"<< std::hex << param.flags << std::dec << endl;
+                param.paramArray->dump();
+            }
+
+            else
+                cout << parmname << "  " << param.value <<" [" << param.bounds[0] <<", "<< param.bounds[1] <<"] x " << param.multiplier <<
+                        " T:" << param.type << " G:" << param.group << " F:0x"<< std::hex << param.flags << std::dec << endl;
+
+        }while(hParm);
+
+    }while(hSys);
+    cout << "system END\n";
+    SaveSystemAsXml("system.xml");
+    cout << "system saved as 'system.xml'\n";
+    DumpXmlSys("system.xml");
+    return 0;
+}
+
 
  int SolemioTest()
  {

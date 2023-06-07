@@ -35,8 +35,9 @@ using std::vector;
 class ElementCollection;
 //class SourceBase;
 
-#define  ERROR_MAXSIZE 1024
-extern char LastError[ERROR_MAXSIZE];
+//#define  ERROR_MAXSIZE 1024
+//extern char LastError[ERROR_MAXSIZE];
+extern string LastError;  // changed 07/06/2023
 extern bool OptiXError;
 
 /** \brief  set the global error message  to b retrieved by from the C interface
@@ -49,26 +50,38 @@ extern bool OptiXError;
  */
 inline void SetOptiXLastError(string what, const char* filename, const char* funcname, const int line=0 )
 {
-    OptiXError=true;
+    OptiXError=true; // changed 07/06/2023
+//    if(line==0)
+//        sprintf(LastError, "%s in function %s of file %s", what.c_str(), funcname, filename);
+//    else
+//        sprintf(LastError, "%s in function %s, line %d of file %s", what.c_str(), funcname, line, filename);
+    char infostring[80];
     if(line==0)
-        sprintf(LastError, "%s in function %s of file %s", what.c_str(), funcname, filename);
+        sprintf(infostring, " in function %s of file %s",funcname, filename);
     else
-        sprintf(LastError, "%s in function %s, line %d of file %s", what.c_str(), funcname, line, filename);
-
+         sprintf(infostring, " in function %s, line %d of file %s", funcname, line, filename);
+    LastError=what + infostring;
 }
 
 inline void ForwardOptiXLastError(const char* filename, const char* funcname, const int line=0 )
 {
-    OptiXError=true;
-    char * pst= LastError+ strlen(LastError);
-    char buf[256];
+    OptiXError=true;    // changed 07/06/2023
+//    char * pst= LastError+ strlen(LastError);
+//    char buf[256];
+//    if(line==0)
+//        sprintf(buf, "\ncalled by function %s of file %s", funcname, filename);
+//    else
+//        sprintf(buf, "\ncalled by function %s, line %d of file %s", funcname, line, filename);
+//    if(strlen(LastError)+strlen(buf)>= ERROR_MAXSIZE)
+//        throw runtime_error("Error buffer overflow");
+//    strcpy(pst,buf);
+
+    char infostring[80];
     if(line==0)
-        sprintf(buf, "\ncalled by function %s of file %s", funcname, filename);
+        sprintf(infostring, "\ncalled by function %s of file %s",  funcname, filename);
     else
-        sprintf(buf, "\ncalled by function %s, line %d of file %s", funcname, line, filename);
-    if(strlen(LastError)+strlen(buf)>= ERROR_MAXSIZE)
-        throw runtime_error("Error buffer overflow");
-    strcpy(pst,buf);
+         sprintf(infostring, "\ncalled by function %s, line %d of file %s",funcname, line, filename);
+    LastError+= infostring;
 }
 
 /** \brief Reset the internal error

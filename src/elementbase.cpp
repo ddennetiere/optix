@@ -21,8 +21,9 @@ int ElementBase::m_nameIndex=0;
 
 FloatType ElementBase::m_FlipSurfCoefs[]={0, 0, 1, 0,  1, 0, 0, 0,  0, 1, 0, 0,   0, 0, 0, 1 };
 
-
-char LastError[ERROR_MAXSIZE];
+//
+//char LastError[ERROR_MAXSIZE];
+string LastError;
 bool OptiXError=false;
 
 //char* LastError=LastErrorBuffer;
@@ -101,8 +102,9 @@ int ElementBase::setFrameTransforms(double wavelength)
 
     getParameter("theta",param);
     angle=param.value;
-    if(!m_transmissive) // si la surface est transmissive l'axe d'alignement de sortie reste celui d'entrée mais la rotation phi change
+    // si la surface est transmissive l'axe d'alignement de sortie reste celui d'entrée mais la rotation phi change
                 // le trièdre.   La normale pointe vers l'aval et theta donne le désalignement de la surface / l'axe d'entrée autour de OX
+    if(!m_transmissive)
         m_exitFrame*=AngleAxis<FloatType>(-2.*angle,VectorType::UnitX()) ; // axe X nouveau
 
     getParameter("Dtheta",param);
@@ -136,6 +138,12 @@ int ElementBase::setFrameTransforms(double wavelength)
     surfShift(2)=param.value;
     m_surfaceDirect.pretranslate(surfShift);
     m_surfaceInverse=m_surfaceDirect.inverse();
+
+#ifdef ALIGNMENT_DUMP
+    cout << m_name <<" surface_direct:\n" << m_surfaceDirect.matrix() << endl;
+    cout << "           exit frame:\n" << m_exitFrame.matrix() <<endl <<endl;
+#endif // ALIGNMENT_DUMP
+
     return 0;
 }
 
