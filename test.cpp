@@ -60,6 +60,15 @@ int XmlTest();
 
 int main()
 {
+
+    char* strerr=NULL; // pointeur à la chaine source
+    bool erreur=GetOptiXError(&strerr);
+    size_t msglen=strlen(strerr);
+    char message[msglen+1]; // create a copy buffer with space for 0 ant end
+    strncpy(message,(char*)strerr, msglen ); //copy the message  (mandatory; strerr cannot be printed directly)
+    cout << "Error level  " << erreur << " message: "<< message << endl << endl;
+
+
     cout << "starting \n";
 
 //    return Solemio2Xml("D:\\Documents SOLEIL\\Dossiers-Lignes\\Disco\\Solemio\\DISCOdefinitif.sole");

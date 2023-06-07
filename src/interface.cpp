@@ -125,6 +125,18 @@ extern "C"
 
     }
 
+    DLL_EXPORT bool GetOptiXError( char** errstring_ptr)
+    {
+        if(OptiXError )
+        {
+            *errstring_ptr=(char*)LastError.c_str();
+            OptiXError=false;
+            return true;
+        }
+        *errstring_ptr=noerror;
+        return  false;
+    }
+
 
     DLL_EXPORT size_t CreateElement(const char* type, const char* name)
     {
