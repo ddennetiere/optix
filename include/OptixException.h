@@ -31,9 +31,9 @@ class RayException:public runtime_error
 public:
     RayException(string what ="", string file="", string callingFunction="", int line=-1 ):runtime_error("RayException")
     {
-        char str[128];
-        sprintf(str, "%s in %s  %s line %d", what.empty()?"RayException":what.c_str(), file.c_str(), callingFunction.c_str(), line);
-        what_str=str;
+        char str[256];
+        sprintf(str, " %s  %s line %d", file.c_str(), callingFunction.c_str(), line);
+        what_str=what.empty()?string("RayException in"):what + str;
     }
     virtual ~RayException() {}
     virtual string  what(){return what_str;}
@@ -47,10 +47,25 @@ public:
     EigenException(string cause ="", string file="", string callingFunction="", int line=-1 ):runtime_error("EigenBaseException")
     {
         char str[256];
-        sprintf(str, "%s in %s  %s line %d", cause.empty()?"EigenException":cause.c_str(), file.c_str(), callingFunction.c_str(), line);
-        what_str=str;
+        sprintf(str, "  %s  %s line %d",  file.c_str(), callingFunction.c_str(), line);
+        what_str=cause.empty()?string("EigenException in"):cause + str;
     }
     virtual ~EigenException() {}
+    virtual string  what(){return what_str;}
+    string what_str;
+};
+
+/** \brief Exception notifying he occurence of an error in computing an intecept*/
+class InterceptException:public runtime_error
+{
+public:
+    InterceptException(string cause ="", string file="", string callingFunction="", int line=-1 ):runtime_error("InterceptException")
+    {
+        char str[256];
+        sprintf(str, "   %s function  %s line %d", file.c_str(), callingFunction.c_str(), line);
+        what_str=cause.empty()?string("InterceptException in"):cause + str;
+    }
+    virtual ~InterceptException() {}
     virtual string  what(){return what_str;}
     string what_str;
 };
@@ -62,9 +77,9 @@ class ParameterException:public runtime_error
 public:
     ParameterException(string what ="", string file="", string callingFunction="", int line=-1 ):runtime_error("ParameterException")
     {
-        char str[128];
-        sprintf(str, "%s in %s  %s line %d", what.empty()?"ParameterException":what.c_str(), file.c_str(), callingFunction.c_str(), line);
-        what_str=str;
+        char str[256];
+        sprintf(str, "  %s  %s line %d",  file.c_str(), callingFunction.c_str(), line);
+        what_str=what.empty()?string("ParameterException in"):what + str;
     }
     virtual ~ParameterException() {}
     virtual string  what(){return what_str;}
@@ -79,9 +94,9 @@ class TextFileException:public runtime_error
 public:
     TextFileException(string what ="", string file="", string callingFunction="", int line=-1 ):runtime_error("TextFileException")
     {
-        char str[128];
-        sprintf(str, "%s in %s  %s line %d", what.empty()?"TextFileException":what.c_str(), file.c_str(), callingFunction.c_str(), line);
-        what_str=str;
+        char str[256];
+        sprintf(str, " %s  %s line %d",  file.c_str(), callingFunction.c_str(), line);
+        what_str=what.empty()?string("TextFileException in"):what + str;
     }
     virtual ~TextFileException() {}
     virtual string  what(){return what_str;}
@@ -98,8 +113,8 @@ public:
     ElementException(string what ="", string file="", string callingFunction="", int line=-1 ):runtime_error("ElementException")
     {
         char str[128];
-        sprintf(str, "%s in %s  %s line %d", what.empty()?"ElementException":what.c_str(), file.c_str(), callingFunction.c_str(), line);
-        what_str=str;
+        sprintf(str, " in %s  %s line %d",  file.c_str(), callingFunction.c_str(), line);
+        what_str=what.empty()?string("ElementException"):what + str;
     }
     virtual ~ElementException() {}
     virtual string  what(){return what_str;}

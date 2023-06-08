@@ -1004,22 +1004,32 @@ extern "C"
         ClearOptiXError();
         if(!System.isValidID(elementID))
         {
-            SetOptiXLastError("Invalid element ID", __FILE__, __func__);
+            SetOptiXLastError("Invalid element ID", __FILE__, __func__, __LINE__);
             return false;
         }
         if( !((ElementBase*)elementID)->isSource())
         {
-            SetOptiXLastError("Element is not a source", __FILE__, __func__);
+            SetOptiXLastError("Element is not a source", __FILE__, __func__, __LINE__);
             return false;
         }
-        int losses=dynamic_cast<SourceBase*>((ElementBase*)elementID)->radiate();
+        int losses;
+        try {
+            losses=dynamic_cast<SourceBase*>((ElementBase*)elementID)->radiate();
+        }
+        catch(RayException &excpt) {
+            SetOptiXLastError(excpt.what()+"\nPropagation interrupted", __FILE__, __func__, __LINE__);
+            return false;
+        }catch (InterceptException &excpt){
+            SetOptiXLastError(excpt.what()+"\nPropagation interrupted", __FILE__, __func__, __LINE__);
+            return false;
+        }
         if(losses==0)
             return true;
         else
         {
             char buffer[80];
             sprintf(buffer,"WARNING: %d rays lost in propagation", losses);
-            SetOptiXLastError(buffer, __FILE__, __func__);
+            SetOptiXLastError(buffer, __FILE__, __func__,__LINE__);
             return false;
         }
     }
@@ -1029,28 +1039,38 @@ extern "C"
         ClearOptiXError();
         if(!System.isValidID(elementID))
         {
-            SetOptiXLastError("Invalid element ID", __FILE__, __func__);
+            SetOptiXLastError("Invalid element ID", __FILE__, __func__, __LINE__);
             return false;
         }
         if( !((ElementBase*)elementID)->isSource())
         {
-            SetOptiXLastError("Element is not a source", __FILE__, __func__);
+            SetOptiXLastError("Element is not a source", __FILE__, __func__, __LINE__);
             return false;
         }
         if(wavelength <0)
         {
-            SetOptiXLastError("Invalid wavelength", __FILE__, __func__);
+            SetOptiXLastError("Invalid wavelength", __FILE__, __func__, __LINE__);
             return false;
         }
         dynamic_cast<SourceBase*>((ElementBase*)elementID)->setWavelength(wavelength);
-        int losses=dynamic_cast<SourceBase*>((ElementBase*)elementID)->radiate();
+        int losses;
+        try {
+            losses=dynamic_cast<SourceBase*>((ElementBase*)elementID)->radiate();
+        }
+        catch(RayException &excpt) {
+            SetOptiXLastError(excpt.what()+"\nPropagation interrupted", __FILE__, __func__, __LINE__);
+            return false;
+        }catch (InterceptException &excpt){
+            SetOptiXLastError(excpt.what()+"\nPropagation interrupted", __FILE__, __func__, __LINE__);
+            return false;
+        }
         if(losses==0)
             return true;
         else
         {
             char buffer[80];
             sprintf(buffer,"WARNING: %d rays lost in propagation", losses);
-            SetOptiXLastError(buffer, __FILE__, __func__);
+            SetOptiXLastError(buffer, __FILE__, __func__,__LINE__);
             return false;
         }
     }

@@ -19,11 +19,14 @@
 ////////////////////////////////////////////////////////////////////////////////////
 #include "types.h"
 #include <iostream>
+#include <sstream>
 #include <limits>
 //using namespace std; no longer usable in recet C++ releases
 
 using std::complex;
 using std::cout, std::endl;
+
+
 
 /** \brief Solution of conic intersection equation  when degenerated conics have imaginary 2 intercepts instead of 4 .
  *  \ingroup GlobalCpp
@@ -59,7 +62,26 @@ int ToroidSolver(Matrix<FloatType,2,Dynamic> &solutions, Matrix<FloatType,3,3> &
  //         Migré dans ToroidComplexSoler.cpp  pour éviter le flag -Wa,-mbig-obj
 
             Matrix<complex<FloatType>,3,3> MatCS=Mat1-Ev(i)*Mat2 ;
-            return ComplexVpSolver(solutions,MatCS);
+            switch ( ComplexVpSolver(solutions,MatCS))
+            {
+            case 2:
+                break;
+            case -1:
+                throw RayException("ComplexVpSolver failure: No convergence of EigenComplexSolver", __FILE__, __func__, __LINE__);
+                break;
+            case -2:
+                {
+                    char str[128];
+                    sprintf(str,"ComplexVpSolver: zero Eigen value not discriminated:\n  %g +i %g\n  %g +i %g\n  %g +i %g\n",
+                            (double)solutions(0,0),(double)solutions(1,0),
+                            (double)solutions(0,1),(double)solutions(1,1),
+                            (double)solutions(0,2),(double)solutions(1,2));
+                    throw RayException(str, __FILE__, __func__, __LINE__);
+                }
+                break;
+            default:
+                throw RayException("ComplexVpSolver: unknown return value", __FILE__, __func__, __LINE__);
+            }
         }
     }
     if (i==2)  // toutes les valeurs propres sont réelles
@@ -79,11 +101,14 @@ int ToroidSolver(Matrix<FloatType,2,Dynamic> &solutions, Matrix<FloatType,3,3> &
           //  saes.computeDirect(MatS);
             saes.compute(MatS);
             absVp = saes.eigenvalues().array().abs();
-            iv0=GetZeroVal(absVp, 1e-12);  // iv0 est la VP nulle sauf sit le ratio zeroVP/ next Vp est hors tolérance
+            iv0=GetZeroVal(absVp, 1e-12);  // iv0 est la VP nulle sauf si le ratio zeroVP/ next Vp est hors tolérance
             if(iv0==-1) // hors tolérance
             {
-                cout << "Toroid: zero eigen value tolerance not satisfied\n :" << saes.eigenvalues().transpose() << endl;
-                exit(-1);
+              // cout << "Toroid: zero eigen value tolerance not satisfied\n :" << saes.eigenvalues().transpose() << endl;
+                char str[128];
+                sprintf(str,"ToroidSolver: zero real Eigen value not discriminated:\n  %g,  %g,  %g \n",
+                        (double)saes.eigenvalues()(0), (double)saes.eigenvalues()(1), (double)saes.eigenvalues()(2));
+                throw RayException(str, __FILE__, __func__, __LINE__);
             }
  //           FloatType ZeroTest=1000* numeric_limits<FloatType>::epsilon();
 //           FloatType ZeroTest=5*saes.eigenvalues().maxCoeff()* numeric_limits<FloatType>::epsilon();
@@ -107,12 +132,13 @@ int ToroidSolver(Matrix<FloatType,2,Dynamic> &solutions, Matrix<FloatType,3,3> &
                             Eigenvects.col(k++)=sqrt(-saes.eigenvalues()[j])*saes.eigenvectors().col(j);
                         } catch (EigenException & excpt)
                         {
-                            cout << "Eigen exception case < 0 k=" << k << " j=" << j << endl << excpt.what() <<endl;
+                            std::ostringstream ostr("Toroid: real eigen value < 0 ");
+                            ostr << "k=" << k << " j=" << j << endl << "EigenException: " << excpt.what() <<endl;
   //                          cout << "Zero test value " << ZeroTest << endl;
-                            cout << " Zero VP is " << iv0 <<endl;
-                            cout << "Eigen values :" << saes.eigenvalues().transpose()<< endl;
-                            cout << "Eigen vectors:\n" << saes.eigenvectors() <<endl;
-                            exit(-1);
+                            ostr << " Zero VP is " << iv0 <<endl;
+                            ostr << "Eigen values :" << saes.eigenvalues().transpose()<< endl;
+                            ostr << "Eigen vectors:\n" << saes.eigenvectors() <<endl;
+                            throw RayException(ostr.str(), __FILE__, __func__, __LINE__);
                         }
                     }
                     else
@@ -121,12 +147,13 @@ int ToroidSolver(Matrix<FloatType,2,Dynamic> &solutions, Matrix<FloatType,3,3> &
                             Eigenvects.col(k++)=sqrt(saes.eigenvalues()[j])*saes.eigenvectors().col(j);
                         } catch (EigenException & excpt)
                         {
-                            cout << "Eigen exception case  > 0 k=" << k << " j=" << j << endl << excpt.what() <<endl;
-//                            cout << "Zero test value " << ZeroTest << endl;
-                            cout << " Zero VP is " << iv0 <<endl;
-                            cout << "Eigen values :" << saes.eigenvalues().transpose()<< endl;
-                            cout << "Eigen vectors:\n" << saes.eigenvectors() <<endl;
-                            exit(-1);
+                            std::ostringstream ostr("Toroid: real eigen value > 0 ");
+                            ostr << "k=" << k << " j=" << j << endl << "EigenException: " << excpt.what() <<endl;
+  //                          cout << "Zero test value " << ZeroTest << endl;
+                            ostr << " Zero VP is " << iv0 <<endl;
+                            ostr << "Eigen values :" << saes.eigenvalues().transpose()<< endl;
+                            ostr << "Eigen vectors:\n" << saes.eigenvectors() <<endl;
+                            throw RayException(ostr.str(), __FILE__, __func__, __LINE__);
                         }
                     }
                 }

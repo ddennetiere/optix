@@ -60,11 +60,23 @@ RayType& Surface::transmit(RayType& ray)
 
 RayType& Surface::reflect(RayType& ray)    /*  this implementation simply reflect the ray on the tangent plane at intercept position*/
 {
-    try{
+
         VectorType normal;
-
+    try{
         intercept(ray, &normal);
-
+    } catch(EigenException & eigexcpt) {
+        throw InterceptException(eigexcpt.what()+"\nEigenException within  " +  m_name + " from "  ,
+                                        __FILE__, __func__, __LINE__);
+    }catch(RayException & excpt)
+    {
+        throw InterceptException(excpt.what()+"\nRayException within " +  m_name + " from "  ,
+                                        __FILE__, __func__, __LINE__);
+    }catch(...)
+    {
+        throw InterceptException(string("Unknown Exception within ") +  m_name + " from" ,
+                                        __FILE__, __func__, __LINE__);
+    }
+    try{
         if(ray.m_alive)
         {
             if(m_recording==RecordInput)
@@ -108,16 +120,16 @@ RayType& Surface::reflect(RayType& ray)    /*  this implementation simply reflec
 
         return ray;
     } catch(EigenException & eigexcpt) {
-        cout << "EigenException catch in " << m_name << " reflect \n" << eigexcpt.what() <<endl;
-        exit(-1);
+        throw RayException(eigexcpt.what()+"\nEigenException within " +  m_name + " from "  ,
+                                        __FILE__, __func__, __LINE__);
     }catch(RayException & excpt)
     {
-        cout << "RayException catch in " << m_name << " reflect \n" << excpt.what()<<endl;
-        exit(-1);
+        throw RayException(excpt.what()+"\nRayException withinin " +  m_name + " rfrom "  ,
+                                        __FILE__, __func__, __LINE__);
     }catch(...)
     {
-        cout << "Unknown Exception catch in " << m_name << " reflect \n" ;
-        exit(-1);
+        throw RayException(string("Unknown Exception catch in ") +  m_name + " r" ,
+                                        __FILE__, __func__, __LINE__);
     }
 
 }
