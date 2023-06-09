@@ -57,14 +57,15 @@ int ToroidSolver(Matrix<FloatType,2,Dynamic> &solutions, Matrix<FloatType,3,3> &
     int i;
     for(i=0; i<2; ++i)
     {
-        if(Ev(i).imag()!=0)  // VP complexe
+        if(Ev(i).imag()!=0)  // VP complexe (dans ce cas 1 Vp est réelle et les deux autres sont complexes conjuguées)
         {
  //         Migré dans ToroidComplexSoler.cpp  pour éviter le flag -Wa,-mbig-obj
 
             Matrix<complex<FloatType>,3,3> MatCS=Mat1-Ev(i)*Mat2 ;
-            switch ( ComplexVpSolver(solutions,MatCS))
+            switch ( ComplexVpSolver(solutions,MatCS))      // this switch must return the solution number or throw
             {
             case 2:
+                return 2;
                 break;
             case -1:
                 throw RayException("ComplexVpSolver failure: No convergence of EigenComplexSolver", __FILE__, __func__, __LINE__);
