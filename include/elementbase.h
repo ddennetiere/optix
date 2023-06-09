@@ -56,7 +56,7 @@ inline void SetOptiXLastError(string what, const char* filename, const char* fun
 //        sprintf(LastError, "%s in function %s of file %s", what.c_str(), funcname, filename);
 //    else
 //        sprintf(LastError, "%s in function %s, line %d of file %s", what.c_str(), funcname, line, filename);
-    char infostring[80];
+    char infostring[256];
     if(line==0)
         sprintf(infostring, " in function %s of file %s",funcname, filename);
     else
@@ -77,7 +77,7 @@ inline void ForwardOptiXLastError(const char* filename, const char* funcname, co
 //        throw runtime_error("Error buffer overflow");
 //    strcpy(pst,buf);
 
-    char infostring[80];
+    char infostring[256];
     if(line==0)
         sprintf(infostring, "\ncalled by function %s of file %s",  funcname, filename);
     else

@@ -66,12 +66,16 @@ int XmlTest()
 
     if(!Radiate(sourceID))
     {
-       GetOptiXLastError(errBuf,256);
-       if(strncmp(errBuf,"WARNING",7)==0)
-        cout << errBuf <<endl;
+       //GetOptiXLastError(errBuf,256);
+       char * errptr ;
+       GetOptiXError(&errptr);
+       char errmsg[strlen(errptr)+1];
+       strcpy(errmsg,errptr);
+       if(strncmp(errmsg,"WARNING",7)==0)
+        cout << errmsg <<endl;
        else
        {
-            cout << "Radiation error : " << errBuf << endl;
+            cout << "Radiation error : " << errmsg << endl;
             return -1;
        }
     }
@@ -139,8 +143,10 @@ int DiscoTest()
 {
     size_t sourceID, elemID;
     char elname[32], errBuf[256]; // ,parmname[48]
-    LoadSystemFromXml("..\\..\\xml\\Disco_sm.xml");
-    sourceID=elemID=GetElementID("sourceA");
+//    LoadSystemFromXml("..\\..\\xml\\Disco_sm.xml");
+//    sourceID=elemID=GetElementID("sourceA");
+    LoadSystemFromXml("..\\..\\xml\\Disco_CD.xml");
+    sourceID=elemID=GetElementID("Magnet");
 
     while(elemID)
     {

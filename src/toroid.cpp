@@ -114,7 +114,12 @@ RayBaseType::VectorType Toroid::intercept(RayBaseType& ray, VectorType * normal)
 
         Matrix<FloatType,2,Dynamic> sols;
 //        cout << "calling toroid solver\n";
-        int nsols= ToroidSolver(sols, Mat1, Mat2);
+        int nsols;
+        try {
+            nsols= ToroidSolver(sols, Mat1, Mat2);
+        }catch(RayException & excpt) {
+            throw RayException(excpt.what()+"\nToroidSolver called from ", __FILE__, __func__, __LINE__);
+        }
       //  cout <<"solver has " << nsols << " solution\n";
         int minNormIndex;
         switch (nsols)

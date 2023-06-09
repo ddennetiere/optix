@@ -57,18 +57,21 @@ int ComplexVpSolver(Matrix<FloatType,2,Dynamic> &solutions,Matrix<complex<FloatT
 //    Matrix<complex<FloatType>,3,1> EigenVals=ces.eigenvalues();
 //    Matrix<complex<FloatType>,3,3> EigenVect=ces.eigenvectors();  //  .colwise().normalized();
     Array<FloatType,3,1> absVp=ces.eigenvalues().array().abs() ;
-    int iv0=GetZeroVal(absVp, 1e-12);  // iv0 est la VP nulle sauf sit le ratio zeroVP/ next Vp est hors tolérance
+    int iv0=GetZeroVal(absVp, 1e-12);  // iv0 est la VP nulle sauf si  le ratio zeroVP/ next Vp est hors tolérance
     if(iv0==-1) // hors tolérance
     {
+        solutions=Matrix<FloatType,2,Dynamic>::Zero(2,3); // on recupère la première ligne pour sortir les VPs
         cout << "Toroid complex solver: zero eigen value tolerance not satisfied\n :" << ces.eigenvalues().transpose() << endl;
-        exit(-1);
+        solutions.row(0)= ces.eigenvalues().real().transpose();
+        solutions.row(1)= ces.eigenvalues().imag().transpose();
+        return -2;
     }
 // Eigen ne garantit pas  que les VPs soient triées
 //   if ( abs(ces.eigenvalues()[0] )  > 1000.* numeric_limits<FloatType>::epsilon() )
 //    if(iv0!=0)
 //       cout << "Toroid complex solver:  La valeur propre 0 est non nulle \n";  // Todo gérer cette erreur
 //       cout << "eigen value:" << ces.eigenvalues().transpose() << endl;
-//       exit (-1);
+//       exit(-1);
 //   }
 
 //    Matrix<complex<FloatType>,3,1> Mu,Nu;

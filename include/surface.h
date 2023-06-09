@@ -123,21 +123,25 @@ public:
 /** \brief  call transmit or reflect according to surface type ray and iterate to the next surface*/
     inline virtual void propagate(RayType& ray) /**< the propagated ray */
     {
-        try{
+        try {
             if(m_transmissive)
                  transmit(ray);
             else
                 reflect(ray);
-            // the ray is propagated even though it could be dead in order to keep the same ray index in all impact vectors
-            if(m_next!=NULL )  // FP
-                m_next->propagate(ray);
-            if(! ray.m_alive)
-                ++m_lostCount;
-               // cout << m_name << " ray lost : " << "(" << ray.position().transpose() << ") (" << ray.direction().transpose() << ")\n";
+        } // propagation stopped by rethrowing the exception
+        catch (InterceptException & excpt){
+            throw excpt;
+        } catch(RayException &excpt) {
+            throw excpt;
         }
-        catch( EigenException & excpt){
-            throw (EigenException(excpt.what()+ " in element " + getName() +"\nre-thrown from",__FILE__, __func__, __LINE__));
-        }
+
+        // the ray is propagated even though it could be dead in order to keep the same ray index in all impact vectors
+        if(m_next!=NULL )  // FP
+            m_next->propagate(ray);
+        if(! ray.m_alive)
+            ++m_lostCount;
+           // cout << m_name << " ray lost : " << "(" << ray.position().transpose() << ") (" << ray.direction().transpose() << ")\n";
+
     }
 
     inline void setRecording(RecordMode rflag){m_recording=rflag;} /**< \brief Sets the impact recording mode for the surface */
