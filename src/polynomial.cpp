@@ -60,15 +60,33 @@ RayBaseType::VectorType Polynomial::intercept(RayBaseType& ray,  RayBaseType::Ve
             curvature(0,1)=curvature(1,0)=m_Kx*m_Ky*d1x.transpose()*m_coeffs*d1y;curline=__LINE__;
             FloatType g=gradient.dot(ray.direction());curline=__LINE__;
             FloatType c=ray.direction().head(2).transpose()*curvature*ray.direction().head(2);curline=__LINE__;
+            FloatType g2=g*g, cc=c*DZ;
+            FloatType delta=g2+2.*cc;
+
+            if (delta < 0)  // no intercept
+            {
+                ray.rebase();
+                ray.m_alive=false;
+                return ray.position();
+            }
+            else if(abs(cc) < 1.e-3*g2)
+                dt=DZ/g;
+            else
+                dt=(sqrt(delta) -g)/c;
+/*
             FloatType tau=DZ/g;
             FloatType gamma=c*tau/g;
-            if (abs(gamma) >0.5)
+            if (abs(gamma) >1.)
             {
                 std::cout << "Local curvature is too large\n";
-                dt=tau;
+                dt=tau;  //
             }
             else
                 dt=tau*(1.-gamma*(1.-gamma*(2.-5.*gamma)));
+*/
+            if(i>0)
+                std::cout << i <<"  dz=  " << DZ << " t "  << t << "  dt " << dt << std::endl;
+
 #ifdef VERBOSE
             trace(0,i)=dt;
             trace(1,i)=DZ;
