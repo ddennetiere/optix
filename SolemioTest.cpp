@@ -142,11 +142,11 @@ int XmlTest()
 int DiscoTest()
 {
     size_t sourceID, elemID;
-    char elname[32], errBuf[256]; // ,parmname[48]
+    char elname[32], errBuf[1024]; // ,parmname[48]
 //    LoadSystemFromXml("..\\..\\xml\\Disco_sm.xml");
 //    sourceID=elemID=GetElementID("sourceA");
-    LoadSystemFromXml("..\\..\\xml\\Disco_CD.xml");
-    sourceID=elemID=GetElementID("Magnet");
+    LoadSystemFromXml("..\\..\\xml\\Disco_sm.xml");
+    sourceID=elemID=GetElementID("sourceA");
 
     while(elemID)
     {
@@ -163,8 +163,23 @@ int DiscoTest()
 
     if(!Align(sourceID,lambda))
     {
-       GetOptiXLastError(errBuf,256);
+       GetOptiXLastError(errBuf,1024);
        cout << "Alignment error : " << errBuf << endl;
+       return -1;
+    }
+
+
+    if(!Generate(sourceID,lambda))
+    {
+       GetOptiXLastError(errBuf,1024);
+       cout << "Generate error : " << errBuf << endl;
+       return -1;
+    }
+
+    if(!Radiate(sourceID))
+    {
+       GetOptiXLastError(errBuf,1024);
+       cout << "Radiate error : " << errBuf << endl;
        return -1;
     }
     return 0;

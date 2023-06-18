@@ -108,19 +108,27 @@ void Polygon::move(double angle, const Ref<Vector2d> &translation)
 {
     if(m_size==0)
         return;
-    Matrix2d rot;
-    rot << cos(angle), -sin(angle), sin(angle), cos(angle);
-    Matrix2Xd mtemp;        // TODO remplacer mtemp par un eval() cf setSymmetric
-    mtemp=(rot*m_vertices).colwise() +translation;
-    m_vertices.swap(mtemp);
-    mtemp=(rot*m_vects).colwise() +translation;
-    m_vects.swap(mtemp);
-    mtemp=(rot*m_sides.topRows(2)).colwise() +translation;
-    m_sides.topRows(2)=mtemp;
-    mtemp.array()*=m_vertices.leftCols(m_size).array();
-    m_sides.row(2)=-mtemp.colwise().sum();
-    mtemp=rot*m_refPoint+translation;
-    m_refPoint.swap(mtemp);
+//    Matrix2d rot;
+//    rot << cos(angle), -sin(angle), sin(angle), cos(angle);
+//    Matrix2Xd mtemp;        // TODO remplacer mtemp par un eval() cf setSymmetric
+//    mtemp=(rot*m_vertices).colwise() +translation;
+//    m_vertices.swap(mtemp);
+//    mtemp=(rot*m_vects).colwise() +translation;
+//    m_vects.swap(mtemp);
+//    mtemp=(rot*m_sides.topRows(2)).colwise() +translation;
+//    m_sides.topRows(2)=mtemp;
+//    mtemp.array()*=m_vertices.leftCols(m_size).array();
+//    m_sides.row(2)=-mtemp.colwise().sum();
+//    mtemp=rot*m_refPoint+translation;
+//    m_refPoint.swap(mtemp);
+    Transform<double,2, Isometry> isoTransform;
+    isoTransform=Rotation2Dd(angle) ;
+    isoTransform.pretranslate(translation);
+
+    m_vertices=isoTransform*m_vertices;
+    m_vects=isoTransform*m_vects;
+    m_sides=isoTransform.inverse().matrix().transpose()*m_sides;
+    m_refPoint=isoTransform*m_refPoint;
 }
 
 void Polygon::setSymmetric(const Ref<Vector2d> &point, const Ref<Vector2d> &dir)

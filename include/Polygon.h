@@ -97,7 +97,7 @@ class Polygon: public Region
 
         /** \brief moves a Polygon by applying a positive isometry
          *
-         * \param angle the angle of the rotation part of the isometric transformation applied to the region
+         * \param angle the angle of the rotation part of the isometric transformation applied to the region in radians
          * \param translation the reference to a Vector2d containing the translation part of the transform
          */
          void move(double angle, const Ref<Vector2d> &translation);

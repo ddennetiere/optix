@@ -72,9 +72,9 @@ int main()
     cout << "starting \n";
 
 //    return Solemio2Xml("D:\\Documents SOLEIL\\Dossiers-Lignes\\Disco\\Solemio\\DISCOdefinitif.sole");
-    //return DiscoTest();
+  //  return DiscoTest();
 
-    return XmlTest();
+    //return XmlTest();
 
 
     ArrayXd v1(7), v2(7), v3;
@@ -88,7 +88,7 @@ int main()
     cout << "sizeof(UnitType) " << sizeof(UnitType) << endl ;
     cout << "sizeof(ParameterGroup) " <<  sizeof(ParameterGroup) << endl << endl;
 
-    return SolemioTest();
+//    return SolemioTest();
 //    return OriginalTest();
 //    return SphereTest();
 //    return QuickTest();
@@ -98,15 +98,24 @@ int main()
      bool cvx;
      Array2d point, trans,vect;
      point << 0.,3.1;
-     trans << 0,1;
+     trans << 0.5, 0;
 
-     rectangle.setRectangle(10., 4., 1.,1.);
+     rectangle.setRectangle(1., 1., 0, 0);
+     rectangle.move(0,trans);
      cvx=rectangle.isConvex();
      rectangle.dump();
      if(cvx)
         cout << "shape is convex; is origin inside ? :" << rectangle.locate(point)<<endl;
      else
         cout << "shape is NOT convex;; is origin inside ? :" << rectangle.locate(point)<<endl;
+    for(point(1)=-0.1; point(1) <0.1; point(1)+= 0.01)
+    {
+        for(point(0)=-0.1; point(0) < 0.1 ; point(0)+= 0.01)
+            cout << rectangle.locate(point) << "  ";
+
+        cout << endl;
+    }
+
 
      rectangle.insertVertex(2, 0,1);
      cvx=rectangle.isConvex();

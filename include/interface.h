@@ -101,6 +101,10 @@
 *      declared in ReflectivityAPI.h
 *      \see see also \ref mainAPI "Main Interface C functions"
 *
+*       \defgroup NonStandard API function having a non standard return type
+*       \brief The functions recorded in this group do not return an error flag, return value not bolean or having another meaning
+*       \ingroup globalc
+*
 ****************************************************************************/
 
 
@@ -134,12 +138,17 @@ extern "C"
 
 
 
-
-
     /** \brief Dumps the version number and compilation date of the library to the console
+    *
+    *   Dumps version information to the console but doesn't return anything
+    *
      */
     DLL_EXPORT void Version();
 
+
+    /** \ingroup NonStandard
+    *    GetElementID()
+    */
     /** \brief Create an optical element (or group)
      *
      * Th function calls the internal function CreateElementObject(type, name)
@@ -147,7 +156,10 @@ extern "C"
      * \param name name of the new element
      * \return if success  a unique ID identifying the newly created element. Otherwise returns 0 and the OptiXError is set
      */
+
     DLL_EXPORT size_t CreateElement(const char* type, const char* name);
+
+
 
     /** \brief Check there is an element with this ID in the cirrunt system
      *
@@ -187,6 +199,9 @@ extern "C"
      */
     DLL_EXPORT bool EnumerateElements(size_t * pHandle, size_t* elemID, char * nameBuffer, const int bufSize);
 
+    /** \ingroup NonStandard
+    *    ReleaseElementEnumHandle()
+    */
     /** \brief release an element enumeration handle returned by EnumerateElement()
      *
      * \param handle a non null handle returned by EnumerateElement()
@@ -195,6 +210,9 @@ extern "C"
     DLL_EXPORT void ReleaseElementEnumHandle(size_t handle);
 
 
+    /** \ingroup NonStandard
+    *    GetElementID()
+    */
     /** \brief retrieves the unique ID of an element from its name
      *
      * \param elementName name of the searched element
@@ -202,6 +220,9 @@ extern "C"
      */
     DLL_EXPORT size_t GetElementID(const char* elementName);
 
+    /** \ingroup NonStandard
+    *    FindElementID()
+    */
     /** \brief retrieves the unique ID of an element from its name
      *
      * \param[in] elementName name of the searched element
@@ -261,6 +282,9 @@ extern "C"
      */
     DLL_EXPORT bool ChainElement_byID(size_t prevID, size_t nextID);
 
+    /** \ingroup NonStandard
+    *    GetPreviousElement()
+    */
     /** \brief Gets the element immediately upstream of the given one in the link chain
      *
      * \param elementID the ID of the given element
@@ -268,6 +292,9 @@ extern "C"
      */
     DLL_EXPORT size_t GetPreviousElement(size_t elementID);
 
+    /** \ingroup NonStandard
+    *    GetNextElementID()
+    */
     /** \brief Gets the element immediately downstream of the given one in the link chain
      *
      * \param elementID the ID of the given element
@@ -275,6 +302,9 @@ extern "C"
      */
     DLL_EXPORT size_t GetNextElement(size_t elementID);
 
+    /** \ingroup NonStandard
+    *    FindPreviousElement()
+    */
     /** \brief Gets the element immediately upstream of the given one in the link chain
      *
      * \param[in] elementID the ID of the given element
@@ -282,6 +312,9 @@ extern "C"
      */
     DLL_EXPORT void FindPreviousElement(size_t elementID, size_t * previousID );
 
+    /** \ingroup NonStandard
+    *    FindNextElement()
+    */
     /** \brief Gets the element immediately downstream of the given one in the link chain
      *previousID
      * \param[in] elementID the ID of the given element
@@ -289,6 +322,9 @@ extern "C"
      */
     DLL_EXPORT void FindNextElement(size_t elementID,size_t * nextID);
 
+    /** \ingroup NonStandard
+    *    GetTransmisive()
+    */
     /** \brief Check if element is used in transmission rather than reflexion mode (mainly useful for gratings)
      *
      * \param elementID the Id of the element to inquire of
@@ -304,6 +340,9 @@ extern "C"
      */
     DLL_EXPORT bool SetTransmissive(size_t elementID, bool transmit);
 
+    /** \ingroup NonStandard
+    *    GetRecording()
+    */
     /** \brief retrieves the impact recording mode of an element
      *
      * \param elementID the Id of the element to inquire of
@@ -347,11 +386,14 @@ extern "C"
 //    DLL_EXPORT bool SetArrayParameter(size_t elementID, const char* paramTag, size_t fastindex, size_t slowindex, double *data);
 
 
+    /** \ingroup NonStandard
+    *    DumpParameter()
+    */
     /** \brief dump and compare given parameter with stored data
      *
-     * \param elementID size_t
-     * \param paramTag const char*
-     * \return DLL_EXPORT bool
+     * \param elementID Handle to the inquired element
+     * \param paramTag The name pf the paameter to dump
+     * \return error flag true if no error false otherwise
      *
      */
     DLL_EXPORT bool DumpParameter(size_t elementID, const char* paramTag);
@@ -429,6 +471,9 @@ extern "C"
      */
     DLL_EXPORT bool EnumerateParameters(size_t elementID, size_t * pHandle, char* tagBuffer, const int bufSize , Parameter* paramData);
 
+    /** \ingroup NonStandard
+    *    ReleaseParameterEnumHandle()
+    */
     /** \brief release a parameter enumeration handle returned by EnumerateParameter()
      *
      * \param handle a non null handle returned by EnumerateParameter()
@@ -510,6 +555,9 @@ extern "C"
                                      double undulatorLength,  double SD_UndulatorDistance, double wavelength, double detuning);
 
 
+    /** \ingroup NonStandard
+    *    Generate()
+    */
     /** \brief generate source rays of the given wavelength but do not run the ray tracing, (only valid for sources).
      *
      * \param elementID ID of the element which must be of source type
@@ -524,6 +572,9 @@ extern "C"
      */
     DLL_EXPORT int Generate(size_t elementID, double wavelength);
 
+    /** \ingroup NonStandard
+    *    GeneratePol()
+    */
     /** \brief Same as Generate() but allow specifying other polarizations than 'S'
      *
      * \param elementID ID of the element which must be of source type
@@ -653,7 +704,7 @@ extern "C"
      *  4 arrays of  m_dim doubles with the statistics (min, max, mean, sigma), then the array of m_dim * m_count  doubles
      * \param filename name of the file
      * \param cdiagram a pointer to the C_DiagramStruct to be written on file
-     * \return DLL_EXPORT bool
+     * \return an error flag: true if the daigram was successfully written, false otherwise
      */
     DLL_EXPORT bool DiagramToFile(const char* filename, C_DiagramStruct* cdiagram);
 
@@ -676,6 +727,10 @@ extern "C"
      */
     DLL_EXPORT void SetAperturesActive(const bool activity);
 
+
+    /** \ingroup NonStandard
+    *    GetApertureActive()
+    */
     /** \brief get the status of global aperture activity flag
      * \return a bolean value reflecting aperture stop activity
      */
@@ -701,6 +756,9 @@ extern "C"
     DLL_EXPORT bool GetHologramPatternInfo(size_t elementID,  GratingPatternInfo *gratInfo, double halfLength, double halfWidth );
 
 
+    /** \ingroup NonStandard
+    *    GetSource()
+    */
     /** \brief finds the most upstream source in the element chain starting from the given element
      *
      * \param elementID  The element from which the chain is explored
