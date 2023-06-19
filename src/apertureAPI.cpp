@@ -255,11 +255,11 @@ DLL_EXPORT size_t AddRectangularStop(size_t element_ID,  double Xwidth, double Y
         SetOptiXLastError("element is not an OptiX Surface", __FILE__, __func__);
         return -1;
     }
-    Vector2d center;
-    center <<  Xcenter,Ycenter;
+//    Vector2d center;
+//    center <<  Xcenter,Ycenter;
     Polygon * prect=new Polygon(!opacity);
-    prect->setRectangle(Xwidth, Ywidth, 0,0);
-    prect->move(angle,center);
+    prect->setRectangle(Xwidth, Ywidth, Xcenter,Ycenter);
+//    prect->move(angle,center);
     return psurf->m_aperture.addRegion(prect); // index of the added object
 }
 

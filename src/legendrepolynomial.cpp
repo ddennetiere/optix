@@ -22,8 +22,8 @@ Polynomial::VectorXType LegendrePolynomial::getBaseValues(Index Norder, FloatTyp
     derivative.resize(Norder);
     second.resize(Norder);
     value(1)=Xpos;
-    derivative(0)=1.;
-    derivative(1)=second(1)=second(0)=0;
+    derivative(1)=1.;
+    derivative(0)=second(1)=second(0)=0;
 
     for(Index i=2; i <Norder; ++i)
     {
