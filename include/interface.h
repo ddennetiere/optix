@@ -137,7 +137,26 @@ extern "C"
 #endif
 
 
+    /** \brief check and reset the error status
+     *
+     * \param buffer a char buffer to receive the error string. Can be NULL if not needed
+     * \param bufferSize  the size in bytes of the buffer (256 is safe)
+     * \return the error flag. Error status is reset to no error on exit.
+     */
+    DLL_EXPORT bool GetOptiXLastError(char* buffer, int bufferSize);
 
+    /** \brief  check and reset the error status
+     *
+     * \param errstring_ptr a pointer to the error string. **This is a read only location, dont try to modify this string**
+     * \return the error flag. Error status is reset to no error on exit.
+     */
+    DLL_EXPORT bool GetOptiXError( char** errstring_ptr);
+
+
+    /** \ingroup NonStandard
+    *   \todo Could be standardized as bool Version(char* buffer, int buffersize)
+    *   or bool Version(char** ROstringPtr)
+    */
     /** \brief Dumps the version number and compilation date of the library to the console
     *
     *   Dumps version information to the console but doesn't return anything
@@ -161,7 +180,7 @@ extern "C"
 
 
 
-    /** \brief Check there is an element with this ID in the cirrunt system
+    /** \brief Check there is an element with this ID in the current system
      *
      * \param ID  The element ID to check
      * \return true if the element exists , false otherwise
@@ -169,24 +188,8 @@ extern "C"
      */
     DLL_EXPORT bool IsElementValid(size_t  ID);
 
-    /** \brief check and reset the error status
-     *
-     * \param buffer a char buffer to receive the error string. Can be NULL if not needed
-     * \param bufferSize  the size in bytes of the buffer (256 is safe)
-     * \return the error flag. Error status is reset to no error on exit.
-     */
-    DLL_EXPORT bool GetOptiXLastError(char* buffer, int bufferSize);
-
-    /** \brief  check and reset the error status
-     *
-     * \param errstring_ptr a pointer to the error string. **This is a read only location, dont try to modify this string**
-     * \return the error flag. Error status is reset to no error on exit.
-     */
-    DLL_EXPORT bool GetOptiXError( char** errstring_ptr);
-
     /** \brief enumerates the element list of the current system
      *
-
      * \param[in,out] pHandle address of a location containing: \n on input, a handle to the current enumerator or 0 to get the first element of the system;
      *  \n on output, a  handle to underlying enumerator of the parameter list or 0 if the retrieved element is the last one or an error occurs
      * \param[out] elemID a pointer to a longlong interger which will  receive the element ID or 0 on error
@@ -386,9 +389,7 @@ extern "C"
 //    DLL_EXPORT bool SetArrayParameter(size_t elementID, const char* paramTag, size_t fastindex, size_t slowindex, double *data);
 
 
-    /** \ingroup NonStandard
-    *    DumpParameter()
-    */
+
     /** \brief dump and compare given parameter with stored data
      *
      * \param elementID Handle to the inquired element
