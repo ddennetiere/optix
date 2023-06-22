@@ -82,7 +82,7 @@ RayBaseType::VectorType Toroid::intercept(RayBaseType& ray, VectorType * normal)
 
         if(!ray.m_alive)
         {
-            cout << "dead ray received\n";
+            cout << m_name <<" dead ray received\n";
             return ray.position();
         }
     #ifdef DIAG_OUTPUT
@@ -111,15 +111,76 @@ RayBaseType::VectorType Toroid::intercept(RayBaseType& ray, VectorType * normal)
 
         Matrix<FloatType,3,3> Mat1= rayMat.transpose()* m_alignedMat1 *rayMat;
         Matrix<FloatType,3,3> Mat2= rayMat.transpose()* m_alignedMat2 *rayMat;
-
-        Matrix<FloatType,2,Dynamic> sols;
 //        cout << "calling toroid solver\n";
         int nsols;
+        int degenerate=0;
+        if (abs(Mat1.determinant()) < 1.e-12 )
+            degenerate=1;
+        if (abs(Mat2.determinant()) < 1.e-12 )
+            degenerate=2;
+        if(degenerate)
+        {
+
+            VectorType U, T0, sol;
+            FloatType a,b,c;
+            switch(degenerate)
+            {
+            case 1:
+                // le rayon  mineur est quasi nul donc h=0;
+
+                // l'intesection avec l'autre conique conduit à l'équation quadratique a x^2 +2bx +c avec
+                a=Mat2(0,0);
+                b=Mat2(0,2);
+                c=Mat2(2,2);
+                break;
+            case 2:
+                // la conique 2 dégénère en la droite parametrique T0 + U x
+                U << Mat2(2,1), -Mat2(2,0), 0;
+                T0 << 0, -Mat2(2,2)/2./Mat2(2,1), 1.;
+                // l'intesection avec l'autre conique conduit à l'équation quadratique a x^2 +2bx +c avec
+                a=U.transpose()*Mat1*U;
+                b=U.transpose()*Mat1*T0;
+                c=T0.transpose()*Mat1*T0;
+                break;
+            }
+            FloatType delta=b*b-a*c;
+            if(delta < 0)
+            {
+//                cout << "in " << m_name <<": delta=" << delta <<" no sol degen=" << degenerate <<endl;
+//                if(degenerate==1)
+//                    cout <<  Mat2 <<endl;
+
+                ray.m_alive=false;
+                return ray.position();
+            }
+
+            if(degenerate==1)
+//                cout << "in " << m_name <<": delta OK\n";
+                sol << (-b +sqrt(delta))/a, 0,1.;
+            else
+                sol=T0+ U*(-b +sqrt(delta))/a;
+
+            Matrix<FloatType,5,1> N1,N2,V= rayMat*sol;  // V=rayMat* {t,h,1}
+            N1 = m_alignedMat1 * V;
+            N2 = m_alignedMat2 * V;
+//            cout << m_name <<"  "<< N1.transpose() <<endl << N2.transpose() <<endl<<endl;
+            if(normal)
+            {
+                *normal= (N2.head(3)*N1(3)-N1.head(3)*N2(3)).normalized();
+                //cout << "normal:" << normal->transpose() << endl;
+            }
+            ray.moveTo(sol(0)).rebase();
+            return ray.position();
+        }
+
+        Matrix<FloatType,2,Dynamic> sols;
+
         try {
             nsols= ToroidSolver(sols, Mat1, Mat2);
         }catch(RayException & excpt) {
-            throw RayException(excpt.what()+"\nToroidSolver called from ", __FILE__, __func__, __LINE__);
+            throw RayException(excpt.what()+"\nin "+m_name+": ToroidSolver called from ", __FILE__, __func__, __LINE__);
         }
+
       //  cout <<"solver has " << nsols << " solution\n";
         int minNormIndex;
         switch (nsols)
