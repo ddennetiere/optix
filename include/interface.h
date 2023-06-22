@@ -137,7 +137,26 @@ extern "C"
 #endif
 
 
+    /** \brief check and reset the error status
+     *
+     * \param buffer a char buffer to receive the error string. Can be NULL if not needed
+     * \param bufferSize  the size in bytes of the buffer (256 is safe)
+     * \return the error flag. Error status is reset to no error on exit.
+     */
+    DLL_EXPORT bool GetOptiXLastError(char* buffer, int bufferSize);
 
+    /** \brief  check and reset the error status
+     *
+     * \param errstring_ptr a pointer to the error string. **This is a read only location, dont try to modify this string**
+     * \return the error flag. Error status is reset to no error on exit.
+     */
+    DLL_EXPORT bool GetOptiXError( char** errstring_ptr);
+
+
+    /** \ingroup NonStandard
+    *   \todo Could be standardized as bool Version(char* buffer, int buffersize)
+    *   or bool Version(char** ROstringPtr)
+    */
     /** \brief Dumps the version number and compilation date of the library to the console
     *
     *   Dumps version information to the console but doesn't return anything
@@ -160,33 +179,20 @@ extern "C"
     DLL_EXPORT size_t CreateElement(const char* type, const char* name);
 
 
-
-    /** \brief Check there is an element with this ID in the cirrunt system
+    /** \ingroup NonStandard
+    *   *changed 22/06/2023*
+    */
+    /** \brief **MODIFIED** - Check there is an element with this ID in the current system
      *
      * \param ID  The element ID to check
-     * \return true if the element exists , false otherwise
+     * \param valid  a boolean location to return the elementID validity
+     * \return true : this function always succeeds
      *
      */
-    DLL_EXPORT bool IsElementValid(size_t  ID);
-
-    /** \brief check and reset the error status
-     *
-     * \param buffer a char buffer to receive the error string. Can be NULL if not needed
-     * \param bufferSize  the size in bytes of the buffer (256 is safe)
-     * \return the error flag. Error status is reset to no error on exit.
-     */
-    DLL_EXPORT bool GetOptiXLastError(char* buffer, int bufferSize);
-
-    /** \brief  check and reset the error status
-     *
-     * \param errstring_ptr a pointer to the error string. **This is a read only location, dont try to modify this string**
-     * \return the error flag. Error status is reset to no error on exit.
-     */
-    DLL_EXPORT bool GetOptiXError( char** errstring_ptr);
+    DLL_EXPORT bool IsElementValid(size_t  ID, bool *valid);
 
     /** \brief enumerates the element list of the current system
      *
-
      * \param[in,out] pHandle address of a location containing: \n on input, a handle to the current enumerator or 0 to get the first element of the system;
      *  \n on output, a  handle to underlying enumerator of the parameter list or 0 if the retrieved element is the last one or an error occurs
      * \param[out] elemID a pointer to a longlong interger which will  receive the element ID or 0 on error
@@ -323,14 +329,15 @@ extern "C"
     DLL_EXPORT void FindNextElement(size_t elementID,size_t * nextID);
 
     /** \ingroup NonStandard
-    *    GetTransmisive()
+    *    *changed 22/06/2023*
     */
-    /** \brief Check if element is used in transmission rather than reflexion mode (mainly useful for gratings)
+    /** \brief **MODIFIED** - Check if element is used in transmission rather than reflexion mode (mainly useful for gratings)
      *
      * \param elementID the Id of the element to inquire of
-     * \return true if the element is transmissive ; false otherwise
+     * \param transmissionMode a boolean location to receive the transmission status of the element
+     * \return true if the elementID is valid  ; false otherwise
      */
-    DLL_EXPORT bool GetTransmissive(size_t elementID);
+    DLL_EXPORT bool GetTransmissive(size_t elementID, bool * transmissionMode);
 
     /** \brief Set the transmission or reflexion mode of the element. (only available for gratings)
      *
@@ -386,9 +393,7 @@ extern "C"
 //    DLL_EXPORT bool SetArrayParameter(size_t elementID, const char* paramTag, size_t fastindex, size_t slowindex, double *data);
 
 
-    /** \ingroup NonStandard
-    *    DumpParameter()
-    */
+
     /** \brief dump and compare given parameter with stored data
      *
      * \param elementID Handle to the inquired element
@@ -729,12 +734,14 @@ extern "C"
 
 
     /** \ingroup NonStandard
-    *    GetApertureActive()
+    *   Changed 22/06/2023
     */
-    /** \brief get the status of global aperture activity flag
-     * \return a bolean value reflecting aperture stop activity
+    /** \brief **MODIFIED** get the status of global aperture activity flag
+     * \param activityFlag a boolean location to receive the global activity flag of apertures,
+     *      i.e. whether or not apertures are taken into account during ray tracing
+     * \return error code is always true
      */
-    DLL_EXPORT bool GetAperturesActive();
+    DLL_EXPORT bool GetAperturesActive(bool * activityFlag);
 
   //  DLL_EXPORT bool AddElementsFromXml(const char * filename);  la gestion des nom en double doit être testée
 

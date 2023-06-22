@@ -107,7 +107,11 @@ extern "C"
 //        printf( " FloatType size  %lld  Epsilon value= %Lg \n",sizeof(FloatType) , numeric_limits<FloatType>::epsilon() );
     }
 
-    DLL_EXPORT bool IsElementValid(size_t  ID){return System.isValidID(ID);}
+    DLL_EXPORT bool IsElementValid(size_t  ID, bool *valid)
+    {
+        *valid = System.isValidID(ID);
+        return true;
+    }
 
     DLL_EXPORT bool GetOptiXLastError(char* buffer, int bufferSize)
     {
@@ -467,9 +471,15 @@ extern "C"
             *nextID = 0;
     }
 
-    DLL_EXPORT bool GetTransmissive(size_t elementID)
+    DLL_EXPORT bool GetTransmissive(size_t elementID, bool * transmissionMode)
     {
-        return ((ElementBase*) elementID)->getTransmissive();
+        if(!System.isValidID(elementID))
+        {
+            SetOptiXLastError("invalid element ID", __FILE__, __func__);
+            return false;
+        }
+        *transmissionMode = ((ElementBase*) elementID)->getTransmissive();
+        return true;
     }
 
     DLL_EXPORT bool SetTransmissive(size_t elementID, bool transmit)
@@ -1344,7 +1354,9 @@ extern "C"
 
     DLL_EXPORT void SetAperturesActive(const bool activity){inhibitApertureLimit=!activity;}
 
-    DLL_EXPORT bool GetAperturesActive(){return !inhibitApertureLimit;}
+    DLL_EXPORT bool GetAperturesActive(bool *activityFlag){
+        *activityFlag= !inhibitApertureLimit;
+        return true;}
 
     DLL_EXPORT size_t GetSource(size_t elementID)
     {
