@@ -72,6 +72,8 @@ int ToroidSolver(Matrix<FloatType,2,Dynamic> &solutions, Matrix<FloatType,3,3> &
                 break;
             case -2:
                 {
+//                  todo better reporting std::ostringstream ostr("Toroid: real eigen value < 0 ");
+
                     char str[128];
                     sprintf(str,"ComplexVpSolver: zero Eigen value not discriminated:\n  %g +i %g\n  %g +i %g\n  %g +i %g\n",
                             (double)solutions(0,0),(double)solutions(1,0),

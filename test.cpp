@@ -71,8 +71,8 @@ int main()
 
     cout << "starting \n";
 
-//    return Solemio2Xml("D:\\Documents SOLEIL\\Dossiers-Lignes\\Disco\\Solemio\\DISCOdefinitif.sole");
-  //  return DiscoTest();
+  //  return Solemio2Xml("D:\\Documents SOLEIL\\Dossiers-Lignes\\Disco\\Solemio\\DISCOdefinitif.sole");
+   return DiscoTest();
 
     //return XmlTest();
 

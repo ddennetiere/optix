@@ -57,7 +57,8 @@ int ComplexVpSolver(Matrix<FloatType,2,Dynamic> &solutions,Matrix<complex<FloatT
 //    Matrix<complex<FloatType>,3,1> EigenVals=ces.eigenvalues();
 //    Matrix<complex<FloatType>,3,3> EigenVect=ces.eigenvectors();  //  .colwise().normalized();
     Array<FloatType,3,1> absVp=ces.eigenvalues().array().abs() ;
-    int iv0=GetZeroVal(absVp, 1e-12);  // iv0 est la VP nulle sauf si  le ratio zeroVP/ next Vp est hors tolérance
+    // 10/06/2023 tolérance passée de 1e-12 à 1e-10
+    int iv0=GetZeroVal(absVp, 1e-9);  // iv0 est la VP nulle sauf si  le ratio zeroVP/ next Vp est hors tolérance
     if(iv0==-1) // hors tolérance
     {
         solutions=Matrix<FloatType,2,Dynamic>::Zero(2,3); // on recupère la première ligne pour sortir les VPs

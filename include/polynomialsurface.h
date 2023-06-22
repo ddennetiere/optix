@@ -71,6 +71,8 @@ class PolynomialSurface:virtual public Surface, public PolyType
                 VectorType ntemp;
                 PolyType::intercept(ray,&ntemp); // move the ray to intercept and rebase it, in surface frame
                 ray.transform(m_surfaceDirect);
+                if(!ray.m_alive)
+                    cout << m_name << " ray was lost\n";
                 if(normal)
                     *normal=m_surfaceDirect*ntemp;
             }
