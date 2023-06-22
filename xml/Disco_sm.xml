@@ -96,7 +96,7 @@
     <param val="2.6">distance</param>
     <param val="0">phi</param>
     <param val="0">psi</param>
-    <param>surfaceLimits<array dims="2, 2" data="-0.1, 0.1, -0.1, 0.1"/></param>
+    <param>surfaceLimits<array dims="2, 2" data="-1, 1, -1, 1"/></param>
     <param val="0.39269908">theta</param>
   </element>
   <element name="M4" class="Mirror&lt;Toroid&gt;" next="P-inter" rec="2">

@@ -21,10 +21,28 @@
 RayBaseType::VectorType Polynomial::intercept(RayBaseType& ray,  RayBaseType::VectorType * normal )
 {
     std::stringstream errmsg;
-    ray.moveTo(-ray.direction().dot(ray.origin()) ).rebase();   // move and rebase at the nearest of surface origin
-    Vector<FloatType,3> gradient;
+    VectorXType Px,Py, d1x, d1y, d2x, d2y;
+    Vector<FloatType,3> point, gradient;
     Matrix<FloatType,2,2> curvature;
-    gradient << 0,0,-1.;
+    int curline=__LINE__;
+
+    // le calcul se fait dans l'espace de coordonnées de la surface donc le plan tangent à l'origine est donné
+    //  par les coefficients (0,0), (1,0) et (0,1)
+    point.setZero();
+    gradient << 0, 0, 1.; // this is actually the normal to the tangent plane at 0,0
+    try {
+        Px=getBaseValues(m_coeffs.rows(), -m_Kx*m_X0, d1x, d2x); curline=__LINE__;
+        Py=getBaseValues(m_coeffs.cols(), -m_Ky*m_Y0, d1y, d2y); curline=__LINE__;
+        point(2)= Px.transpose()*m_coeffs*Py;
+        gradient(0)= - m_Kx*d1x.transpose()*m_coeffs* Py;
+        gradient(1)= - m_Ky*Px.transpose()*m_coeffs*d1y;
+        Hyperplane<FloatType,3> plane(gradient.normalized(),point); curline=__LINE__;
+        ray.moveToPlane(plane).rebase();   // move and rebase at the nearest of surface tangent plane at origin
+    } catch (EigenException  & excpt ) {
+            throw( EigenException(string("\nRethrowing exception from ")+excpt.what(), __FILE__, __func__, curline));
+    }
+    gradient << 0,0,-1.;  //gradient of the functional to minimize
+
     // iteration loop
     int i, maxiter=20;
 #ifdef VERBOSE
@@ -33,12 +51,13 @@ RayBaseType::VectorType Polynomial::intercept(RayBaseType& ray,  RayBaseType::Ve
     FloatType ztol=1e-11,  t=0, dt=0;
     for(i=0; i < maxiter; ++i, t+=dt)
     {
-        VectorXType Px,Py, d1x, d1y, d2x, d2y;
-        int curline=0;
+        curline=__LINE__;
         try {
             Px=getBaseValues(m_coeffs.rows(), m_Kx*(ray.position(t)(0)-m_X0), d1x, d2x);curline=__LINE__;
             Py=getBaseValues(m_coeffs.cols(), m_Ky*(ray.position(t)(1)-m_Y0), d1y, d2y);curline=__LINE__;
             FloatType DZ=ray.position(t)(2) - Px.transpose()*m_coeffs*Py;curline=__LINE__;
+            if(abs(DZ) <ztol) // protects std::isnormal which is false when 0
+                break;
             if(!isnormal(DZ))
             {
 
@@ -51,8 +70,7 @@ RayBaseType::VectorType Polynomial::intercept(RayBaseType& ray,  RayBaseType::Ve
 #endif // VERBOSE
                 throw RayException(errmsg.str(), __FILE__, __func__, __LINE__);
             }
-            if(abs(DZ) <ztol)
-                break;
+
             gradient(0)= m_Kx*d1x.transpose()*m_coeffs* Py;curline=__LINE__;
             gradient(1)=m_Ky*Px.transpose()*m_coeffs*d1y;curline=__LINE__;
             curvature(0,0)=m_Kx*m_Kx*d2x.transpose()*m_coeffs*Py;curline=__LINE__;
@@ -63,16 +81,25 @@ RayBaseType::VectorType Polynomial::intercept(RayBaseType& ray,  RayBaseType::Ve
             FloatType g2=g*g, cc=c*DZ;
             FloatType delta=g2+2.*cc;
 
+
             if (delta < 0)  // no intercept
             {
                 ray.rebase();
                 ray.m_alive=false;
                 return ray.position();
+//                std::cout <<"d<0  ";
+//                dt=0.5*DZ/g;
             }
             else if(abs(cc) < 1.e-3*g2)
+            {
                 dt=DZ/g;
+               // std::cout <<"deps ";
+            }
             else
+            {
                 dt=(sqrt(delta) -g)/c;
+               // std::cout <<"quad ";
+            }
 /*
             FloatType tau=DZ/g;
             FloatType gamma=c*tau/g;
@@ -84,15 +111,15 @@ RayBaseType::VectorType Polynomial::intercept(RayBaseType& ray,  RayBaseType::Ve
             else
                 dt=tau*(1.-gamma*(1.-gamma*(2.-5.*gamma)));
 */
-            if(i>0)
-                std::cout << i <<"  dz=  " << DZ << " t "  << t << "  dt " << dt << std::endl;
+//            if(i>0)
+//                std::cout << i <<"  P(t)  " << ray.position(t).transpose() <<"  dz=  " << DZ << " t "  << t << "  dt " << dt << std::endl;
 
 #ifdef VERBOSE
             trace(0,i)=dt;
             trace(1,i)=DZ;
 #endif // VERBOSE
         } catch (EigenException  & excpt ) {
-            throw( EigenException(string("Rethrowing exception from ")+excpt.what(), __FILE__, __func__, curline));
+            throw( EigenException(string("\nRethrowing exception from ")+excpt.what(), __FILE__, __func__, curline));
         }
     }
 //    std::cout <<"iter=" << i << std::endl;

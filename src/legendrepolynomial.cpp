@@ -32,8 +32,11 @@ Polynomial::VectorXType LegendrePolynomial::getBaseValues(Index Norder, FloatTyp
         value(i)=c1* Xpos*value(i-1)-c2*value(i-2);
         derivative(i)=c1*(Xpos*derivative(i-1)+value(i-1))-c2*derivative(i-2);
         second(i)=c1*(Xpos*second(i-1)+ 2.*derivative(i-1))-c2*second(i-2);
+//        derivative(i)=i * value(i-1) + Xpos * derivative(i-1);
+//        second(i)= (i+1)* derivative(i-1)  + Xpos * second (i-1);
     }
     return value;
+    // todo la recurrence P'n=n Pn-1 +x P'n-1  generalisable
 }
 
 Polynomial::ArrayXXType LegendrePolynomial::getBaseValues(Index Norder, const Ref<ArrayXType>& Xpos, ArrayXXType& derivative, Ref<ArrayXXType> *second)
