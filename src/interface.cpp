@@ -327,17 +327,22 @@ extern "C"
 
 
 
-    DLL_EXPORT size_t GetElementID(const char* elementName)
-    {
-
-        map<string,ElementBase*>:: iterator it= System.find(elementName);
-        if(it==System.end())
-            return 0;
-        return (size_t) it->second;
-    }
+//    DLL_EXPORT size_t GetElementID(const char* elementName)
+//    {
+//
+//        map<string,ElementBase*>:: iterator it= System.find(elementName);
+//        if(it==System.end())
+//            return 0;
+//        return (size_t) it->second;
+//    }
 
     DLL_EXPORT bool FindElementID(const char* elementName, size_t * elemID)
     {
+        if(!elemID)
+        {
+            SetOptiXLastError("invalid location for returning elemID", __FILE__, __func__);
+            return false;
+        }
 
         map<string,ElementBase*>:: iterator it= System.find(elementName);
         if(it==System.end())
@@ -346,11 +351,9 @@ extern "C"
             *elemID=0;
             return false;
         }
-        else
-        {
-            *elemID=(size_t) it->second;
-            return true;
-        }
+        *elemID=(size_t) it->second;
+        return true;
+
     }
 
     DLL_EXPORT bool GetElementName(size_t elementID, char* strBuffer, int bufSize)
@@ -461,36 +464,68 @@ extern "C"
 
     }
 
-    DLL_EXPORT size_t GetPreviousElement(size_t elementID)
+    DLL_EXPORT bool FindPreviousElement(const char * elementName, size_t * previousID)
     {
-        if(System.isValidID(elementID))
-            return (size_t) ((ElementBase*)elementID)->getPrevious();
-        else
-            return 0;
-    }
+        if(!previousID)
+        {
+            SetOptiXLastError("invalid location for returning previousID", __FILE__, __func__);
+            return false;
+        }
+        map<string,ElementBase*>:: iterator it= System.find(elementName);
+        if(it==System.end())
+        {
+            SetOptiXLastError(string("Element of name  ")+elementName+" doesn't exist", __FILE__, __func__);
+            *previousID=0;
+            return false;
+        }
 
-    DLL_EXPORT void FindPreviousElement(size_t elementID, size_t * previousID )
+        *previousID=(size_t) it->second->getPrevious();
+        return true;
+            return 0;
+   }
+
+
+    DLL_EXPORT bool FindNextElement(const char * elementName, size_t * nextID)
+    {
+        if(!nextID)
+        {
+            SetOptiXLastError("invalid location for returning nextID", __FILE__, __func__);
+            return false;
+        }
+        map<string,ElementBase*>:: iterator it= System.find(elementName);
+        if(it==System.end())
+        {
+            SetOptiXLastError(string("Element of name  ")+elementName+" doesn't exist", __FILE__, __func__);
+            *nextID=0;
+            return false;
+        }
+
+        *nextID=(size_t) it->second->getNext();
+        return true;
+            return 0;
+   }
+
+    DLL_EXPORT bool GetPreviousElement(size_t elementID, size_t * previousID )
     {
         if(System.isValidID(elementID))
+        {
             *previousID = (size_t) ((ElementBase*)elementID)->getPrevious();
-        else
-            *previousID = 0;
+            return true;
+        }
+        *previousID = 0;
+        SetOptiXLastError("invalid element ID", __FILE__, __func__);
+        return false;
     }
 
-    DLL_EXPORT size_t GetNextElement(size_t elementID)
+    DLL_EXPORT bool GetNextElement(size_t elementID, size_t * nextID)
     {
         if(System.isValidID(elementID))
-            return (size_t) ((ElementBase*)elementID)->getNext();
-        else
-            return 0;
-    }
-
-    DLL_EXPORT void FindNextElement(size_t elementID,size_t * nextID)
-    {
-        if(System.isValidID(elementID))
+        {
             *nextID = (size_t) ((ElementBase*)elementID)->getNext();
-        else
-            *nextID = 0;
+        }
+        *nextID=0;
+        SetOptiXLastError("invalid element ID", __FILE__, __func__);
+        return false;
     }
 
     DLL_EXPORT bool GetTransmissive(size_t elementID, bool * transmissionMode)
@@ -1400,11 +1435,18 @@ extern "C"
 
     DLL_EXPORT void SetAperturesActive(const bool activity){inhibitApertureLimit=!activity;}
 
-    DLL_EXPORT bool GetAperturesActive(bool *activityFlag){
+    DLL_EXPORT bool GetAperturesActive(bool *activityFlag)
+    {
+        if(!activityFlag)
+        {
+            SetOptiXLastError("Invalid reference to activityFlag", __FILE__, __func__);
+            return false;
+        }
         *activityFlag= !inhibitApertureLimit;
-        return true;}
+        return true;
+    }
 
-    DLL_EXPORT size_t GetSource(size_t elementID)
+    DLL_EXPORT bool GetSource(size_t elementID, size_t* sourceID)
     {
         ClearOptiXError();
         if(!System.isValidID(elementID))
@@ -1412,7 +1454,13 @@ extern "C"
             SetOptiXLastError("Invalid element ID", __FILE__, __func__);
             return false;
         }
-        return (size_t)((ElementBase*)elementID)->getSource();
+        if(!sourceID)
+        {
+            SetOptiXLastError("Invalid reference to sourceID", __FILE__, __func__);
+            return false;
+        }
+        *sourceID=(size_t)((ElementBase*)elementID)->getSource();
+        return true;
 
     }
 

@@ -76,7 +76,7 @@ int main()
     cout << "starting \n";
 
   //  return Solemio2Xml("D:\\Documents SOLEIL\\Dossiers-Lignes\\Disco\\Solemio\\DISCOdefinitif.sole");
-   return DiscoTest();
+//   return DiscoTest();
 
     //return XmlTest();
 
@@ -92,7 +92,7 @@ int main()
     cout << "sizeof(UnitType) " << sizeof(UnitType) << endl ;
     cout << "sizeof(ParameterGroup) " <<  sizeof(ParameterGroup) << endl << endl;
 
-//    return SolemioTest();
+    return SolemioTest();
 //    return OriginalTest();
 //    return SphereTest();
 //    return QuickTest();
@@ -796,9 +796,14 @@ int TestEllipse()
        cout << "Source generation error : " << errBuf << endl;
        return -1;
     }
-
+    size_t elemID;
     cout << "getting screen \n";
-    Surface* screen=dynamic_cast<Surface*> ((ElementBase*)GetElementID("screen"));
+    if(!FindElementID("screen",&elemID))
+    {
+        cout << "element 'screen' was not found\n";
+        return -1;
+    }
+    Surface* screen=dynamic_cast<Surface*> ((ElementBase*)elemID);
     cout << screen << endl;
 
     if(!Radiate(sourceID))

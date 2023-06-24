@@ -104,6 +104,8 @@
 *       \defgroup NonStandard API function having a non standard return type
 *       \brief The functions recorded in this group do not return an error flag, return value not bolean or having another meaning
 *       \ingroup globalc
+*       \warning *24/06/2023*:   FUNCTION  ***GetElementID(const char* elementName)*** was removed from the interface
+*       \see replacement function FindElementID()
 *
 ****************************************************************************/
 
@@ -156,7 +158,7 @@ extern "C"
     /** \ingroup NonStandard
     *   *changed 24/06/2023*
     */
-    /** \brief **MODIFIED** - gets or print OptiX version info
+    /** \brief **MODIFIED (commit 9a16050)** - gets or print OptiX version info
      *
      * \param version  a pointer to a READ-ONLY location where the version string is stored.
      * if this pointer is NULL, the version string is printed to stdout
@@ -186,7 +188,7 @@ extern "C"
     /** \ingroup NonStandard
     *   *changed 22/06/2023*
     */
-    /** \brief **MODIFIED** - Check there is an element with this ID in the current system
+    /** \brief **MODIFIED (commit 9a16050)** - Check there is an element with this ID in the current system
      *
      * \param ID  The element ID to check
      * \param valid  a boolean location to return the elementID validity
@@ -212,7 +214,7 @@ extern "C"
     /** \ingroup NonStandard
     *    *changed 24/06/2023*
     */
-    /** \brief **MODIFIED** - release an element enumeration handle returned by EnumerateElement()
+    /** \brief **MODIFIED (commit 9a16050)** - release an element enumeration handle returned by EnumerateElement()
      *
      * \param handle a non null handle returned by EnumerateElement()
      *  \return true if handle was deleted; false if handle was invalid
@@ -220,20 +222,19 @@ extern "C"
     DLL_EXPORT bool ReleaseElementEnumHandle(size_t handle);
 
 
-    /** \ingroup NonStandard
-    *    GetElementID()
-    */
-    /** \brief retrieves the unique ID of an element from its name
+
+
+    /* \brief retrieves the unique ID of an element from its name
      *
      * \param elementName name of the searched element
      * \return the unique ID of the element having this name if it exists, 0 otherwise
      */
-    DLL_EXPORT size_t GetElementID(const char* elementName);
+//    DLL_EXPORT size_t GetElementID(const char* elementName);
 
     /** \ingroup NonStandard
     *   *changed 24/06/2023
     */
-    /** \brief **MODIFIED** - retrieves the unique ID of an element from its name
+    /** \brief **MODIFIED (commit 9a16050)** - retrieves the unique ID of an element from its name
      *
      * \param[in] elementName name of the searched element
      * \param[out] elemID The address of a location to return the ID
@@ -293,50 +294,58 @@ extern "C"
      */
     DLL_EXPORT bool ChainElement_byID(size_t prevID, size_t nextID);
 
-    /** \ingroup NonStandard
-    *    GetPreviousElement()
-    */
-    /** \brief Gets the element immediately upstream of the given one in the link chain
-     *
-     * \param elementID the ID of the given element
-     * \return the ID of the previous element, or 0 if the element either is the first of the link chain either is invalid
-     */
-    DLL_EXPORT size_t GetPreviousElement(size_t elementID);
 
     /** \ingroup NonStandard
-    *    GetNextElementID()
+    *    *changed 24/06/2023*
     */
-    /** \brief Gets the element immediately downstream of the given one in the link chain
-     *
-     * \param elementID the ID of the given element
-     * \return the ID of the next element, or 0 if the element either is the last of the link chain either is invalid
-     */
-    DLL_EXPORT size_t GetNextElement(size_t elementID);
-
-    /** \ingroup NonStandard
-    *    FindPreviousElement()
-    */
-    /** \brief Gets the element immediately upstream of the given one in the link chain
+    /** \brief **MODIFIED** - Gets the element immediately upstream of the given one in the link chain
      *
      * \param[in] elementID the ID of the given element
-     * \param[out] previousID The address of a location to return the previous ID
+     * \param[out] previousID The address of a location to return the previous ID.
+     *      previousID will be 0 if elementID is the first element of the chain
+     * \return function will only fail and return false if elementID is invalid; otherwise it will return true
      */
-    DLL_EXPORT void FindPreviousElement(size_t elementID, size_t * previousID );
+    DLL_EXPORT bool GetPreviousElement(size_t elementID, size_t * previousID );
 
     /** \ingroup NonStandard
-    *    FindNextElement()
+    *   *changed 24/06/2023*
     */
-    /** \brief Gets the element immediately downstream of the given one in the link chain
+    /** \brief **MODIFIED** - Gets the element immediately downstream of the given one in the link chain
      *previousID
      * \param[in] elementID the ID of the given element
-     * \param[out] nextID The address of a location to return the next ID
+     * \param[out] nextID The address of a location to return the next ID.
+     *      nextID will be 0 if elementID is the last element of the chain
+     * \return function will only fail and return false if elementID is invalid; otherwise it will return true
      */
-    DLL_EXPORT void FindNextElement(size_t elementID,size_t * nextID);
+    DLL_EXPORT bool GetNextElement(size_t elementID,size_t * nextID);
+
+    /** \ingroup NonStandard
+    *    *changed 24/06/2023*
+    */
+    /** \brief **MODIFIED** - Gets the element immediately upstream of the given one in the link chain
+     *
+     * \param elementID the ID of the given element
+     * \param previousID a size_t location to return the ID of the previous element, or 0 if the element either is the first of the link chain either is invalid
+     *  \return true if function succeeds; false if a parameter is invalid
+     */
+    DLL_EXPORT bool FindPreviousElement(const char * elementName, size_t * previousID);
+
+    /** \ingroup NonStandard
+    *    *changed 24/06/2023*
+    */
+    /** \brief **MODIFIED** - Gets the element immediately downstream of the given one in the link chain
+     *
+     * \param elementName the name of the element to inquire
+     * \param nextID size_t location to return the ID of the next element, or 0 if the element either is the last of the link chain either is invalid
+     *  \return true if function succeeds; false if a parameter is invalid
+     */
+    DLL_EXPORT bool FindNextElement(const char * elementName, size_t * nextID);
+
 
     /** \ingroup NonStandard
     *    *changed 22/06/2023*
     */
-    /** \brief **MODIFIED** - Check if element is used in transmission rather than reflexion mode (mainly useful for gratings)
+    /** \brief **MODIFIED (commit 9a16050)** - Check if element is used in transmission rather than reflexion mode (mainly useful for gratings)
      *
      * \param elementID the Id of the element to inquire of
      * \param transmissionMode a boolean location to receive the transmission status of the element
@@ -355,7 +364,7 @@ extern "C"
     /** \ingroup NonStandard
     *    *changed 24/06/2023*
     */
-    /** \brief **MODIFIED** - retrieves the impact recording mode of an element
+    /** \brief **MODIFIED (commit 9a16050)** - retrieves the impact recording mode of an element
      *
      * \param[in] elementID the Id of the element to inquire of
      * \param[out] recordingMode  an int location to return the recording mode of the element, which is a value of the RecordMode enumeration
@@ -485,7 +494,7 @@ extern "C"
     /** \ingroup NonStandard
     *   *changed 24/06/2023*
     */
-    /** \brief **MODIFIED** - release a parameter enumeration handle returned by EnumerateParameters()
+    /** \brief **MODIFIED (commit 9a16050)** - release a parameter enumeration handle returned by EnumerateParameters()
      *
      * \param[in] handle a non null handle returned by EnumerateParameters)
      * \param[in] paramData (optional) pointer to the Parameter struct used to iterate. If given will clear any paramArray struct possibly allocated by the iterator
@@ -575,7 +584,7 @@ extern "C"
     /** \ingroup NonStandard
     *    *changed 24/06/2023*
     */
-    /** \brief **MODIFIED** - generate source rays of the given wavelength but do not run the ray tracing, (only valid for sources).
+    /** \brief **MODIFIED (commit 9a16050)** - generate source rays of the given wavelength but do not run the ray tracing, (only valid for sources).
      *
      * \param[in] elementID ID of the element which must be of source type
      * \param[in] wavelength  the radiation wavelength (must be  >0)
@@ -599,7 +608,7 @@ extern "C"
     /** \ingroup NonStandard
     *    changed 24/06/2023
     */
-    /** \brief **MODIFIED** - Same as Generate() but allow specifying other polarizations than 'S'
+    /** \brief **MODIFIED (commit 9a16050)** - Same as Generate() but allow specifying other polarizations than 'S'
      *
      * \param[in] elementID ID of the element which must be of source type
      * \param[in] wavelength  the radiation wavelength (must be  >0
@@ -761,7 +770,7 @@ extern "C"
     /** \ingroup NonStandard
     *   Changed 22/06/2023
     */
-    /** \brief **MODIFIED** get the status of global aperture activity flag
+    /** \brief **MODIFIED (commit 9a16050)** get the status of global aperture activity flag
      * \param activityFlag a boolean location to receive the global activity flag of apertures,
      *      i.e. whether or not apertures are taken into account during ray tracing
      * \return error code is always true
@@ -789,14 +798,15 @@ extern "C"
 
 
     /** \ingroup NonStandard
-    *    GetSource()
+    *    *changed 24/06/2023*
     */
-    /** \brief finds the most upstream source in the element chain starting from the given element
+    /** \brief **MODIFIED** - finds the most upstream source in the element chain starting from the given element
      *
      * \param elementID  The element from which the chain is explored
-     * \return the ID of the most upstream source ou NULL if no source is found upstream the given element
+     * \param sourceID a size_t location to return the ID of the most upstream source or NULL if no source is found upstream the given element
+     * \return true if the function syucceeds, false if a parameter is invalid
      */
-    DLL_EXPORT size_t GetSource(size_t elementID);
+    DLL_EXPORT bool GetSource(size_t elementID, size_t * sourceID);
 
     /** \brief Radiate a "wavefront" emitted from a single point source  with aperture angle distributed on a regular grid
      *

@@ -103,7 +103,12 @@ int CassioTest()
     /* ******************************************************************************
     *        Displays the active chain from source "S_ONDUL1"
     */
-        sourceID=elemID=GetElementID("S_ONDUL1");  // Obtains the element handle
+        if(!FindElementID("S_ONDUL1",&elemID))
+        {
+            printf("element 'S_ONDUL1' was not found\n");
+            return -1;
+        }
+        sourceID=elemID;  // Obtains the element handle
 
         // iterate on elements of the chain and displays their names and id
         while(elemID) // calling GetNextElement on the last element of the chain will bring-up NULL
@@ -111,7 +116,7 @@ int CassioTest()
             GetElementName(elemID, elname,ELEM_NAMELEN);  // obtains the name from the current ID
             GetParameter(elemID,"distance", &param);
             printf("  %s   %llX  D=%g\n",elname, elemID,param.value );
-            elemID =GetNextElement(elemID);  // get next element ID (element ID should of course never be released
+           GetNextElement(elemID,&elemID);  // get next element ID (element ID should of course never be released
         }
         printf("\n\n");
 
@@ -126,7 +131,12 @@ int CassioTest()
         param.value=numrays;               // modify value
         SetParameter(sourceID,"nRays",param); // set the parameter
 
-        size_t pupilleID=GetElementID("pupille");
+        if(!FindElementID("pupille",&elemID))
+        {
+            printf("element 'pupille' was not found\n");
+            return -1;
+        }
+        size_t pupilleID=elemID;
         GetParameter(pupilleID,"distance",&param);
 //        param.value-=.9;
         printf ("source-pupil distance %f \n\n" , param.value );
@@ -134,13 +144,24 @@ int CassioTest()
 
 
     //  Make sure the object EXP1 is recording impacts
-        size_t targetID=GetElementID("EXP1");
+
+        if(!FindElementID("EXP1",&elemID))
+        {
+            printf("element 'EXP1' was not found\n");
+            return -1;
+        }
+        size_t targetID=elemID;
         SetRecording(targetID, RecordOutput); // possible values are RecordNone, RecordInput, and RecordOutput;
                                               //  For films there is no difference between the two recording modes
     }
     else
     {
-        sourceID=elemID=GetElementID("S_ONDUL1");  // Obtains the element handle
+        if(!FindElementID("S_ONDUL1",&elemID))
+        {
+            printf("element 'S_ONDUL1' was not found\n");
+            return -1;
+        }
+        sourceID=elemID;  // Obtains the element handle
 
     }
     if(!Align(sourceID,2.5e-8)) // aligne le système à partir de la source pour la longueur d'on 25 nm (lambda utilisé seulement par les réseaux)
@@ -184,7 +205,12 @@ int CassioTest()
             cdiagram.m_sigma=malloc(cdiagram.m_dim*sizeof(double));
             cdiagram.m_spots= malloc(cdiagram.m_dim*cdiagram.m_reserved*sizeof(double));
 
-            if(!GetSpotDiagram(GetElementID("f"), &cdiagram, .510))
+            if(!FindElementID("f",&elemID))
+            {
+                printf("element 'f' was not found\n");
+                return -1;
+            }
+            if(!GetSpotDiagram(elemID, &cdiagram, .510))
             {
                 GetOptiXLastError(errBuf, ERROR_BUFLEN);
                 printf("GetSpotDiagram failed: %s\n",errBuf);
@@ -204,7 +230,12 @@ int CassioTest()
 
             }
 
-            if(!GetSpotDiagram(GetElementID("planfocH"), &cdiagram, -.0))
+            if(!FindElementID("planfocH",&elemID))
+            {
+                printf("element 'planfocH' was not found\n");
+                return -1;
+            }
+            if(!GetSpotDiagram(elemID, &cdiagram, -.0))
             {
                 GetOptiXLastError(errBuf, ERROR_BUFLEN);
                 printf("GetSpotDiagram failed: %s\n",errBuf);

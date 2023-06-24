@@ -30,15 +30,19 @@ int XmlTest()
     char elname[32], errBuf[256]; // ,parmname[48]
 
     LoadSystemFromXml("Hermes_DTheta.xml");
-;
 
-    sourceID=elemID=GetElementID("S_ONDUL_BiPer");
+    if(!FindElementID("S_ONDUL_BiPer",&elemID))
+    {
+        cout << "element S_ONDUL_BiPer was not found\n";
+        return -1;
+    }
+    sourceID=elemID;
 
     while(elemID)
     {
         GetElementName(elemID, elname,32);
         cout << elname << "  " << std::hex << elemID << std::dec <<endl;
-        elemID =GetNextElement(elemID);
+        GetNextElement(elemID,&elemID);
     }
 
 //    GetParameter(sourceID,"nRays", &param);
@@ -93,7 +97,12 @@ int XmlTest()
 //                " " << cdiagram.m_sigma << std::dec << endl;
 
 //            if(!GetSpotDiagram(GetElementID("EXP1"), &cdiagram, 0))
-            if(!GetSpotDiagram(GetElementID("foca"), &cdiagram, 0))
+            if(!FindElementID("foca",&elemID))
+            {
+                cout << "element 'foca' was not found\n";
+                return -1;
+            }
+            if(!GetSpotDiagram(elemID, &cdiagram, 0))
             {
                 char errbuf[256];
                 GetOptiXLastError(errbuf, 256);
@@ -105,7 +114,12 @@ int XmlTest()
                 DiagramToFile("cSpotDiag_foca.sdg", &cdiagram);
             }
 
-            if(!GetSpotDiagram(GetElementID("Reseau_200"), &cdiagram, 0))
+            if(!FindElementID("Reseau_200",&elemID))
+            {
+                cout << "element 'Reseau_200' was not found\n";
+                return -1;
+            }
+            if(!GetSpotDiagram(elemID, &cdiagram, 0))
             {
                 char errbuf[256];
                 GetOptiXLastError(errbuf, 256);
@@ -117,7 +131,12 @@ int XmlTest()
                 DiagramToFile("cSpotDiag_R200.sdg", &cdiagram);
             }
 
-            if(!GetSpotDiagram(GetElementID("Fente"), &cdiagram, 0))
+            if(!FindElementID("Fente",&elemID))
+            {
+                cout << "element 'Fente' was not found\n";
+                return -1;
+            }
+            if(!GetSpotDiagram(elemID, &cdiagram, 0))
             {
                 char errbuf[256];
                 GetOptiXLastError(errbuf, 256);
@@ -147,13 +166,19 @@ int DiscoTest()
 //    LoadSystemFromXml("..\\..\\xml\\Disco_sm.xml");
 //    sourceID=elemID=GetElementID("sourceA");
     LoadSystemFromXml("..\\..\\xml\\Disco_sm.xml");
-    sourceID=elemID=GetElementID("sourceA");
+
+    if(!FindElementID("sourceA",&elemID))
+    {
+        cout << "element sourceA was not found\n";
+        return -1;
+    }
+    sourceID=elemID;
 
     while(elemID)
     {
         GetElementName(elemID, elname,32);
         cout << elname << "  " << std::hex << elemID << std::dec <<endl;
-        elemID =GetNextElement(elemID);
+        GetNextElement(elemID,&elemID);
     }
 
 //    GetParameter(sourceID,"nRays", &param);
@@ -279,7 +304,12 @@ int Solemio2Xml(string filename)
 
     }while(hSys);
     cout << "system END\n";
-    size_t sourceID=elemID=GetElementID("S_ONDUL");
+    if(!FindElementID("S_ONDUL1",&elemID))
+    {
+        cout << "element S_ONDUL1 was not found\n";
+        return -1;
+    }
+    size_t sourceID=elemID;
 //    size_t sourceID=elemID=GetElementID("S_ONDUL1");
 //    size_t pupID=GetElementID("pupille");
 //    ChainElement_byID(pupID,0);
@@ -289,7 +319,7 @@ int Solemio2Xml(string filename)
     {
         GetElementName(elemID, elname,32);
         cout << elname << "  " << std::hex << elemID << std::dec <<endl;
-        elemID =GetNextElement(elemID);
+        GetNextElement(elemID, &elemID);
     }
 
     GetParameter(sourceID,"nRays", &param);
@@ -310,11 +340,20 @@ int Solemio2Xml(string filename)
     }
     cout << "source generated\n";
     {
-        GratingBase* grating=dynamic_cast<GratingBase *> ((ElementBase*)GetElementID("reseaumiroir"));  // "Reseau_400H"
-//        GratingBase* grating=dynamic_cast<GratingBase *> ((ElementBase*)GetElementID("Reseau_400H"));
 
-//        Surface* screen=dynamic_cast<Surface*> ((ElementBase*)GetElementID("EXP1")); //"EXP1", S_ONDUL1, pupille, Reseau_400H, Fente, planfocH
-        Surface* screen=dynamic_cast<Surface*> ((ElementBase*)GetElementID("fenteentree")); //"EXP1", S_ONDUL1, pupille, Reseau_400H, Fente, planfocH
+        if(!FindElementID("reseaumiroir",&elemID))
+        {
+            cout << "element 'reseaumiroir' was not found\n";
+            return -1;
+        }
+        GratingBase* grating=dynamic_cast<GratingBase *> ((ElementBase*)elemID);  // "Reseau_400H"
+
+        if(!FindElementID("fenteentree",&elemID))
+        {
+            cout << "element 'fenteentree' was not found\n";
+            return -1;
+        }
+        Surface* screen=dynamic_cast<Surface*> ((ElementBase*)elemID); //"EXP1", S_ONDUL1, pupille, Reseau_400H, Fente, planfocH
 
         if(grating)
         {
@@ -393,7 +432,13 @@ int Solemio2Xml(string filename)
                 " " << cdiagram.m_sigma << std::dec << endl;
 
 //            if(!GetSpotDiagram(GetElementID("EXP1"), &cdiagram, 0))
-            if(!GetSpotDiagram(GetElementID("imageFE"), &cdiagram, 0))
+
+            if(!FindElementID("imageFE",&elemID))
+            {
+                cout << "element 'imageFE' was not found\n";
+                return -1;
+            }
+            if(!GetSpotDiagram(elemID, &cdiagram, 0))
             {
                 char errbuf[256];
                 GetOptiXLastError(errbuf, 256);
@@ -455,13 +500,18 @@ int Solemio2Xml(string filename)
 
     }while(hSys);
 
-    size_t sourceID=elemID=GetElementID("source");
+    if(!FindElementID("source",&elemID))
+    {
+        cout << "element 'source' was not found\n";
+        return -1;
+    }
+    size_t sourceID=elemID;
 
     while(elemID)
     {
         GetElementName(elemID, elname,32);
         cout << elname << "  " << std::hex << elemID << std::dec <<endl;
-        elemID =GetNextElement(elemID);
+        GetNextElement(elemID, &elemID);
     }
 
     GetParameter(sourceID,"nRays", &param);
@@ -482,7 +532,13 @@ int Solemio2Xml(string filename)
     }
 
     cout << "getting mirror surface  \n";
-    Surface* mir=dynamic_cast<Surface*> ((ElementBase*)GetElementID("M1")); //S_ONDUL1, pupille, Reseau_400H, Fente, planfocH
+
+    if(!FindElementID("M1",&elemID))
+    {
+        cout << "element 'M1' was not found\n";
+        return -1;
+    }
+    Surface* mir=dynamic_cast<Surface*> ((ElementBase*)elemID); //S_ONDUL1, pupille, Reseau_400H, Fente, planfocH
     cout << mir << endl;
     mir->setRecording(RecordOutput);
     cout << "recording mode " << mir->getRecording() << endl <<endl;
@@ -490,7 +546,12 @@ int Solemio2Xml(string filename)
     cout << endl ;
 
     cout << "getting screen \n";
-    Surface* screen=dynamic_cast<Surface*> ((ElementBase*)GetElementID("film-1")); //S_ONDUL1, pupille, Reseau_400H, Fente, planfocH
+    if(!FindElementID("film-1",&elemID))
+    {
+        cout << "element 'film-1' was not found\n";
+        return -1;
+    }
+    Surface* screen=dynamic_cast<Surface*> ((ElementBase*)elemID); //S_ONDUL1, pupille, Reseau_400H, Fente, planfocH
     cout << screen << endl;
     screen->setRecording(RecordOutput);
     cout << "recording mode " << screen->getRecording() << endl <<endl;
@@ -617,13 +678,18 @@ int Solemio2Xml(string filename)
 
     }while(hSys);
 
-    size_t sourceID=elemID=GetElementID(sourceName.c_str());
+    if(!FindElementID(sourceName.c_str(), &elemID))
+    {
+        cout << "element named " << sourceName << "was not found\n";
+        return -1;
+    }
+    size_t sourceID=elemID;
 
     while(elemID)
     {
         GetElementName(elemID, elname,32);
         cout << elname << "  " << std::hex << elemID << std::dec <<endl;
-        elemID =GetNextElement(elemID);
+        GetNextElement(elemID, &elemID);
     }
 
 
@@ -642,7 +708,12 @@ int Solemio2Xml(string filename)
   //  Generate(sourceID,lambdatest*1.002);
 
     cout << "getting mirror surface  \n";
-    Surface* mir=dynamic_cast<Surface*> ((ElementBase*)GetElementID(mirrorName.c_str())); //S_ONDUL1, pupille, Reseau_400H, Fente, planfocH
+    if(!FindElementID(mirrorName.c_str(),&elemID))
+    {
+        cout << "element named " << mirrorName << "was not found\n";
+        return -1;
+    }
+    Surface* mir=dynamic_cast<Surface*> ((ElementBase*)elemID); //S_ONDUL1, pupille, Reseau_400H, Fente, planfocH
     cout << mir << endl;
     mir->setRecording(RecordOutput);
     cout << "recording mode " << mir->getRecording() << endl <<endl;
@@ -650,7 +721,12 @@ int Solemio2Xml(string filename)
     cout << endl ;
 
     cout << "getting screen \n";
-    Surface* screen=dynamic_cast<Surface*> ((ElementBase*)GetElementID(screenName.c_str())); //S_ONDUL1, pupille, Reseau_400H, Fente, planfocH
+    if(!FindElementID(screenName.c_str(),&elemID))
+    {
+        cout << "element named " << screenName << "was not found\n";
+        return -1;
+    }
+    Surface* screen=dynamic_cast<Surface*> ((ElementBase*)elemID); //S_ONDUL1, pupille, Reseau_400H, Fente, planfocH
     cout << screen << endl;
     screen->setRecording(RecordOutput);
     cout << "recording mode " << screen->getRecording() << endl <<endl;
@@ -659,9 +735,14 @@ int Solemio2Xml(string filename)
     if(!gratingName.empty())
     {
         cout << "getting grating "<<gratingName <<"\n";
-        size_t gratingID=GetElementID(gratingName.c_str());
+        size_t gratingID;
+        if(!FindElementID(gratingName.c_str(), &gratingID))
+        {
+            cout << "element named " << gratingName << "was not found\n";
+            return -1;
+        }
         Grating<Holo,Plane> *grating=dynamic_cast<Grating<Holo,Plane>*> ((ElementBase*)gratingID); //S_ONDUL1, pupille, Reseau_400H, Fente, planfocH
-//        GratingBase *grating=dynamic_cast<GratingBase*> ((ElementBase*)GetElementID(gratingName.c_str())); //S_ONDUL1, pupille, Reseau_400H, Fente, planfocH
+
         cout << grating << endl;
         cout<< "Direction1  " << grating->m_direction1.transpose()<<endl;
         cout<< "Direction2  " << grating->m_direction2.transpose()<<endl;
