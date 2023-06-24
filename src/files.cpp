@@ -851,6 +851,9 @@ bool getTrimmedEnding(const string &line, size_t pos, string &token)
                     DumpArgParameter(&param);
                     elem->setParameter("surfaceLimits",param);
                     elem->dumpParameter("surfaceLimits");
+                    //si les limites ne sont pas -1,1 , il y a des transformations de coordonnées à appliquer
+//                    Polynomial * poly=(Polynomial*)elem;
+//                    cout << "transform coeffs " << poly->m_Kx  <<" "<< poly->m_Ky << " offset " << poly->m_X0 << " "<< poly->m_Y0<<endl;
 //                    int nx=2,ny=1;
 //                    if(SSurf.param[3] !=0)
 //                        ny=3;

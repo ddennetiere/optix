@@ -154,16 +154,20 @@ extern "C"
 
 
     /** \ingroup NonStandard
-    *   \todo Could be standardized as bool Version(char* buffer, int buffersize)
-    *   or bool Version(char** ROstringPtr)
+    *   *changed 24/06/2023*
     */
-    /** \brief Dumps the version number and compilation date of the library to the console
-    *
-    *   Dumps version information to the console but doesn't return anything
-    *
+    /** \brief **MODIFIED** - gets or print OptiX version info
+     *
+     * \param version  a pointer to a READ-ONLY location where the version string is stored.
+     * if this pointer is NULL, the version string is printed to stdout
+     * \return this function returns always true
      */
-    DLL_EXPORT void Version();
-
+    DLL_EXPORT bool Version(char** version
+#ifdef __cplusplus
+                            =0);
+#else
+                            );
+#endif // __cplusplus
 
     /** \ingroup NonStandard
     *    GetElementID()
@@ -206,14 +210,14 @@ extern "C"
     DLL_EXPORT bool EnumerateElements(size_t * pHandle, size_t* elemID, char * nameBuffer, const int bufSize);
 
     /** \ingroup NonStandard
-    *    ReleaseElementEnumHandle()
+    *    *changed 24/06/2023*
     */
-    /** \brief release an element enumeration handle returned by EnumerateElement()
+    /** \brief **MODIFIED** - release an element enumeration handle returned by EnumerateElement()
      *
      * \param handle a non null handle returned by EnumerateElement()
-     *
+     *  \return true if handle was deleted; false if handle was invalid
      */
-    DLL_EXPORT void ReleaseElementEnumHandle(size_t handle);
+    DLL_EXPORT bool ReleaseElementEnumHandle(size_t handle);
 
 
     /** \ingroup NonStandard
@@ -227,14 +231,15 @@ extern "C"
     DLL_EXPORT size_t GetElementID(const char* elementName);
 
     /** \ingroup NonStandard
-    *    FindElementID()
+    *   *changed 24/06/2023
     */
-    /** \brief retrieves the unique ID of an element from its name
+    /** \brief **MODIFIED** - retrieves the unique ID of an element from its name
      *
      * \param[in] elementName name of the searched element
      * \param[out] elemID The address of a location to return the ID
+     * \return true if element was found; false if not
      */
-    DLL_EXPORT void FindElementID(const char* elementName, size_t * elemID);
+    DLL_EXPORT bool FindElementID(const char* elementName, size_t * elemID);
 
     /** \brief retrieves the name of an element from its ID
      *
@@ -348,14 +353,15 @@ extern "C"
     DLL_EXPORT bool SetTransmissive(size_t elementID, bool transmit);
 
     /** \ingroup NonStandard
-    *    GetRecording()
+    *    *changed 24/06/2023*
     */
-    /** \brief retrieves the impact recording mode of an element
+    /** \brief **MODIFIED** - retrieves the impact recording mode of an element
      *
-     * \param elementID the Id of the element to inquire of
-     * \return the recording mode which is a value of the RecordMode enumeration
+     * \param[in] elementID the Id of the element to inquire of
+     * \param[out] recordingMode  an int location to return the recording mode of the element, which is a value of the RecordMode enumeration
+     * \return true if the function succeeds, false otherwise
      */
-    DLL_EXPORT int GetRecording(size_t elementID);
+    DLL_EXPORT bool GetRecording(size_t elementID, int *recordingMode);
 
     /** \brief sets the impact recording mode of an element
      *
@@ -477,14 +483,20 @@ extern "C"
     DLL_EXPORT bool EnumerateParameters(size_t elementID, size_t * pHandle, char* tagBuffer, const int bufSize , Parameter* paramData);
 
     /** \ingroup NonStandard
-    *    ReleaseParameterEnumHandle()
+    *   *changed 24/06/2023*
     */
-    /** \brief release a parameter enumeration handle returned by EnumerateParameter()
+    /** \brief **MODIFIED** - release a parameter enumeration handle returned by EnumerateParameters()
      *
-     * \param handle a non null handle returned by EnumerateParameter()
-     * \param paramData (optional) pointer to the Parameter struct used to iterate. If given will clear paramArray struct created by the iterator
+     * \param[in] handle a non null handle returned by EnumerateParameters)
+     * \param[in] paramData (optional) pointer to the Parameter struct used to iterate. If given will clear any paramArray struct possibly allocated by the iterator
+     * \return true if handle wase released ; false if handle is invalid
      */
-    DLL_EXPORT void ReleaseParameterEnumHandle(size_t handle, Parameter *paramData =0);
+    DLL_EXPORT bool ReleaseParameterEnumHandle(size_t handle,
+#ifdef __cplusplus
+                Parameter *paramData =0);
+#else
+                Parameter *paramData);
+#endif // __cplusplus
 
     /** \brief This function defines a polynomial surface to fit the given height data (Only apply to polynomial surfaces)
      *
@@ -561,35 +573,48 @@ extern "C"
 
 
     /** \ingroup NonStandard
-    *    Generate()
+    *    *changed 24/06/2023*
     */
-    /** \brief generate source rays of the given wavelength but do not run the ray tracing, (only valid for sources).
+    /** \brief **MODIFIED** - generate source rays of the given wavelength but do not run the ray tracing, (only valid for sources).
      *
-     * \param elementID ID of the element which must be of source type
-     * \param wavelength  the radiation wavelength (must be  >0)
-     * \return the number of generated rays. It will be 0 if elementID is invalid or is not a source, or wavelength <0 and OptiXLastError is set,
+     * \param[in] elementID ID of the element which must be of source type
+     * \param[in] wavelength  the radiation wavelength (must be  >0)
+     * \param[out] numRays an optional int location to return the number of generated rays. Set as 0 or NULL if this value is not requested.
+     *          numRays value will be 0 if the function fails.
      *      otherwise GetOptiXLastError will return NoError even if 0 rays were created
+     * \return true if the function succeds; false otherwise and sets the OptiXLastError
      *
      * This function initiates the rays which will be propagated from the source by populating the source "impact" list.
      * ClearImpact() is not called before executing Generate(). Therefore ray congruences with different wavelengths can be superimposed.
      * ClearImpacts() should be called previously if a new set of rays must be created.
      * Also note the that Radiate() is not either executed,  but must be called independently.
      */
-    DLL_EXPORT int Generate(size_t elementID, double wavelength);
+    DLL_EXPORT bool Generate(size_t elementID, double wavelength,
+#ifdef __cplusplus
+                             int *numRays=0);
+#else
+                            int *numRays);
+#endif // __cplusplus
 
     /** \ingroup NonStandard
-    *    GeneratePol()
+    *    changed 24/06/2023
     */
-    /** \brief Same as Generate() but allow specifying other polarizations than 'S'
+    /** \brief **MODIFIED** - Same as Generate() but allow specifying other polarizations than 'S'
      *
-     * \param elementID ID of the element which must be of source type
-     * \param wavelength  the radiation wavelength (must be  >0
-     * \param polar Polarization of the generated rays which can be 'S', 'P', 'R', 'L'
-     * \return the number of generated rays. It will be 0 if elementID is invalid or is not a source, or wavelength <0 and OptiXLastError is set,
-     *      otherwise GetOptiXLastError will return NoError even if 0 rays were created
+     * \param[in] elementID ID of the element which must be of source type
+     * \param[in] wavelength  the radiation wavelength (must be  >0
+     * \param[in] polar Polarization of the generated rays which can be 'S', 'P', 'R', 'L'
+     * \param[out] numRays an optional int location to return the number of generated rays. Set as 0 or NULL if this value is not requested.
+     *          numRays value will be 0 if the function fails.
+     * \return true if the function succeeds; false otherwise
      *
      */
-    DLL_EXPORT int GeneratePol(size_t elementID, double wavelength, char polar);
+    DLL_EXPORT bool GeneratePol(size_t elementID, double wavelength, char polar,
+#ifdef __cplusplus
+                                 int * numRays=0);
+#else
+                                 int * numRays);
+#endif // __cplusplus
 
 
     /** \brief Propagate all rays generated in the source through the element chain

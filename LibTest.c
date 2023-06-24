@@ -153,7 +153,7 @@ int CassioTest()
     ClearImpacts(sourceID); //  Clears stored impacts in the source ans subsequent elements.
                             //  If not called, and elements are not clean, impacts will just add-up
 
-    if(!Generate(sourceID, 2.5e-8))  // compute a set of rays at wavelength 25 nm, in the source space. These rays are stored in the impact vector.
+    if(!Generate(sourceID, 2.5e-8, NULL))  // compute a set of rays at wavelength 25 nm, in the source space. These rays are stored in the impact vector.
     {
         GetOptiXLastError(errBuf,ERROR_BUFLEN);
         printf("Source generation error: %s\n",errBuf);
@@ -290,7 +290,7 @@ int CassioTest()
         printf("\n\n");
         return 0;
     }
-    Version();
+    Version(NULL);
 }
 
  void SetParamValue(size_t ID,char* parmName, double value)
@@ -307,7 +307,7 @@ int CassioTest()
 
 int EllipticKB()
 {
-    Version();
+    Version(NULL);
     char errBuf[256];
 
     size_t sourceID, hfmID, vfmID, screenID;
@@ -350,7 +350,7 @@ int EllipticKB()
        return -1;
     }
 
-    if(!Generate(sourceID, lambda))
+    if(!Generate(sourceID, lambda, NULL))
     {
        GetOptiXLastError(errBuf,256);
        printf("Source generation error :%s \n" ,errBuf );

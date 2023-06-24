@@ -46,7 +46,7 @@ map<string,CoatingTable> coatingTables;  /**< \brief a set of CoatingTable. A co
 #endif // HAS_REFLEX
 
 ElementCollection System;   /**< \brief dictionary of all elements created through this interface  */
-                            // system, hence all optical elements, will be deleted
+                           // system, hence all optical elements, will be deleted
 
 bool inhibitApertureLimit=true; /**< \brief Global flag to take into account or not the apertures stops in the ray tracing */
 bool useReflectivity=false;     /**<  \brief Global flag to switch on or off the computation of reflectivity  in the ray tracing computation*/
@@ -101,11 +101,18 @@ extern "C"
 {
 #endif
 
-    DLL_EXPORT void Version(){
-        printf("SR_Source library %s release %s build %s-%s-%s\n", AutoVersion::STATUS, AutoVersion::FULLVERSION_STRING,
+    DLL_EXPORT bool Version(char** version){
+        static char versionString[128];
+        sprintf(versionString,"SR_Source library %s release %s build %s-%s-%s\n", AutoVersion::STATUS, AutoVersion::FULLVERSION_STRING,
                     AutoVersion::YEAR, AutoVersion::MONTH, AutoVersion::DATE);
+        if(version==NULL)
+            cout << versionString <<endl;
+        else
+            *version=versionString;
+        return true;
 //        printf( " FloatType size  %lld  Epsilon value= %Lg \n",sizeof(FloatType) , numeric_limits<FloatType>::epsilon() );
     }
+
 
     DLL_EXPORT bool IsElementValid(size_t  ID, bool *valid)
     {
@@ -198,10 +205,18 @@ extern "C"
         return true;
     }
 
-    DLL_EXPORT void ReleaseElementEnumHandle(size_t handle)
+    DLL_EXPORT bool ReleaseElementEnumHandle(size_t handle)
     {
         if(handle)
+        {
             delete (map<string, ElementBase*>::iterator*) handle;
+            return true;
+        }
+        else
+        {
+            SetOptiXLastError("invalid handle", __FILE__, __func__);
+            return false;
+        }
     }
 
 
@@ -321,14 +336,21 @@ extern "C"
         return (size_t) it->second;
     }
 
-    DLL_EXPORT void FindElementID(const char* elementName, size_t * elemID)
+    DLL_EXPORT bool FindElementID(const char* elementName, size_t * elemID)
     {
 
         map<string,ElementBase*>:: iterator it= System.find(elementName);
         if(it==System.end())
+        {
+            SetOptiXLastError(string("Element of name  ")+elementName+" doesn't exist", __FILE__, __func__);
             *elemID=0;
+            return false;
+        }
         else
+        {
             *elemID=(size_t) it->second;
+            return true;
+        }
     }
 
     DLL_EXPORT bool GetElementName(size_t elementID, char* strBuffer, int bufSize)
@@ -491,12 +513,18 @@ extern "C"
         return true;
     }
 
-    DLL_EXPORT int GetRecording(size_t elementID)
+    DLL_EXPORT bool GetRecording(size_t elementID, int *recordingMode)
     {
         if(!dynamic_cast<Surface*>((ElementBase*)elementID) )
-            return 0;
+        {
+            SetOptiXLastError("The pointed element is not an optical surface",__FILE__, __func__);
+            return false ;
+        }
         else
-            return dynamic_cast<Surface*>((ElementBase*)elementID)->getRecording();
+        {
+            *recordingMode=dynamic_cast<Surface*>((ElementBase*)elementID)->getRecording();
+            return true;
+        }
     }
 
     DLL_EXPORT bool SetRecording(size_t elementID, int recordingMode)
@@ -805,10 +833,16 @@ extern "C"
     }
 
 
-    DLL_EXPORT void ReleaseParameterEnumHandle(size_t handle, Parameter *paramData)
+    DLL_EXPORT  bool ReleaseParameterEnumHandle(size_t handle, Parameter *paramData)
     {
-        if(handle)
-            delete (map<string, Parameter>::iterator*) handle;
+        if(!handle)
+        {
+            SetOptiXLastError("Invalid handle passed", __FILE__, __func__);
+            return false;
+        }
+
+        delete (map<string, Parameter>::iterator*) handle;
+
         if(paramData)
             if(paramData->flags & ArrayData) // clear Array data if any
             {
@@ -819,6 +853,7 @@ extern "C"
                     paramData->value=0;
                 }
             }
+        return true;
     }
 
 
@@ -960,53 +995,65 @@ extern "C"
     }
 
 
-    DLL_EXPORT int Generate(size_t elementID, double wavelength)
+    DLL_EXPORT bool Generate(size_t elementID, double wavelength, int *numRays)
     {
         ClearOptiXError();
+        if(numRays)
+            *numRays=0;
         if(!System.isValidID(elementID))
         {
             SetOptiXLastError("Invalid element ID", __FILE__, __func__);
-            return 0;
+            return false;
         }
         if( !((ElementBase*)elementID)->isSource())
         {
             SetOptiXLastError("Element is not a source", __FILE__, __func__);
-            return 0;
+            return false;
         }
         if(wavelength <0)
         {
             SetOptiXLastError("Invalid wavelength", __FILE__, __func__);
-            return 0;
+            return false;
         }
-             printf("generating rays in %s  at WL %g \n", ((ElementBase*)elementID)->getName().c_str(),wavelength );
-            return dynamic_cast<SourceBase*>((ElementBase*)elementID)->generate(wavelength );
+        printf("generating rays in %s  at WL %g \n", ((ElementBase*)elementID)->getName().c_str(),wavelength );
+        if(numRays)
+            *numRays=dynamic_cast<SourceBase*>((ElementBase*)elementID)->generate(wavelength );
+        else
+            dynamic_cast<SourceBase*>((ElementBase*)elementID)->generate(wavelength );
+        return true;
     }
 
-    DLL_EXPORT int GeneratePol(size_t elementID, double wavelength, char polar)
+    DLL_EXPORT bool GeneratePol(size_t elementID, double wavelength, char polar, int * numRays)
     {
         ClearOptiXError();
+        if(numRays)
+            *numRays=0;
         if(!System.isValidID(elementID))
         {
             SetOptiXLastError("Invalid element ID", __FILE__, __func__);
-            return 0;
+            return false;
         }
         if( !((ElementBase*)elementID)->isSource())
         {
             SetOptiXLastError("Element is not a source", __FILE__, __func__);
-            return 0;
+            return false;
         }
         if(wavelength <0)
         {
             SetOptiXLastError("Invalid wavelength", __FILE__, __func__);
-            return 0;
+            return false;
         }
         if(polar!='S'&& polar!='P' &&  polar!='R' &&  polar!='L')
         {
             SetOptiXLastError(string("Invalid Polarization: '") +polar +"'; 'S', 'P', 'R', 'L' only are valid", __FILE__, __func__);
-            return 0;
+            return false;
         }
              printf("generating rays in %s  at WL %g \n", ((ElementBase*)elementID)->getName().c_str(),wavelength );
-            return dynamic_cast<SourceBase*>((ElementBase*)elementID)->generate(wavelength,polar );
+        if(numRays)
+           *numRays=dynamic_cast<SourceBase*>((ElementBase*)elementID)->generate(wavelength,polar );
+        else
+           dynamic_cast<SourceBase*>((ElementBase*)elementID)->generate(wavelength,polar );
+        return true;
     }
 
     DLL_EXPORT bool Radiate(size_t elementID)

@@ -60,7 +60,9 @@ int XmlTest();
 
 int main()
 {
-
+    char * version_string;
+    Version(&version_string);
+    cout << version_string<<endl;
     char* strerr=NULL; // pointeur à la chaine source
     bool erreur=GetOptiXError(&strerr);
     size_t msglen=strlen(strerr);
@@ -68,7 +70,9 @@ int main()
     strncpy(message,(char*)strerr, msglen ); //copy the message  (mandatory; strerr cannot be printed directly)
     cout << "Error level  " << erreur << " message: "<< message << endl << endl;
 
-
+    cout <<"size of bool " << sizeof(bool) <<endl;
+    cout << "size of int " << sizeof(int) << endl;
+    cout << "true " << true << "  false " << false <<endl;
     cout << "starting \n";
 
   //  return Solemio2Xml("D:\\Documents SOLEIL\\Dossiers-Lignes\\Disco\\Solemio\\DISCOdefinitif.sole");

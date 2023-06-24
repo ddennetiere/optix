@@ -53,7 +53,8 @@ int XmlTest()
        cout << "Alignment error : " << errBuf << endl;
        return -1;
     }
-    if(!Generate(sourceID, lambda))
+    int numRays;
+    if(!Generate(sourceID, lambda, &numRays))
     {
        GetOptiXLastError(errBuf,256);
        cout << "Source generation error : " << errBuf << endl;
@@ -168,8 +169,8 @@ int DiscoTest()
        return -1;
     }
 
-
-    if(!Generate(sourceID,lambda))
+    int numRays;
+    if(!Generate(sourceID,lambda, &numRays))
     {
        GetOptiXLastError(errBuf,1024);
        cout << "Generate error : " << errBuf << endl;
