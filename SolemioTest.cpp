@@ -27,7 +27,7 @@ using namespace std::chrono;
 int XmlTest()
 {
     size_t sourceID, elemID;
-    char elname[32], errBuf[256]; // ,parmname[48]
+    char elname[32],  *errstr; // ,parmname[48]
 
     LoadSystemFromXml("Hermes_DTheta.xml");
 
@@ -53,15 +53,15 @@ int XmlTest()
 
     if(!Align(sourceID,lambda))
     {
-       GetOptiXLastError(errBuf,256);
-       cout << "Alignment error : " << errBuf << endl;
+       GetOptiXError( &errstr);
+       cout << "Alignment error : " << errstr << endl;
        return -1;
     }
     int numRays;
     if(!Generate(sourceID, lambda, &numRays))
     {
-       GetOptiXLastError(errBuf,256);
-       cout << "Source generation error : " << errBuf << endl;
+       GetOptiXError( &errstr);
+       cout << "Source generation error : " << errstr << endl;
        return -1;
     }
     cout << "source generated\n";
@@ -71,7 +71,7 @@ int XmlTest()
 
     if(!Radiate(sourceID))
     {
-       //GetOptiXLastError(errBuf,256);
+       //GetOptiXError( &errstr);
        char * errptr ;
        GetOptiXError(&errptr);
        char errmsg[strlen(errptr)+1];
@@ -104,9 +104,8 @@ int XmlTest()
             }
             if(!GetSpotDiagram(elemID, &cdiagram, 0))
             {
-                char errbuf[256];
-                GetOptiXLastError(errbuf, 256);
-                cout << "GetSpotDiagram failed :  "<< errbuf << endl;
+                GetOptiXError( &errstr);
+                cout << "GetSpotDiagram failed :  "<< errstr << endl;
             }
             else
             {
@@ -121,9 +120,8 @@ int XmlTest()
             }
             if(!GetSpotDiagram(elemID, &cdiagram, 0))
             {
-                char errbuf[256];
-                GetOptiXLastError(errbuf, 256);
-                cout << "GetSpotDiagram failed :  "<< errbuf << endl;
+                GetOptiXError( &errstr);
+                cout << "GetSpotDiagram failed :  "<< errstr << endl;
             }
             else
             {
@@ -138,9 +136,8 @@ int XmlTest()
             }
             if(!GetSpotDiagram(elemID, &cdiagram, 0))
             {
-                char errbuf[256];
-                GetOptiXLastError(errbuf, 256);
-                cout << "GetSpotDiagram failed :  "<< errbuf << endl;
+                GetOptiXError( &errstr);
+                cout << "GetSpotDiagram failed :  "<< errstr << endl;
             }
             else
             {
@@ -162,7 +159,7 @@ int XmlTest()
 int DiscoTest()
 {
     size_t sourceID, elemID;
-    char elname[32], errBuf[1024]; // ,parmname[48]
+    char elname[32], *errstr; // ,parmname[48]
 //    LoadSystemFromXml("..\\..\\xml\\Disco_sm.xml");
 //    sourceID=elemID=GetElementID("sourceA");
     LoadSystemFromXml("..\\..\\xml\\Disco_sm.xml");
@@ -189,23 +186,23 @@ int DiscoTest()
 
     if(!Align(sourceID,lambda))
     {
-       GetOptiXLastError(errBuf,1024);
-       cout << "Alignment error : " << errBuf << endl;
+       GetOptiXError( &errstr);
+       cout << "Alignment error : " << errstr << endl;
        return -1;
     }
 
     int numRays;
     if(!Generate(sourceID,lambda, &numRays))
     {
-       GetOptiXLastError(errBuf,1024);
-       cout << "Generate error : " << errBuf << endl;
+       GetOptiXError( &errstr);
+       cout << "Generate error : " << errstr << endl;
        return -1;
     }
 
     if(!Radiate(sourceID))
     {
-       GetOptiXLastError(errBuf,1024);
-       cout << "Radiate error : " << errBuf << endl;
+       GetOptiXError( &errstr);
+       cout << "Radiate error : " << errstr << endl;
        return -1;
     }
     return 0;
@@ -215,15 +212,15 @@ int DiscoTest()
 
 int Solemio2Xml(string filename)
 {
-        if(! SolemioImport(filename))
+    char *errstr;
+    if(! SolemioImport(filename))
     {
-        char buf[512];
-        GetOptiXLastError(buf,511);
-        cout << "Solemio import error:\n" << buf <<endl;
+        GetOptiXError( &errstr);
+        cout << "Solemio import error:\n" << errstr <<endl;
         exit(100);
     }
     size_t hSys=0, hParm=0, elemID=0;
-    char elname[32], name2[32],parmname[48], errBuf[256];
+    char elname[32], name2[32],parmname[48];
     Parameter param;
     cout << "list of defined elements\n";
     do
@@ -236,8 +233,8 @@ int Solemio2Xml(string filename)
         {
             if(!EnumerateParameters(elemID, &hParm, parmname, 48, &param))
             {
-                GetOptiXLastError( errBuf,256);
-                cout  << "ERROR : " << errBuf << endl;
+                GetOptiXError( &errstr);
+                cout  << "ERROR : " << errstr << endl;
             }
             if(param.flags & ArrayData)
             {
@@ -265,15 +262,15 @@ int Solemio2Xml(string filename)
  {
     //ReadSolemioFile("R:\\Partage\\SOLEMIO\\CASSIOPEE");
 //    SolemioImport("D:\\projets\\projetsCB\\OptiX\\solemio\\CASSIOPEE");
+    char * errstr;
     if(! SolemioImport("D:\\projets\\projetsCB\\OptiX\\solemio\\DESIRSvrai.sole"))
     {
-        char buf[512];
-        GetOptiXLastError(buf,511);
-        cout << "Solemio import error:\n" << buf <<endl;
+        GetOptiXError( &errstr);
+        cout << "Solemio import error:\n" << errstr <<endl;
         exit(100);
     }
     size_t hSys=0, hParm=0, elemID=0;
-    char elname[32], name2[32],parmname[48], errBuf[256];
+    char elname[32], name2[32],parmname[48];
     Parameter param;
     cout << "list of defined elements\n";
     do
@@ -286,8 +283,8 @@ int Solemio2Xml(string filename)
         {
             if(!EnumerateParameters(elemID, &hParm, parmname, 48, &param))
             {
-                GetOptiXLastError( errBuf,256);
-                cout  << "ERROR : " << errBuf << endl;
+                GetOptiXError( &errstr);
+                cout  << "ERROR : " << errstr << endl;
             }
             if(param.flags & ArrayData)
             {
@@ -328,14 +325,14 @@ int Solemio2Xml(string filename)
 
     if(!Align(sourceID,2.5e-8))
     {
-       GetOptiXLastError(errBuf,256);
-       cout << "Alignment error : " << errBuf << endl;
+       GetOptiXError( &errstr);
+       cout << "Alignment error : " << errstr << endl;
        return -1;
     }
     if(!Generate(sourceID, 2.5e-8))
     {
-       GetOptiXLastError(errBuf,256);
-       cout << "Source generation error : " << errBuf << endl;
+       GetOptiXError( &errstr);
+       cout << "Source generation error : " << errstr << endl;
        return -1;
     }
     cout << "source generated\n";
@@ -384,8 +381,8 @@ int Solemio2Xml(string filename)
 
         if(!Radiate(sourceID))
         {
-           GetOptiXLastError(errBuf,256);
-           cout << "Radiation error : " << errBuf << endl;
+           GetOptiXError( &errstr);
+           cout << "Radiation error : " << errstr << endl;
            return -1;
         }
         cout << "propagation computation time :" << duration_cast<milliseconds>(clock.now()-start).count() << " msec\n" ;
@@ -440,9 +437,8 @@ int Solemio2Xml(string filename)
             }
             if(!GetSpotDiagram(elemID, &cdiagram, 0))
             {
-                char errbuf[256];
-                GetOptiXLastError(errbuf, 256);
-                cout << "GetSpotDiagram failed :  "<< errbuf << endl;
+                GetOptiXError( &errstr);
+                cout << "GetSpotDiagram failed :  "<< errstr << endl;
             }
             else
             {
@@ -477,7 +473,7 @@ int Solemio2Xml(string filename)
         return -1;
     }
     size_t hSys=0, hParm=0, elemID=0;
-    char elname[32], name2[32],parmname[48], errBuf[256];
+    char elname[32], name2[32],parmname[48], *errstr;
     Parameter param;
 
     do
@@ -490,8 +486,8 @@ int Solemio2Xml(string filename)
         {
             if(!EnumerateParameters(elemID, &hParm, parmname, 48, &param))
             {
-                GetOptiXLastError( errBuf,256);
-                cout  << "ERROR : " << errBuf << endl;
+                GetOptiXError( &errstr);
+                cout  << "ERROR : " << errstr << endl;
             }
             cout << parmname << "  " << param.value <<" [" << param.bounds[0] <<", "<< param.bounds[1] <<"] x " << param.multiplier <<
                         " T:" << param.type << " G:" << param.group << " F:0x"<< std::hex << param.flags << std::dec << endl;
@@ -520,14 +516,14 @@ int Solemio2Xml(string filename)
 
     if(!Align(sourceID,2.5e-8))
     {
-       GetOptiXLastError(errBuf,256);
-       cout << "Alignment error : " << errBuf << endl;
+       GetOptiXError( &errstr);
+       cout << "Alignment error : " << errstr << endl;
        return -1;
     }
     if(!Generate(sourceID, 2.5e-8))
     {
-       GetOptiXLastError(errBuf,256);
-       cout << "Source generation error : " << errBuf << endl;
+       GetOptiXError( &errstr);
+       cout << "Source generation error : " << errstr << endl;
        return -1;
     }
 
@@ -563,8 +559,8 @@ int Solemio2Xml(string filename)
 
     if(!Radiate(sourceID))
     {
-       GetOptiXLastError(errBuf,256);
-       cout << "Radiation error : " << errBuf << endl;
+       GetOptiXError( &errstr);
+       cout << "Radiation error : " << errstr << endl;
        return -1;
     }
     cout << "propagation computation time :" << duration_cast<milliseconds>(clock.now()-start).count() << " msec\n" ;
@@ -655,7 +651,7 @@ int Solemio2Xml(string filename)
         return -1;
     }
     size_t hSys=0, hParm=0, elemID=0;
-    char elname[32], name2[32],parmname[48], errBuf[256];
+    char elname[32], name2[32],parmname[48], *errstr;
     Parameter param;
 
     do
@@ -668,8 +664,8 @@ int Solemio2Xml(string filename)
         {
             if(!EnumerateParameters(elemID, &hParm, parmname, 48, &param))
             {
-                GetOptiXLastError( errBuf,256);
-                cout  << "ERROR : " << errBuf << endl;
+
+                cout  << "ERROR : " << errstr << endl;
             }
             cout << parmname << "  " << param.value <<" [" << param.bounds[0] <<", "<< param.bounds[1] <<"] x " << param.multiplier <<
                         " T:" << param.type << " G:" << param.group << " F:0x"<< std::hex << param.flags << std::dec << endl;
@@ -695,14 +691,14 @@ int Solemio2Xml(string filename)
 
     if(!Align(sourceID, lambdatest))
     {
-       GetOptiXLastError(errBuf,256);
-       cout << "Alignment error : " << errBuf << endl;
+       GetOptiXError( &errstr);
+       cout << "Alignment error : " << errstr << endl;
        return -1;
     }
     if(!Generate(sourceID, lambdatest))
     {
-       GetOptiXLastError(errBuf,256);
-       cout << "Source generation error : " << errBuf << endl;
+       GetOptiXError( &errstr);
+       cout << "Source generation error : " << errstr << endl;
        return -1;
     }
   //  Generate(sourceID,lambdatest*1.002);
@@ -763,8 +759,8 @@ int Solemio2Xml(string filename)
 
     if(!Radiate(sourceID))
     {
-       GetOptiXLastError(errBuf,256);
-       cout << "Radiation error : " << errBuf << endl;
+       GetOptiXError( &errstr);
+       cout << "Radiation error : " << errstr << endl;
        return -1;
     }
     cout << "propagation computation time :" << duration_cast<milliseconds>(clock.now()-start).count() << " msec\n" ;

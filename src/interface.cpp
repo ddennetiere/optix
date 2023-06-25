@@ -149,9 +149,18 @@ extern "C"
     }
 
 
-    DLL_EXPORT size_t CreateElement(const char* type, const char* name)
+    DLL_EXPORT bool CreateElement(const char* type, const char* name, size_t* elementID)
     {
-        return (size_t) System.createElement(type,name);
+        if(!elementID)
+        {
+            SetOptiXLastError("invalid location for returning elementID", __FILE__, __func__);
+            return false;
+        }
+        *elementID=(size_t) System.createElement(type,name);
+        if(*elementID)
+            return true;
+        else
+            return false;
     }
 
 //    {
@@ -1327,12 +1336,13 @@ extern "C"
             file >> sName >> sNext >> sPrev >> paramName;
             if(file.fail())
                 { SetOptiXLastError("File reading error",__FILE__,__func__);  return false; }
-            ElementBaseID=CreateElement(sClass.c_str(), sName.c_str() );
-            if(ElementBaseID==0)
+
+            if(!CreateElement(sClass.c_str(), sName.c_str(), &ElementBaseID))
             {
-                char errstr[128];
-                sprintf(errstr, "Cannot create element %s of type %s", sName.c_str(), sClass.c_str());
-                SetOptiXLastError("File reading error",__FILE__,__func__);
+                char errstr[128], *opterr;
+                GetOptiXError(&opterr);
+                sprintf(errstr, "Cannot create element %s of type %s\n", sName.c_str(), sClass.c_str());
+                SetOptiXLastError(string("File reading error: ")+errstr+opterr,__FILE__,__func__, __LINE__);
                 return false;
             }
             while(!paramName.empty())
@@ -1344,12 +1354,12 @@ extern "C"
                {
                     char errstr[128];
                     sprintf(errstr, "Cannot create element %s of type %s", sName.c_str(), sClass.c_str());
-                    SetOptiXLastError("File reading error",__FILE__,__func__);
+                    SetOptiXLastError("File reading error",__FILE__,__func__, __LINE__);
                     return false;
                }
                file >> paramName;
                if(file.fail())
-                    { SetOptiXLastError("File reading error",__FILE__,__func__);  return false; }
+                    { SetOptiXLastError("File reading error",__FILE__,__func__, __LINE__ );  return false; }
             }
 
             file.ignore('\n');
@@ -1360,12 +1370,12 @@ extern "C"
         {
             file >> sClass;
             if(file.fail())
-                { SetOptiXLastError("File reading error",__FILE__,__func__);  return false; }
+                { SetOptiXLastError("File reading error",__FILE__,__func__, __LINE__);  return false; }
             if(sClass.empty())
                 break;
             file >> sName >> sNext ; //>> sPrev ;   // On peut se contenter d'appeler seulement set next qui se chargera de mettre à jour les 2 elements connectés
             if(file.fail())
-                { SetOptiXLastError("File reading error",__FILE__,__func__);  return false; }
+                { SetOptiXLastError("File reading error",__FILE__,__func__, __LINE__);  return false; }
             if(!sNext.empty() )   // inutile d'agir si sNext empty; les nouvelles surfaces ont tous leurs liens nuls
                 System.find(sName)->second->chainNext(System.find(sNext)->second); // ces deux ElementBases existent; elles viennent d'être créées.
 

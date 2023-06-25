@@ -56,6 +56,14 @@
 #define    SYSTEMGLOBALPARAMETERS 26
 #define    SOURCEAIMANT 27
 
+// this macro is used to keep track of element creation error in SolemioFile::get_element() function
+#define Create_Element(Class, Name , newID) if(!CreateElement(Class, Name, newID )) \
+    {   char * errstr;\
+        GetOptiXError(&errstr);\
+        SetOptiXLastError(string("cannot create element ")+Class +" "+Name+"  reason:\n"+errstr , __FILE__, __func__, __LINE__);\
+        return false; }
+
+
 extern ElementCollection System;
 
 vector<string> paramName={"Omega","Theta","dOmega","dTheta","Spin","dX","dY","dZ","distback","distfor",
@@ -430,7 +438,7 @@ bool getTrimmedEnding(const string &line, size_t pos, string &token)
             cout << "Yaxe " << (yaxeset  ? "set\n" :"not set\n" )<< yaxe.transpose() <<endl;
             if(pelemID)
             {
-                *pelemID=CreateElement("Film<Plane>",name.c_str());
+                Create_Element("Film<Plane>",name.c_str(), pelemID)
                 elem=(ElementBase*)*pelemID;
             }
         }
@@ -445,7 +453,7 @@ bool getTrimmedEnding(const string &line, size_t pos, string &token)
             cout << "Slope  sigmas    tang. " << sigmaslopeLong << " sag. " << sigmaslopeTrans << endl;
             if(pelemID)
             {
-                *pelemID=CreateElement("Mirror<Plane>",name.c_str());
+                Create_Element("Mirror<Plane>",name.c_str(),pelemID)
                 elem=(ElementBase*)*pelemID;
             }
         }
@@ -467,7 +475,7 @@ bool getTrimmedEnding(const string &line, size_t pos, string &token)
 
             if(pelemID)
             {
-                *pelemID=CreateElement("Mirror<Cylinder>",name.c_str());
+                Create_Element("Mirror<Cylinder>",name.c_str(),pelemID)
                 elem=(ElementBase*)*pelemID;
                 Parameter param;
                 elem->getParameter("curvature", param); //="Radius inverse  "
@@ -504,7 +512,7 @@ bool getTrimmedEnding(const string &line, size_t pos, string &token)
 
             if(pelemID)
             {
-                *pelemID=CreateElement("Mirror<Toroid>",name.c_str());
+                Create_Element("Mirror<Toroid>",name.c_str(),pelemID)
                 elem=(ElementBase*)*pelemID;
                 Parameter param;
                 elem->getParameter("major_curvature", param); //="Radius inverse  "
@@ -538,7 +546,7 @@ bool getTrimmedEnding(const string &line, size_t pos, string &token)
             cout << "Slope  sigmas    tang. " << SSurf.param[1] << " sag. " << SSurf.param[2] << endl;
             if(pelemID)
             {
-                *pelemID=CreateElement("Mirror<Sphere>",name.c_str());
+                Create_Element("Mirror<Sphere>",name.c_str(),pelemID)
                 elem=(ElementBase*)*pelemID;
                 Parameter param;
                 elem->getParameter("curvature", param); //="Radius inverse  "
@@ -571,7 +579,7 @@ bool getTrimmedEnding(const string &line, size_t pos, string &token)
             cout << "IMPLEMENTATION UNDER TEST\n";
             if(pelemID)
             {
-                *pelemID=CreateElement("Mirror<RevolutionQuadric>",name.c_str());
+                Create_Element("Mirror<RevolutionQuadric>",name.c_str(),pelemID)
 //                *pelemID=CreateElement("Mirror<ConicBaseCylinder>",name.c_str());
                 elem=(ElementBase*)*pelemID;
                 Parameter param;
@@ -618,7 +626,7 @@ bool getTrimmedEnding(const string &line, size_t pos, string &token)
 
             if(pelemID)
             {
-                *pelemID=CreateElement("Grating<Holo,Plane>",name.c_str());
+                Create_Element("Grating<Holo,Plane>",name.c_str(),pelemID)
                 elem=(ElementBase*)*pelemID;
                 Parameter param;
                 // non variable parameters from GratingBase
@@ -697,7 +705,7 @@ bool getTrimmedEnding(const string &line, size_t pos, string &token)
 
             if(pelemID)
             {
-                *pelemID=CreateElement("Grating<Poly1D,Plane>",name.c_str());
+                Create_Element("Grating<Poly1D,Plane>",name.c_str(),pelemID)
                 elem=(ElementBase*)*pelemID;
                 Parameter param;
                 // non variable parameters from GratingBase
@@ -758,7 +766,7 @@ bool getTrimmedEnding(const string &line, size_t pos, string &token)
             if(pelemID)
             {
                 cout << "Slits are not implemented under Optix : Element is replaced by a plane Film\n";
-                *pelemID=CreateElement("Film<Plane>",name.c_str());
+                Create_Element("Film<Plane>",name.c_str(),pelemID)
                 elem=(ElementBase*)*pelemID;
             }
 
@@ -778,7 +786,7 @@ bool getTrimmedEnding(const string &line, size_t pos, string &token)
 
             if(pelemID)
             {
-                *pelemID=CreateElement("Source<Gaussian>",name.c_str());
+                CreateElement("Source<Gaussian>",name.c_str(),pelemID);
                 elem=(ElementBase*)*pelemID;
                 Parameter param;
                 elem->getParameter("nRays", param);
@@ -836,7 +844,7 @@ bool getTrimmedEnding(const string &line, size_t pos, string &token)
                     double Xmin,Xmax, Ymin,Ymax;
                     std::cin >> Xmin >> Xmax >> Ymin >> Ymax;
                     cout << "coefficients will be computed inside rectangle " << Xmin << ", "<< Xmax << ", " << Ymin << ", " << Ymax << endl;
-                    *pelemID=CreateElement("Mirror<NaturalPolynomialSurface>",name.c_str());
+                    CreateElement("Mirror<NaturalPolynomialSurface>",name.c_str(), pelemID);
                     elem=(ElementBase*)*pelemID;
                     Parameter param(2, 2, Distance, ShapeGroup); // create an array parameter
                     if(!elem->getParameter("surfaceLimits",param))
@@ -891,7 +899,7 @@ bool getTrimmedEnding(const string &line, size_t pos, string &token)
                 }
                 else
                 {
-                    *pelemID=CreateElement("Mirror<Toroid>",name.c_str());
+                    CreateElement("Mirror<Toroid>",name.c_str(), pelemID);
                     elem=(ElementBase*)*pelemID;
                     Parameter param;
                     elem->getParameter("major_curvature", param);
@@ -986,7 +994,7 @@ bool getTrimmedEnding(const string &line, size_t pos, string &token)
             if(pelemID)
             {
               //  cout << "Waist Z shifts are not implemented under OptiX\n";
-                *pelemID=CreateElement("Source<Astigmatic,Gaussian>",name.c_str());
+                CreateElement("Source<Astigmatic,Gaussian>",name.c_str(), pelemID);
                 elem=(ElementBase*)*pelemID;
                 Parameter param;
                 elem->getParameter("nRays", param);
@@ -1033,7 +1041,7 @@ bool getTrimmedEnding(const string &line, size_t pos, string &token)
             }
                         if(pelemID)
             {
-                *pelemID=CreateElement("Film<Plane>",name.c_str());
+                CreateElement("Film<Plane>",name.c_str(), pelemID);
                 elem=(ElementBase*)*pelemID;
                 cout << "Parameter list " <<  name <<  " replaced by a film\n";
             }
@@ -1055,7 +1063,7 @@ bool getTrimmedEnding(const string &line, size_t pos, string &token)
                             if(pelemID)
             {
               //  cout << "Waist Z shifts are not implemented under OptiX\n";
-                *pelemID=CreateElement("Source<BMtype,Gaussian>",name.c_str());
+                CreateElement("Source<BMtype,Gaussian>",name.c_str(), pelemID);
                 elem=(ElementBase*)*pelemID;
                 Parameter param;
                 elem->getParameter("nRays", param);
@@ -1518,11 +1526,10 @@ bool getTrimmedEnding(const string &line, size_t pos, string &token)
         cout << "ELEMENT " << i <<endl << endl;
         if (!Sfile.get_element((size_t*) &pelement))
         {
-             char buf[256];
+             char *optXerrstr, buf[128];
+             GetOptiXError(&optXerrstr);
              sprintf(buf,"Format error  while getting element #%d in file %s loading stopped:\n", i, filename.c_str());
-             errstr=buf;
-             GetOptiXLastError(buf,256);
-             SetOptiXLastError(errstr+buf, __FILE__, __func__, __LINE__);
+             SetOptiXLastError(string(buf)+optXerrstr, __FILE__, __func__, __LINE__);
              return false;
         }
 
@@ -1896,7 +1903,7 @@ int OpacityOf(string strIn)
                 {
                     object=token[1];
                     cout << "     Element  " << object << " of class " << token[0]  ;
-                    elementID=CreateElement(token[0].c_str(), token[1].c_str());
+                    CreateElement(token[0].c_str(), token[1].c_str(), &elementID);
                     if(!elementID)
                     {
                         cout << "     was NOT CREATED reason:\n" << LastError << endl;

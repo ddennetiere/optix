@@ -76,7 +76,7 @@ int main()
     cout << "starting \n";
 
   //  return Solemio2Xml("D:\\Documents SOLEIL\\Dossiers-Lignes\\Disco\\Solemio\\DISCOdefinitif.sole");
-//   return DiscoTest();
+   return DiscoTest();
 
     //return XmlTest();
 
@@ -92,7 +92,7 @@ int main()
     cout << "sizeof(UnitType) " << sizeof(UnitType) << endl ;
     cout << "sizeof(ParameterGroup) " <<  sizeof(ParameterGroup) << endl << endl;
 
-    return SolemioTest();
+//    return SolemioTest();
 //    return OriginalTest();
 //    return SphereTest();
 //    return QuickTest();
@@ -294,17 +294,18 @@ int OriginalTest()
     cout << "aligment(Maxtrix4d)=" << alignof(Matrix4d) << endl;
     cout << "aligment(MaxtrixXd)=" << alignof(MatrixXd) << endl;
 
-    char msg[256];
-    size_t lpmID= CreateElement("LegendrePolynomialMirror", "LPM2");
-    if(!lpmID)
+    char *errstr;
+    size_t lpmID;
+    if(!CreateElement("LegendrePolynomialMirror", "LPM2", &lpmID))
     {
-        cout <<"could not create LegendrePolynomialMirror LPM2\n";
+        GetOptiXError(&errstr);
+        cout <<"could not create LegendrePolynomialMirror LPM2\n" << errstr <<endl;
         return 0;
     }
     if(!DumpParameter(lpmID,"surfaceLimits"))
     {
-        GetOptiXLastError(msg,256);
-        cout <<"could not first dump parameter reason\n" <<msg << endl;
+        GetOptiXError(&errstr);
+        cout <<"could not first dump parameter reason\n" <<errstr << endl;
     }
     cout <<" get surfaceLimits parameter\n";
     Parameter lparam;
@@ -323,8 +324,8 @@ int OriginalTest()
         DumpArgParameter(&lparam);
         if( !GetArrayParameter(lpmID,"surfaceLimits",&lparam, dims[0]*dims[1]))
         {
-            GetOptiXLastError(msg,256);
-            cout <<"cannot get parameter reason\n" <<msg << endl;
+            GetOptiXError(&errstr);
+            cout <<"cannot get parameter reason\n" <<errstr << endl;
         }
 
     }
@@ -343,18 +344,18 @@ int OriginalTest()
 //    SetArray Parameter was removed from the C API
 //    if(!SetArrayParameter(lpmID, "surfaceLimits", 2,2, data ))
 //    {
-//        GetOptiXLastError(msg,256);
-//        cout <<"could not set array parameter reason\n" <<msg << endl;
+//        GetOptiXError( &errstr);
+//        cout <<"could not set array parameter reason\n" <<errstr << endl;
 //    }
      if(!DumpParameter(lpmID,"surfaceLimits"))
     {
-        GetOptiXLastError(msg,256);
-        cout <<"could not last dump parameter reason\n" <<msg << endl;
+        GetOptiXError(&errstr);
+        cout <<"could not last dump parameter reason\n" <<errstr << endl;
     }
      if(!DumpParameter(lpmID,"coefficients"))
     {
-        GetOptiXLastError(msg,256);
-        cout <<"could not =dump parameter 'coefficients';  reason\n" <<msg << endl;
+        GetOptiXError(&errstr);
+        cout <<"could not =dump parameter 'coefficients';  reason\n" <<errstr << endl;
     }
  //   lpMirror.dumpParameter("surfaceLimits", aparam);
 
@@ -738,14 +739,14 @@ inline void SetParamValue(size_t ID,string parmName, double value)
 
 int TestEllipse()
 {
-    char errBuf[256];
+    char *errstr;
 
     size_t sourceID, hfmID, vfmID, screenID; //, gratID;
-    sourceID=CreateElement("Source<Gaussian>", "source");
-    hfmID=CreateElement("Mirror<ConicBaseCylinder>", "hfm");
-    vfmID=CreateElement("Mirror<ConicBaseCylinder>", "vfm");
+    CreateElement("Source<Gaussian>", "source", &sourceID);
+    CreateElement("Mirror<ConicBaseCylinder>", "hfm", &hfmID);
+    CreateElement("Mirror<ConicBaseCylinder>", "vfm", &vfmID);
 //    gratID=CreateElement("Grating<Poly1D,Plane>", "grating");  //just for alignment test
-    screenID=CreateElement("Film<Plane>", "screen");
+    CreateElement("Film<Plane>", "screen", &screenID);
     ChainElement_byID(sourceID, hfmID);
     ChainElement_byID(hfmID,vfmID);
  //   ChainElement_byID(vfmID,gratID);
@@ -785,15 +786,15 @@ int TestEllipse()
     cout << "calling align on source\n";
     if(!Align(sourceID, lambda))
     {
-       GetOptiXLastError(errBuf,256);
-       cout << "Alignment error : " << errBuf << endl;
+       GetOptiXError( &errstr);
+       cout << "Alignment error : " << errstr << endl;
        return -1;
     }
 
     if(!Generate(sourceID, lambda))
     {
-       GetOptiXLastError(errBuf,256);
-       cout << "Source generation error : " << errBuf << endl;
+       GetOptiXError( &errstr);
+       cout << "Source generation error : " << errstr << endl;
        return -1;
     }
     size_t elemID;
@@ -808,8 +809,8 @@ int TestEllipse()
 
     if(!Radiate(sourceID))
     {
-       GetOptiXLastError(errBuf,256);
-       cout << "Radiation error : " << errBuf << endl;
+       GetOptiXError( &errstr);
+       cout << "Radiation error : " << errstr << endl;
        return -1;
     }
 

@@ -139,7 +139,8 @@ extern "C"
 #endif
 
 
-    /** \brief check and reset the error status
+    /** \brief check and reset the error status (deprecated)
+     * \deprecated This function is deprecated and replaced by  GetOptiXError(), which can handle any message length.
      *
      * \param buffer a char buffer to receive the error string. Can be NULL if not needed
      * \param bufferSize  the size in bytes of the buffer (256 is safe)
@@ -172,17 +173,19 @@ extern "C"
 #endif // __cplusplus
 
     /** \ingroup NonStandard
-    *    GetElementID()
+    *    *changed 25/06/2023*
     */
-    /** \brief Create an optical element (or group)
+    /** \brief **MODIFIED** - Create an optical element (or group)
      *
      * Th function calls the internal function CreateElementObject(type, name)
-     * \param type  runtime class of the new element must be one of the types accepted by the CreateElementObject function
-     * \param name name of the new element
-     * \return if success  a unique ID identifying the newly created element. Otherwise returns 0 and the OptiXError is set
+     * \param[in] type  runtime class of the new element must be one of the types accepted by the CreateElementObject function
+     * \param[in] name name of the new element
+     * \param[out]  elementID A size_t location to return the unique ID identifying the newly created element, if creation succesds.
+     *  The returned value will be 0 if the function fails.
+     * \return true if the new element was created; false if creation failed
+     *
      */
-
-    DLL_EXPORT size_t CreateElement(const char* type, const char* name);
+    DLL_EXPORT bool CreateElement(const char* type, const char* name, size_t* elementID);
 
 
     /** \ingroup NonStandard
@@ -298,7 +301,7 @@ extern "C"
     /** \ingroup NonStandard
     *    *changed 24/06/2023*
     */
-    /** \brief **MODIFIED** - Gets the element immediately upstream of the given one in the link chain
+    /** \brief **MODIFIED (commit 65b8c5c4)** - Gets the element immediately upstream of the given one in the link chain
      *
      * \param[in] elementID the ID of the given element
      * \param[out] previousID The address of a location to return the previous ID.
@@ -310,7 +313,7 @@ extern "C"
     /** \ingroup NonStandard
     *   *changed 24/06/2023*
     */
-    /** \brief **MODIFIED** - Gets the element immediately downstream of the given one in the link chain
+    /** \brief **MODIFIED (commit 65b8c5c4)** - Gets the element immediately downstream of the given one in the link chain
      *previousID
      * \param[in] elementID the ID of the given element
      * \param[out] nextID The address of a location to return the next ID.
@@ -322,9 +325,9 @@ extern "C"
     /** \ingroup NonStandard
     *    *changed 24/06/2023*
     */
-    /** \brief **MODIFIED** - Gets the element immediately upstream of the given one in the link chain
+    /** \brief **MODIFIED (commit 65b8c5c4)** - Gets the element immediately upstream of the given one in the link chain
      *
-     * \param elementID the ID of the given element
+     * \param elementName the name of the searched element
      * \param previousID a size_t location to return the ID of the previous element, or 0 if the element either is the first of the link chain either is invalid
      *  \return true if function succeeds; false if a parameter is invalid
      */
@@ -333,7 +336,7 @@ extern "C"
     /** \ingroup NonStandard
     *    *changed 24/06/2023*
     */
-    /** \brief **MODIFIED** - Gets the element immediately downstream of the given one in the link chain
+    /** \brief **MODIFIED (commit 65b8c5c4)** - Gets the element immediately downstream of the given one in the link chain
      *
      * \param elementName the name of the element to inquire
      * \param nextID size_t location to return the ID of the next element, or 0 if the element either is the last of the link chain either is invalid
@@ -800,7 +803,7 @@ extern "C"
     /** \ingroup NonStandard
     *    *changed 24/06/2023*
     */
-    /** \brief **MODIFIED** - finds the most upstream source in the element chain starting from the given element
+    /** \brief **MODIFIED (commit 65b8c5c4)** - finds the most upstream source in the element chain starting from the given element
      *
      * \param elementID  The element from which the chain is explored
      * \param sourceID a size_t location to return the ID of the most upstream source or NULL if no source is found upstream the given element
