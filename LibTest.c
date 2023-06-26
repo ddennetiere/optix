@@ -23,9 +23,17 @@
 
 #define ELEM_NAMELEN  32
 #define PARAM_NAMELEN 48
-#define ERROR_BUFLEN 256
+
 
 #define  LIMITED 0
+
+// this macro is used to keep track of element creation error in SolemioFile::get_element() function
+#define Create_Element(Class, Name , newID) if(!CreateElement(Class, Name, newID )) \
+    {   char * errstr;\
+        GetOptiXError(&errstr);\
+        printf("Failed to create element %s  %s  Reason:\n%s File %s, %s line %d\n",Class,Name,errstr , __FILE__, __func__, __LINE__);\
+        return -1; }
+#
 int CassioTest();
 int EllipticKB();
 
@@ -43,7 +51,7 @@ int CassioTest()
     printf( "Sizeof void* %d ; sizeof size_t %d \n", sizeof(void*), sizeof(size_t));
 
     size_t hSys=0, hParm=0, elemID=0; // Handles used to access internal objects
-    char elname[ELEM_NAMELEN], elname2[ELEM_NAMELEN],classname[ELEM_NAMELEN],parmname[PARAM_NAMELEN], errBuf[ERROR_BUFLEN];  // Sting variables
+    char elname[ELEM_NAMELEN], elname2[ELEM_NAMELEN],classname[ELEM_NAMELEN],parmname[PARAM_NAMELEN],*errstr;  // String variables
     Parameter param; // structure holding the definition of a parameter
     int numrays=5000;  // number of random rays to issued by the source
     char * title[5]={"X   ", "Y   ", "X'  ", "Y'  ", "lmda" };
@@ -55,14 +63,13 @@ int CassioTest()
 */
     if(!LoadSolemioFile("D:\\projets\\projetsCB\\OptiX\\solemio\\CASSIOPEE"))
     {
-        GetOptiXLastError( errBuf,ERROR_BUFLEN); // if an error occurs OptiXLast error will be set
-        printf("ERROR: %s\n",errBuf);
+        GetOptiXError( &errstr); // if an error occurs OptiXLast error will be set
+        printf("ERROR: %s\n",errstr);
         return -1;
     }
     printf("\n\n");
 
     size_t sourceID;
-
 
 
 /* *********************************************************************************
@@ -85,8 +92,8 @@ int CassioTest()
             {
                 if(!EnumerateParameters(elemID, &hParm, parmname, PARAM_NAMELEN, &param)) // get the parameter list for element elemID. Enumeration is initialized with hParm = NULL
                 {
-                    GetOptiXLastError( errBuf,ERROR_BUFLEN); //  message if error
-                    printf("ERROR: %s\n",errBuf);
+                    GetOptiXError( &errstr); //  message if error
+                    printf("ERROR: %s\n",errstr);
                     ReleaseElementEnumHandle(hParm);     // Release the handle since the enumeration must be terminated early
                     break;
                 }
@@ -103,7 +110,12 @@ int CassioTest()
     /* ******************************************************************************
     *        Displays the active chain from source "S_ONDUL1"
     */
-        sourceID=elemID=GetElementID("S_ONDUL1");  // Obtains the element handle
+        if(!FindElementID("S_ONDUL1",&elemID))
+        {
+            printf("element 'S_ONDUL1' was not found\n");
+            return -1;
+        }
+        sourceID=elemID;  // Obtains the element handle
 
         // iterate on elements of the chain and displays their names and id
         while(elemID) // calling GetNextElement on the last element of the chain will bring-up NULL
@@ -111,7 +123,7 @@ int CassioTest()
             GetElementName(elemID, elname,ELEM_NAMELEN);  // obtains the name from the current ID
             GetParameter(elemID,"distance", &param);
             printf("  %s   %llX  D=%g\n",elname, elemID,param.value );
-            elemID =GetNextElement(elemID);  // get next element ID (element ID should of course never be released
+           GetNextElement(elemID,&elemID);  // get next element ID (element ID should of course never be released
         }
         printf("\n\n");
 
@@ -126,7 +138,12 @@ int CassioTest()
         param.value=numrays;               // modify value
         SetParameter(sourceID,"nRays",param); // set the parameter
 
-        size_t pupilleID=GetElementID("pupille");
+        if(!FindElementID("pupille",&elemID))
+        {
+            printf("element 'pupille' was not found\n");
+            return -1;
+        }
+        size_t pupilleID=elemID;
         GetParameter(pupilleID,"distance",&param);
 //        param.value-=.9;
         printf ("source-pupil distance %f \n\n" , param.value );
@@ -134,29 +151,40 @@ int CassioTest()
 
 
     //  Make sure the object EXP1 is recording impacts
-        size_t targetID=GetElementID("EXP1");
+
+        if(!FindElementID("EXP1",&elemID))
+        {
+            printf("element 'EXP1' was not found\n");
+            return -1;
+        }
+        size_t targetID=elemID;
         SetRecording(targetID, RecordOutput); // possible values are RecordNone, RecordInput, and RecordOutput;
                                               //  For films there is no difference between the two recording modes
     }
     else
     {
-        sourceID=elemID=GetElementID("S_ONDUL1");  // Obtains the element handle
+        if(!FindElementID("S_ONDUL1",&elemID))
+        {
+            printf("element 'S_ONDUL1' was not found\n");
+            return -1;
+        }
+        sourceID=elemID;  // Obtains the element handle
 
     }
     if(!Align(sourceID,2.5e-8)) // aligne le système à partir de la source pour la longueur d'on 25 nm (lambda utilisé seulement par les réseaux)
     {
-       GetOptiXLastError(errBuf,ERROR_BUFLEN);
-        printf("Alignment error: %s\n",errBuf);
+        GetOptiXError( &errstr);
+        printf("Alignment error: %s\n",errstr);
         return -1;
     }
 
     ClearImpacts(sourceID); //  Clears stored impacts in the source ans subsequent elements.
                             //  If not called, and elements are not clean, impacts will just add-up
 
-    if(!Generate(sourceID, 2.5e-8))  // compute a set of rays at wavelength 25 nm, in the source space. These rays are stored in the impact vector.
+    if(!Generate(sourceID, 2.5e-8, NULL))  // compute a set of rays at wavelength 25 nm, in the source space. These rays are stored in the impact vector.
     {
-        GetOptiXLastError(errBuf,ERROR_BUFLEN);
-        printf("Source generation error: %s\n",errBuf);
+        GetOptiXError(&errstr);
+        printf("Source generation error: %s\n",errstr);
         return -1;
     }
 
@@ -165,8 +193,8 @@ int CassioTest()
     if(!Radiate(sourceID))  // This call performs the main computation. It propagate all the rays defined in the source to the end of the chain.
                             // Impacts are stores
     {
-        GetOptiXLastError(errBuf,ERROR_BUFLEN);
-        printf("Radiation error: %s\n",errBuf);
+        GetOptiXError( &errstr);
+        printf("Radiation error: %s\n",errstr);
         return -1;
     }
     printf("propagation computation time : %f ms\n", 1000.*(clock()-start)/ CLOCKS_PER_SEC);
@@ -184,10 +212,15 @@ int CassioTest()
             cdiagram.m_sigma=malloc(cdiagram.m_dim*sizeof(double));
             cdiagram.m_spots= malloc(cdiagram.m_dim*cdiagram.m_reserved*sizeof(double));
 
-            if(!GetSpotDiagram(GetElementID("f"), &cdiagram, .510))
+            if(!FindElementID("f",&elemID))
             {
-                GetOptiXLastError(errBuf, ERROR_BUFLEN);
-                printf("GetSpotDiagram failed: %s\n",errBuf);
+                printf("element 'f' was not found\n");
+                return -1;
+            }
+            if(!GetSpotDiagram(elemID, &cdiagram, .510))
+            {
+                GetOptiXError( &errstr);
+                printf("GetSpotDiagram failed: %s\n",errstr);
             }
             else
             {
@@ -204,10 +237,15 @@ int CassioTest()
 
             }
 
-            if(!GetSpotDiagram(GetElementID("planfocH"), &cdiagram, -.0))
+            if(!FindElementID("planfocH",&elemID))
             {
-                GetOptiXLastError(errBuf, ERROR_BUFLEN);
-                printf("GetSpotDiagram failed: %s\n",errBuf);
+                printf("element 'planfocH' was not found\n");
+                return -1;
+            }
+            if(!GetSpotDiagram(elemID, &cdiagram, -.0))
+            {
+                GetOptiXError( &errstr);
+                printf("GetSpotDiagram failed: %s\n",errstr);
             }
             else
             {
@@ -237,17 +275,13 @@ int CassioTest()
 
         if(!LoadSystemFromXml("Cassiosys.xml"))
         {
-            GetOptiXLastError(errBuf,ERROR_BUFLEN);
-            printf("Source generation error: %s\n",errBuf);
+            GetOptiXError( &errstr);
+            printf("Source generation error: %s\n",errstr);
             return -1;
         }
 
-        elemID= CreateElement("PlaneFilm", "screen" );
-        if(!elemID)
-        {
-            printf("\nfailed to create element \"screen\" \n");
-            return -1;
-        }
+        Create_Element("PlaneFilm", "screen", &elemID )
+
         GetElementName(elemID, elname,ELEM_NAMELEN);
         printf("\n new element %llX created as %s\n", elemID, elname);
 
@@ -266,12 +300,8 @@ int CassioTest()
         printf("\n\n");
 
 
-        elemID= CreateElement("PlaneFilm", "screen2" );
-        if(!elemID)
-        {
-            printf("\nfailed to create element \"screen2\" \n");
-            return -1;
-        }
+        Create_Element("PlaneFilm", "screen2", &elemID )
+
         GetElementName(elemID, elname,ELEM_NAMELEN);
         printf("\n new element %llX created as %s\n", elemID, elname);
 
@@ -290,7 +320,7 @@ int CassioTest()
         printf("\n\n");
         return 0;
     }
-    Version();
+    Version(NULL);
 }
 
  void SetParamValue(size_t ID,char* parmName, double value)
@@ -307,14 +337,14 @@ int CassioTest()
 
 int EllipticKB()
 {
-    Version();
-    char errBuf[256];
+    Version(NULL);
+    char *errstr;
 
     size_t sourceID, hfmID, vfmID, screenID;
-    sourceID=CreateElement("Source<Gaussian>", "source");
-    hfmID=CreateElement("Mirror<ConicBaseCylinder>", "hfm");
-    vfmID=CreateElement("Mirror<ConicBaseCylinder>", "vfm");
-    screenID=CreateElement("Film<Plane>", "screen");
+    Create_Element("Source<Gaussian>", "source", &sourceID);
+    Create_Element("Mirror<ConicBaseCylinder>", "hfm", &hfmID);
+    Create_Element("Mirror<ConicBaseCylinder>", "vfm", &vfmID);
+    Create_Element("Film<Plane>", "screen", &screenID);
     ChainElement_byID(sourceID, hfmID);
     ChainElement_byID(hfmID,vfmID);
     ChainElement_byID(vfmID,screenID);
@@ -345,23 +375,23 @@ int EllipticKB()
     double lambda=6.e-9;
     if(!Align(sourceID, lambda))
     {
-       GetOptiXLastError(errBuf,256);
-       printf( "Alignment error : %s \n" ,errBuf );
+       GetOptiXError( &errstr);
+       printf( "Alignment error : %s \n" ,errstr );
        return -1;
     }
 
-    if(!Generate(sourceID, lambda))
+    if(!Generate(sourceID, lambda, NULL))
     {
-       GetOptiXLastError(errBuf,256);
-       printf("Source generation error :%s \n" ,errBuf );
+       GetOptiXError( &errstr);
+       printf("Source generation error :%s \n" ,errstr );
        return -1;
     }
 
 
     if(!Radiate(sourceID))
     {
-       GetOptiXLastError(errBuf,256);
-       printf("Radiation error :%s \n" ,errBuf );
+       GetOptiXError( &errstr);
+       printf("Radiation error :%s \n" ,errstr );
        return -1;
     }
 
@@ -377,8 +407,8 @@ int EllipticKB()
 
     if(!GetSpotDiagram(screenID, &cdiagram, 0))
     {
-        GetOptiXLastError(errBuf, ERROR_BUFLEN);
-        printf("GetSpotDiagram failed: %s\n",errBuf);
+        GetOptiXError( &errstr);
+        printf("GetSpotDiagram failed: %s\n",errstr);
     }
     else
     {

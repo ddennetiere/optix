@@ -24,6 +24,8 @@
 #ifdef __cplusplus
    #include "EigenSafeInclude.h"
    #include <iostream>
+#else
+    #include <stdalign.h>
 #endif
 
 typedef long double FloatType ;/**< \brief the base type of all floating type ray tracing computation of the library */
@@ -88,9 +90,9 @@ enum ParameterFlags/*:uint32_t*/{
 
 /** \brief C struct and C++ wrapper class to manipulate array type parameters. Companion struct of Parameter struct
  */
-typedef struct alignas(16) __ArrayParameter
+typedef struct  __ArrayParameter
 {
-    int64_t  dims[2]; /**< \brief The dimensions of the array*/
+    alignas(16) int64_t  dims[2]; /**< \brief The dimensions of the array*/
     double *data; /**< \brief a pointer to the first element of the array. The array is owned by the creator, who is in charge of its deletion*/
 #ifdef __cplusplus
     // the following functions are only defined in C++
