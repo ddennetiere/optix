@@ -38,7 +38,7 @@ DLL_EXPORT bool GetStopNumber(size_t element_ID, int * numStops)
 
 DLL_EXPORT bool GetStopType(size_t element_ID, size_t index, char** typeString, int* numSides)
 {
-    static char className[32];
+    static char className[32]="Unknown Class";
     if(!System.isValidID(element_ID))
     {
         SetOptiXLastError("invalid element ID", __FILE__, __func__);
@@ -55,7 +55,7 @@ DLL_EXPORT bool GetStopType(size_t element_ID, size_t index, char** typeString, 
         SetOptiXLastError("index is invalid", __FILE__, __func__);
         return false;
     }
-    if(typeString)
+    if(!typeString)
     {
         SetOptiXLastError("Invalid return location for type name", __FILE__, __func__);
         return false;
@@ -367,23 +367,23 @@ DLL_EXPORT bool ReplaceStopByRectangle(size_t element_ID, int index, double Xwid
     return  psurf->m_aperture.replaceRegion(index,prect);
 }
 
-DLL_EXPORT size_t GetEllipseParameters(size_t element_ID, size_t index, double *Xaxis, double *Yaxis, bool *opacity, double *Xcenter, double *Ycenter, double *angle)
+DLL_EXPORT bool GetEllipseParameters(size_t element_ID, int index, double *Xaxis, double *Yaxis, bool *opacity, double *Xcenter, double *Ycenter, double *angle)
 {
     if(!System.isValidID(element_ID))
     {
         SetOptiXLastError("invalid element ID", __FILE__, __func__);
-        return -1;
+        return false;
     }
     Surface * psurf=dynamic_cast<Surface*>((ElementBase*)element_ID);
     if(! psurf )
     {
         SetOptiXLastError("element is not an OptiX Surface", __FILE__, __func__);
-        return -1;
+        return false;
     }
-    if(index <0 || index >= psurf->m_aperture.getRegionCount())
+    if(index <0 || index >=(int) psurf->m_aperture.getRegionCount())
     {
         SetOptiXLastError("index is invalid", __FILE__, __func__);
-        return -1;
+        return false;
     }
 
     Region* pReg =psurf->m_aperture.getRegion(index);
@@ -392,164 +392,170 @@ DLL_EXPORT size_t GetEllipseParameters(size_t element_ID, size_t index, double *
     if(className!="Ellipse")
     {
         SetOptiXLastError("The region is not an Ellipse", __FILE__, __func__);
-        return -1;
+        return false;
     }
     *opacity=!pReg->isTransparent();
     dynamic_cast<Ellipse*>(pReg)->getParameters(Xaxis, Yaxis, Xcenter, Ycenter, angle);
 
-    return 0;
+    return true;
 
 }
 
 
-DLL_EXPORT size_t AddEllipticalStop(size_t element_ID, double Xaxis, double Yaxis, bool opacity, double Xcenter, double Ycenter, double angle)
+DLL_EXPORT  bool AddEllipticalStop(size_t element_ID, double Xaxis, double Yaxis, bool opacity,
+                                  double Xcenter, double Ycenter, double angle, int *regionIndex)
 {
     if(!System.isValidID(element_ID))
     {
         SetOptiXLastError("invalid element ID", __FILE__, __func__);
-        return -1;
+        return false;
     }
     Surface * psurf=dynamic_cast<Surface*>((ElementBase*)element_ID);
     if(! psurf )
     {
         SetOptiXLastError("element is not an OptiX Surface", __FILE__, __func__);
-        return -1;
+        return false;
     }
 
     Ellipse * pellipse=new Ellipse(Xaxis, Yaxis, Xcenter,Ycenter, angle);
     pellipse->setTransparency(!opacity);
 
-    return psurf->m_aperture.addRegion(pellipse); // index of the added object
-
+    if(regionIndex)
+        *regionIndex = psurf->m_aperture.addRegion(pellipse); // index of the added object
+    else
+        psurf->m_aperture.addRegion(pellipse);
+    return true;
 }
 
-DLL_EXPORT size_t InsertEllipticalStop(size_t element_ID, size_t index, double Xaxis, double Yaxis, bool opacity, double Xcenter, double Ycenter, double angle)
+DLL_EXPORT bool InsertEllipticalStop(size_t element_ID, int index, double Xaxis, double Yaxis,
+                                       bool opacity, double Xcenter, double Ycenter, double angle)
 {
     if(!System.isValidID(element_ID))
     {
         SetOptiXLastError("invalid element ID", __FILE__, __func__);
-        return -1;
+        return false;
     }
     Surface * psurf=dynamic_cast<Surface*>((ElementBase*)element_ID);
     if(! psurf )
     {
         SetOptiXLastError("element is not an OptiX Surface", __FILE__, __func__);
-        return -1;
+        return false;
     }
-    if(index <0 || index >= psurf->m_aperture.getRegionCount())
+    if(index <0 || index >=(int) psurf->m_aperture.getRegionCount())
             {
         SetOptiXLastError("index is invalid", __FILE__, __func__);
-        return -1;
+        return false;
     }
 
     Ellipse * pellipse=new Ellipse(Xaxis,Yaxis, Xcenter,Ycenter, angle);
     pellipse->setTransparency(!opacity);
 
-    if(! psurf->m_aperture.insertRegion(index,pellipse))
-    return -1;
-    return index;
+    return psurf->m_aperture.insertRegion(index,pellipse);
 }
 
-DLL_EXPORT size_t ReplaceStopByEllipse(size_t element_ID, size_t index, double Xaxis, double Yaxis, bool opacity, double Xcenter, double Ycenter, double angle)
+DLL_EXPORT bool ReplaceStopByEllipse(size_t element_ID, int index, double Xaxis, double Yaxis,
+                                     bool opacity, double Xcenter, double Ycenter, double angle)
 {
     if(!System.isValidID(element_ID))
     {
         SetOptiXLastError("invalid element ID", __FILE__, __func__);
-        return -1;
+        return false;
     }
     Surface * psurf=dynamic_cast<Surface*>((ElementBase*)element_ID);
     if(! psurf )
     {
         SetOptiXLastError("element is not an OptiX Surface", __FILE__, __func__);
-        return -1;
+        return false;
     }
-    if(index <0 || index >= psurf->m_aperture.getRegionCount())
+    if(index <0 || index >= (int) psurf->m_aperture.getRegionCount())
             {
         SetOptiXLastError("index is invalid", __FILE__, __func__);
-        return -1;
+        return false;
     }
 
     Ellipse * pellipse=new Ellipse(Xaxis,Yaxis, Xcenter,Ycenter, angle);
     pellipse->setTransparency(!opacity);
 
-    if(! psurf->m_aperture.replaceRegion(index,pellipse))
-        return -1;
-    return index;  // index of the inserted object
+    return psurf->m_aperture.replaceRegion(index,pellipse);
 }
 
 
-DLL_EXPORT size_t AddCircularStop(size_t element_ID, double radius, bool opacity, double Xcenter, double Ycenter)
+DLL_EXPORT bool AddCircularStop(size_t element_ID, double radius, bool opacity,
+                                double Xcenter, double Ycenter, int * regionIndex)
 {
     if(!System.isValidID(element_ID))
     {
         SetOptiXLastError("invalid element ID", __FILE__, __func__);
-        return -1;
+        return false;
     }
     Surface * psurf=dynamic_cast<Surface*>((ElementBase*)element_ID);
     if(! psurf )
     {
         SetOptiXLastError("element is not an OptiX Surface", __FILE__, __func__);
-        return -1;
+        return false;
     }
 
     Ellipse * pellipse=new Ellipse(!opacity);
     pellipse->setCircle(radius, Xcenter, Ycenter);
 
-    return psurf->m_aperture.addRegion(pellipse); // index of the added object
+    if(regionIndex)
+        *regionIndex=psurf->m_aperture.addRegion(pellipse); // index of the added object
+    else
+        psurf->m_aperture.addRegion(pellipse);
+    return true;
 }
 
-DLL_EXPORT size_t InsertCircularStop(size_t element_ID, size_t index, double radius, bool opacity, double Xcenter, double Ycenter)
+DLL_EXPORT bool InsertCircularStop(size_t element_ID, int index, double radius,
+                                       bool opacity, double Xcenter, double Ycenter)
 {
     if(!System.isValidID(element_ID))
     {
         SetOptiXLastError("invalid element ID", __FILE__, __func__);
-        return -1;
+        return false;
     }
     Surface * psurf=dynamic_cast<Surface*>((ElementBase*)element_ID);
     if(! psurf )
     {
         SetOptiXLastError("element is not an OptiX Surface", __FILE__, __func__);
-        return -1;
+        return false;
     }
-    if(index <0 || index >= psurf->m_aperture.getRegionCount())
+    if(index <0 || index >=(int) psurf->m_aperture.getRegionCount())
             {
         SetOptiXLastError("index is invalid", __FILE__, __func__);
-        return -1;
+        return false;
     }
 
     Ellipse * pellipse=new Ellipse(!opacity);
     pellipse->setCircle(radius, Xcenter, Ycenter);
 
-    if(! psurf->m_aperture.insertRegion(index,pellipse))
-    return -1;
-    return index;
+    return psurf->m_aperture.insertRegion(index,pellipse);
 }
 
-DLL_EXPORT size_t ReplaceStopByCircle(size_t element_ID, size_t index, double radius, bool opacity, double Xcenter, double Ycenter)
+DLL_EXPORT bool ReplaceStopByCircle(size_t element_ID, int index, double radius,
+                                    bool opacity, double Xcenter, double Ycenter)
 {
     if(!System.isValidID(element_ID))
     {
         SetOptiXLastError("invalid element ID", __FILE__, __func__);
-        return -1;
+        return false;
     }
     Surface * psurf=dynamic_cast<Surface*>((ElementBase*)element_ID);
     if(! psurf )
     {
         SetOptiXLastError("element is not an OptiX Surface", __FILE__, __func__);
-        return -1;
+        return false;
     }
-    if(index <0 || index >= psurf->m_aperture.getRegionCount())
+    if(index <0 || index >=(int) psurf->m_aperture.getRegionCount())
             {
         SetOptiXLastError("index is invalid", __FILE__, __func__);
-        return -1;
+        return false;
     }
 
     Ellipse * pellipse=new Ellipse(!opacity);
     pellipse->setCircle(radius, Xcenter, Ycenter);
 
-    if(! psurf->m_aperture.replaceRegion(index,pellipse))
-        return -1;
-    return index;  // index of the inserted object
+    return psurf->m_aperture.replaceRegion(index,pellipse);
+
 }
 
 
