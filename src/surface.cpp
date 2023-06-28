@@ -200,7 +200,7 @@ int Surface::getSpotDiagram(Diagram & spotDiagram, double distance)
 {
 //    if(spotDiagram.m_spots)
 //        delete[] spotDiagram.m_spots;
-    cout << "getting diagram of  "  << m_name <<  " n " << m_impacts.size() << "  mem " << &m_impacts[0] << endl;
+//    cout << "getting diagram of  "  << m_name <<  " n " << m_impacts.size() << "  mem " << &m_impacts[0] << endl;
 
     if(spotDiagram.m_dim < 5)
         throw std::invalid_argument("SpotDiagram argument should have a vector dimension of at least 5");

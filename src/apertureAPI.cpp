@@ -14,131 +14,160 @@
 #include "apertureAPI.h"
 #include "surface.h"
 
-DLL_EXPORT size_t GetStopNumber(size_t element_ID)
+DLL_EXPORT bool GetStopNumber(size_t element_ID, int * numStops)
 {
+    if(!numStops)
+    {
+        SetOptiXLastError("invalid return location numStops", __FILE__, __func__);
+        return false;
+    }
     if(!System.isValidID(element_ID))
     {
         SetOptiXLastError("invalid element ID", __FILE__, __func__);
-        return -1;
+        return false;
     }
     Surface * psurf=dynamic_cast<Surface*>((ElementBase*)element_ID);
     if(! psurf )
     {
         SetOptiXLastError("element is not an OptiX Surface", __FILE__, __func__);
-        return -1;
+        return false;
     }
-    return psurf->m_aperture.getRegionCount();
+    *numStops=psurf->m_aperture.getRegionCount();
+    return true;
 }
 
-DLL_EXPORT size_t GetStopType(size_t element_ID, size_t index, char* buffer, int bufferSize)
+DLL_EXPORT bool GetStopType(size_t element_ID, size_t index, char** typeString, int* numSides)
 {
+    static char className[32];
     if(!System.isValidID(element_ID))
     {
         SetOptiXLastError("invalid element ID", __FILE__, __func__);
-        return -1;
+        return false;
     }
     Surface * psurf=dynamic_cast<Surface*>((ElementBase*)element_ID);
     if(! psurf )
     {
         SetOptiXLastError("element is not an OptiX Surface", __FILE__, __func__);
-        return -1;
+        return false;
     }
     if(index <0 || index >= psurf->m_aperture.getRegionCount())
-            {
-        SetOptiXLastError("index is invalid", __FILE__, __func__);
-        return -1;
-    }
-
-    Region* pReg =psurf->m_aperture.getRegion(index);
-    string className=pReg->getOptixClass();
-    strncpy(buffer, className.c_str(), bufferSize);
-    if(bufferSize <(int)(className.size())+1)
     {
-        SetOptiXLastError("Buffer too small, name was truncated", __FILE__, __func__);
-        return -1;
+        SetOptiXLastError("index is invalid", __FILE__, __func__);
+        return false;
     }
-    if(className=="Polygon")
-        return  dynamic_cast<Polygon*>(pReg)->getNumSides();
-    else
-        return 0;
-
+    if(typeString)
+    {
+        SetOptiXLastError("Invalid return location for type name", __FILE__, __func__);
+        return false;
+    }
+    Region* pReg =psurf->m_aperture.getRegion(index);
+    strncpy(className, pReg->getOptixClass().c_str(), 31);
+    *typeString=className;
+    if(numSides)
+    {
+        if(strcmp(className,"Polygon")==0 )
+            *numSides = dynamic_cast<Polygon*>(pReg)->getNumSides();
+        else
+            *numSides=0;
+    }
+    return true;
 }
 
 
-DLL_EXPORT size_t SetApertureActivity(size_t element_ID, bool status)
+DLL_EXPORT bool SetApertureActivity(size_t element_ID, bool status)
 {
     if(!System.isValidID(element_ID))
     {
         SetOptiXLastError("invalid element ID", __FILE__, __func__);
-        return -1;
+        return false;
     }
     Surface * psurf=dynamic_cast<Surface*>((ElementBase*)element_ID);
     if(! psurf )
     {
         SetOptiXLastError("element is not an OptiX Surface", __FILE__, __func__);
-        return -1;
+        return false;
     }
     psurf->setApertureActive(status);
-    return 0;
+    return true;
 }
 
-DLL_EXPORT size_t GetApertureActivity(size_t element_ID, bool * status)
+DLL_EXPORT bool GetApertureActivity(size_t element_ID, bool * status)
 {
     if(!System.isValidID(element_ID))
     {
         SetOptiXLastError("invalid element ID", __FILE__, __func__);
-        return -1;
+        return false;
     }
     Surface * psurf=dynamic_cast<Surface*>((ElementBase*)element_ID);
     if(! psurf )
     {
         SetOptiXLastError("element is not an OptiX Surface", __FILE__, __func__);
-        return -1;
+        return false;
+    }
+    if(!status)
+    {
+        SetOptiXLastError("invalid location to return the aperture status", __FILE__, __func__);
+        return false;
     }
     *status=psurf->getApertureActive();
-    return 0;
+    return true;
 }
 
 
 
-DLL_EXPORT size_t GetApertureTransmissionAt(size_t element_ID, double x, double y, double * T)
+DLL_EXPORT bool GetApertureTransmissionAt(size_t element_ID, double x, double y, double * T)
 {
     if(!System.isValidID(element_ID))
     {
         SetOptiXLastError("invalid element ID", __FILE__, __func__);
-        return -1;
+        return false;
     }
     Surface * psurf=dynamic_cast<Surface*>((ElementBase*)element_ID);
     if(! psurf )
     {
         SetOptiXLastError("element is not an OptiX Surface", __FILE__, __func__);
-        return -1;
+        return false;
+    }
+    if(!T)
+    {
+        SetOptiXLastError("invalid location to return the aperture transmission", __FILE__, __func__);
+        return false;
     }
     Vector2d point;
     point << x,y;
     *T=psurf->getApertureTransmissionAt(point);
-    return 0;
+    return true;
 }
 
 
 
-DLL_EXPORT size_t GetPolygonParameters(size_t element_ID, size_t index, size_t arrayWidth, double* vertexArray, bool *opacity)
+DLL_EXPORT bool GetPolygonParameters(size_t element_ID, int index, int * arraySize, double* vertexArray, bool *opacity)
 {
     if(!System.isValidID(element_ID))
     {
         SetOptiXLastError("invalid element ID", __FILE__, __func__);
-        return -1;
+        return false;
     }
     Surface * psurf=dynamic_cast<Surface*>((ElementBase*)element_ID);
     if(! psurf )
     {
         SetOptiXLastError("element is not an OptiX Surface", __FILE__, __func__);
-        return -1;
+        return false;
     }
-    if(index <0 || index >= psurf->m_aperture.getRegionCount())
+    if(index <0 || index >=(int) psurf->m_aperture.getRegionCount())
     {
         SetOptiXLastError("index is invalid", __FILE__, __func__);
-        return -1;
+        return false;
+    }
+    if(!vertexArray)
+    {
+        SetOptiXLastError("invalid array pointer vertexArray", __FILE__, __func__);
+        return false;
+    }
+    if(!opacity)
+    {
+        SetOptiXLastError("invalid location to return opacity", __FILE__, __func__);
+        return false;
     }
 
     Region* pReg =psurf->m_aperture.getRegion(index);
@@ -147,167 +176,187 @@ DLL_EXPORT size_t GetPolygonParameters(size_t element_ID, size_t index, size_t a
     if(className!="Polygon")
     {
         SetOptiXLastError("The region is not a Polygon", __FILE__, __func__);
-        return -1;
+        return false;
     }
-    *opacity=!pReg->isTransparent();
+    if(opacity)
+        *opacity=!pReg->isTransparent();
 
     size_t dim= dynamic_cast<Polygon*>(pReg)->getNumSides();
-    if(arrayWidth < dim)
+    if(*arraySize < (int) dim)
     {
         SetOptiXLastError("The array is too small to contain all vertices", __FILE__, __func__);
-        return -1;
+        return false;
     }
     Map<Matrix2Xd> vertices(vertexArray,2,dim);
     vertices=dynamic_cast<Polygon*>(pReg)->getVertices();
-    return dim;
-
+    *arraySize=dim;
+    return true;
 }
 
 
-DLL_EXPORT size_t AddPolygonalStop(size_t element_ID, size_t numSides, double* vertexArray, bool opacity)
+DLL_EXPORT bool AddPolygonalStop(size_t element_ID, int numSides, double* vertexArray, bool opacity, int *regionIndex)
 {
     if(!System.isValidID(element_ID))
     {
         SetOptiXLastError("invalid element ID", __FILE__, __func__);
-        return -1;
+        return false;
     }
     Surface * psurf=dynamic_cast<Surface*>((ElementBase*)element_ID);
     if(! psurf )
     {
         SetOptiXLastError("element is not an OptiX Surface", __FILE__, __func__);
-        return -1;
+        return false;
+    }
+    if(! vertexArray )
+    {
+        SetOptiXLastError("Invalid vertex array", __FILE__, __func__);
+        return false;
     }
     Map<Array2Xd> vertices(vertexArray,2, numSides);
     Polygon * ppoly=new Polygon(!opacity);
     ppoly->setVertices(vertices);
-
-    return psurf->m_aperture.addRegion(ppoly); // index of the added object
+    if(regionIndex)
+        *regionIndex=psurf->m_aperture.addRegion(ppoly); // index of the added object
+    else
+        psurf->m_aperture.addRegion(ppoly);
+    return true;
 
 }
 
-DLL_EXPORT size_t InsertPolygonalStop(size_t element_ID, size_t index, size_t numSides, double* vertexArray, bool opacity)
+DLL_EXPORT bool InsertPolygonalStop(size_t element_ID, int index, int numSides, double* vertexArray, bool opacity)
 {
     if(!System.isValidID(element_ID))
     {
         SetOptiXLastError("invalid element ID", __FILE__, __func__);
-        return -1;
+        return false;
+    }
+    if(! vertexArray )
+    {
+        SetOptiXLastError("Invalid vertex array", __FILE__, __func__);
+        return false;
     }
     Surface * psurf=dynamic_cast<Surface*>((ElementBase*)element_ID);
     if(! psurf )
     {
         SetOptiXLastError("element is not an OptiX Surface", __FILE__, __func__);
-        return -1;
+        return false;
     }
-    if(index <0 || index >= psurf->m_aperture.getRegionCount())
+    if(index <0 || index >= (int) psurf->m_aperture.getRegionCount())
             {
         SetOptiXLastError("index is invalid", __FILE__, __func__);
-        return -1;
+        return false;
     }
     Map<Array2Xd> vertices(vertexArray,2, numSides);
     Polygon * ppoly=new Polygon(!opacity);
     ppoly->setVertices(vertices);
 
-    if(! psurf->m_aperture.insertRegion(index,ppoly))
-        return -1;
-    return index;
+    return psurf->m_aperture.insertRegion(index,ppoly);
 }
 
-DLL_EXPORT size_t ReplaceStopByPolygon(size_t element_ID, size_t index, size_t numSides, double* vertexArray, bool opacity)
+DLL_EXPORT bool ReplaceStopByPolygon(size_t element_ID, int index, int numSides, double* vertexArray, bool opacity)
 {
     if(!System.isValidID(element_ID))
     {
         SetOptiXLastError("invalid element ID", __FILE__, __func__);
-        return -1;
+        return false;
+    }
+    if(! vertexArray )
+    {
+        SetOptiXLastError("Invalid vertex array", __FILE__, __func__);
+        return false;
     }
     Surface * psurf=dynamic_cast<Surface*>((ElementBase*)element_ID);
     if(! psurf )
     {
         SetOptiXLastError("element is not an OptiX Surface", __FILE__, __func__);
-        return -1;
+        return false;
     }
-    if(index <0 || index >= psurf->m_aperture.getRegionCount())
+    if(index <0 || index >= (int)psurf->m_aperture.getRegionCount())
             {
         SetOptiXLastError("index is invalid", __FILE__, __func__);
-        return -1;
+        return false;
     }
     Map<Array2Xd> vertices(vertexArray,2, numSides);
     Polygon * ppoly=new Polygon(!opacity);
     ppoly->setVertices(vertices);
 
-    if(! psurf->m_aperture.replaceRegion(index,ppoly))
-        return -1;
-    return index;  // index of the inserted object
+    return psurf->m_aperture.replaceRegion(index,ppoly);
 
 }
 
 
 
-DLL_EXPORT size_t AddRectangularStop(size_t element_ID,  double Xwidth, double Ywidth, bool opacity, double Xcenter, double Ycenter, double angle)
+DLL_EXPORT bool AddRectangularStop(size_t element_ID,  double Xwidth, double Ywidth, bool opacity,
+                                     double Xcenter, double Ycenter, double angle, int *regionIndex)
 {
     if(!System.isValidID(element_ID))
     {
         SetOptiXLastError("invalid element ID", __FILE__, __func__);
-        return -1;
+        return false;
     }
     Surface * psurf=dynamic_cast<Surface*>((ElementBase*)element_ID);
     if(! psurf )
     {
         SetOptiXLastError("element is not an OptiX Surface", __FILE__, __func__);
-        return -1;
+        return false;
     }
 //    Vector2d center;
 //    center <<  Xcenter,Ycenter;
     Polygon * prect=new Polygon(!opacity);
     prect->setRectangle(Xwidth, Ywidth, Xcenter,Ycenter);
 //    prect->move(angle,center);
-    return psurf->m_aperture.addRegion(prect); // index of the added object
+    if(regionIndex)
+        *regionIndex=psurf->m_aperture.addRegion(prect); // index of the added object
+    else
+        psurf->m_aperture.addRegion(prect);
+    return true;
 }
 
-DLL_EXPORT size_t InsertRectangularStop(size_t element_ID, size_t index, double Xwidth, double Ywidth, bool opacity, double Xcenter, double Ycenter, double angle)
+DLL_EXPORT bool InsertRectangularStop(size_t element_ID, int index, double Xwidth, double Ywidth,
+                                      bool opacity, double Xcenter, double Ycenter, double angle)
 {
     if(!System.isValidID(element_ID))
     {
         SetOptiXLastError("invalid element ID", __FILE__, __func__);
-        return -1;
+        return false;
     }
     Surface * psurf=dynamic_cast<Surface*>((ElementBase*)element_ID);
     if(! psurf )
     {
         SetOptiXLastError("element is not an OptiX Surface", __FILE__, __func__);
-        return -1;
+        return false;
     }
-    if(index <0 || index >= psurf->m_aperture.getRegionCount())
+    if(index <0 || index >= (int) psurf->m_aperture.getRegionCount())
             {
         SetOptiXLastError("index is invalid", __FILE__, __func__);
-        return -1;
+        return false;
     }
     Vector2d center;
     center <<  Xcenter,Ycenter;
     Polygon * prect=new Polygon(!opacity);
     prect->setRectangle(Xwidth, Ywidth, 0,0);
     prect->move(angle,center);
-    if(! psurf->m_aperture.insertRegion(index,prect))
-        return -1;
-    return index;
+    return psurf->m_aperture.insertRegion(index,prect);
 }
 
-DLL_EXPORT size_t ReplaceStopByRectangle(size_t element_ID, size_t index, double Xwidth, double Ywidth, bool opacity, double Xcenter, double Ycenter, double angle)
+DLL_EXPORT bool ReplaceStopByRectangle(size_t element_ID, int index, double Xwidth, double Ywidth,
+                                       bool opacity, double Xcenter, double Ycenter, double angle)
 {
     if(!System.isValidID(element_ID))
     {
         SetOptiXLastError("invalid element ID", __FILE__, __func__);
-        return -1;
+        return false;
     }
     Surface * psurf=dynamic_cast<Surface*>((ElementBase*)element_ID);
     if(! psurf )
     {
         SetOptiXLastError("element is not an OptiX Surface", __FILE__, __func__);
-        return -1;
+        return false;
     }
-    if(index <0 || index >= psurf->m_aperture.getRegionCount())
+    if(index <0 || index >=(int) psurf->m_aperture.getRegionCount())
             {
         SetOptiXLastError("index is invalid", __FILE__, __func__);
-        return -1;
+        return false;
     }
     Vector2d center;
     center <<  Xcenter,Ycenter;
@@ -315,10 +364,7 @@ DLL_EXPORT size_t ReplaceStopByRectangle(size_t element_ID, size_t index, double
     prect->setRectangle(Xwidth, Ywidth, 0,0);
     prect->move(angle,center);
 
-    if(! psurf->m_aperture.replaceRegion(index,prect))
-        return -1;
-    return index;  // index of the inserted object
-
+    return  psurf->m_aperture.replaceRegion(index,prect);
 }
 
 DLL_EXPORT size_t GetEllipseParameters(size_t element_ID, size_t index, double *Xaxis, double *Yaxis, bool *opacity, double *Xcenter, double *Ycenter, double *angle)
