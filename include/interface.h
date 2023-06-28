@@ -68,7 +68,10 @@
 *      \see see also \ref apertureAPI "C interface to Aperture defining functions"
 *
 *      \defgroup apertureAPI  C functions of the aperture API
-*      \brief  interface C Functions for aperture handling exported by the OptiX library
+*      \brief  interface C Functions for aperture handling exported by the OptiX library\n **Aperture API is currently modified, please check the status of each function**
+*        \n Mind that region indices that were previously defined as 64 bit integers (size_t) are now defined as 32 bit integers (int)
+*      \warning The prototype of Aperture API functions will be modified to return a bolean error flag as the main API functions
+*           The modified function will be signalled in the documentation with the date of modification
 *      \ingroup globalc
 *
 *      declared in apertureAPI.h
@@ -84,15 +87,15 @@
 *       - if the region Opacity=true, the optical transmittance  is 0 inside the region
 *       - if the region Opacity=false, the optical transmittance is 1. inside the region
 *   * The opacity of the intersection of all outside areas of all regions, is the opposite of the opacity of the bottom region
-*       (first define in the stack)
+*       (region 0,first defined in the stack)
 *
-*       In other words,  the first stop defines an opacity in all space.\n
+*       In other words,  the first stop (region 0) defines an opacity in all space.\n
 *       Adding an opaque Region obstructs the transmission under the region area, but does not change the outside \n
-*       while adding a transparent Region opens an aperture though all the stacked stops &nd still does not change the outside \n
-*   *   The logical stack should define reducing region sizes from bottom to top. This is intended to allow rounding of squared apertures and stops.
+*       while adding a transparent Region opens an aperture though all the stacked stops and still does not change the outside \n
+*   *   The logical stack should define region of smaller and smaller sizes from bottom to top. This is intended to allow rounding of squared apertures and stops.
 *
-*   All functions of the Aperture API are returning a size_t value. A negative return value, actually -1, means an error occurred and the GetOptiXLastError can be checked for a reason.
-*
+*    Functions of the Aperture API used to return a size_t value. A negative meaning an error occurred.
+*    The functions are presently modified to return a boolean result true for succes , false for failure, in which can GetOptiXError will give the reason
 *
 *      \defgroup reflectivityAPI  C functions of the reflectivity API
 *      \brief  interface C Functions exported by the OptiX library to handle objects defined in the C++ RefleX library
@@ -101,7 +104,7 @@
 *      declared in ReflectivityAPI.h
 *      \see see also \ref mainAPI "Main Interface C functions"
 *
-*       \defgroup NonStandard API function having a non standard return type
+*       \defgroup NonStandard API functions having a non standard return type
 *       \brief The functions recorded in this group do not return an error flag, return value not bolean or having another meaning
 *       \ingroup globalc
 *       \warning *24/06/2023*:   FUNCTION  ***GetElementID(const char* elementName)*** was removed from the interface

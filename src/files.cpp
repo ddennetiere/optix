@@ -2023,7 +2023,7 @@ int OpacityOf(string strIn)
                              cout << "rectangle region need at least 2 explicit parameters\n";
                              return false;
                         }
-                        if(AddRectangularStop(elementID, ValueOf(token[1]), ValueOf(token[2]), (opacity==1? true:false),Xcenter, Ycenter,angle))
+                        if(!AddRectangularStop(elementID, ValueOf(token[1]), ValueOf(token[2]), (opacity==1? true:false),Xcenter, Ycenter,angle,NULL))
                         {
                             cout << "  NOT ADDED to aperture definition. Reason:   " << LastError << endl;
                         }
