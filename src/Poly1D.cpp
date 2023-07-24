@@ -49,7 +49,7 @@ Poly1D::Poly1D(int degree):m_degree(degree)
 
 bool Poly1D::setParameter(string name, Parameter& param)
 {
-//    cout << "setting Poly1D parameter " << name << endl;
+   // cout << "setting Poly1D parameter " << name << endl;
     bool success=true;
     if(name.compare(0,6,"degree")==0)
     {
@@ -58,7 +58,7 @@ bool Poly1D::setParameter(string name, Parameter& param)
 
         if(param.value <0)
         {
-            SetOptiXLastError("Invalid parameter in Poly1D: degree cannot be negative",__FILE__,__func__);
+            SetOptiXLastError("Invalid parameter in Poly1D: degree cannot be negative",__FILE__,__func__, __LINE__);
             return  false;
         }
         char namebuf[32];
@@ -114,10 +114,22 @@ bool Poly1D::setParameter(string name, Parameter& param)
         else
         {
             int index;
-            if(scanf(name.c_str(),"lineDensityCoeff_%d",&index)==1)
+            if(sscanf(name.c_str(),"lineDensityCoeff_%d",&index)==1)
+            {
+                if(index <1 || index >3)
+                {
+                    char str[64];
+                    sprintf(str,"Invalid index %d in Poly1D parameter name %s, must be in [1,3]",index, name.c_str());
+                    SetOptiXLastError(str,__FILE__,__func__, __LINE__);
+                    success=false;
+                }
                 m_coeffs(index)=param.value;
+            }
             else
+            {
+                SetOptiXLastError(string("Invalid parameter in Poly1D: ")+name,__FILE__,__func__, __LINE__);
                 success=false;
+            }
         }
     }
     else

@@ -202,7 +202,7 @@ extern "C"
 
 
 
-    /** \brief Returns the parameters defining an elliptical Region
+    /** \brief **MODIFIED** *28/06/2023* - Returns the parameters defining an elliptical Region
      *
      * The Ellipse is defined by its axis half-widths, center position,  and rotation angle around its center
      * \param element_ID The ID of the optical element to query.
@@ -213,11 +213,12 @@ extern "C"
      * \param[out] Xcenter address of a variable to return the abscissa of the ellipse center
      * \param[out] Ycenter address of a variable to return the ordinate of the ellipse center
      * \param[out] angle address of a variable to return the rotation angle of the ellipse with respect to the on-axis definition
-     * \return 0 if no error; -1 if an error occurred.
+     * \return true if successful, false otherwise with reason in OptiXError
      */
-    DLL_EXPORT size_t GetEllipseParameters(size_t element_ID, size_t index, double *Xaxis, double *Yaxis, bool *opacity, double *Xcenter, double *Ycenter, double *angle);
+    DLL_EXPORT bool GetEllipseParameters(size_t element_ID, int index, double *Xaxis, double *Yaxis,
+                                           bool *opacity, double *Xcenter, double *Ycenter, double *angle);
 
-    /** \brief Adds a new elliptical Region at the end of the aperture stop list
+    /** \brief **MODIFIED** *28/06/2023* - Adds a new elliptical Region at the end of the aperture stop list
      *
      * The Ellipse is defined by its axis half-widths, center position,  and rotation angle around its center
      * \param element_ID The ID of the optical element to add
@@ -227,11 +228,13 @@ extern "C"
      * \param Xcenter abscissa of the ellipse center
      * \param Ycenter ordinate of the ellipse center
      * \param angle of rotation from the on-axis orientation
-     * \return The index of the added region; -1 if an error occurred
+     * \param regionIndex Location where, if valid (not NULL) the index of the added region will be returned
+     * \return true if successful, false otherwise with reason in OptiXError
      */
-    DLL_EXPORT size_t AddEllipticalStop(size_t element_ID, double Xaxis, double Yaxis, bool opacity, double Xcenter, double Ycenter, double angle);
+    DLL_EXPORT bool AddEllipticalStop(size_t element_ID, double Xaxis, double Yaxis, bool opacity,
+                                  double Xcenter, double Ycenter, double angle, int *regionIndex);
 
-    /** \brief Inserts a new elliptical Region at the given position in the aperture stop list
+    /** \brief **MODIFIED** *28/06/2023* - Inserts a new elliptical Region at the given position in the aperture stop list
      *
      * The Ellipse is defined by its axis half-widths, center position,  and rotation angle around its center
      * The Region which was at index position and all regions above are moved-up one place in the list
@@ -243,11 +246,12 @@ extern "C"
      * \param Xcenter abscissa of the ellipse center
      * \param Ycenter ordinate of the ellipse center
      * \param angle of rotation from the on-axis orientation
-     * \return The index of the inserted region; -1 if an error occurred
+     * \return true if successful, false otherwise with reason in OptiXError
      */
-    DLL_EXPORT size_t InsertEllipticalStop(size_t element_ID, size_t index, double Xaxis, double Yaxis, bool opacity, double Xcenter, double Ycenter, double angle);
+    DLL_EXPORT bool InsertEllipticalStop(size_t element_ID, int index, double Xaxis, double Yaxis,
+                                           bool opacity, double Xcenter, double Ycenter, double angle);
 
-    /** \brief Replace the Region at the given position in the aperture stop list by a new Ellipse
+    /** \brief **MODIFIED** *28/06/2023* - Replace the Region at the given position in the aperture stop list by a new Ellipse
      *
      * The Ellipse is defined by its axis half-widths, center position,  and rotation angle around its center
      * \param element_ID The ID of the optical element to modify
@@ -258,12 +262,13 @@ extern "C"
      * \param Xcenter abscissa of the ellipse center
      * \param Ycenter ordinate of the ellipse center
      * \param angle of rotation from the on-axis orientation
-     * \return The index of the replaced region; -1 if an error occurred
+     * \return true if successful, false otherwise with reason in OptiXError
      */
-    DLL_EXPORT size_t ReplaceStopByEllipse(size_t element_ID, size_t index, double Xaxis, double Yaxis, bool opacity, double Xcenter, double Ycenter, double angle);
+    DLL_EXPORT bool ReplaceStopByEllipse(size_t element_ID, int index, double Xaxis, double Yaxis,
+                                           bool opacity, double Xcenter, double Ycenter, double angle);
 
 
-    /** \brief Adds a new circular Region at the end of the aperture stop list
+    /** \brief **MODIFIED** *28/06/2023* - Adds a new circular Region at the end of the aperture stop list
      *
      * The circle is defined by its radius and center position
      * \param element_ID The ID of the optical element to add
@@ -271,11 +276,13 @@ extern "C"
      * \param opacity  the requested opacity value
      * \param Xcenter abscissa of the  center
      * \param Ycenter ordinate of the  center
-     * \return The index of the added region; -1 if an error occurred
+     * \param regionIndex A location where, if valid (not NULL), the index of the added region will be returned
+     * \return true if successful, false otherwise with reason in OptiXError
      */
-    DLL_EXPORT size_t AddCircularStop(size_t element_ID, double radius, bool opacity, double Xcenter, double Ycenter);
+    DLL_EXPORT bool AddCircularStop(size_t element_ID, double radius, bool opacity,
+                                      double Xcenter, double Ycenter, int *regionIndex);
 
-    /** \brief Insert a new circular Region at the given position in the aperture stop list
+    /** \brief **MODIFIED** *28/06/2023* - Insert a new circular Region at the given position in the aperture stop list
      *
      * The circle is defined by its radius and center position
      * The Region which was at index position and all regions above are moved-up one place in the list
@@ -285,11 +292,12 @@ extern "C"
      * \param opacity  the requested opacity value
      * \param Xcenter abscissa of the  center
      * \param Ycenter ordinate of the  center
-     * \return The index of the inserted region; -1 if an error occurred
+     * \return true if successful, false otherwise with reason in OptiXError
      */
-    DLL_EXPORT size_t InsertCircularStop(size_t element_ID, size_t index, double radius, bool opacity, double Xcenter, double Ycenter);
+    DLL_EXPORT bool InsertCircularStop(size_t element_ID, int index, double radius,
+                                       bool opacity, double Xcenter, double Ycenter);
 
-    /** \brief Replace the Region at the given position in the aperture stop list by a new circle
+    /** \brief **MODIFIED** *28/06/2023* - Replace the Region at the given position in the aperture stop list by a new circle
      *
      * The circle is defined by its radius and center position
      * \param element_ID The ID of the optical element to modify
@@ -298,10 +306,10 @@ extern "C"
      * \param opacity  the requested opacity value
      * \param Xcenter abscissa of the  center
      * \param Ycenter ordinate of the  center
-     * \return The index of the replaced region; -1 if an error occurred
+     * \return true if successful, false otherwise with reason in OptiXError
      */
-    DLL_EXPORT size_t ReplaceStopByCircle(size_t element_ID, size_t index, double radius, bool opacity, double Xcenter, double Ycenter);
-
+    DLL_EXPORT bool ReplaceStopByCircle(size_t element_ID, int index, double radius,
+                                    bool opacity, double Xcenter, double Ycenter);
 
 
 
