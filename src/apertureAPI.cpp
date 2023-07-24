@@ -38,7 +38,7 @@ DLL_EXPORT bool GetStopNumber(size_t element_ID, int * numStops)
 
 DLL_EXPORT bool GetStopType(size_t element_ID, size_t index, char** typeString, int* numSides)
 {
-    static char className[32];
+    static char className[32]="Unknown Class";
     if(!System.isValidID(element_ID))
     {
         SetOptiXLastError("invalid element ID", __FILE__, __func__);
@@ -55,7 +55,7 @@ DLL_EXPORT bool GetStopType(size_t element_ID, size_t index, char** typeString, 
         SetOptiXLastError("index is invalid", __FILE__, __func__);
         return false;
     }
-    if(typeString)
+    if(!typeString)
     {
         SetOptiXLastError("Invalid return location for type name", __FILE__, __func__);
         return false;
