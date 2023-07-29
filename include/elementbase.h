@@ -253,9 +253,12 @@ public:
     */
     inline virtual  bool setParameter(string name, Parameter& param)
     {
+        //std::cout << "setting elementBase parameter " << name << std::endl;
         ParamIterator it=m_parameters.find(name);
+
         if (it !=m_parameters.end())
         {
+
             param.type=it->second.type; // type, flags and group of a parameter must not be modified
             param.group=it->second.group;
             if( (param.flags&ArrayData) != (it->second.flags&ArrayData))
@@ -272,7 +275,7 @@ public:
             param.flags=it->second.flags;
             it->second=param;
             m_isaligned=false;
-//            cout << "parameter "<< name <<  " set to " << param.value << endl;
+
             return true;
         }
         else
