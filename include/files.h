@@ -25,6 +25,7 @@
 #include "types.h"
 
 
+
 //using namespace std; no longer valid in recent releases
 using std::fstream;
 using std::string;
@@ -340,7 +341,21 @@ public:
     bool get_element(size_t* pelemID=NULL);
     inline SolemioFile& operator>>(int& i) {*((fstream*)this)>>i; return *this;}/**< \brief read an integer value */
     inline SolemioFile& operator>>(uint32_t& i) {*((fstream*)this)>>i; return *this;}/**< \brief read an unsigned integer value */
-    inline SolemioFile& operator>>(double& i) {*((fstream*)this)>>i; return *this;}/**< \brief reads a double floating point value */
+    inline SolemioFile& operator>>(double& i) /**< \brief reads a double floating point value */
+    {
+        *((fstream*)this)>>i;
+        if(fail()) //try to read "nan"
+        {
+            clear();
+            string s;
+            *((fstream*)this)>>s;
+            if(s=="nan" || s=="NAN" || s=="NaN")
+                i=NAN;
+            else
+                std::cout << "error: ''" << s << "'' was found instead of double\n";
+        }
+        return *this;
+    }
     SolemioFile& operator>>(ArrayXd&  darray);/**< \brief reads an array of double of known size */
     int version;
     LinkMap iconTable, elemTable;

@@ -72,7 +72,7 @@ vector<string> SolemioElements={ "invalide",
     "Film", "Plan", "Cylindre", "Tore", "Sphere",
     "Ellipse", "Reseau holo. plan cst dev def delta cos", "Reseau VLS plan cst. dev. def delta cos",
     "Source simple", "Fente", "Source aleatoire gaussienne", "Tore deforme",
-    "Source aleatoire gaussienn a divergence linéaire", "Surface Poly",
+    "Source aleatoire gaussienne a divergence linéaire", "Surface Poly",
     "Reseau holo. plan cst dev def angles", "Reseau holo. sphere cst dev def angles",
     "Reseau VLS. sphere cst dev def angles", "film sphere", "Reseau holo VLS sphere cst. dev. def delta cos",
     "Reseau holo. tore cst dev def angles",  "Reseau holo. sphere transmission", "Copie surface",
@@ -90,7 +90,7 @@ vector<int> numParameters={
 5, // 6 ellipse.cpp // le stockage des tagged parameters n'a pas l'air utilise donc 2 au lieu de 5
 14, // 7 reseauxolplandevconst.cpp
 9, // 8 reseauxVLSplandevconst.cpp
-12, // 9 sorgentesimp.cpp
+10, // 9 sorgentesimp.cpp // cette source a 12 paramètres mais 100 seulement sont sauvés dans les fichiers de données
 3, // 10 fente.cpp
 7, // 11 sorgenterandomgaussiana.cpp
 8, // 12 torusdeformed.cpp
@@ -322,7 +322,7 @@ bool getTrimmedEnding(const string &line, size_t pos, string &token)
             unit[NOMBRETAGS], unitmin[NOMBRETAGS], unitmax[NOMBRETAGS],
             unitF[MAXFLOATING], unitminF[MAXFLOATING], unitmaxF[MAXFLOATING],
             elemParamvar[TAILLEPARAMETRES];
-
+     int unnamedCount=0;
      uint32_t  nextPol, sourcePol, pElemIcon, previousElemIcon, nextElemIcon,
                pElem, previousElem, nextElem ;
      double clipX1=0, clipX2=0, clipY1=0, clipY2=0, sigmaslopeLong, sigmaslopeTrans,
@@ -340,8 +340,13 @@ bool getTrimmedEnding(const string &line, size_t pos, string &token)
 
      if(!check_comment(" unita_unitamin_unitamax  "))
             return false;
-     for(i=0; i< NOMBRETAGS; ++i)
+     int numtags=NOMBRETAGS;
+     if(version <=20)
+        numtags=12;
+     for(i=0; i< numtags; ++i)
         *this >> unit[i] >> unitmin[i] >> unitmax[i];
+     for(i=numtags; i< NOMBRETAGS; ++i)
+        unit[i]=unitmin[i]=unitmax[i]=0;
 
      skipline(2); // va 2 lignes plus loin
      if(!check_comment(" unita_unitamin_unitamax_FLOATING  "))
@@ -351,6 +356,12 @@ bool getTrimmedEnding(const string &line, size_t pos, string &token)
 
      skipline(1); // ligne suivante
      getPrefixedString(name);
+     if(name=="")
+     {
+         char nstr[12];
+         sprintf(nstr,"unnamed_%d", unnamedCount++ );
+         name=nstr;
+     }
      cout << "element: " << name <<endl;
 
      skipline(1);
@@ -412,6 +423,7 @@ bool getTrimmedEnding(const string &line, size_t pos, string &token)
      if(!check_comment(" passo__superficie  "))
             return false;
      SolemioSurface SSurf(type);
+
      switch (type)
      {
      case FILM: //  1
@@ -422,14 +434,23 @@ bool getTrimmedEnding(const string &line, size_t pos, string &token)
             *this >>aux >> poleNormal;
             skipline(1);
             if(!check_comment(" fine_superficie  "))
+            {
+                cout << "fine_superficie not found\n";
                 return false;
+            }
             *this >> yaxeset >> yaxe;
             if( !SSurf.ReadFromFile(*this))
+            {
+                cout << "error in reading Surface data\n";
                 return false;
+            }
             if(version >19)
             {
                 // introduit une distorsion d'ordre 3 en X et 2 en Y. by2 et by4 ne sont pas utilisés et tjs nuls
                 *this >> ax2 >> ax3 >> ay2 >> by2 >> by4;
+                if(fail())
+                    cout << "surface distortion error\n";
+                cout << "surface distortion   ax2 " <<  ax2 << " ax3 " << ax3 << " ay2 " <<ay2 << "  by2 " <<by2 << " by4 " <<by4 << endl;
                 if(SSurf.option)
                     cout << "polynomial surface - conversion NOT implemented\n";
             }
@@ -736,8 +757,90 @@ bool getTrimmedEnding(const string &line, size_t pos, string &token)
         break;
      case   SORGENTESIMP:    // 9
         {
-            cout << "NOT IMPLEMENTED\n";
+ //   Paramètres définis pour SorgenteSimp
+//	 tips[0]= "largeur angulaire horizontale TOTALE du faisceau";
+//	 tips[1]= "lergeur angulaire verticale TOTALE du faisceau";
+//	 tips[2]= "nombre de points en horizontal du maillage angulaire";
+//	 tips[3]= "nombre de points en vertical du maillage angulaire";
+//	 tips[4]= "Longeur d'onde";
+//	 tips[5]= "offset angulaire y "; //n'est pas sauvé dans les fichiers de données
+//	 tips[6]= "offset angulaire z";  //n'est pas sauvé dans les fichiers de données
+//	 tips[7]  = "sigmaY donne la largeur de l'image en Y" ;
+//	 tips[8]  = "sigmaZ donne la largeur de l'image en Z" ;
+//	 tips[9]  = "nY donne le points d'echantillonage en Y" ;
+//	 tips[10] = "nZ donne le points d'echantillonage en Z" ;
+//	 tips[11] = "Se !=0 si considerano gli errori di pendenza" ;
+
+            // liste des paramètres sauvés dans l'ordre de sauvegarde sur le fichier
+            vector<string> nom={"ndiv_y", "ndiv_z", "div_y", "div_z", "lambda", "nY", "nZ", "widthY", "widthZ", "sensibilitapente"};
+
+//    setHelpstring("divX", "1/2 divergence in the horiz. plane ");  // complete la liste de infobulles de la classe Surface
+//    setHelpstring("divY", "1/2 divergence in the vertical plane");
+//    setHelpstring("nXdiv", "Number of steps in horiz. 1/2 divergence ");
+//    setHelpstring("nYdiv", "Number of steps in vertical 1/2 divergence ");
+//    setHelpstring("sizeX", "1/2 source size in the Horiz. plane ");
+//    setHelpstring("sizeY", "1/2 source size in the vertical plane");
+//    setHelpstring("nXsize", "Number of steps in horiz. 1/2 size");
+//    setHelpstring("nYsize", "Number of steps in vertical 1/2 size");
+
+            *this >> aux >> poleNormal ;
+            for(int j=0; j < numParameters[type]; ++j )
+                *this >> SSurf.param[j];
+            cout << "\nPole Normal\n" << poleNormal.transpose() <<endl;
+            cout << "Auxiliary axis \n" << aux.transpose() <<endl;
+            for(int j=0; j < numParameters[type]; ++j )
+                cout << nom[j] << " " << SSurf.param[j] <<  ((j%2) ? "\n" : "         " );
+
+            if(pelemID)
+            {
+                CreateElement("Source<XY,Grid>",name.c_str(),pelemID);
+                elem=(ElementBase*)*pelemID;
+                Parameter param;
+
+                elem->getParameter("nXdiv", param);
+                param.value=((int)SSurf.param[0])/2+1;
+                elem->setParameter("nXdiv", param);
+
+                elem->getParameter("nYdiv", param);
+                param.value=((int)SSurf.param[1])/2+1;
+                elem->setParameter("nYdiv", param);
+
+                elem->getParameter("divX", param);
+                param.value=SSurf.param[2]/2.;
+                param.bounds[0]=SSurf.varparamin[2]/2.;
+                param.bounds[1]=SSurf.varparamax[2]/2.;
+                elem->setParameter("divX", param);
+
+                elem->getParameter("divy", param);
+                param.value=SSurf.param[3]/2.;
+                param.bounds[0]=SSurf.varparamin[3]/2.;
+                param.bounds[1]=SSurf.varparamax[3]/2.;
+                elem->setParameter("divY", param);
+
+                elem->getParameter("nXsize", param);
+                param.value=((int)SSurf.param[5])/2+1;
+                elem->setParameter("nXsize", param);
+
+                elem->getParameter("nYsize", param);
+                param.value=((int)SSurf.param[6])/2+1;
+                elem->setParameter("nYsize", param);
+
+                elem->getParameter("sizeX", param);
+                param.value=SSurf.param[7]/2.;
+                param.bounds[0]=SSurf.varparamin[7]/2.;
+                param.bounds[1]=SSurf.varparamax[7]/2.;
+                elem->setParameter("sizeX", param);
+
+                elem->getParameter("sizeY", param);
+                param.value=SSurf.param[8]/2.;
+                param.bounds[0]=SSurf.varparamin[8]/2.;
+                param.bounds[1]=SSurf.varparamax[8]/2.;
+                elem->setParameter("sizeY", param);
+
+            // les offsets angulaires ne sont pas sauvés avec les données
+            }
         }
+
         break;
      case   FENTE:    // 10
         {
@@ -918,7 +1021,47 @@ bool getTrimmedEnding(const string &line, size_t pos, string &token)
         break;
      case   SORGENTERANDOMGAUSSIANADIVLINEARE:    // 13
         {
-            cout << "NOT IMPLEMENTED\n";
+
+            vector<string> nom={"nombre de points", "lambda", "sigmaY", "sigmaZ", "demi_divY",  "demi_divZ", "sensibilitapente"};
+
+            *this >> aux >> poleNormal ;
+            for(int j=0; j < numParameters[type]; ++j )
+                *this >> SSurf.param[j];
+            cout << "\nPole Normal\n" << poleNormal.transpose() <<endl;
+            cout << "Auxiliary axis \n" << aux.transpose() <<endl;
+            for(int j=0; j < numParameters[type]; ++j )
+                cout << nom[j] << " " << SSurf.param[j] <<  ((j%2) ? "\n" : "         " );
+
+            if(pelemID)
+            {
+                CreateElement("Source<UniformGaussian>",name.c_str(),pelemID);
+                elem=(ElementBase*)*pelemID;
+                Parameter param;
+                elem->getParameter("nRays", param);
+                param.value=SSurf.param[0];
+                elem->setParameter("nRays", param);
+
+                elem->getParameter("sigmaX", param);
+                param.value=SSurf.param[2];
+                param.bounds[0]=SSurf.varparamin[2];
+                param.bounds[1]=SSurf.varparamax[2];
+                elem->setParameter("sigmaX", param);
+                elem->getParameter("sigmaY", param);
+                param.value=SSurf.param[3];
+                param.bounds[0]=SSurf.varparamin[3];
+                param.bounds[1]=SSurf.varparamax[3];
+                elem->setParameter("sigmaY", param);
+                elem->getParameter("semiXdiv", param);
+                param.value=SSurf.param[4];
+                param.bounds[0]=SSurf.varparamin[4];
+                param.bounds[1]=SSurf.varparamax[4];
+                elem->setParameter("semiXdiv", param);
+                elem->getParameter("semiYdiv", param);
+                param.value=SSurf.param[5];
+                param.bounds[0]=SSurf.varparamin[5];
+                param.bounds[1]=SSurf.varparamax[5];
+                elem->setParameter("semiYdiv", param);
+            }
         }
         break;
      case   SURFPOL:    //  14

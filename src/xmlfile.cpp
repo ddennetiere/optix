@@ -246,6 +246,7 @@ bool SetXmlParameters(xmlDocPtr doc, ElementBase* elem, xmlNodePtr cur)
         {
             name = xmlNodeListGetString(doc, cur->xmlChildrenNode, 1);
             // initialise param avec les valeurs défaut du constructeur de elem
+           // cout <<"setting parameter " << name << ":";
 		    if(elem->getParameter((char*) name, param))
             {
                 att= xmlGetProp(cur, XMLSTR "val");
@@ -313,8 +314,13 @@ bool SetXmlParameters(xmlDocPtr doc, ElementBase* elem, xmlNodePtr cur)
                     param.multiplier=atof((char*)att);
                     xmlFree(att);
                 }
-
-                elem->setParameter((char*) name, param) ;
+                //    cout << "  do...  ";
+                if(!elem->setParameter((char*) name, param))
+                {
+                    cout << " ERROR\n" << OptiXError <<endl;
+                    success=false;
+                }
+                //else cout <<" OK\n";
                 if(param.flags &ArrayData)
                     elem->dumpParameter((char*) name) ;
             }
@@ -415,12 +421,14 @@ bool LoadElementsFromXml(const char * filename, ElementCollection &system)
                 dynamic_cast<Surface*>(elem)->setRecording((RecordMode)atoi((char*)srec));
                 xmlFree(srec);
             }
-
+            cout << "setting parameters :  ";
             if(! SetXmlParameters(doc, elem , curnode))
             {
                // au moins un paramètre invalide, le signaler
+               cout << "element "  << elem->getName() <<  " parameter failure\n";
                exitcode=false;
             }
+            else cout << "element "  << elem->getName() <<  " parameters set\n";
 		}
         curnode = curnode->next;
 	}

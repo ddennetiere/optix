@@ -57,6 +57,7 @@ int SphereTest();
 int QuickTest();
 int TestEllipse();
 int XmlTest();
+int TstMistral();
 
 int main()
 {
@@ -76,7 +77,11 @@ int main()
     cout << "starting \n";
 
   //  return Solemio2Xml("D:\\Documents SOLEIL\\Dossiers-Lignes\\Disco\\Solemio\\DISCOdefinitif.sole");
-   return DiscoTest();
+    return Solemio2Xml("D:\\Documents SOLEIL\\Lignes externes\\APE\\Solemio-LE\\APELE-R1 700T VREF");
+//    return Solemio2Xml("D:\\projets\\projetsCB\\OptiX\\solemio\\CASSIOPEE");
+
+  // return DiscoTest();
+  //  return TstMistral();
 
     //return XmlTest();
 
