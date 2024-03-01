@@ -209,6 +209,62 @@ int DiscoTest()
 }
 
 
+int TstMistral()
+{
+    size_t sourceID, elemID;
+    char elname[32], *errstr; // ,parmname[48]
+//    LoadSystemFromXml("..\\..\\xml\\Disco_sm.xml");
+//    sourceID=elemID=GetElementID("sourceA");
+    LoadSystemFromXml("..\\..\\xml\\Disco_mistral.xml");
+
+    cout << "system successfully loaded\n";
+
+    if(!FindElementID("Magnet",&elemID))
+    {
+        cout << "element 'Magnet' was not found\n";
+        return -1;
+    }
+    sourceID=elemID;
+    cout << "starting computation from source 'Magnet'\n";
+
+    while(elemID)
+    {
+        GetElementName(elemID, elname,32);
+        cout << elname << "  " << std::hex << elemID << std::dec <<endl;
+        GetNextElement(elemID,&elemID);
+    }
+
+//    GetParameter(sourceID,"nRays", &param);
+//    param.value=50000;
+//    SetParameter(sourceID,"nRays",param);
+
+    double lambda=1.55e-9;
+
+    if(!Align(sourceID,lambda))
+    {
+       GetOptiXError( &errstr);
+       cout << "Alignment error : " << errstr << endl;
+       return -1;
+    }
+
+    int numRays;
+    if(!Generate(sourceID,lambda, &numRays))
+    {
+       GetOptiXError( &errstr);
+       cout << "Generate error : " << errstr << endl;
+       return -1;
+    }
+
+    if(!Radiate(sourceID))
+    {
+       GetOptiXError( &errstr);
+       cout << "Radiate error : " << errstr << endl;
+       return -1;
+    }
+    return 0;
+}
+
+
 
 int Solemio2Xml(string filename)
 {

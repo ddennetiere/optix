@@ -30,6 +30,8 @@
 #include "interface.h"
 #include "wavefront.h"
 
+#include "heightmap.h"
+
 #include "Polygon.h"
 #include "Ellipse.h"
 
@@ -76,14 +78,22 @@ int main()
     cout << "true " << true << "  false " << false <<endl;
     cout << "starting \n";
 
+    HeightMap hmp;
+
+    hmp.fromModel("D:\\projets\\projetsCB\\OptiX\\surfaceDB\\SESO_ALBA-fit_1,7.crms", 0.05, 0.04, 0.001);
+    return (0);
+
   //  return Solemio2Xml("D:\\Documents SOLEIL\\Dossiers-Lignes\\Disco\\Solemio\\DISCOdefinitif.sole");
-    return Solemio2Xml("D:\\Documents SOLEIL\\Lignes externes\\APE\\Solemio-LE\\APELE-R1 700T VREF");
-//    return Solemio2Xml("D:\\projets\\projetsCB\\OptiX\\solemio\\CASSIOPEE");
+//    return Solemio2Xml("D:\\Documents SOLEIL\\Lignes externes\\APE\\Solemio-LE\\APELE-R1 700T VREF");
+//    return Solemio2Xml("D:\\Documents SOLEIL\\Lignes externes\\APE\\APE-New\\APELE-R2 1200T  Gauss-aligned");
+
+    return Solemio2Xml("D:\\projets\\projetsCB\\OptiX\\solemio\\CASSIOPEE");
 
   // return DiscoTest();
   //  return TstMistral();
 
     //return XmlTest();
+
 
 
     ArrayXd v1(7), v2(7), v3;
