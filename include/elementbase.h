@@ -112,9 +112,9 @@ void memoryDump(void* address, uint64_t size);
 *   \b Dtheta | Angle | Correction to the incidence angle theta
 *   \b Dphi | Angle | Correction to phi rotation angle
 *   \b Dpsi | Angle | Correction to in-plane rotation angle psi
-*   \b DX | Distance | X offset of the element in the surface reference frame
-*   \b DY | Distance | Y offset of the element in the surface reference frame
-*   \b DZ | Distance | Z offset of the element in the surface reference frame
+*   \b DX | Distance | X offset of the element in the absolute reference frame
+*   \b DY | Distance | Y offset of the element in the absolute reference frame
+*   \b DZ | Distance | Z offset of the element in the absolute reference frame
 *
 *   \note
 *   - <em> All parameters are in \b BasicGroup </em>
