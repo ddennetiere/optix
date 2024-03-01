@@ -21,6 +21,7 @@
  #endif // HAS_REFLEX
  #include "ApertureAPI.h"
  #include <queue>
+ #include <stdexcept>
 
  #define   TAILLEPARAMETRES 20
  #define   NOMBRETAGS 16
@@ -296,6 +297,43 @@ bool getTrimmedEnding(const string &line, size_t pos, string &token)
      cout <<"END of TCL script\n\n";
  }
 
+ double tclGetVal(const string instr)
+ {
+     char strwork[instr.length()+1];
+     strcpy(strwork,instr.c_str());
+     char *pp,*pclose, *pos= strchr(strwork,'[');
+     if(pos)
+     {
+        pclose=strchr(pos,']');
+        if(pclose)
+            *pclose='\n';
+        else
+            cout << "unmatched bracket in string " << *pos << endl;
+        pos++;
+        pp=strstr(pos,"expr");
+        if(pp)
+            pos=pp+4;
+
+    }
+    pp= strchr(pos,'\"');
+    if(pp)
+    {
+        pos=pp++;
+        pclose=strchr(pos,'\"');
+        if(pclose)
+            *pclose='\n';
+        else
+            cout << "unmatched quote in string " << *pos << endl;
+    }
+    try {
+        return stod(string(pos));
+    }
+    catch( std::invalid_argument & excpt)    {
+        cout <<" cannot convert input string to a double value \n>>" << instr << endl;
+        return NAN;
+    }
+ }
+
  SolemioFile& SolemioFile::operator>>(ArrayXd&  darray)
  {
      for(int i=0; i< darray.size(); ++i)
@@ -529,7 +567,7 @@ bool getTrimmedEnding(const string &line, size_t pos, string &token)
             cout << "Axe "  << axe.transpose() <<endl;
             cout << "Big_Radius   " << SSurf.param[0] <<  "   major_curvature " << 1./SSurf.param[0] <<endl;
             cout << "Small_Radius " << SSurf.param[1] <<  "   minor_curvature " << 1./SSurf.param[1] <<endl;
-            cout << "Slope  sigmas    tang. " << SSurf.param[1] << " sag. " << SSurf.param[2] << endl;
+            cout << "Slope  sigmas    tang. " << SSurf.param[2] << " sag. " << SSurf.param[3] << endl;
 
             if(pelemID)
             {
@@ -542,9 +580,9 @@ bool getTrimmedEnding(const string &line, size_t pos, string &token)
                 param.bounds[0]=1./SSurf.varparamax[0];
                 elem->setParameter("major_curvature", param);
                 elem->getParameter("minor_curvature", param); //="Radius inverse  "
-                param.value=1./SSurf.param[0];
-                param.bounds[1]=1./SSurf.varparamin[0];
-                param.bounds[0]=1./SSurf.varparamax[0];
+                param.value=1./SSurf.param[1];
+                param.bounds[1]=1./SSurf.varparamin[1];
+                param.bounds[0]=1./SSurf.varparamax[1];
                 elem->setParameter("minor_curvature", param);
             }
 
@@ -1337,23 +1375,22 @@ bool getTrimmedEnding(const string &line, size_t pos, string &token)
             {
                 if(tclDict["Cond"]!="")
                 {
-                    centerOnd=stod(tclDict["Cond"]);
+                    centerOnd=tclGetVal(tclDict["Cond"]);
                     sdOffset=0;
                     csdRef=true;
                 }
             }
-            cout << "ondulator referred to CSD " << csdRef <<endl;
             cout << "ondulator Cond = " << centerOnd <<endl;
             cout << "ondulator CSD in dict : " << tclDict["Csd"] <<endl;
             if(tclDict["Csd"] == "\"\""){
                     cout << "Csd read as empty string, setting to 0" << endl;
                     tclDict["Csd"] = "0";
             }
-            cout << "ondulator CSD = " << stod(tclDict["Csd"]) <<endl;
+            cout << "ondulator CSD = " << tclGetVal(tclDict["Csd"]) <<endl;
             cout<<"csd ref " <<csdRef << " csd found "<<(tclDict.find("Csd")!=tclDict.end())<< " =>condition " << ((!csdRef) && tclDict.find("Csd")!=tclDict.end())<<endl;
             if( tclDict.find("Csd")!=tclDict.end())
             {
-              sdOffset=stod(tclDict["Csd"]);
+              sdOffset=tclGetVal(tclDict["Csd"]);
               centerOnd -= sdOffset;
             }
             else
@@ -1361,14 +1398,14 @@ bool getTrimmedEnding(const string &line, size_t pos, string &token)
                 SetOptiXLastError("Unknown undulator script type",__FILE__,__func__, __LINE__);
                 return false;
             }
-            double longOnd=stod(tclDict["Lond"]);
+            double longOnd=tclGetVal(tclDict["Lond"]);
             double detuningFactor=1.;
             if(tclDict.find("Ka")!= tclDict.end())
-                detuningFactor=stod(tclDict["Ka"]);
-            double sigmaH=stod(tclDict["Sh"]);
-            double sigmaV=stod(tclDict["Sv"]);
-            double sigmaPrimH=stod(tclDict["Sph"]);
-            double sigmaPrimV=stod(tclDict["Spv"]);
+                detuningFactor=tclGetVal(tclDict["Ka"]);
+            double sigmaH=tclGetVal(tclDict["Sh"]);
+            double sigmaV=tclGetVal(tclDict["Sv"]);
+            double sigmaPrimH=tclGetVal(tclDict["Sph"]);
+            double sigmaPrimV=tclGetVal(tclDict["Spv"]);
             cout << "dist SD to ond= " << centerOnd << "  Long ond= " << longOnd <<endl;
             cout << "sigmas H,V " << sigmaH << " " << sigmaV <<endl;
             cout << "sigmaPrims H,V " << sigmaPrimH << " " << sigmaPrimV <<endl;

@@ -9,7 +9,9 @@
 *   \author             François Polack  <francois.polack@synchroton-soleil.fr>
 *   \date               Creation: 2021-05-04
 *   \date               Last update: 2021-05-04
- ***************************************************************************/#include <libxml/xmlmemory.h>
+ ***************************************************************************/
+
+ #include <libxml/xmlmemory.h>
 
 #include <cstring>
 
