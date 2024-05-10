@@ -426,4 +426,15 @@ typedef struct __PSFparameters
 #endif
 }PSFparameters;
 
+/** \brief structure defining the statistical parameters of a fractal surface
+ */
+typedef struct __FractalParameters
+{
+    int32_t nx;     /**< \brief the number of fractal segments of the X PSD ( >=1)*/
+    double * exponent_x;    /**< \brief the list of fractal exponents (in principle negative) of the X PSD model one per segment (size  >= nx)*/;
+    double * frequency_x;   /**< \brief the transition frequencies between the X fractal segments i \f$ in \ meter^{-1} \f$ . Unused if nx=1 (size > nx-1) */
+    int32_t ny;     /**< \brief the number of fractal segments of the Y PSD ( >=1)*/
+    double * exponent_y;    /**< \brief the list of fractal exponents of the Y PSD model one per segment (size  >= ny)*/;
+    double * frequency_y;   /**< \brief the transition frequencies between the Y fractal segments i \f$ in \ meter^{-1} \f$ . Unused if ny=1 (size > nx-1) */
+}FractalParameters;
 #endif // CTYPES_H_INCLUDED
