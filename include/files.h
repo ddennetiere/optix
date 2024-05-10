@@ -341,7 +341,8 @@ public:
     bool get_element(size_t* pelemID=NULL);
     inline SolemioFile& operator>>(int& i) {*((fstream*)this)>>i; return *this;}/**< \brief read an integer value */
     inline SolemioFile& operator>>(uint32_t& i) {*((fstream*)this)>>i; return *this;}/**< \brief read an unsigned integer value */
-    inline SolemioFile& operator>>(double& i) /**< \brief reads a double floating point value */
+    /** \brief reads a double floating point value */
+    inline SolemioFile& operator>>(double& i)
     {
         *((fstream*)this)>>i;
         if(fail()) //try to read "nan"

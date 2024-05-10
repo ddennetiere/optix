@@ -503,16 +503,21 @@ MatrixXd Surface::getWavefontExpansion(double distance, Index Nx, Index Ny, Arra
 
 void Surface::computeOPD(double distance, Index Nx, Index Ny)
 {
-    /**< \todo Tester dans cette fonction si les calculs actuellement stockés sont utilisables ou non */
+    /**< \todo  Tester dans cette fonction si les rayons actuellement stockés sont utilisables ou non */
+
+    /**< \todo Dans le cas où les surfaces portent des perturbations. Le fit sur legendre ne rend pas les perturbations "haute et moyenne"  fréquence.
+
+        Peut-on recupérer les fluctuation de direction et en inférer une "rugosité" ?*/
 
     MatrixXd LegendreCoefs;
     vector<RayType> impacts;
     getImpacts(impacts,AlignedLocalFrame);
 
     if(impacts.size()< (size_t) 2*Nx*Ny)
-        throw std::runtime_error("The impact number is to small to compute a valid OPD");
+        throw std::runtime_error("The impact number is too small to compute a valid OPD");
 
     VectorType referencePoint= VectorType::UnitZ()*distance;
+    // the slopeMat arrays contains the data required for LegendreIntegrateteSlopes namely transverse X & Y aberration, then  X & Y aperture angles
     ArrayX4d slopeMat(impacts.size(),4 );  // impacts ne contient que les rayons 'alive'
 
     vector<RayType>::iterator pRay;
@@ -528,7 +533,7 @@ void Surface::computeOPD(double distance, Index Nx, Index Ny)
         slopeMat(ip,0)= (delta(0)*pRay->direction()(2)- delta(2)*pRay->direction()(0) ) /sqrtl(1.L-pRay->direction()(1)*pRay->direction()(1)); // l'aberration transversale
         slopeMat(ip,1)= (delta(1)*pRay->direction()(2)- delta(2)*pRay->direction()(1) ) /sqrtl(1.L-pRay->direction()(0)*pRay->direction()(0));
         slopeMat.block<1,2>(ip,2)= pRay->direction().segment(0,2).cast<double>(); // la direction U
-         m_amplitudes(ip,0)=pRay->m_amplitude_S;
+        m_amplitudes(ip,0)=pRay->m_amplitude_S;
         m_amplitudes(ip,1)=pRay->m_amplitude_P;
     }
     m_XYbounds.row(0)=slopeMat.block(0,2,ip,2).colwise().minCoeff(); // ici il est permis de faire min max sur les valeurs passées dans XY bounds
@@ -541,6 +546,7 @@ void Surface::computeOPD(double distance, Index Nx, Index Ny)
     // jusqu'ici pas de différence avec la fonction  si ce n'est la sauvegarde des amplitudes complexe dans m_amplitudes
 
     m_OPDdata.leftCols(2)=slopeMat.rightCols(2);
+    // This is the "low frequency" component o the OPD perturbation. What about the residuals ? how can they be injected in the the computation ?
     m_OPDdata.col(2)=Legendre2DInterpolate(slopeMat.col(2), slopeMat.col(3), m_XYbounds, LegendreCoefs);
     m_NxOPD=Nx;
     m_NyOPD=Ny;
@@ -615,7 +621,7 @@ void Surface::computePSF(ndArray<std::complex<double>,4> &PSF, Array2d &pixelSiz
 
     nfft_plan plan;
 
-    nfft_init_2d(&plan,dims[1],dims[0],m_OPDdata.rows());
+    nfft_init_2d(&plan,dims[1],dims[0],m_OPDdata.rows()); // m_OPDdata.rows() is the number of contributing rays
 
     Array2d unorm, ucenter;
     unorm = (m_XYbounds.row(1)-m_XYbounds.row(0))*oversampling;
@@ -630,6 +636,7 @@ void Surface::computePSF(ndArray<std::complex<double>,4> &PSF, Array2d &pixelSiz
     complex<double> i2pi_lambda(0,-2.*M_PI/lambda);/**< \todo  Extensive checking of the phase shifts signs. \n The sign of phase shifts must be consistent throughout, with the convention that wave propagates
                 *   in the form \f$ e^{i k z} \f$  */
 
+    //Assign the angular directions of contributing rays to  plan.x
     Map<Array2Xd> Ux(plan.x,2,m_OPDdata.rows()); // il faut normaliser et transposer les 2 premières colonnes de m_OPDdata
     Ux=(m_OPDdata.leftCols(2).transpose().colwise()-ucenter).colwise()/unorm;
 
@@ -644,7 +651,7 @@ void Surface::computePSF(ndArray<std::complex<double>,4> &PSF, Array2d &pixelSiz
         Map<ArrayXXcd> Tf((complex<double>*)plan.f_hat,dims[1],dims[0] );
         Map<ArrayXXcd> Spsf(pSdat,dims[0], dims[1]);
         Map<ArrayXXcd> Ppsf(pPdat,dims[0], dims[1]);
-
+        // ADD the quadratic phase correction corresponding to the distance to the reference point
         ArrayXd correctOPD=m_OPDdata.col(2) +
                 m_OPDdata.leftCols(2).matrix().rowwise().squaredNorm().array()*distOffset(ioffset)/2.;  // approximation faible ouerture
 

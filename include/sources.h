@@ -102,6 +102,9 @@ public:
  *   \b sigmaYdiv | Angle | RMS source divergence in Y direction
  *  \note
  *  All parameters are defined and stored as doubles. nRays will be rounded to the nearest integer
+ *  \warning
+ *  The gaussian generator uses  \b std::random_device \b as a source of random number.
+ *  It might not be available on non Windows system and could be replaced by \b default_random_engine \b
  */
 class GaussianSource: public virtual SourceBase
 {
@@ -138,6 +141,9 @@ public:
  *   \b waistY | Distance | distance of Y waist to the "source plane"
  *  \note
  *  All parameters are defined and store as double. nRays will be rounded to the nearest integer
+ *  \warning
+ *  The gaussian generator uses  \b std::random_device \b as a source of random number.
+ *  It might not be available on non Windows system and could be replaced by \b default_random_engine \b
  */
 class AstigmaticGaussianSource: public virtual SourceBase
 {
@@ -174,7 +180,10 @@ public:
  *  This function has maxima at \f$ \pm \: {[ \pi \: ( \sqrt {\frac {2} {\pi} + 1 } - 1) \: ]}^{\frac {1}{2}}  \sigma' \approx \pm \: 0.94 \:\sigma' \f$
  *  \note
  *  All parameters are defined and stored as doubles. nRays will be rounded to the nearest integer
- */
+ *  \warning
+ *  The gaussian generator uses  \b std::random_device \b as a source of random number.
+ *  It might not be available on non Windows system and could be replaced by \b default_random_engine \b
+  */
 class BMtypeGaussianSource: public virtual SourceBase
 {
 public:
@@ -253,6 +262,9 @@ protected:
  *
  *  \note
  *  All parameters are defined and stored as doubles. nRays will be rounded to the nearest integer
+ *  \warning
+ *  The gaussian generator uses  \b std::random_device \b as a source of random number.
+ *  It might not be available on non Windows system and could be replaced by \b default_random_engine \b
  */
 class UniformGaussianSource: public virtual SourceBase
 {
