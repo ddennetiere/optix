@@ -22,7 +22,7 @@
 #include <string>
 
 using std::string;
-using  std::runtime_error;
+using  std::runtime_error, std::logic_error;
 
 /** \brief Exception notifying he occurence of an error in ray propagation
  */
@@ -85,6 +85,24 @@ public:
     virtual string  what(){return what_str;}
     string what_str;
 };
+
+
+/** \brief Non fatal error emitted whenever a parameter is not in the expected range
+ */
+class ParameterWarning:public logic_error
+{
+public:
+    ParameterWarning(string what ="", string file="", string callingFunction="", int line=-1 ):logic_error("ParameterWarning")
+    {
+        char str[256];
+        sprintf(str, "  %s  %s line %d",  file.c_str(), callingFunction.c_str(), line);
+        what_str=what.empty()?string("ParameterWarning in"):what + str;
+    }
+    virtual ~ParameterWarning() {}
+    virtual string  what(){return what_str;}
+    string what_str;
+};
+
 
 
 /** \brief Tagged parameter setting or recovering error
