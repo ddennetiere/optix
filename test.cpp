@@ -31,6 +31,7 @@
 #include "wavefront.h"
 
 #include "heightmap.h"
+#include "fractalsurface.h"
 
 #include "Polygon.h"
 #include "Ellipse.h"
@@ -77,6 +78,38 @@ int main()
     cout << "size of int " << sizeof(int) << endl;
     cout << "true " << true << "  false " << false <<endl;
     cout << "starting \n";
+
+    FractalSurface fracSurf;
+
+   // int n=6145;
+
+   // cout << n << " span=" << fracSurf.span(n) << endl;
+
+//    double fracFrequencies[]={200.};
+//    double fracExponents[]={-1., -1.5 };
+//    VectorXd Filter=fracSurf.frequencyFilter(45,0.001,2,fracExponents,fracFrequencies);
+//    cout << endl << Filter.transpose() << endl;
+//    fstream fracfile("fractalout.dat", ios::out | ios::binary);
+//    if(!fracfile.is_open())
+//    {
+//        SetOptiXLastError("Can't open the file for writing the fractal filter",__FILE__,__func__);
+//        return -1;
+//    }
+//
+    double xexp[]={-1.5,-2.};
+    double yexp[]={-1.};
+    double xfl[]={100.};
+    cout << "initiating surface\n";
+
+    fracSurf.setXYfractalParams("X",2,xexp,xfl);
+    cout << "fractX set\n";
+    fracSurf.setXYfractalParams("Y",1,yexp,NULL);
+
+    cout << "fracta parameters set\n";
+    fracSurf.generate(500,0.001, 200, 2e-4);
+
+    fracSurf.toFile("mapTest.bin");
+    return 0;
 
     HeightMap hmp;
 
