@@ -11,6 +11,7 @@
 *   \date               Last update: 2024-04-29
  ***************************************************************************/#include "fractalsurface.h"
 #include "fractalsurface.h"
+#include "wavefront.h"
 #include <random>
 #include <cstring>
 #define NFFT_PRECISION_DOUBLE
@@ -23,6 +24,15 @@ using namespace Eigen;
 const std::vector<int> FractalSurface::prim23={64,72,81,96,108,128,144,162,192,216,243,256,
              288,324,384,432,486,512,576,648,729,768,864,972,1024,1152,1296,1458,1536,1728,1944,2048,
              2187,2304,2592,2916,3072,3456,3888,4096,4374,4608,5184,5832,6144,6561,6912,7776,8192};
+
+/** \brief helper functor for masking arrays
+ *
+ *  Note that Eigen requires (for vectorization sake) that mask and value have the same type
+ */
+template<typename Scalar_>  struct maskValid
+{
+  const Scalar_ operator()(const Scalar_& value, const Scalar_& mask) const { return mask==0 ? 0 : value; }
+};
 
 
 FractalSurface::FractalSurface()
@@ -51,10 +61,10 @@ void FractalSurface::setXYfractalParams(const char* axe, const int N, const doub
     double *XYexp=0,  *XYfreq=0;
     if(stricmp(axe, "X")==0)
     {
-        std::cout << "Setting X fractal parameters\n";
+//        std::cout << "Setting X fractal parameters\n";
         if(fracParms.nx != N)
         {
-            std::cout << "updating X size\n";
+//            std::cout << "updating X size\n";
             delete [] fracParms.exponent_x;
             fracParms.exponent_x = new double[N];
             if(fracParms.frequency_x)
@@ -65,11 +75,11 @@ void FractalSurface::setXYfractalParams(const char* axe, const int N, const doub
         XYexp=fracParms.exponent_x;
         XYfreq=fracParms.frequency_x;
 
-        printf("Xfrequencies:  %p %p \n",XYfreq, fracParms.frequency_x);
+//        printf("Xfrequencies:  %p %p \n",XYfreq, fracParms.frequency_x);
     }
     else if(stricmp(axe, "Y")==0)
     {
-        std::cout << "Setting Y fractal parameters\n";
+//        std::cout << "Setting Y fractal parameters\n";
         if(fracParms.ny != N)
         {
             delete [] fracParms.exponent_y;
@@ -82,18 +92,18 @@ void FractalSurface::setXYfractalParams(const char* axe, const int N, const doub
         XYexp=fracParms.exponent_y;
         XYfreq=fracParms.frequency_y;
 
-        printf("Xfrequencies:  %p %p \n",XYfreq, fracParms.frequency_y);
+//        printf("Yfrequencies:  %p %p \n",XYfreq, fracParms.frequency_y);
     }
     else
         throw ParameterException(string("Invalid axis name : ") +  axe + ", in " , __FILE__, __func__, __LINE__);
 
     if (N>1)
     {
-        std::cout << frequencies[0] << std::endl;
-        std::cout << XYfreq[0] << " \n ";
-        std::cout << "copying " << N-1 << "frequencies\n";
+//        std::cout << frequencies[0] << std::endl;
+//        std::cout << XYfreq[0] << " \n ";
+//        std::cout << "copying " << N-1 << "frequencies\n";
         memcpy(XYfreq, frequencies, sizeof(double)*(N-1));
-        std::cout << XYfreq[0] << std::endl;
+//        std::cout << XYfreq[0] << std::endl;
     }
     bool wflag=false;
     for(int i=0; i < N; ++i)
@@ -112,7 +122,7 @@ void FractalSurface::generate(int32_t xSize, double xStep, int32_t ySize, double
 
     int ftNx=span(xSize+10);  // add some points to avoid the periodisation of FT
     int ftNy=span(ySize+10);
-    std::cout << "preparing a fourier transform of size " << ftNx << " x " << ftNy << std::endl;
+//    std::cout << "preparing a fourier transform of size " << ftNx << " x " << ftNy << std::endl;
 
     VectorXd xFilter=frequencyFilter(ftNx, xStep, fracParms.nx, fracParms.exponent_x, fracParms.frequency_x);
     RowVectorXd yFilter= frequencyFilter(ftNy, yStep, fracParms.ny, fracParms.exponent_y, fracParms.frequency_y);
@@ -168,6 +178,20 @@ void FractalSurface::generate(int32_t xSize, double xStep, int32_t ySize, double
 }
 
 
+ArrayXXd FractalSurface::detrend(const Ref<ArrayXXd>& mask)
+{
+    int Nx=mask.rows(), Ny=mask.cols();
+    if (Nx >= m_surface.rows() || Ny >= m_surface.cols() )
+        throw ParameterException(string("Bad dimensions: the internal m_surface size doesn't allow the requested Legendre fit, in "),
+                                        __FILE__, __func__, __LINE__);
+    ArrayXXd Lcoeffs=LegendreFitGrid(Nx,Ny,m_surface);
+    ArrayXXd maskedC=Lcoeffs.binaryExpr(mask, maskValid<double>());
+    m_surface-= LegendreSurfaceGrid(m_surface.rows(), m_surface.cols(), maskedC);
+    //return LegendreFitGrid(Nx,Ny,m_surface); // only for test otherwise it would be better to subtract the masked values
+    return Lcoeffs-maskedC;
+}
+
+
 VectorXd FractalSurface::frequencyFilter(int N, double dstep, int nseg, double * exponent, double *ftrans)
 {
     int l2=N/2;
@@ -198,10 +222,10 @@ VectorXd FractalSurface::frequencyFilter(int N, double dstep, int nseg, double *
             fmax=N*dstep*ftrans[iseg];
             if(fmax < n2)
                 nmax=int(fmax);
-            std::cout << iseg << "  " << fmax ;
+//            std::cout << iseg << "  " << fmax ;
         }
 
-        std::cout << "  " << nmax << std::endl;
+//        std::cout << "  " << nmax << std::endl;
         while (n <=nmax )
         {
             ++n, ++ppos, --pneg;
@@ -210,7 +234,7 @@ VectorXd FractalSurface::frequencyFilter(int N, double dstep, int nseg, double *
         }
         if(iseg < nseg-1)
             coeff*=pow(fmax, exponent[iseg]-exponent[iseg+1]);
-        std::cout << iseg << "  " << coeff << std::endl;
+//        std::cout << iseg << "  " << coeff << std::endl;
     }
     if(l2!=n2)
         filter[0]=coeff*pow(l2,exponent[nseg-1]);

@@ -55,9 +55,30 @@ ArrayXXd Legendre(int Norder, const Ref<ArrayXd>& Xpos, ArrayXXd& derivative );
  * \return The Nx x Ny (row,col) array of coefficients of Legendre polynomials describing the wavefront error to the given degrees and best fitting  the transverse aberration data
  */
 ArrayXXd LegendreIntegrateSlopes(int Nx, int Ny, const Ref<ArrayX4d>& WFdata,
-                                                   const Ref<Array2d>& Xaperture, const Ref<Array2d>& Yaperture);
+                                const Ref<Array2d>& Xaperture, const Ref<Array2d>& Yaperture);
 
-/** \brief Computes the value of a function interpolated by bidimensionnal Legendre polynomial on a rectangular grid.
+/** \brief Computes the interpolation of a surface by 2D legendre polynomials on the given aperture from the surface heights (Z) at a set of aperture points (X,Y)
+ * \ingroup GlobalCpp
+ * \param Nx number of polynomials of the X basis (degree <Nx)
+ * \param Ny number of polynomials of the Y basis (degree <Ny)
+ * \param XYZdata surface sample coordinates (in order X, Y, Z)
+ * \param Xaperture Bounds (Min, Max) of X aperture angle for Legendre definition along X
+ * \param Yaperture Bounds of Y aperture angle for Legendre definition along Y
+ * \return The Nx x Ny (row,col) array of coefficients of Legendre polynomials describing the wavefront error to the given degrees and best fitting  the transverse aberration data
+ */
+ArrayXXd LegendreFitXYZ(int Nx, int Ny, const Ref<ArrayX3d>& XYZdata,
+                                const Ref<Array2d>& Xaperture, const Ref<Array2d>& Yaperture);
+
+/** \brief Computes the interpolation of a surface by 2D legendre polynomials which is tabulated with equal spacing between -1 &  1 in both directions
+ * \ingroup GlobalCpp
+ * \param Nx number of polynomials of the X basis (degree <Nx)
+ * \param Ny number of polynomials of the Y basis (degree <Ny)
+ * \param griddata Array reference to the gridded data
+ * \return The Nx x Ny (row,col) array of coefficients of Legendre polynomials describing the wavefront error to the given degrees and best fitting  the transverse aberration data
+ */
+ArrayXXd LegendreFitGrid(int Nx, int Ny, const Ref<ArrayXXd>& griddata);
+
+/** \brief Computes the value of a function interpolated by bidimensionnal Legendre polynomial on a rectangular grid inside the [-1,1] interval of definition.
  * \ingroup GlobalCpp
  * \param Xpos Array of the computation abscissas
  * \param Ypos Array of the computation ordinates
@@ -67,10 +88,21 @@ ArrayXXd LegendreIntegrateSlopes(int Nx, int Ny, const Ref<ArrayX4d>& WFdata,
  */
 ArrayXXd LegendreSurface(const Ref<ArrayXd>& Xpos, const Ref<ArrayXd>& Ypos, const Ref<Array22d>& bounds, const Ref<MatrixXd>& legendreCoefs );
 
-/** \brief Computes the value of a function interpolated by bidimensionnal Legendre polynomial on a list of points given by their coordinate pair
+
+/** \brief Computes the value of a function interpolated by bidimensionnal Legendre polynomial on a rectangular grid matching the [-1,1] interval of definition.
+ *
+ * \param Nx Number of grid points in X
+ * \param Ny Number of grid points in Y
+ * \param legendreCoefs const Ref<MatrixXd>&
+ * \return A 2D Array with the surface interpolated values.
+ *
+ */
+ArrayXXd LegendreSurfaceGrid(int Nx, int Ny, const Ref<MatrixXd>& legendreCoefs );
+
+/** \brief Computes the value of a function interpolated by bidimensionnal Legendre polynomial <b> on a list of points </b> given by their coordinate pair
  * \ingroup GlobalCpp
  *
- * All coordinate points must fall inside the bounds. The Xpos and Ypos arrays must have the same size.
+ * All coordinate points must fall inside the bounds. The Xpos and Ypos arrays must have the same s ize.
  * \param Xpos reference to a linear array containing the X coordinates of the points
  * \param Ypos reference to a linear array containing the Y coordinates of the points
  * \param bounds const Array of the X and Y bounds on which the Legendre are computed. All (Xpos, Ypos) points must fall inside this rectangle
@@ -78,5 +110,15 @@ ArrayXXd LegendreSurface(const Ref<ArrayXd>& Xpos, const Ref<ArrayXd>& Ypos, con
  * \return A linear Array with the interpolated function at the point of coordinate pair (Xpos(i), Ypos(i))
  */
 ArrayXd Legendre2DInterpolate(const Ref<ArrayXd>& Xpos, const Ref<ArrayXd>& Ypos, const Ref<Array22d>& bounds, const Ref<MatrixXd>& legendreCoefs );
+
+/** \brief Normalize the array of legendre coefficient to return the standard deviation on the [-1, 1] interval
+ *
+ * \param coefs 2D array of legendre coefficient
+ * \return A 2D array of same size containing the sigma values
+ *
+ */
+ArrayXXd  LegendreNormalize(const Ref<ArrayXXd>& coefs);
+
+
 
 #endif // WAVEFRONT_H_INCLUDED

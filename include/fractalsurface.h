@@ -67,6 +67,16 @@ class FractalSurface
          */
         void generate(int32_t xSize, double xStep, int32_t ySize, double yStep);
 
+        Eigen::ArrayXXd detrend(const Eigen::Ref<Eigen::ArrayXXd>& mask);
+
+        /** \brief Dump the 2D array m_surface to a binary file
+         *
+         *  The file contains first the dimensions of the array (Nx, Ny) as two int32_t  integers,
+         *  immediately followed by the array values in doubles, the X dimension varying the fastest
+         * \param filename Name or path of the file. If the file exists, it will be overwrited
+         *  \throw an instance of runtime error if the file is inaccessible in write mode
+         *
+         */
         void toFile(string filename)
         {
             std::cout << m_surface.rows() << " x " << m_surface.cols() << std::endl;
