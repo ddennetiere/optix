@@ -52,21 +52,39 @@ class ApertureStop
          */
         double getTransmissionAt(const Ref<Vector2d> &point);
 
-        /** \brief Adds a region to the region list and return its index
+        /** \brief Adds a region to the top of the region list and return its index
          *
          * \param pRegion a pointer to the Region object to be added to the list
          * \return the index of the added element in the region list, equal to new size -1
          */
         size_t addRegion(Region* pRegion);
 
-        bool insertRegion(size_t index, Region*pRegion);
+        /** \brief  insert a region at a given position in of the region list
+         *
+         * \param index the index that the new region should have after insertion
+         * \param pRegion a pointer to the Region object to be inserted into the list
+         * \return true if successful; false if index is out of range
+         */
+        bool insertRegion(size_t index, Region *pRegion);
 
       //  size_t addRegion(string regionType, bool transparent=true);
 
+        /** \brief Define the transparency of the inner part of the specified region
+         *
+         * \param index The index of the regien whose transparency will be modified
+         * \param transparent transparency value: true if the inner part of the region is transparent, false on the reverse
+         * \return true if successful; false if index is out of range
+         */
         bool setRegionTransparency(size_t index, bool transparent);
 
 
-        bool replaceRegion(size_t index, Region*pRegion);
+        /** \brief Replace the region at a given position in of the region list by a new one
+         *
+         * \param index the index of the region to be replaced
+         * \param pRegion a pointer to the new Region object to be inserted in the list
+         * \return true if successful; false if index is out of range
+         */
+        bool replaceRegion(size_t index, Region* pRegion);
 
         /** \brief Remove the region from the region list
          *
