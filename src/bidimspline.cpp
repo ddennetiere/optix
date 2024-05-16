@@ -38,6 +38,63 @@ bool SplineSolve(SparseMatrix<double,ColMajor> &A,const Ref<VectorXd> &B, Ref<Ve
 
 }
 
+int BidimSpline::basisFunctions(Axis axe, double u, MatrixXd& C, bool deriv)
+{
+    const int& K=degree;
+    int K1=K+1 ; // ordre de la fonction +1   ie dimension des vecteurs et matrices
+    int K1s=K1*K1;
+    ArrayXd &mu=(axe==X) ? muX :muY;
+    int i=span(axe,u),j,n,p;
+
+    double * N= new double[K1s];
+    double *psrc, *pdest, *pc, *pnm;
+    double v0,q0;
+
+    memset((void*)N, 0, K1s*sizeof(double));
+    N[0]=1.;
+
+    if(deriv)
+        C.setZero(K1,2); // C est column major on veut des coefs consécutifs pour chaque function
+    else
+       C.setZero(K1,1);
+
+    for (p=1, pnm=N ; p<K1; p++, pnm+=K1)
+    {
+        for (n=p ; n>0; n--)
+        {
+            j=i+n;
+            v0=mu[j]-mu[j-p];
+            if(!(v0==0.))
+            {
+                pdest=psrc=pnm+n-1;
+                pdest+=K1;
+
+                *(pdest++)+=(mu[j]-u)/v0 * *psrc;
+                *pdest += (u-mu[j-p])/v0 * *psrc;
+
+                if (deriv && p==K ) // assignation de la dérivée dans C
+                {
+                    q0=p/v0;
+
+                    pc=C.data()+K1+n;
+                    *(pc--) +=q0 * *psrc;
+                    *pc -=q0 * *psrc;
+                }
+            }
+        }
+    }
+
+//	Assignation de la fonction dans C
+    for(psrc=N+K*K1,pc=C.data(), n=K1; n>0 ; psrc++,pc++,n-- )
+        *pc=*psrc;
+    delete[] N;
+
+
+    return i;
+}
+
+
+
 ArrayXXd BidimSpline::basisFunctions(Axis axe, double u, Index* interval, bool deriv)
 {
     const int& K=degree;
@@ -93,6 +150,26 @@ ArrayXXd BidimSpline::basisFunctions(Axis axe, double u, Index* interval, bool d
     return C;
 }
 
+
+MatrixXd BidimSpline::interpolator(Axis axe, const Ref< ArrayXd> & uval, MatrixXd & deriv)
+{
+    Index colsize=axe ==X? m_ControlValues.rows() : m_ControlValues.cols();
+    if( colsize < 4)
+        throw runtime_error("bidimspline initialization error");
+    Index K1= degree+1;
+
+    MatrixXd value=MatrixXd::Zero(colsize, uval.size());
+    deriv.setZero(colsize, uval.size());
+    MatrixXd C;
+
+    for(Index i=0; i < uval.size(); ++i)
+    {
+        Index p=basisFunctions(axe,uval(i), C, true)-degree;
+        value.col(i).segment(p,K1)=C.col(0);
+        deriv.col(i).segment(p,K1)=C.col(1);
+    }
+    return value;
+}
 
 int   BidimSpline::basisFunctionDerivatives(Axis axe, double u, Ref<ArrayXXd> C)
 {
@@ -150,6 +227,7 @@ int   BidimSpline::basisFunctionDerivatives(Axis axe, double u, Ref<ArrayXXd> C)
     delete[] N;
     return i;
 }
+
 
 
 
@@ -216,12 +294,12 @@ void BidimSpline::buildControlPoints(const Ref<ArrayXd> &Xvalues, const Ref<Arra
          D(i)=1/(4.-D(i-1));
          Phi.row(i)=D(i)*(6.*input.row(i)-Phi.row(i-1));
      }
-     double cc=7.-D(N-2);
+     double cc=7.-2*D(N-2);
      D(N-1)=3./cc;
      Phi.row(N-1)=2./cc*(6.*input.row(N-1)-Phi.row(N-2));
 
-     C.row(N)=(Phi.row(N-1)-2.*input.row(N))/(3.+D(N-1));
-     C.row(N-1)=2.*input.row(N)+3.*C.row(N);
+     C.row(N)=(Phi.row(N-1)+2.*input.row(N))/(3.+D(N-1));
+     C.row(N-1)=3.*C.row(N)-2.*input.row(N);
 
      for(int i=N-2; i >=0; --i)
         C.row(i)=Phi.row(i)-D(i)*C.row(i+1);
@@ -254,13 +332,13 @@ void BidimSpline::buildControlPoints(const Ref<ArrayXd> &Xvalues, const Ref<Arra
          D(i)=1/(4.-D(i-1));
          Phi.col(i)=D(i)*(6.*input.col(i)-Phi.col(i-1));
      }
-     double cc=7.-D(N-2);
+     double cc=7.-2*D(N-2);
      D(N-1)=3./cc;
      Phi.col(N-1)=2./cc*(6.*input.col(N-1)-Phi.col(N-2));
 
-     C.row(N)=(Phi.col(N-1)-2.*input.col(N))/(3.+D(N-1));
+     C.row(N)=(Phi.col(N-1)+2.*input.col(N))/(3.+D(N-1));
     // beware Eigen doen't like algebra on 1D arrays of different orientation
-     C.row(N-1)=2.*input.col(N).transpose()+3.*C.row(N);
+     C.row(N-1)=3.*C.row(N)-2.*input.col(N).transpose();
 
 
      for(int i=N-2; i >=0; --i)

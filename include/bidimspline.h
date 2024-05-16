@@ -87,12 +87,25 @@ class BidimSpline
          *
          * \param[in] axe the axe X or Y along which the splineFunction values are computed
          * \param[in] u  The control value
-         * \param[out] C BasicSplineType& Vector or matrix reference for returning the computed values
-         *    \n   on return \b C  is  set either to a column vector  containing the non zero basis function values if deriv=false
-         *    \n  either to a matrix of dimension \p [degree+1,2] containing also the 1st derivative values.
+         * \param[out] C  Matrix reference for returning the computed values
+         *    \n   on return \b C  is  set either to a one column Matrix  containing the non zero basis function values if deriv=false
+         *    \n  either to a Matrix of dimension \p [degree+1,2] containing fonction values in col(0) andthe 1st derivative in col(1)
+         * \warning this parameter must be defined as a Matrix<Dynamic,Dynamic> in all cases to satisfy Eigen dimension checks
          * \param[in] deriv  if true, the 1st derivative is computed, if false only the fonction values are returned
-         * \return int the index of the interval of the knot vector where the control value \p u  is falling
+         * \return  the index of the interval of the knot vector where the control value \p u  is falling
          *
+         */
+        int basisFunctions(Axis axe, double u, MatrixXd & C, bool deriv);
+
+        /** \brief Alternate method for getting the values of the basis functions and and their 1st derivatives
+         *
+         * This function directly returns the vector or matrix of results  and the intervalin which u was found is return in interval
+         * \param axe the axe X or Y along which the splineFunction values are computed
+         * \param u The control value
+         * \param interval [out] Interval into which u was found
+         * \param deriv flag to request or cancel the return of 1s derivatives
+         * \return An araay of either 1 or two columns
+         * \warning This function seems not as practical as the other over overload and could be removed in future
          */
         ArrayXXd basisFunctions(Axis axe, double u, Index* interval, bool deriv);
 
@@ -106,6 +119,9 @@ class BidimSpline
          */
         int   basisFunctionDerivatives(Axis axe, double u, Ref<ArrayXXd> C);
 
+
+        MatrixXd interpolator(Axis axe, const Ref< ArrayXd> & uval, MatrixXd & deriv);
+
         /** \brief gets the interpolated value for the given parameters
          *
          * \param x the X parameter at which an interpolated value is requested
@@ -115,17 +131,14 @@ class BidimSpline
          */
         inline double operator ()(double x, double y)
         {
- //           std::cout << "op spline()\n";
             if(x <muX(0)|| x >muX(muX.size()-1) || y <muY(0)|| y >muY(muY.size()-1))
                 throw std::runtime_error("argument out of the valid range");
-            Index p,q;
-            VectorXd splineX=basisFunctions(X,x,&p, false);  // splineX(Y)est un vecteur colonne
-            VectorXd splineY=basisFunctions(Y,y,&q, false);
-            p-=degree;
-            q-=degree;
-//            std::cout << "X:  " << splineX.transpose() <<std::endl;
-//            std::cout << "Y:  " << splineY.transpose() <<std::endl;
-            return splineX.transpose() * m_ControlValues.block(p,q, degree+1,degree+1) *  splineY;
+
+            MatrixXd splineX, splineY;
+            Index p=basisFunctions(X,x,splineX,false)-degree;
+            Index q=basisFunctions(X,x,splineY,false)-degree;
+
+            return (splineX.transpose() * m_ControlValues.block(p,q, degree+1,degree+1) *  splineY)(0,0);
         }
 
         /** \brief gets the interpolated value for the given parameters and the local gradient
@@ -142,13 +155,11 @@ class BidimSpline
                 throw std::runtime_error("argument out of the valid range");
             Index n=degree+1 ;
 
-            Index p,q;
-            Matrix<double,Dynamic, 2>  splineX=basisFunctions(X,x,&p, false);
-            Matrix<double,Dynamic, 2>  splineY=basisFunctions(Y,y,&q, false);
-            p-=degree;
-            q-=degree;
+            MatrixXd splineX, splineY;
+            Index p=basisFunctions(X,x,splineX, true)-degree;
+            Index q=basisFunctions(Y,y, splineY, true)-degree;
 
-            Matrix2d mat= splineX.transpose() * m_ControlValues.block(p,q, n,n) *  splineY;
+            MatrixXd mat= splineX.transpose() * m_ControlValues.block(p,q, n,n) *  splineY;
             gradient(0)=mat(1,0);
             gradient(1)=mat(0,1);
             return mat(0,0);
@@ -204,7 +215,9 @@ class BidimSpline
         */
        ArrayXXd uniformSpaced1DSolveT(const Ref<ArrayXXd> &input);
 
-
+       /** \brief This function returns a constant reference to the contrl values
+        */
+       inline const MatrixXd& controlValues(){return m_ControlValues; }
     protected:
         int  degree; /**< \brief the degree of the interpolating spline */
         ArrayXd muX; /**< \brief X array of grid control points */
