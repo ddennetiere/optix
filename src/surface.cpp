@@ -14,7 +14,9 @@
 
 #include "surface.h"
 //#include "sourcebase.h"
-#include "wavefront.h"
+#include "wavefront.h" // needed from Legendre fits of optical surfaces and wave-fronts
+#include "fractalsurface.h" // needed to generate surface errors
+
 #define NFFT_PRECISION_DOUBLE
 #include <nfft3mp.h>
 extern void Init_Threads();

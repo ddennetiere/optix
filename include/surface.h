@@ -19,6 +19,8 @@
 
 #include "elementbase.h"  // include many basic headers
 #include "ApertureStop.h"
+#include "bidimspline.h"  // Needed for surface errors
+#include "surfacegenerator.h"
 
 #ifdef HAS_REFLEX
     #include "CoatingTable.h"
@@ -72,12 +74,19 @@ public:
     /** \brief default  constructor (Film) with explicit chaining to previous
     */
     Surface(bool transparent=true, string name="", Surface * previous=NULL):ElementBase(transparent,name,previous),m_recording(RecordNone),
-             , m_pCoating(NULL), m_lostCount(0), m_apertureActive(false){}
+             , m_pCoating(NULL), m_lostCount(0), m_apertureActive(false), m_errorMap(3){}
 #else
     Surface(bool transparent=true, string name="", Surface * previous=NULL):ElementBase(transparent,name,previous),m_recording(RecordNone),
-              m_lostCount(0), m_apertureActive(false){}
+              m_lostCount(0), m_apertureActive(false), m_errorMap(3){}
 #endif // HAS_REFLEX
-    virtual ~Surface(){}    /**< \brief virtual destructor */
+    /** \brief virtual destructor
+     *   clean the surface error  generator id any
+     */
+    virtual ~Surface()
+    {
+        if(m_errorGenerator)
+            delete m_errorGenerator;
+    }
 
     virtual inline string getOptixClass(){return "Surface";}/**< \brief return the most derived class name of this object */
 
@@ -196,88 +205,117 @@ public:
       */
      int getWavefrontData(Diagram & WFdata, double distance=0);
 
-     /** \brief Get the wavefront expansion in Legendre Polynomial of aperture angle
-      *
-      * The surface must be recording impacts and the beam should be converging close to the specified position determined by distance
-      * \param[in] distance of the surface where the reference is taken. This has an influence on the 2<sup>nd</sup> order terms (curvature) only
-      * \param[in] Nx max order of Legendres in X direction
-      * \param[in] Ny max order of Legendres in Y direction
-      * \param[out] XYbounds the aperture limits in X and Y from the ray tracing impacts recorded on the surface. (mins in the first row and maxs in the second; X in first column and Y in the second)
-      * \return The Nx x Ny (row,col) array of coefficients of Legendre polynomials describing the wavefront error to the given degrees and best fitting  the transverse aberration data
-      */
-     /*EIGEN_DEVICE_FUNC*/
-      MatrixXd getWavefontExpansion(double distance, Index Nx, Index Ny, Array22d& XYbounds);
+    /** \brief Get the wavefront expansion in Legendre Polynomial of aperture angle
+     *
+     * The surface must be recording impacts and the beam should be converging close to the specified position determined by distance
+     * \param[in] distance of the surface where the reference is taken. This has an influence on the 2<sup>nd</sup> order terms (curvature) only
+     * \param[in] Nx max order of Legendres in X direction
+     * \param[in] Ny max order of Legendres in Y direction
+     * \param[out] XYbounds the aperture limits in X and Y from the ray tracing impacts recorded on the surface. (mins in the first row and maxs in the second; X in first column and Y in the second)
+     * \return The Nx x Ny (row,col) array of coefficients of Legendre polynomials describing the wavefront error to the given degrees and best fitting  the transverse aberration data
+     */
+    /*EIGEN_DEVICE_FUNC*/
+    MatrixXd getWavefontExpansion(double distance, Index Nx, Index Ny, Array22d& XYbounds);
 
-      /** \brief compute the Optical Path difference between the wavefront computed on this surface and a spherical wavefront converging at a given distance on the chief ray.
-       *
-       *    The wavefront is determined as the  best fit of the ray tracing with a polynomial wavefront surface expressed as a Legendre polynomial product in X and Y
-       *    \n The computed OPD is stored in the local array m_OPDdata, and remains available for PSF computation at different distance while the impacts data remain.
-       * \param distance  Distance from this surface of the reference image point on the chief ray
-       * \param Nx Degree of the legendre polynomial expansion in X
-       * \param Ny Degree of the legendre polynomial expansion in X
-       * \throw an instance of runtime_error if the impact number is too small to compute a valid OPD
-       */
-      void computeOPD(double distance, Index Nx, Index Ny);
+    /** \brief compute the Optical Path difference between the wavefront computed on this surface and a spherical wavefront converging at a given distance on the chief ray.
+     *
+     *    The wavefront is determined as the  best fit of the ray tracing with a polynomial wavefront surface expressed as a Legendre polynomial product in X and Y
+     *    \n The computed OPD is stored in the local array m_OPDdata, and remains available for PSF computation at different distance while the impacts data remain.
+     * \param distance  Distance from this surface of the reference image point on the chief ray
+     * \param Nx Degree of the legendre polynomial expansion in X
+     * \param Ny Degree of the legendre polynomial expansion in X
+     * \throw an instance of runtime_error if the impact number is too small to compute a valid OPD
+     */
+    void computeOPD(double distance, Index Nx, Index Ny);
 
-      /** \brief Compute the amplitude PSF of the S(//X) and P(//Y) component of the transmitted wavefront
-       *
-       * \param[out] PSF A 3 dimension array where the PSFs must be returned. This ndArray must be initialized.  The slowest varying dimension (last one) should be at least 2,
-       *  so that the array will host the 2 polarization PSFs as 2 consecutive images, S being first and P second.. The first dimension (fastest varying dimension)
-       *  corresponds to the X direction in the surface frame and the second one correspond to the Y direction. The two first dimensions must be initialised with the image to compute.
-       * \param[in,out] pixelSizes  On input : the requested the sampling interval of PSF, in a 2 element Eigen Array (X first).
-       *        \n on output: The effectively used pixel size after application of the minimum oversampling factor.
-       *        \n if the given sampling interval is to loose to respect the oversampling value, the pixel size is adapted to match it
-       * \param[in] lambda the wavelength of computation (the wavelength stored in each ray is not considered)
-       * \param[in] oversampling this factor determines the maximum grid step of the computed PSF as lambda/ (ThetaMax-ThetaMin)/oversampling for each dimension
-       *        Oversampling must be >1. The default oversampling is 4. Theta Max and Min  are stored in the array m_XYbounds
-       * \param[in] distOffset Displacement of the plane of PSF determination with respect the the reference point used to determine the OPD
-       */
-      void computePSF(ndArray<std::complex<double>,3> &PSF, Array2d &pixelSizes, double lambda, double oversampling=4, double distOffset=0);
+    /** \brief Compute the amplitude PSF of the S(//X) and P(//Y) component of the transmitted wavefront
+     *
+     * \param[out] PSF A 3 dimension array where the PSFs must be returned. This ndArray must be initialized.  The slowest varying dimension (last one) should be at least 2,
+     *  so that the array will host the 2 polarization PSFs as 2 consecutive images, S being first and P second.. The first dimension (fastest varying dimension)
+     *  corresponds to the X direction in the surface frame and the second one correspond to the Y direction. The two first dimensions must be initialised with the image to compute.
+     * \param[in,out] pixelSizes  On input : the requested the sampling interval of PSF, in a 2 element Eigen Array (X first).
+     *        \n on output: The effectively used pixel size after application of the minimum oversampling factor.
+     *        \n if the given sampling interval is to loose to respect the oversampling value, the pixel size is adapted to match it
+     * \param[in] lambda the wavelength of computation (the wavelength stored in each ray is not considered)
+     * \param[in] oversampling this factor determines the maximum grid step of the computed PSF as lambda/ (ThetaMax-ThetaMin)/oversampling for each dimension
+     *        Oversampling must be >1. The default oversampling is 4. Theta Max and Min  are stored in the array m_XYbounds
+     * \param[in] distOffset Displacement of the plane of PSF determination with respect the the reference point used to determine the OPD
+     */
+    void computePSF(ndArray<std::complex<double>,3> &PSF, Array2d &pixelSizes, double lambda, double oversampling=4, double distOffset=0);
 
-      /** \brief Compute the amplitude PSF of the S(//X) and P(//Y) component of the transmitted wavefront at a series of distance offsets
-       *
-       * \param[out] PSF A 4 dimension array where the PSFs must be returned. This ndArray must be initialized.  The slowest varying dimension (last one) should be at least 2,
-       *  so that the array will host the 2 polarization PSFs as 2 consecutive image stacks, S being first and P second.. The first dimension (fastest varying dimension)
-       *  corresponds to the X direction in the surface frame and the second one correspond to the Y direction. The two first dimensions must be initialised with the image to compute.
-       * \param[in,out] pixelSizes  On input : the requested the sampling interval of PSF, in a 2 element Eigen Array (X first).
-       *        \n on output: The effectively used pixel size after application of the minimum oversampling factor.
-       *        \n if the given sampling interval is to loose to respect the oversampling value, the pixel size is adapted to match it
-       * \param[in] distOffset an Eigen 1D array containing the offsets to the distance  where the OPD was computed, where the PSF will be evaluated
-       * \param[in] lambda the wavelength of computation (the wavelength stored in each ray is not considered)
-       * \param[in] oversampling this factor determines the maximum grid step of the computed PSF as lambda/ (ThetaMax-ThetaMin)/oversampling for each dimension
-       *        Oversampling must be >1. The default oversampling is 4. Theta Max and Min  are stored in the array m_XYbounds
-       */
-      void computePSF(ndArray<std::complex<double>,4> &PSF, Array2d &pixelSizes, ArrayXd &distOffset, double lambda, double oversampling=4);
+    /** \brief Compute the amplitude PSF of the S(//X) and P(//Y) component of the transmitted wavefront at a series of distance offsets
+     *
+     * \param[out] PSF A 4 dimension array where the PSFs must be returned. This ndArray must be initialized.  The slowest varying dimension (last one) should be at least 2,
+     *  so that the array will host the 2 polarization PSFs as 2 consecutive image stacks, S being first and P second.. The first dimension (fastest varying dimension)
+     *  corresponds to the X direction in the surface frame and the second one correspond to the Y direction. The two first dimensions must be initialised with the image to compute.
+     * \param[in,out] pixelSizes  On input : the requested the sampling interval of PSF, in a 2 element Eigen Array (X first).
+     *        \n on output: The effectively used pixel size after application of the minimum oversampling factor.
+     *        \n if the given sampling interval is to loose to respect the oversampling value, the pixel size is adapted to match it
+     * \param[in] distOffset an Eigen 1D array containing the offsets to the distance  where the OPD was computed, where the PSF will be evaluated
+     * \param[in] lambda the wavelength of computation (the wavelength stored in each ray is not considered)
+     * \param[in] oversampling this factor determines the maximum grid step of the computed PSF as lambda/ (ThetaMax-ThetaMin)/oversampling for each dimension
+     *        Oversampling must be >1. The default oversampling is 4. Theta Max and Min  are stored in the array m_XYbounds
+     */
+    void computePSF(ndArray<std::complex<double>,4> &PSF, Array2d &pixelSizes, ArrayXd &distOffset, double lambda, double oversampling=4);
 
-     /** \brief Defines whether or not the aperture limitations of this surface are taken into account in the tray tracing
-      *
-      * \param activity the level of activity to set-up
-      */
-     inline void setApertureActive(bool activity=true){m_apertureActive=activity;}
+    /** \brief Defines whether or not the aperture limitations of this surface are taken into account in the tray tracing
+     *
+     * \param activity the level of activity to set-up
+     */
+    inline void setApertureActive(bool activity=true){m_apertureActive=activity;}
 
-     /** \brief retrieves whether or not the aperture limitations of this surface are taken into account in the tray tracing
-      *
-      * \return the aperture activity setting of this surface
-      */
-     inline bool getApertureActive(){return m_apertureActive;}
-     inline double getApertureTransmissionAt(const Ref<Vector2d> & point){
-         if(m_apertureActive)
-            return m_aperture.getTransmissionAt(point);
-         else
-            return 1.;
-     }
-     inline bool isOPDvalid(){return m_OPDvalid;}/**< \brief check validity  of OPD data before computing a PSF \return true if OPD data are valid*/
+    /** \brief retrieves whether or not the aperture limitations of this surface are taken into account in the tray tracing
+     *
+     * \return the aperture activity setting of this surface
+     */
+    inline bool getApertureActive(){return m_apertureActive;}
+
+    /** \brief Retrieves the transmission at a given point of the surface
+     *
+     * \param point A Vector of fixed size 2 containing the coordinates (X,Y) in the surface plane of the point to be checked
+     * \return 1. or 0 according to the aperture  transmission at the given point
+     */
+    inline double getApertureTransmissionAt(const Ref<Vector2d> & point)
+    {
+     if(m_apertureActive)
+        return m_aperture.getTransmissionAt(point);
+     else
+        return 1.;
+    }
+
+    inline bool isOPDvalid(){return m_OPDvalid;}/**< \brief check validity  of OPD data before computing a PSF \return true if OPD data are valid*/
+
+    /** \brief sets the bidim spline interpolator of the surface heigts errors
+     *
+     * Since the interpolator is only valid in the given limits, activating computation with surface errors will insert
+     *  a rectangular aperture of identical size at the bottom of the aperture stop region stack.
+     * This aperture will be removed if the surface error coputation is inactivated
+
+     * \param xmin aperture low limit in X; [in m units]
+     * \param xmax aperture high limit in X; [in m units]
+     * \param ymin aperture low limit in Y; [in m units]
+     * \param ymax perture high limit in Y; [in m units]
+     * \param heights Array containing the height data. These data will be considered equispaced on the given aperture.
+
+     */
+    inline void setSurfaceErrors(double xmin, double xmax, double ymin, double ymax, const Ref<ArrayXXd>& heights)
+    {
+    Array22d limits;
+    limits << xmin, ymin, xmax,ymax;
+    m_errorMap.setFromGridData(limits, heights);
+    }
+
 #ifdef HAS_REFLEX
-     /** \brief sets or replaces the Coating that will be used in reflectivity computations if enabled \see useReflectivity
-      *
-      * \param tableName name of te table where the coating is defined
-      * \param coatingName name of the coating
-      * \return true if the coating was set or replaced; false if coating was not found or element is a source. The OptiXLastError is set
-      */
-     bool setCoating(string tableName, string coatingName);
-     void removeCoating();  /**< \brief Suppress the coating; a reflectivity (or transmittance) of 1. will be assumed for both poarizations*/
-     inline string getCoatingName(){return m_pCoating->getParentTable()->getName()+':'+m_pCoating->getName() ;} /**< \brief returns the qualified name of the coating, that is CoatingTable name and Coating name separated by a colon ':' */
-     inline Coating* getCoating(){return m_pCoating;} /**< \brief returns a pointer to the coating used by the optical element */
+    /** \brief sets or replaces the Coating that will be used in reflectivity computations if enabled \see useReflectivity
+     *
+     * \param tableName name of te table where the coating is defined
+     * \param coatingName name of the coating
+     * \return true if the coating was set or replaced; false if coating was not found or element is a source. The OptiXLastError is set
+     */
+    bool setCoating(string tableName, string coatingName);
+    void removeCoating();  /**< \brief Suppress the coating; a reflectivity (or transmittance) of 1. will be assumed for both poarizations*/
+    inline string getCoatingName(){return m_pCoating->getParentTable()->getName()+':'+m_pCoating->getName() ;} /**< \brief returns the qualified name of the coating, that is CoatingTable name and Coating name separated by a colon ':' */
+    inline Coating* getCoating(){return m_pCoating;} /**< \brief returns a pointer to the coating used by the optical element */
 #endif // HAS_REFLEX
 //    friend TextFile& operator<<(TextFile& file,  Surface& surface);  /**< \brief Duf this Surface object to a TextFile, in a human readable format  */
 //
@@ -294,6 +332,9 @@ protected:
 #endif // HAS_REFLEX
     int m_lostCount=0;        /**<  \brief Count of rays lost in this surface at transmission or reflexion */
     bool m_apertureActive;  /**<  \brief boolean flag for taking the aperture active area into account */
+    BidimSpline m_errorMap; /**< \brief A bidimensionnal spline interpolator of local height and slope deviation from ideal surface */
+    int m_errorMethod=0;     /**< \brief Indicates the way the surface errors are taken in computation  0 means error ignored, 1 use slope without changing the intercept (other cases later)*/
+    SurfaceErrorGenerator* m_errorGenerator=NULL;
     bool m_OPDvalid=false;  /**< \brief boolean flag for keeping track of the validity of the OPD of the rays stored in the m_impacts vector */
     int m_NxOPD=0;          /**< \brief degree of Legendre polynomials of the X variable used to interpolate the OPD*/
     int m_NyOPD=0;          /**< \brief degree of Legendre polynomials of the Y variable used to interpolate the OPD */
