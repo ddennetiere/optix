@@ -111,14 +111,20 @@ ArrayXXd LegendreSurfaceGrid(int Nx, int Ny, const Ref<MatrixXd>& legendreCoefs 
  */
 ArrayXd Legendre2DInterpolate(const Ref<ArrayXd>& Xpos, const Ref<ArrayXd>& Ypos, const Ref<Array22d>& bounds, const Ref<MatrixXd>& legendreCoefs );
 
-/** \brief Normalize the array of legendre coefficient to return the standard deviation on the [-1, 1] interval
+/** \brief Normalize the array of Legendre coefficient to return the standard deviation on the [-1, 1] interval
  *
- * \param coefs 2D array of legendre coefficient
+ * \param coefs 2D array of Legendre coefficient
  * \return A 2D array of same size containing the sigma values
  *
  */
 ArrayXXd  LegendreNormalize(const Ref<ArrayXXd>& coefs);
 
-
+/** \brief Return the array of natural Legendre coefficients given the set of normalized (coefficient
+ *
+ * \param coefs 2D array of normalized coefficients (equal to the sigma of each component)
+ * \return A 2D array of same size containing the natural Legendre coefficients
+ *
+ */
+ ArrayXXd  LegendreFromNormal(const Ref<ArrayXXd>& coefs);
 
 #endif // WAVEFRONT_H_INCLUDED

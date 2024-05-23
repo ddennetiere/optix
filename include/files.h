@@ -378,4 +378,16 @@ bool SolemioImport(string filename);
 
 bool LoadConfiguration(string filename);
 
+
+ /** \brief Dump the 2D array  values of  surface errors to a binary file
+ *
+ *  The file contains first the dimensions of the array (Nx, Ny) as two int32_t  integers,
+ *  immediately followed by the array values in doubles, the X dimension varying the fastest
+ * \param surface The 2D array containing the values of the surface errors
+ * \param filename Name or path of the file. If the file exists, it will be overwrited
+ *  \throw an instance of runtime error if the file is inaccessible in write mode
+ *
+ */
+void SurfaceToFile(const Ref<ArrayXXd>& surface, string filename);
+
 #endif // FILES_H_INCLUDED

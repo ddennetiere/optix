@@ -30,8 +30,10 @@
 #include "interface.h"
 #include "wavefront.h"
 
-#include "heightmap.h"
+//#include "heightmap.h"
 #include "fractalsurface.h"
+#include "bidimspline.h"
+//#include "surfacegenerator.h"
 
 #include "Polygon.h"
 #include "Ellipse.h"
@@ -41,6 +43,8 @@ using HR_clock = std::chrono::high_resolution_clock ;
 //#define M_PIl POSTFIX(M_PI, L)
 //#include <unsupported\Eigen\CXX11\src\Tensor\TensorBase.h>
 //#include <unsupported\Eigen\CXX11\src\Tensor\Tensor.h>
+
+
 
 
 /** \brief helper functor to extract the coefficient-wise minimum value of two arrays
@@ -102,19 +106,82 @@ int main()
     cout << "initiating surface\n";
 
     fracSurf.setXYfractalParams("X",2,xexp,xfl);
-    cout << "fractX set\n";
+//    cout << "fractX set\n";
     fracSurf.setXYfractalParams("Y",1,yexp,NULL);
 
-    cout << "fracta parameters set\n";
-    fracSurf.generate(500,0.001, 200, 2e-4);
+//    cout << "fractal parameters set\n";
+    ArrayXXd surface = fracSurf.generate(501,0.001, 201, 2e-4);
 
-    fracSurf.toFile("mapTest.bin");
+    SurfaceToFile(surface, "mapTest.bin");
+
+    ArrayXXd Lcoeffs=LegendreFitGrid(6,5, surface);
+    ArrayXXd LNcoeffs=LegendreNormalize(Lcoeffs);
+    ArrayXXd recoeffs=LegendreFromNormal(LNcoeffs);
+
+    cout << endl <<Lcoeffs << endl;
+    cout << endl << LNcoeffs  << endl;
+    double sigma2= surface.matrix().squaredNorm()/surface.rows()/surface.cols();
+    cout << "sigma =" << sqrt(sigma2) << "   sigma corr=" << sqrt(sigma2-LNcoeffs(0,0)*LNcoeffs(0,0)-LNcoeffs(1,0)*LNcoeffs(1,0)-LNcoeffs(0,1)*LNcoeffs(0,1)) << endl;
+
+    ArrayXXd detCoeffs=Lcoeffs.topLeftCorner(2,2);
+    detCoeffs(1,1)=0;
+
+    ArrayXXd detrended= surface- LegendreSurfaceGrid(surface.rows(), surface.cols(), detCoeffs);
+    cout << "detrended sigma=" << sqrt(detrended.matrix().squaredNorm()/detrended.rows()/detrended.cols()) << endl;
+
+    ArrayXXd mask=ArrayXXd::Zero(Lcoeffs.rows(), Lcoeffs.cols());
+    mask(0,0)=mask(1,0)=mask(0,1)=1.;
+
+    Lcoeffs= fracSurf.detrend(surface, mask);
+    LNcoeffs=LegendreNormalize(Lcoeffs);
+
+    SurfaceToFile(surface,"detrendMapTest.bin");
+    cout << endl <<Lcoeffs << endl;
+    cout << endl << LNcoeffs  << endl;
+
+    cout << "Fractalsurf memory size " << sizeof(fracSurf) << endl;
+
+    Array22d limits;
+    limits << -250, -10, 250, 10;
+    BidimSpline Sspline ;
+
+    cout << "size after initializing " << Sspline.controlValues().size() <<endl;
+    cout <<"Memorysize " << sizeof(Sspline) << endl;;
+
+    Sspline.setFromGridData(limits,surface);
+    cout << "\nSpline interpolator computed\n limits are\n" << Sspline.getLimits() <<endl;
+    cout << Sspline(-250,-10) << endl;
+    MatrixXd derivx, derivy;
+    {
+        ArrayXd xval(10), yval(10);
+        xval << 241,242,243,244, 245,246,247,248,249,250;
+        yval << 9.1, 9.2, 9.3, 9.4, 9.5,9.6,9.7,9.8,9.9,10;
+
+        cout << "input values\n";
+        cout << surface.bottomRightCorner(10,10) << endl;
+        cout << "interpolated values\n";
+        cout << Sspline.interpolator(X, xval, derivx).transpose()* Sspline.controlValues()*Sspline.interpolator(Y, yval, derivy ) <<endl;
+    }
+    ArrayXd xval=ArrayXd::LinSpaced(501, -250,250);
+    ArrayXd yval=ArrayXd::LinSpaced(201, -10,10);
+    cout << "new x,y values set\n ";
+    MatrixXd interx=Sspline.interpolator(X, xval, derivx);
+    MatrixXd intery=Sspline.interpolator(Y, yval, derivy );
+
+    surface= interx.transpose()* Sspline.controlValues()*intery;
+    SurfaceToFile(surface,"interpol.bin");
+    surface= derivx.transpose()* Sspline.controlValues()*intery;
+    SurfaceToFile(surface,"derivX.bin");
+    interx=intery=MatrixXd();
+    cout <<"size after reinitializing " << interx.size() << "  " << intery.size() << endl << endl;
+
+  //  SurfaceErrorGenerator generator;
     return 0;
-
-    HeightMap hmp;
-
-    hmp.fromModel("D:\\projets\\projetsCB\\OptiX\\surfaceDB\\SESO_ALBA-fit_1,7.crms", 0.05, 0.04, 0.001);
-    return (0);
+     // heightmap was removed from optics project 22/05/2024
+//    HeightMap hmp;
+//
+//    hmp.fromModel("D:\\projets\\projetsCB\\OptiX\\surfaceDB\\SESO_ALBA-fit_1,7.crms", 0.05, 0.04, 0.001);
+//    return (0);
 
   //  return Solemio2Xml("D:\\Documents SOLEIL\\Dossiers-Lignes\\Disco\\Solemio\\DISCOdefinitif.sole");
 //    return Solemio2Xml("D:\\Documents SOLEIL\\Lignes externes\\APE\\Solemio-LE\\APELE-R1 700T VREF");

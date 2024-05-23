@@ -437,4 +437,13 @@ typedef struct __FractalParameters
     double * exponent_y;    /**< \brief the list of fractal exponents of the Y PSD model one per segment (size  >= ny)*/;
     double * frequency_y;   /**< \brief the transition frequencies between the Y fractal segments i \f$ in \ meter^{-1} \f$ . Unused if ny=1 (size > nx-1) */
 }FractalParameters;
+
+typedef struct __SurfaceStats
+{
+    double sigma;
+    double sigmaPrimX;
+    double sigmaPrimY;
+} SurfaceStats;
+
 #endif // CTYPES_H_INCLUDED
+

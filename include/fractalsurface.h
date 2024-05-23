@@ -25,6 +25,8 @@
 
 #include "ctypes.h"  // this includes Eigen and iostream
 
+using Eigen::ArrayXXd, Eigen::Ref, Eigen::VectorXd;
+
 /** \brief class for generating fractal surfaces
  *  \warning
  *  The gaussian generator uses  \b std::random_device \b as a source of random number.
@@ -33,6 +35,10 @@
 class FractalSurface
 {
     public:
+        /** \brief Construct a new fractalSurface object with default parameters.
+         *
+         * Default fractal PSDs have only one segment and a fractal exponent of -1 both in X and Y direction
+         */
         FractalSurface();
 
         virtual ~FractalSurface();
@@ -47,7 +53,7 @@ class FractalSurface
             return fracParms;
         }
 
-        /** \brief
+        /** \brief Set the fractal parameter of the PSD in the X or Y direction
          *
          * \param axe string "X" or "Y" specifying the axe to set
          * \param N the number of frequency segments in the log/log PSD curve
@@ -65,34 +71,19 @@ class FractalSurface
          * \param ySize number of surface points to generate in the Y direction
          * \param yStep tabulation step in the Y direction
          */
-        void generate(int32_t xSize, double xStep, int32_t ySize, double yStep);
+        ArrayXXd generate(int32_t xSize, double xStep, int32_t ySize, double yStep);
 
-        Eigen::ArrayXXd detrend(const Eigen::Ref<Eigen::ArrayXXd>& mask);
-
-        /** \brief Dump the 2D array m_surface to a binary file
+        /** \brief Detrend the given surface array according to a mask
          *
-         *  The file contains first the dimensions of the array (Nx, Ny) as two int32_t  integers,
-         *  immediately followed by the array values in doubles, the X dimension varying the fastest
-         * \param filename Name or path of the file. If the file exists, it will be overwrited
-         *  \throw an instance of runtime error if the file is inaccessible in write mode
-         *
+         * \param[in,out] surface the data array. it will be detrended in place.
+         * \param[in] mask A mask of 0 and non-zero values. Legendre polynomial fits corresponding to non-zero values will be removed from surface
+         * \return an array of same size as mask  containing the Legendre natural  coefficients of the fit after detrending (ie must be 0 where mask is non-0)
          */
-        void toFile(string filename)
-        {
-            std::cout << m_surface.rows() << " x " << m_surface.cols() << std::endl;
-            std::cout << "sigma=" << m_surface.matrix().norm()/sqrt(m_surface.rows()*m_surface.cols()) << std::endl;
-            int32_t n[]={(int32_t) m_surface.rows(), (int32_t) m_surface.cols()};
+        ArrayXXd detrend(ArrayXXd& surface, const Ref<ArrayXXd>& mask);
 
-            std::fstream file(filename, std::ios::binary |std::ios::out);
-            if(!file.is_open())
-                throw runtime_error("file is locked by another application");
 
-            file.write((char*) n, 2*sizeof(int32_t));
-            file.write((char*)m_surface.data(), n[0]*n[1]*sizeof(double));
-            file.close();
-        }
 
-        Eigen::ArrayXXd m_surface;
+      //  Eigen::ArrayXXd m_surface;
 
     protected:
 
@@ -114,7 +105,7 @@ class FractalSurface
          * \param ftrans the array of transition frequencies (nseg-1 values, unuses if nseg=1)
          * \return the filter vector to be applied in Fourier space
          */
-        Eigen::VectorXd frequencyFilter(int N, double dstep, int nseg, double * exponent, double *ftrans);
+        VectorXd frequencyFilter(int N, double dstep, int nseg, double * exponent, double *ftrans);
         FractalParameters fracParms;   /**< vector of transition frequencies if size  */
 
     private:

@@ -2245,3 +2245,19 @@ int OpacityOf(string strIn)
 
      return true;
  }
+
+
+void SurfaceToFile(const Ref<ArrayXXd>& surface, string filename)
+{
+    std::cout << surface.rows() << " x " << surface.cols() << std::endl;
+    std::cout << "sigma=" << surface.matrix().norm()/sqrt(surface.rows()*surface.cols()) << std::endl;
+    int32_t n[]={(int32_t) surface.rows(), (int32_t) surface.cols()};
+
+    std::fstream file(filename, std::ios::binary |std::ios::out);
+    if(!file.is_open())
+        throw runtime_error("file is locked by another application");
+
+    file.write((char*) n, 2*sizeof(int32_t));
+    file.write((char*)surface.data(), n[0]*n[1]*sizeof(double));
+    file.close();
+}

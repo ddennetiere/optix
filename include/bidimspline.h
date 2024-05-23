@@ -31,6 +31,8 @@
 #include <Eigen/SparseLU>
 #endif // USE_SPARSE_ALGEBRA
 
+#include "ctypes.h"
+
 //  uncomment to print debug lines
 //#define DEBUG_SPLINE_
 
@@ -41,6 +43,7 @@ enum Axis {
     Y
 };
 
+
 /** \brief This class interpolates a surface on a rectangular area with the tensorial product of 1D cubic-Bsplines
  */
 class BidimSpline
@@ -48,13 +51,19 @@ class BidimSpline
     public:
         /** \brief Constructs a BicubSpline interpolator of given degree
          *
-         * \param _degree
+         * \param _degree The degree of the spline interpolating basis function (usually 3)
          */
-        BidimSpline(int _degree):degree(_degree){}
+        BidimSpline(int _degree=3):degree(_degree){}
         /** \brief Copy constructor         */
         BidimSpline(const BidimSpline  &srcSpline):degree(srcSpline.degree),
-                    muX(srcSpline.muX), muY(srcSpline.muY), m_ControlValues(srcSpline.m_ControlValues) {}
+                    muX(srcSpline.muX), muY(srcSpline.muY), m_controlValues(srcSpline.m_controlValues) {}
         virtual ~BidimSpline(){}
+
+        inline void clearData()
+        {
+            muX=muY=ArrayXd();
+            m_controlValues=MatrixXd();
+        }
 
         /** \brief Defines the 2D spline interpolator of a surface known on evenly spaced control points
          *
@@ -65,6 +74,8 @@ class BidimSpline
          *
          */
         void setFromGridData(Array22d& limits, const Ref<ArrayXXd> & gridData );
+
+        Array22d getLimits();
 
         /** \brief Find the index of the  X knot interval where the given control value u lies
          *
@@ -138,7 +149,7 @@ class BidimSpline
             Index p=basisFunctions(X,x,splineX,false)-degree;
             Index q=basisFunctions(X,x,splineY,false)-degree;
 
-            return (splineX.transpose() * m_ControlValues.block(p,q, degree+1,degree+1) *  splineY)(0,0);
+            return (splineX.transpose() * m_controlValues.block(p,q, degree+1,degree+1) *  splineY)(0,0);
         }
 
         /** \brief gets the interpolated value for the given parameters and the local gradient
@@ -159,7 +170,7 @@ class BidimSpline
             Index p=basisFunctions(X,x,splineX, true)-degree;
             Index q=basisFunctions(Y,y, splineY, true)-degree;
 
-            MatrixXd mat= splineX.transpose() * m_ControlValues.block(p,q, n,n) *  splineY;
+            MatrixXd mat= splineX.transpose() * m_controlValues.block(p,q, n,n) *  splineY;
             gradient(0)=mat(1,0);
             gradient(1)=mat(0,1);
             return mat(0,0);
@@ -180,7 +191,13 @@ class BidimSpline
         inline int setUniformKnotBase(Axis axe, int N, double mustart, double muend)
         {
             ArrayXd &mu=(axe==X) ? muX :muY;
-            mu.resize(N+ 2*degree);
+            int nsz=N+ 2*degree;
+            if(mu.size() !=nsz)
+            {
+                mu.resize(nsz);             // if mu is resized m_controlValues data are released
+                m_controlValues=MatrixXd();
+            }
+
             mu.segment(0, degree)=VectorXd::Constant(degree,mustart);
             mu.segment(degree, N +1)=VectorXd::LinSpaced(N+1, mustart,muend);
             mu.segment(N + degree +1, degree - 1)=VectorXd::Constant(degree-1,muend);
@@ -188,7 +205,7 @@ class BidimSpline
         }
 
 
-        /** \brief defines the contro points in order to fit a grid sampled surface
+        /** \brief defines the control points in order to fit a grid sampled surface
          *
          * \param[in] Xvalues  1D array containing the x values of the sampling grid
          * \param[in] Yvalues  1D array containing the y values of the sampling grid
@@ -196,6 +213,7 @@ class BidimSpline
          */
         void buildControlPoints(const Ref<ArrayXd> &Xvalues, const Ref<ArrayXd> &Yvalues,
                                 const Ref<ArrayXXd> &Zvalues);
+
 
        /** \brief Special solver for evenly spaced data sampled at control points and degree=3
         *
@@ -215,14 +233,18 @@ class BidimSpline
         */
        ArrayXXd uniformSpaced1DSolveT(const Ref<ArrayXXd> &input);
 
-       /** \brief This function returns a constant reference to the contrl values
+       /** \brief This function returns a constant reference to the control values
         */
-       inline const MatrixXd& controlValues(){return m_ControlValues; }
+       inline const MatrixXd& controlValues(){return m_controlValues; }
+
+
+       ArrayXXd getLegendreFit(int Nx, int Ny, SurfaceStats* pStats=NULL);
+
     protected:
         int  degree; /**< \brief the degree of the interpolating spline */
         ArrayXd muX; /**< \brief X array of grid control points */
         ArrayXd muY; /**< \brief Y array of grid control points  */
-        MatrixXd m_ControlValues; /**< \brief The array of control values */
+        MatrixXd m_controlValues; /**< \brief The array of control values */
     private:
 };
 

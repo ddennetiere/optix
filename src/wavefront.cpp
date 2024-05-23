@@ -174,7 +174,15 @@ ArrayXXd  LegendreNormalize(const Ref<ArrayXXd>& coefs)
     return normCoef;
 }
 
+ArrayXXd  LegendreFromNormal(const Ref<ArrayXXd>& coefs)
+{
+    ArrayXd xnorm= ArrayXd::LinSpaced(coefs.rows(),1., 2.*coefs.rows()-1. );
+    ArrayXd ynorm= ArrayXd::LinSpaced(coefs.cols(),1., 2.*coefs.cols()-1. );
 
+    ArrayXXd natCoef=coefs.colwise()*xnorm.sqrt();
+    natCoef.rowwise()*=ynorm.sqrt().transpose();
+    return natCoef;
+}
 
 ArrayXXd LegendreSurface(const Ref<ArrayXd>& Xpos, const Ref<ArrayXd>& Ypos, const Ref<Array22d>& bounds, const Ref<MatrixXd>& legendreCoefs )
 {

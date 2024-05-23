@@ -43,7 +43,6 @@ FractalSurface::FractalSurface()
     fracParms.exponent_y=new double[1];
     *fracParms.exponent_x=*fracParms.exponent_y=-1;
     fracParms.frequency_x=fracParms.frequency_y=NULL;
-   // m_surface=ArrayXXd(5,4);
 }
 
 FractalSurface::~FractalSurface()
@@ -115,7 +114,7 @@ void FractalSurface::setXYfractalParams(const char* axe, const int N, const doub
         throw ParameterWarning("One at least of the exponents is  > 0 in ", __FILE__, __func__, __LINE__);
 }
 
-void FractalSurface::generate(int32_t xSize, double xStep, int32_t ySize, double yStep)
+ArrayXXd FractalSurface::generate(int32_t xSize, double xStep, int32_t ySize, double yStep)
 {
 
     //frequency steps unit =1 /distance unit= 1/(N*step)
@@ -169,25 +168,26 @@ void FractalSurface::generate(int32_t xSize, double xStep, int32_t ySize, double
 
     // clip to requested size and return
     Index xorg=(ftNx-xSize)/2, yorg=(ftNy-ySize)/2;
-    m_surface=mapSurf.block(xorg,yorg, xSize, ySize);
+    ArrayXXd surface=mapSurf.block(xorg,yorg, xSize, ySize);
 
     nfft_finalize(&plan);  // ceci desalloue toute la structure plan
-//    std::cout << "sigma=" << sqrt(m_surface.square().matrix().sum()/(m_surface.rows()*m_surface.cols()) )<< std::endl;
-//    std::cout << "sigma2=" << sqrt(m_surface.square().sum()/(m_surface.rows()*m_surface.cols()) )<< std::endl;
-//    std::cout << "sigma=" << m_surface.matrix().norm()/sqrt(m_surface.rows()*m_surface.cols()) << std::endl;
+//    std::cout << "sigma=" << sqrt(surface.square().matrix().sum()/(surface.rows()*surface.cols()) )<< std::endl;
+//    std::cout << "sigma2=" << sqrt(surface.square().sum()/(surface.rows()*surface.cols()) )<< std::endl;
+//    std::cout << "sigma=" << surface.matrix().norm()/sqrt(surface.rows()*surface.cols()) << std::endl;
+    return surface;
 }
 
 
-ArrayXXd FractalSurface::detrend(const Ref<ArrayXXd>& mask)
+ArrayXXd FractalSurface::detrend(ArrayXXd& surface, const Ref<ArrayXXd>& mask)
 {
     int Nx=mask.rows(), Ny=mask.cols();
-    if (Nx >= m_surface.rows() || Ny >= m_surface.cols() )
-        throw ParameterException(string("Bad dimensions: the internal m_surface size doesn't allow the requested Legendre fit, in "),
+    if (Nx >= surface.rows() || Ny >= surface.cols() )
+        throw ParameterException(string("Bad dimensions: the internal surface size doesn't allow the requested Legendre fit, in "),
                                         __FILE__, __func__, __LINE__);
-    ArrayXXd Lcoeffs=LegendreFitGrid(Nx,Ny,m_surface);
+    ArrayXXd Lcoeffs=LegendreFitGrid(Nx,Ny,surface);
     ArrayXXd maskedC=Lcoeffs.binaryExpr(mask, maskValid<double>());
-    m_surface-= LegendreSurfaceGrid(m_surface.rows(), m_surface.cols(), maskedC);
-    //return LegendreFitGrid(Nx,Ny,m_surface); // only for test otherwise it would be better to subtract the masked values
+    surface-= LegendreSurfaceGrid(surface.rows(), surface.cols(), maskedC);
+    //return LegendreFitGrid(Nx,Ny,surface); // only for test otherwise it would be better to subtract the masked values
     return Lcoeffs-maskedC;
 }
 

@@ -12,6 +12,7 @@
 ****************************************************************************/
 
 #include "bidimspline.h"
+#include "wavefront.h"
 
 bool SplineSolve(SparseMatrix<double,ColMajor> &A,const Ref<VectorXd> &B, Ref<VectorXd> C)
 {
@@ -153,7 +154,7 @@ ArrayXXd BidimSpline::basisFunctions(Axis axe, double u, Index* interval, bool d
 
 MatrixXd BidimSpline::interpolator(Axis axe, const Ref< ArrayXd> & uval, MatrixXd & deriv)
 {
-    Index colsize=axe ==X? m_ControlValues.rows() : m_ControlValues.cols();
+    Index colsize=axe ==X? m_controlValues.rows() : m_controlValues.cols();
     if( colsize < 4)
         throw runtime_error("bidimspline initialization error");
     Index K1= degree+1;
@@ -269,7 +270,7 @@ void BidimSpline::buildControlPoints(const Ref<ArrayXd> &Xvalues, const Ref<Arra
     VectorXd B=Zvalues.reshaped().matrix();// this flatten the matrices but copy seems needed
     if(!SplineSolve(A,B,C) )
         throw std::runtime_error("Resolution of spline fitting system failed");
-    m_ControlValues=C.reshaped(nx,ny);
+    m_controlValues=C.reshaped(nx,ny);
 
 
 }
@@ -351,16 +352,50 @@ void BidimSpline::buildControlPoints(const Ref<ArrayXd> &Xvalues, const Ref<Arra
      return Coeffs;
 
  }
-///**<  \todo must test that degree is 3 >*/
- void BidimSpline::setFromGridData(Array22d& limits, const Ref<ArrayXXd>& gridData )
- {
-     if(degree!=3)
-        throw ParameterException("This function is only available for cubic B-spline interpolation. Degree MUST BE 3 ", __FILE__, __func__, __LINE__);
-     setUniformKnotBase(X,gridData.rows()-1,limits(0,0), limits(1,0));
 
-     setUniformKnotBase(Y,gridData.cols()-1,limits(0,1), limits(1,1));
 
-     ArrayXXd temp=uniformSpaced1DSolveT(gridData);
-     m_ControlValues=uniformSpaced1DSolveT(temp);
+void BidimSpline::setFromGridData(Array22d& limits, const Ref<ArrayXXd>& gridData )
+{
+    if(degree!=3)
+    throw ParameterException("This function is only available for cubic B-spline interpolation. Degree MUST BE 3 ", __FILE__, __func__, __LINE__);
+    setUniformKnotBase(X,gridData.rows()-1,limits(0,0), limits(1,0));
 
- }
+    setUniformKnotBase(Y,gridData.cols()-1,limits(0,1), limits(1,1));
+
+    ArrayXXd temp=uniformSpaced1DSolveT(gridData);
+    m_controlValues=uniformSpaced1DSolveT(temp);
+
+}
+
+Array22d BidimSpline::getLimits()
+{
+    Array22d limits;
+    limits(0,0)=muX(0);
+    limits(0,1)=muY(0);
+    limits(1,0)=muX(muX.size()-1);
+    limits(1,1)=muY(muY.size()-1);
+    return limits;
+}
+
+
+ArrayXXd BidimSpline::getLegendreFit(int Nx, int Ny, SurfaceStats* pStats)
+{
+     // grid interpolated surface is not saved we need to recover it.
+    ArrayXd xval=ArrayXd::LinSpaced(muX.size()-2*degree, muX(0),muX(muX.size()-1));
+    ArrayXd yval=ArrayXd::LinSpaced(muY.size()-2*degree, muY(0),muY(muY.size()-1));
+
+    MatrixXd derivx, interx=interpolator(X, xval, derivx);
+    MatrixXd derivy, intery=interpolator(Y, yval, derivy );
+
+    MatrixXd surface= interx.transpose()* m_controlValues*intery;
+
+    ArrayXXd coeffs=LegendreFitGrid(Nx,Ny, surface);
+    if (pStats)
+    {
+        pStats->sigma=sqrt(surface.squaredNorm());
+        pStats->sigmaPrimX=sqrt((derivx.transpose()* m_controlValues*intery).squaredNorm());
+        pStats->sigmaPrimY=sqrt((interx.transpose()* m_controlValues*derivy).squaredNorm());
+    }
+
+    return LegendreNormalize(coeffs);
+}
