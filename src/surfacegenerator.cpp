@@ -1,6 +1,6 @@
 /**
  *************************************************************************
-*   \file           errorgenerator.cpp
+*   \file           surfacegenerator.cpp
 *
 *   \brief             implementation file
 *

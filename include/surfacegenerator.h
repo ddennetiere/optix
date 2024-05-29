@@ -58,7 +58,7 @@ class SurfaceErrorGenerator
          * \param xmax High X limit of the generated surface
          * \param xstep X interval between 2 points [m unit]
          * \param ymin Low Y limit of the generated surface
-         * \param ymaxn High Y limit of the generated surface
+         * \param ymax High Y limit of the generated surface
          * \param ystep Y interval between 2 points [m unit]
          */
         inline void setSurfaceSampling(double xmin, double xmax, double xstep, double ymin, double ymax, double ystep)
