@@ -246,16 +246,16 @@ RayType& GratingBase::reflect(RayType& ray)
             ray.m_amplitude_S*=T;
         }
 
-    #ifdef TEST_POLYGRATING
-        VectorType surfpos=m_surfaceInverse*ray.position();
-        VectorType G0=gratingVector(surfpos, m_surfaceInverse*normal);
-        cout  << surfpos.transpose() << "  G " << G0.transpose() <<endl;
-        VectorType G=m_surfaceDirect*G0*m_useOrder*ray.m_wavelength;
-        // le vecteur réseau exprimé dans le repère de calcul (absolu local)
-    #else
+//    #ifdef TEST_POLYGRATING // ce test peut sans doute être supprimé 28/05/2024
+//        VectorType surfpos=m_surfaceInverse*ray.position();
+//        VectorType G0=gratingVector(surfpos, m_surfaceInverse*normal);
+//        cout  << surfpos.transpose() << "  G " << G0.transpose() <<endl;
+//        VectorType G=m_surfaceDirect*G0*m_useOrder*ray.m_wavelength;
+//        // le vecteur réseau exprimé dans le repère de calcul (absolu local)
+//    #else
         VectorType G=m_surfaceDirect*gratingVector(m_surfaceInverse*ray.position(), m_surfaceInverse*normal)*m_useOrder*ray.m_wavelength; // le vecteur réseau exprimé dans le repère de calcul (absolu local)
         // G par  construction est dans le plan tangent G.Normal=0
-    #endif // TEST_POLYGRATING
+//    #endif // TEST_POLYGRATING
 
             FloatType KinPerp=normal.dot(ray.direction());
             VectorType KoutParal=ray.direction()-KinPerp*normal +G ; // = KinParal +G
