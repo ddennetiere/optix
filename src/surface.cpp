@@ -41,7 +41,7 @@ RayType& Surface::transmit(RayType& ray)
         if(m_recording==RecordInput)
             m_impacts.push_back(ray);
 
-        if(!inhibitApertureLimit && m_apertureActive)
+        if(enableApertureLimit && m_apertureActive)
         {
             Vector2d pos=(m_surfaceInverse*ray.position()).head(2).cast<double>();
             double T=m_aperture.getTransmissionAt(pos);
@@ -140,7 +140,7 @@ RayType& Surface::reflect(RayType& ray)    /*  this implementation simply reflec
 
             }
             // aperture takes into account a possible shift due to surface errors, so actual spos
-            if(!inhibitApertureLimit && m_apertureActive)
+            if(enableApertureLimit && m_apertureActive)
             {
                 double T=m_aperture.getTransmissionAt(spos);
                 ray.m_amplitude_P*=T;

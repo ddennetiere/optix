@@ -48,8 +48,8 @@ map<string,CoatingTable> coatingTables;  /**< \brief a set of CoatingTable. A co
 ElementCollection System;   /**< \brief dictionary of all elements created through this interface  */
                            // system, hence all optical elements, will be deleted
 
-bool inhibitApertureLimit=true; /**< \brief Global flag to take into account or not the apertures stops in the ray tracing
-                                 *  \todo  inhibitApertureLimit should be better replace by enableApertureLimitation of complementary value */
+bool enableApertureLimit=true; /**< \brief Global flag to take into account or not the apertures stops in the ray tracing
+                                 *  inhibitApertureLimit replaced by enableApertureLimit of complementary value  should be user transparent*/
 bool useReflectivity=false;     /**<  \brief Global flag to switch on or off the computation of reflectivity  in the ray tracing computation*/
 bool enableSurfaceErrors=false; /**< \brief Global flag indicating wether the surface errors are taken into account in propagation */
 bool threadInitialized=false;   /**< \brief Global flag to keep track of Open_MP  initialization */
@@ -1445,7 +1445,7 @@ extern "C"
 
 //            Aperture and wavefront related functions
 
-    DLL_EXPORT void SetAperturesActive(const bool activity){inhibitApertureLimit=!activity;}
+    DLL_EXPORT void SetAperturesActive(const bool activity){enableApertureLimit=activity;}
 
     DLL_EXPORT bool GetAperturesActive(bool *activityFlag)
     {
@@ -1454,7 +1454,7 @@ extern "C"
             SetOptiXLastError("Invalid reference to activityFlag", __FILE__, __func__);
             return false;
         }
-        *activityFlag= !inhibitApertureLimit;
+        *activityFlag= enableApertureLimit;
         return true;
     }
 

@@ -21,6 +21,7 @@
  ***************************************************************************/
 #include <map>
 #include "region.h"
+#include <libxml/tree.h>
 
 //using namespace std; no longer valid
 using std::map;
@@ -36,6 +37,7 @@ using std::vector;
 class ApertureStop
 {
     public:
+
         ApertureStop(){}    /**< \brief creates an empty ApertureStop container with no obstructing region*/
 
         /** \brief destructor. Clear the region list and destroy the object
@@ -101,6 +103,9 @@ class ApertureStop
         Region* getRegion(size_t index);
 
         size_t getRegionCount(){return m_regions.size();}   /**< \brief return the number of region assigned to this apertureStop */
+
+        friend xmlNodePtr operator<<(xmlNodePtr doc, const ApertureStop & generator);
+        friend xmlNodePtr operator>>(xmlNodePtr doc, const ApertureStop & generator);
 
     protected:
         vector<Region*> m_regions;/**< \brief list of references of the Regions defining this aperture */

@@ -178,7 +178,7 @@ RayType& GratingBase::transmit(RayType& ray)
         if(m_recording==RecordInput)
             m_impacts.push_back(ray);
 
-        if(!inhibitApertureLimit && m_apertureActive)
+        if(enableApertureLimit && m_apertureActive)
         {
             Vector2d pos=(m_surfaceInverse*ray.position()).head(2).cast<double>();
             double T=m_aperture.getTransmissionAt(pos);
@@ -238,7 +238,7 @@ RayType& GratingBase::reflect(RayType& ray)
         if(m_recording==RecordInput)
             m_impacts.push_back(ray);
 
-        if(!inhibitApertureLimit && m_apertureActive)
+        if(enableApertureLimit && m_apertureActive)
         {
             Vector2d pos=(m_surfaceInverse*ray.position()).head(2).cast<double>();
             double T=m_aperture.getTransmissionAt(pos);

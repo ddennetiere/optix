@@ -39,7 +39,7 @@ using std::cout, std::endl, std::complex ;
 
 
 
-extern bool inhibitApertureLimit; // global flag defined in interfac.cpp
+extern bool enableApertureLimit; // global flag defined in interfac.cpp
 extern bool enableSurfaceErrors;
 
 // using namespace std; no longer valid in recent c++ releases
