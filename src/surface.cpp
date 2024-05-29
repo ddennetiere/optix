@@ -16,6 +16,7 @@
 //#include "sourcebase.h"
 #include "wavefront.h" // needed from Legendre fits of optical surfaces and wave-fronts
 #include "fractalsurface.h" // needed to generate surface errors
+#include <exception>
 
 #define NFFT_PRECISION_DOUBLE
 #include <nfft3mp.h>
@@ -66,28 +67,82 @@ RayType& Surface::reflect(RayType& ray)    /*  this implementation simply reflec
         VectorType normal;
     try{
         intercept(ray, &normal);
-    } catch(EigenException & eigexcpt) {
-        throw InterceptException(eigexcpt.what()+"\nEigenException within  " +  m_name + " from "  ,
-                                        __FILE__, __func__, __LINE__);
-    }catch(RayException & excpt)
-    {
-        throw InterceptException(excpt.what()+"\nRayException within " +  m_name + " from "  ,
-                                        __FILE__, __func__, __LINE__);
-    }catch(...)
-    {
-        throw InterceptException(string("Unknown Exception within ") +  m_name + " from" ,
-                                        __FILE__, __func__, __LINE__);
+    }catch(...) {
+            throw_with_nested(InterceptException(string("Intercept exception in " )+  m_name + " catch from "  ,
+                        __FILE__, __func__, __LINE__));
     }
+//    catch(EigenException & eigexcpt) {
+//        throw InterceptException(eigexcpt.what()+"\nEigenException within  " +  m_name + " from "  ,
+//                                        __FILE__, __func__, __LINE__);
+//    }catch(RayException & excpt)
+//    {
+//        throw InterceptException(excpt.what()+"\nRayException within " +  m_name + " from "  ,
+//                                        __FILE__, __func__, __LINE__);
+//    }catch(...)
+//    {
+//        throw InterceptException(string("Unknown Exception within ") +  m_name + " from" ,
+//                                        __FILE__, __func__, __LINE__);
+//    }
     try{
         if(ray.m_alive)
         {
             if(m_recording==RecordInput)
                 m_impacts.push_back(ray);
+            // find pos in surface frame 2024/05/27 moved out of aperture case as needed also by surf.errors
+            Vector2d spos=(m_surfaceInverse*ray.position()).head(2).cast<double>();
 
+            // if surface aerrors are active we must take care of the local normal perturbation
+            if(enableSurfaceErrors && m_errorMethod )
+            {   //we use pos in surface frame check if ray is inside the definition area
+                if( m_errorMap.isValid(spos))
+                { // then we can get the perturbation
+                    VectorType deltaN=VectorType::Zero();  // - deltaN will be the perturbation of the normal  in surface pane
+                    VectorType deltaI; //? utile ?
+                    Vector2d grad;
+
+                    double z= m_errorMap.valueGradient(spos(0),spos(1),grad);
+                    switch (m_errorMethod) {
+                    case SimpleShift:
+                        ray.moveTo(z/ray.direction().dot(normal)).rebase(); //new intercept then actualize spos and grad
+                        spos=(m_surfaceInverse*ray.position()).head(2).cast<double>();
+                        m_errorMap.valueGradient(spos(0),spos(1),grad);
+                    case LocalSlope:   //proceed to normal correction
+                        break;
+                    case SurfOffset:
+                        {   //instead of changing the surface equation we move the ray by z along the normal
+                            VectorType SurfShift=z*normal;
+                            ray-=SurfShift; // no need to rebase, m_distance remains 0
+                            try{
+                                intercept(ray, &normal); // compute shifted intercept
+                            }catch(...) {
+                                throw_with_nested(InterceptException(string("Intercept exception in " )+  m_name + " catch from "  ,
+                                            __FILE__, __func__, __LINE__));
+                            }
+                            ray+=SurfShift;  //switch back to unshifted space and compute the new spos
+                            spos=(m_surfaceInverse*ray.position()).head(2).cast<double>();
+                            m_errorMap.valueGradient(spos(0),spos(1),grad);
+                        }
+                        break;//proceed to normal correction
+                    default:
+                        throw RayException(string("Invalid error method identifier, within ") +  m_name + " from " ,
+                                        __FILE__, __func__, __LINE__);
+                    }
+                    // normal correction is the same in all cases
+                    deltaN.head(2)=grad.cast<FloatType>(); // convert to long-double
+                    normal-=m_surfaceDirect*deltaN;   // in principle we should normalize  is it required ?
+
+                }
+                else
+                {
+                    ray.m_amplitude_P=0; //amplitude are nulled but ray is still propagated without perturbation
+                    ray.m_amplitude_S=0;
+                }
+
+            }
+            // aperture takes into account a possible shift due to surface errors, so actual spos
             if(!inhibitApertureLimit && m_apertureActive)
             {
-                Vector2d pos=(m_surfaceInverse*ray.position()).head(2).cast<double>();
-                double T=m_aperture.getTransmissionAt(pos);
+                double T=m_aperture.getTransmissionAt(spos);
                 ray.m_amplitude_P*=T;
                 ray.m_amplitude_S*=T;
             }
@@ -126,7 +181,7 @@ RayType& Surface::reflect(RayType& ray)    /*  this implementation simply reflec
                                         __FILE__, __func__, __LINE__);
     }catch(RayException & excpt)
     {
-        throw RayException(excpt.what()+"\nRayException withinin " +  m_name + " rfrom "  ,
+        throw RayException(excpt.what()+"\nRayException within " +  m_name + " rfrom "  ,
                                         __FILE__, __func__, __LINE__);
     }catch(...)
     {
@@ -668,6 +723,20 @@ void Surface::computePSF(ndArray<std::complex<double>,4> &PSF, Array2d &pixelSiz
     }
    nfft_finalize(&plan);  // ceci desalloue toute la structure plan
 }
+
+void Surface::generateSurfaceErrors()
+{
+    if(m_errorGenerator)
+    {
+        ArrayXXd errormap=m_errorGenerator->generate();
+        const Array22d& limits=m_errorGenerator->getSurfaceSampling();
+        m_errorMap.setFromGridData(limits, errormap);
+    }
+    if(m_next!=NULL )
+        m_next->generateSurfaceErrors(); // this call will only propagate the function  until the next element derived from the Surface class
+}
+
+
 #ifdef HAS_REFLEX
 void Surface::removeCoating()
 {

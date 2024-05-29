@@ -69,6 +69,16 @@ enum FrameID{
 };
 
 /** \ingroup enums
+ *   \brief Identifies the method used to account for surface errors in ray tracing propagation
+ */
+enum ErrorMethod{
+    None=0, /**< No correction applied */
+    LocalSlope=1,   /**< Only the local slope at intercept position is used. No intercept correction applied */
+    SimpleShift=2,  /**< First order intercept and slope error refinement applied  */
+    SurfOffset=3    /**< The surface is shifted by dZ and intercept computed again (in case of large shape curvature) */
+};
+
+/** \ingroup enums
  * \brief parameter group indicator intended for property pages
  *
  */ /*  explicit underlying type is uint32_t */

@@ -166,6 +166,13 @@ public:
 /** \brief  call transmit or reflect according to surface type ray and iterate to the next surface*/
     virtual void propagate(RayType& ray)=0 ;/**< \param ray the propagated ray */
 
+    /** \brief  propagate contruction  of surface errors. The function does nothing else if the runtime class is not derived from Surface   */
+    virtual void  generateSurfaceErrors()
+    {
+        if(m_next!=NULL )
+            m_next->generateSurfaceErrors();
+    }
+
     inline void setName(string&& name ){m_name=name;} /**< \brief sets the element name for scripting  \param name new name of the element*/
     inline string getName(){ return m_name;}    /**<  \brief retrieves the element name for scripting \return the name of the element as string*/
 

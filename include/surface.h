@@ -40,6 +40,7 @@ using std::cout, std::endl, std::complex ;
 
 
 extern bool inhibitApertureLimit; // global flag defined in interfac.cpp
+extern bool enableSurfaceErrors;
 
 // using namespace std; no longer valid in recent c++ releases
 
@@ -129,7 +130,12 @@ public:
             *    This implementation simply reflect the ray on the tangent plane at intercept position.
             *   \n All implementations <b> must take care of recording impacts </b> in entrance or exit plane as required. */
 
-/** \brief  call transmit or reflect according to surface type ray and iterate to the next surface*/
+    /** \brief  call transmit or reflect according to surface type ray and iterate to the next surface
+     *
+     *  If no intercept can be found with the surface the ray will be marked as dead (m_alive=false)
+     *  The ray is propagated even though it could be dead in order to keep the same ray index in all impact vectors
+     *  \throw an intercept or ray exception is thrown in case of computation error only
+     */
     inline virtual void propagate(RayType& ray) /**< the propagated ray */
     {
         try {
@@ -300,10 +306,13 @@ public:
      */
     inline void setSurfaceErrors(double xmin, double xmax, double ymin, double ymax, const Ref<ArrayXXd>& heights)
     {
-    Array22d limits;
-    limits << xmin, ymin, xmax,ymax;
-    m_errorMap.setFromGridData(limits, heights);
+        Array22d limits;
+        limits << xmin, ymin, xmax,ymax;
+        m_errorMap.setFromGridData(limits, heights);
     }
+
+    /** \brief  Generate the surface errors from the model given by m_errorGenerator. It relies on the elementBase function to propagate  */
+    virtual void generateSurfaceErrors();  //
 
 #ifdef HAS_REFLEX
     /** \brief sets or replaces the Coating that will be used in reflectivity computations if enabled \see useReflectivity
@@ -322,6 +331,7 @@ public:
 //    friend TextFile& operator >>(TextFile& file,  Surface& surface);  /**< \brief Retrieves a Surface object from a TextFile  */
 public:
     ApertureStop m_aperture;  /**< \brief The active area of the surface   */
+    SurfaceErrorGenerator* m_errorGenerator=NULL;/**< \brief if non null and validly initialized a call to GenerateError() will set up aspline error map associated to the surface  */
 
 
 protected:
@@ -333,8 +343,7 @@ protected:
     int m_lostCount=0;        /**<  \brief Count of rays lost in this surface at transmission or reflexion */
     bool m_apertureActive;  /**<  \brief boolean flag for taking the aperture active area into account */
     BidimSpline m_errorMap; /**< \brief A bidimensionnal spline interpolator of local height and slope deviation from ideal surface */
-    int m_errorMethod=0;     /**< \brief Indicates the way the surface errors are taken in computation  0 means error ignored, 1 use slope without changing the intercept (other cases later)*/
-    SurfaceErrorGenerator* m_errorGenerator=NULL;
+    ErrorMethod  m_errorMethod=None;     /**< \brief Indicates the way the surface errors are taken in computation  None=0 means surface errors ignored, LocalSlope=1 use slope errors without changing the intercept (other cases later)*/
     bool m_OPDvalid=false;  /**< \brief boolean flag for keeping track of the validity of the OPD of the rays stored in the m_impacts vector */
     int m_NxOPD=0;          /**< \brief degree of Legendre polynomials of the X variable used to interpolate the OPD*/
     int m_NyOPD=0;          /**< \brief degree of Legendre polynomials of the Y variable used to interpolate the OPD */

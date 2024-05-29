@@ -33,7 +33,7 @@
 //#include "heightmap.h"
 #include "fractalsurface.h"
 #include "bidimspline.h"
-//#include "surfacegenerator.h"
+#include "surfacegenerator.h"
 
 #include "Polygon.h"
 #include "Ellipse.h"
@@ -175,7 +175,7 @@ int main()
     interx=intery=MatrixXd();
     cout <<"size after reinitializing " << interx.size() << "  " << intery.size() << endl << endl;
 
-  //  SurfaceErrorGenerator generator;
+    SurfaceErrorGenerator generator;
     return 0;
      // heightmap was removed from optics project 22/05/2024
 //    HeightMap hmp;

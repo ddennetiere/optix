@@ -206,7 +206,7 @@ public:
  *
  *   Name of parameter | UnitType | Description
  *   ----------------- | -------- | --------------
- *
+ *  \todo Complete and test SecondarySource class
  */
 class SecondarySource: public virtual SourceBase
 {
