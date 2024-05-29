@@ -354,7 +354,7 @@ void BidimSpline::buildControlPoints(const Ref<ArrayXd> &Xvalues, const Ref<Arra
  }
 
 
-void BidimSpline::setFromGridData(Array22d& limits, const Ref<ArrayXXd>& gridData )
+void BidimSpline::setFromGridData(const Array22d& limits, const Ref<ArrayXXd>& gridData )
 {
     if(degree!=3)
     throw ParameterException("This function is only available for cubic B-spline interpolation. Degree MUST BE 3 ", __FILE__, __func__, __LINE__);
@@ -370,12 +370,27 @@ void BidimSpline::setFromGridData(Array22d& limits, const Ref<ArrayXXd>& gridDat
 Array22d BidimSpline::getLimits()
 {
     Array22d limits;
-    limits(0,0)=muX(0);
-    limits(0,1)=muY(0);
-    limits(1,0)=muX(muX.size()-1);
-    limits(1,1)=muY(muY.size()-1);
+    Index endx=muX.size()-1, endy=muY.size()-1;
+    if(endx >0 && endy >0) // return ea empty array if not set
+    {
+        limits(0,0)=muX(0);
+        limits(0,1)=muY(0);
+        limits(1,0)=muX(endx);
+        limits(1,1)=muY(endy);
+    }
     return limits;
 }
+
+bool BidimSpline::isValid(const Vector2d & position)
+{
+    Index endx=muX.size()-1, endy=muY.size()-1;
+    if(endx < 0 || endy <0)
+        return false;  //not initialized
+    if(position(0) <muX(0) || position(0) > muX(endx) || position(1) < muY(0) || position(1) > muY(endy))
+        return false; // out of limit
+    return true;
+}
+
 
 
 ArrayXXd BidimSpline::getLegendreFit(int Nx, int Ny, SurfaceStats* pStats)

@@ -8,17 +8,22 @@
 *
 *   \author             François Polack  <francois.polack@synchroton-soleil.fr>
 *   \date               Creation: 2024-05-21
-*   \date               Last update: 2024-05-21
+*   \date               Last update: 2024-05-23
  ***************************************************************************/
 
 
 #include "surfacegenerator.h"
 
-ArrayXXd SurfaceErrorGenerator::generate(int32_t xpoints, double xstep, int32_t ypoints, double ystep)
+ArrayXXd SurfaceErrorGenerator::generate()
 {
-    if (m_nonZsigma <=0)
+    if (m_nonZsigma <=0 || (m_limits.matrix()==Matrix2d::Zero()) || (m_sampling.matrix()==Vector2d::Zero()) )
         throw ParameterException(string("The surface error generator is not properly initialized, at "),
                                             __FILE__, __func__, __LINE__);
+
+    Index xpoints(round((m_limits(0,1)-m_limits(0,0))/m_sampling(0)));
+    Index ypoints(round((m_limits(1,1)-m_limits(1,0))/m_sampling(1)));
+    double xstep=(m_limits(0,1)-m_limits(0,0))/xpoints++;
+    double ystep=(m_limits(1,1)-m_limits(1,0))/ypoints++;
 
     int Nx=Legendre_ubound.rows() > m_detrendMask.rows() ? Legendre_ubound.rows() : m_detrendMask.rows();
     int Ny=Legendre_ubound.cols() > m_detrendMask.cols() ? Legendre_ubound.cols() : m_detrendMask.cols();

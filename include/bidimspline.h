@@ -65,6 +65,14 @@ class BidimSpline
             m_controlValues=MatrixXd();
         }
 
+        /** \brief check the validity of the spline interpolant at the given position
+         *
+         * \param position the position (x, y) to check
+         * \return true if the spline interpolant is valid and position is inside the definirion rectangle
+         *  \todo could be inlined
+         */
+        bool isValid(const Vector2d & position);
+
         /** \brief Defines the 2D spline interpolator of a surface known on evenly spaced control points
          *
          * \param limits the aperture limits into which the surface is defined. \(mins in the first row and maxs in the second; X in first column and Y in the second)
@@ -73,7 +81,7 @@ class BidimSpline
          * \param gridData Array of the surface points in an evenly spaced grid inside the rectangle defined by limits
          *
          */
-        void setFromGridData(Array22d& limits, const Ref<ArrayXXd> & gridData );
+        void setFromGridData(const Array22d& limits, const Ref<ArrayXXd> & gridData );
 
         Array22d getLimits();
 

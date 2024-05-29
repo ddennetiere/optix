@@ -14,7 +14,7 @@
 *   \author             François Polack  <francois.polack@synchroton-soleil.fr>
 *   \date               Creation : 2024-05-21
 
-*   \date               Last update: 2024-05-21
+*   \date               Last update: 2024-05-23
 
 *
 *
@@ -25,6 +25,7 @@
 //#include <iostream>
 
 #include "wavefront.h"
+#include <libxml/tree.h>
 
 using namespace Eigen;
 
@@ -33,6 +34,7 @@ using namespace Eigen;
 class SurfaceErrorGenerator
 {
     public:
+
         /** \brief Defines a surface height error generator with default initialization
          * It allows parametrized detrending and  specification of  particular Rectangular Zernike content
          *
@@ -42,6 +44,8 @@ class SurfaceErrorGenerator
          */
         SurfaceErrorGenerator()
         {
+            m_limits.setZero();
+            m_sampling.setZero();
             m_detrendMask.resize(2,2);
             m_detrendMask << 1.,1.,1.,0.;
         }
@@ -49,6 +53,28 @@ class SurfaceErrorGenerator
 
         virtual ~SurfaceErrorGenerator(){}/**< \brief default destructor */
 
+        /** \brief  defines the limits of the surface and the sampling pitchs of the
+         * \param xmin Low X limit of the generated surface
+         * \param xmax High X limit of the generated surface
+         * \param xstep X interval between 2 points [m unit]
+         * \param ymin Low Y limit of the generated surface
+         * \param ymaxn High Y limit of the generated surface
+         * \param ystep Y interval between 2 points [m unit]
+         */
+        inline void setSurfaceSampling(double xmin, double xmax, double xstep, double ymin, double ymax, double ystep)
+        {
+            m_limits << xmin, ymin, xmax, ymax;
+            m_sampling << xstep,ystep;
+        }
+
+        inline const Array22d& getSurfaceSampling(double* xstep=NULL, double* ystep=NULL)
+        {
+            if(xstep)
+                *xstep=m_sampling(0);
+            if(ystep)
+                *ystep=m_sampling(1);
+            return m_limits;
+        }
 
         /** \brief Set the fractal parameter of the PSD in the X or Y direction
          *
@@ -64,6 +90,8 @@ class SurfaceErrorGenerator
             m_fractalSurf.setXYfractalParams(axe, N, exponents, frequencies);
         }
 
+        inline const FractalParameters& getFractalParameters(){return m_fractalSurf.fracParms;}
+
         /** \brief Defines the Legendre polynomials which will be  forced to zero
          *
          * \param detrend a mask array. If the value of coefficient (n,m) is not zero, the corresponding Legendre polynomials (n,m) forced to zero
@@ -73,6 +101,8 @@ class SurfaceErrorGenerator
         {
             m_detrendMask=detrend.unaryExpr([](double x){return x==0? 0. : 1.;});
         }
+
+        inline const ArrayXXd& getDetrending() {return m_detrendMask;}
 
         /** \brief defines,first which Legendre Polynomials will be randomly set and the maximum sigma value they will be given ;
          * second, the  height error sigma of the remaining surface components.
@@ -86,19 +116,34 @@ class SurfaceErrorGenerator
             Legendre_ubound=LegendreFromNormal(Zmax);
         }
 
+        /** \brief retrieve the matrix of maximum sigma values of the random Legendre polynomials defining the low frequency part
+         *
+         * \param[in,out] nonZ  location to return the sigma of the high frequency part not defined by legendre polynomials
+         * \return ca reference to the array of Legendre maximum sigma values
+         *
+         */
+        inline const ArrayXXd& getSigmas(double * nonZ)
+        {
+            if(nonZ)
+                *nonZ=m_nonZsigma;
+            return Legendre_ubound;
+        }
+
         /** \brief Generate a surface model with the statically defined parameters
          *
-         * \param xpoints number of X points defining the surface model
-         * \param xstep X interval between 2 points [m unit]
-         * \param ypoints  number of Y points defining the surface model
-         * \param ystep X interval between 2 points [m unit]
-         * \return  and array containing the height of the surface model [m unit]
+         * \return  an array containing the height of the surface model [m unit]
          */
-        ArrayXXd generate(int32_t xpoints, double xstep, int32_t ypoints, double ystep);
+        ArrayXXd generate( );
 
+        friend xmlNodePtr operator<<(xmlNodePtr doc, const SurfaceErrorGenerator & generator);
+        friend xmlNodePtr operator>>(xmlNodePtr doc, const SurfaceErrorGenerator & generator);
 
     protected:
 
+        Array22d m_limits; /**< \brief limits the aperture limits into which the surface is defined. \(mins in the first row and maxs in the second; X in first column and Y in the second)
+         *
+         *  - \f$   limits =  \left[ {\begin{array}{cc}     x_{min} & y_{min} \\     x_{max} & y_{max} \\   \end{array} } \right]  \f$ */
+        Array2d m_sampling; /**< \brief target X and Y sampling steps. They will be adjusted to match an integer number of grid points */
         double m_nonZsigma=0; /**< \brief rms height target value of the generated surface constrained Zernike terms excluded */
         FractalSurface m_fractalSurf; /**< \brief The fractal surface generator. (presently, the only implemented generator) */
         ArrayXXd  m_detrendMask; /**< \a mask for detrending. Legendre polynomials corresponding to non zero values will be fit and subtracted.  */
