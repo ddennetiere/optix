@@ -178,9 +178,21 @@ RayType& GratingBase::transmit(RayType& ray)
         if(m_recording==RecordInput)
             m_impacts.push_back(ray);
 
+        Vector2d pos=(m_surfaceInverse*ray.position()).head(2).cast<double>();
+
+        if(enableSurfaceErrors && m_errorMethod )
+        {   //we use pos in surface frame check if ray is inside the definition area
+            if( m_errorMap.isValid(pos))
+                getPerturbation(pos, ray, normal); //will actualize the 3 parameters according to the m_errorMethod parameter
+            else
+            {
+                ray.m_amplitude_P=0; //amplitude are nulled but ray is still propagated without perturbation
+                ray.m_amplitude_S=0;
+            }
+        }
+
         if(enableApertureLimit && m_apertureActive)
         {
-            Vector2d pos=(m_surfaceInverse*ray.position()).head(2).cast<double>();
             double T=m_aperture.getTransmissionAt(pos);
             ray.m_amplitude_P*=T;
             ray.m_amplitude_S*=T;
@@ -238,9 +250,21 @@ RayType& GratingBase::reflect(RayType& ray)
         if(m_recording==RecordInput)
             m_impacts.push_back(ray);
 
+        Vector2d pos=(m_surfaceInverse*ray.position()).head(2).cast<double>();
+
+        if(enableSurfaceErrors && m_errorMethod )
+        {   //we use pos in surface frame check if ray is inside the definition area
+            if( m_errorMap.isValid(pos))
+                getPerturbation(pos, ray, normal); //will actualize the 3 parameters according to the m_errorMethod parameter
+            else
+            {
+                ray.m_amplitude_P=0; //amplitude are nulled but ray is still propagated without perturbation
+                ray.m_amplitude_S=0;
+            }
+        }
+
         if(enableApertureLimit && m_apertureActive)
         {
-            Vector2d pos=(m_surfaceInverse*ray.position()).head(2).cast<double>();
             double T=m_aperture.getTransmissionAt(pos);
             ray.m_amplitude_P*=T;
             ray.m_amplitude_S*=T;

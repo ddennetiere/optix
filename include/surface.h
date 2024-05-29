@@ -329,6 +329,14 @@ public:
 //    friend TextFile& operator<<(TextFile& file,  Surface& surface);  /**< \brief Duf this Surface object to a TextFile, in a human readable format  */
 //
 //    friend TextFile& operator >>(TextFile& file,  Surface& surface);  /**< \brief Retrieves a Surface object from a TextFile  */
+protected:
+      /** \brief Helper function used by Reflect & transmit. Modifies the intercept (ray position) and normal according to the surface error model
+       *
+       * \param[in,out] spos the 2D position of the intercept in the surface frame. In input the unperturbed position, in output the corrected one
+       * \param[in,out] ray  input :The ray moved to the surface after a call to intercept; output: the modified ray positionned at new intercept
+       * \param[in,out] normal input: The normal after a call to intercept; output: the modified normal
+       */
+      void getPerturbation(Vector2d& spos, RayType& ray, VectorType& normal);
 public:
     ApertureStop m_aperture;  /**< \brief The active area of the surface   */
     SurfaceErrorGenerator* m_errorGenerator=NULL;/**< \brief if non null and validly initialized a call to GenerateError() will set up aspline error map associated to the surface  */
