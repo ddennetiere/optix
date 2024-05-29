@@ -33,7 +33,7 @@ public:
     {
         char str[256];
         sprintf(str, " %s  %s line %d", file.c_str(), callingFunction.c_str(), line);
-        what_str=what.empty()?string("RayException in"):what + str;
+        what_str=(what.empty()?string("RayException in"):what)+ str;
     }
     virtual ~RayException() {}
     virtual string  what(){return what_str;}
@@ -48,7 +48,7 @@ public:
     {
         char str[256];
         sprintf(str, "  %s  %s line %d",  file.c_str(), callingFunction.c_str(), line);
-        what_str=cause.empty()?string("EigenException in"):cause + str;
+        what_str=(cause.empty()?string("EigenException in"):cause) + str;
     }
     virtual ~EigenException() {}
     virtual string  what(){return what_str;}
@@ -63,7 +63,7 @@ public:
     {
         char str[256];
         sprintf(str, "   %s function  %s line %d", file.c_str(), callingFunction.c_str(), line);
-        what_str=cause.empty()?string("InterceptException in"):cause + str;
+        what_str=(cause.empty()?string("InterceptException in"):cause) + str;
     }
     virtual ~InterceptException() {}
     virtual string  what(){return what_str;}
@@ -79,7 +79,7 @@ public:
     {
         char str[256];
         sprintf(str, "  %s  %s line %d",  file.c_str(), callingFunction.c_str(), line);
-        what_str=what.empty()?string("ParameterException in"):what + str;
+        what_str=(what.empty()?string("ParameterException in"):what) + str;
     }
     virtual ~ParameterException() {}
     virtual string  what(){return what_str;}
@@ -96,7 +96,7 @@ public:
     {
         char str[256];
         sprintf(str, "  %s  %s line %d",  file.c_str(), callingFunction.c_str(), line);
-        what_str=what.empty()?string("ParameterWarning in"):what + str;
+        what_str=(what.empty()?string("ParameterWarning in"):what) + str;
     }
     virtual ~ParameterWarning() {}
     virtual string  what(){return what_str;}
@@ -114,7 +114,7 @@ public:
     {
         char str[256];
         sprintf(str, " %s  %s line %d",  file.c_str(), callingFunction.c_str(), line);
-        what_str=what.empty()?string("TextFileException in"):what + str;
+        what_str=(what.empty()?string("TextFileException in"):what) + str;
     }
     virtual ~TextFileException() {}
     virtual string  what(){return what_str;}
@@ -132,7 +132,7 @@ public:
     {
         char str[128];
         sprintf(str, " in %s  %s line %d",  file.c_str(), callingFunction.c_str(), line);
-        what_str=what.empty()?string("ElementException"):what + str;
+        what_str=(what.empty()?string("ElementException"):what) + str;
     }
     virtual ~ElementException() {}
     virtual string  what(){return what_str;}
