@@ -35,6 +35,7 @@ using Eigen::ArrayXXd, Eigen::Ref, Eigen::VectorXd;
 class FractalSurface
 {
     public:
+        friend class SurfaceErrorGenerator;
         /** \brief Construct a new fractalSurface object with default parameters.
          *
          * Default fractal PSDs have only one segment and a fractal exponent of -1 both in X and Y direction
@@ -48,7 +49,7 @@ class FractalSurface
             setXYfractalParams("X",fracparams.nx, fracparams.exponent_x, fracparams.frequency_x);
             setXYfractalParams("Y",fracparams.ny, fracparams.exponent_y, fracparams.frequency_y);
         }
-        FractalParameters getFractalParameters()
+        inline const FractalParameters& getFractalParameters()
         {
             return fracParms;
         }
