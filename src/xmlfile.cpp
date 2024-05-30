@@ -421,7 +421,7 @@ bool LoadElementsFromXml(const char * filename, ElementCollection &system)
                 dynamic_cast<Surface*>(elem)->setRecording((RecordMode)atoi((char*)srec));
                 xmlFree(srec);
             }
-            cout << "setting parameters :  ";
+            cout << "setting parameters :  ";  // getXmlParameters would be a better name
             if(! SetXmlParameters(doc, elem , curnode))
             {
                // au moins un paramètre invalide, le signaler

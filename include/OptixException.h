@@ -121,6 +121,22 @@ public:
     string what_str;
 };
 
+/** \brief exception raised by xml reader if the object being read-in cannot be constructed
+ */
+class XmlFileException:public runtime_error
+{
+public:
+    XmlFileException(string what ="", string file="", string callingFunction="", int line=-1 ):runtime_error("XmlFileException")
+    {
+        char str[256];
+        sprintf(str, " %s  %s line %d",  file.c_str(), callingFunction.c_str(), line);
+        what_str=(what.empty()?string("XmlFileException in"):what) + str;
+    }
+    virtual ~XmlFileException() {}
+    virtual string  what(){return what_str;}
+    string what_str;
+};
+
 
 
 /** \brief Exception raised when an error occurs during element definition or alignment

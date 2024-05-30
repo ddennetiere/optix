@@ -18,6 +18,7 @@
 *
  ***************************************************************************/
 #include "region.h"
+#include <libxml/tree.h>
 
 /** \brief This class defines a polygonal 2D region to be used as an aperture stop defining element.
  */
@@ -108,6 +109,12 @@ class Polygon: public Region
          /** \brief \brief \e Debugging \e function: dumps the internal data arrays (vertices, side vectors and side equations) to std::out
           */
          void dump(){std::cout << m_vertices <<  std::endl << m_vects <<std::endl<< m_sides <<std::endl;}
+
+//        friend xmlNodePtr operator<<(xmlNodePtr apernode, const Polygon & polygon);
+//        friend xmlNodePtr operator>>(xmlNodePtr apernode,  Polygon & polygon);
+        void operator>>(xmlNodePtr apernode);
+        void operator<<(xmlNodePtr regnode);
+
     protected:
         bool checkConvex();/**< \brief auxiliary function called during object construction in order to check whether the simplified location algorithm is applicable  */
         size_t m_size; /**< \brief the number of vertices (and sides of this polygon */

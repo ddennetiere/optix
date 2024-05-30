@@ -12,6 +12,8 @@
  ***************************************************************************/
 
 #include "ApertureStop.h"
+#include "ellipse.h"  // needed to create regions from xml
+#include "Polygon.h"
 
 
 ApertureStop::~ApertureStop()
@@ -93,3 +95,49 @@ double ApertureStop::getTransmissionAt(const Ref<Vector2d> &point)
     // ray is outside all regions
     return m_regions[0]->isTransparent() ? 0 : 1. ;
 }
+
+#define XMLSTR (xmlChar*)
+//xmlNodePtr operator<<(xmlNodePtr surfnode, const ApertureStop & aperture)
+void ApertureStop::operator>>(xmlNodePtr surfnode)
+{
+
+    if(m_regions.size()==0)
+        return;
+    xmlNodePtr apernode=xmlNewTextChild(surfnode,NULL,XMLSTR "aperture", NULL); // no value
+    xmlNewProp(apernode, XMLSTR "class", XMLSTR "ApertureStop");
+
+    for (auto it=m_regions.begin(); it != m_regions.end(); ++it)
+    {
+
+        **it>>apernode;
+    }
+}
+
+void ApertureStop::operator<<(xmlNodePtr apernode)
+{
+    xmlNodePtr regnode=xmlFirstElementChild(apernode);
+    if(!regnode)
+        throw XmlFileException("Warning: ApertureStop defines no region", __FILE__, __func__, __LINE__);
+    while(regnode)
+    {
+        xmlChar* classtype= xmlGetProp(apernode, XMLSTR "class");
+        if(xmlStrcmp(classtype, XMLSTR "Ellipse")==0)
+        {
+            Ellipse * pRegion= new Ellipse;
+            *pRegion << regnode;
+        }
+        else if(xmlStrcmp(classtype, XMLSTR "Polygon")==0)
+        {
+            Polygon * pRegion= new Polygon;
+            *pRegion << regnode;
+        }
+        else
+            std::cout << "unexpected region class " << classtype << " in apertue \n";
+        if(classtype)
+            xmlFree(classtype);
+        regnode=xmlNextElementSibling(regnode);  // will return NULL if current regnode is the last one
+    }
+
+}
+
+

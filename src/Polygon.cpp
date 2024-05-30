@@ -256,6 +256,43 @@ Location Polygon::locate(const Ref<Vector2d> &point)
 
     }
     //return undetermined; // ne passe jamais ici
+}
+#define XMLSTR (xmlChar*)
+//xmlNodePtr operator<<(xmlNodePtr apernode, const Polygon & polygon)
+void Polygon::operator>>(xmlNodePtr apernode)
+{
+    char buf[34*m_size];  // max length per number in %.8g =15 => max length 34 char/point
 
+    xmlNodePtr regnode=xmlNewTextChild(apernode,NULL,XMLSTR "region", NULL); // no value
+    xmlNewProp(regnode, XMLSTR "class", XMLSTR "Polygon");
+    xmlNewProp(regnode, XMLSTR "transparent", XMLSTR (m_transparent? "1" : "0"));
+    xmlNodePtr parmnode=xmlNewTextChild(apernode,NULL,XMLSTR "vertices", NULL);
+    sprintf(buf,"%Ld", m_size);
+    xmlNewProp (parmnode, XMLSTR "size", XMLSTR buf);
+    char *pbuf=buf;
+    pbuf+=sprintf(pbuf,"%.8g, %.8g", m_vertices(0,0), m_vertices(1,0));
+    for(int i=1; i< (int) m_size; ++i)
+        pbuf+=sprintf(pbuf,"; %.8g, %.8g", m_vertices(0,i), m_vertices(1,i));
+    xmlNewProp (parmnode, XMLSTR "positions", XMLSTR buf);
 }
 
+void Polygon::operator<<(xmlNodePtr regnode)
+{
+
+    xmlChar* strbuf = xmlGetProp(regnode, XMLSTR "vertices");
+    sscanf((char*)strbuf,"%Ld",&m_size);
+    xmlFree(strbuf);
+    strbuf = xmlGetProp(regnode, XMLSTR "positions");
+    char* pbuf=(char*) strbuf;
+    for(int i=0; i< (int) m_size; ++i)
+    {
+        int n=sscanf(pbuf,"%lf, %lf", &m_vertices(0,i), &m_vertices(1,i));
+        if(n!=2)
+            std::cout <<"format error in polygon <<, number of item read "<< n << " instead of 2\n";
+        pbuf=strchr(pbuf,';')+1;
+    }
+    xmlFree(strbuf);
+    strbuf = xmlGetProp(regnode, XMLSTR "transparent");
+    setTransparency(strcmp( (char*) strbuf,"1")==0 ? true: false);
+    xmlFree(strbuf);
+}

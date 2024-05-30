@@ -104,8 +104,10 @@ class ApertureStop
 
         size_t getRegionCount(){return m_regions.size();}   /**< \brief return the number of region assigned to this apertureStop */
 
-        friend xmlNodePtr operator<<(xmlNodePtr doc, const ApertureStop & generator);
-        friend xmlNodePtr operator>>(xmlNodePtr doc, const ApertureStop & generator);
+//        friend xmlNodePtr operator<<(xmlNodePtr surfnode, const ApertureStop & aperture);
+//        friend xmlNodePtr operator>>(xmlNodePtr surfnode,  ApertureStop & aperture);
+        void operator>>(xmlNodePtr surfnode);
+        void operator<<(xmlNodePtr apernode);
 
     protected:
         vector<Region*> m_regions;/**< \brief list of references of the Regions defining this aperture */
