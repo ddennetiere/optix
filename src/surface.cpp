@@ -228,6 +228,27 @@ RayType& Surface::reflect(RayType& ray)    /*  this implementation simply reflec
 
 }
 
+#define XMLSTR (xmlChar*)
+
+void Surface::operator>>(xmlNodePtr elemnode)
+{
+
+    if(m_recording)
+        xmlNewProp (elemnode, XMLSTR "rec", XMLSTR std::to_string(m_recording).c_str());
+
+    m_aperture >> elemnode;  // does nothing if region.size() == 0
+// add herz calls to save aperture and surface generator
+}
+
+void Surface::operator<<(xmlNodePtr surfnode)
+{
+    xmlChar* srec= xmlGetProp(surfnode, XMLSTR "rec");
+    setRecording((RecordMode)atoi((char*)srec));
+    xmlFree(srec);
+
+    // set aperture if aperture child exists
+}
+
 
 void Surface::clearImpacts()
 {

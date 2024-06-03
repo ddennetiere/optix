@@ -176,7 +176,7 @@ int main()
     cout <<"size after reinitializing " << interx.size() << "  " << intery.size() << endl << endl;
 
     SurfaceErrorGenerator generator;
-    return 0;
+//    return 0;
      // heightmap was removed from optics project 22/05/2024
 //    HeightMap hmp;
 //
@@ -187,13 +187,16 @@ int main()
 //    return Solemio2Xml("D:\\Documents SOLEIL\\Lignes externes\\APE\\Solemio-LE\\APELE-R1 700T VREF");
 //    return Solemio2Xml("D:\\Documents SOLEIL\\Lignes externes\\APE\\APE-New\\APELE-R2 1200T  Gauss-aligned");
 
-    return Solemio2Xml("D:\\projets\\projetsCB\\OptiX\\solemio\\CASSIOPEE");
+//    return Solemio2Xml("D:\\projets\\projetsCB\\OptiX\\solemio\\CASSIOPEE");
 
   // return DiscoTest();
   //  return TstMistral();
 
     //return XmlTest();
+    LoadSystemFromXml("Beamline_test_polynomial.xml");
+    SaveSystemAsXml("polytestcopy.xml");
 
+    return 0;
 
 
     ArrayXd v1(7), v2(7), v3;

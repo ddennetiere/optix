@@ -23,79 +23,80 @@
 #include "interface.h"
 
 #define XMLSTR (xmlChar*)
-#define MAXBUF 512
+//#define MAXBUF 512
 
 bool SaveElementsAsXml(const char * filename, ElementCollection &system)
 {
-
-    char cvbuf[MAXBUF];
-    xmlDocPtr doc;
-    xmlNodePtr sysnode, elemnode, parmnode, arraynode;
+    // This function is declared friend of ElementBase
+//    char cvbuf[MAXBUF];
+//    xmlDocPtr doc;
+//    xmlNodePtr sysnode, elemnode, parmnode, arraynode;
 //    xmlAttrPtr attr;
-    doc = xmlNewDoc(XMLSTR "1.0");
-    sysnode = xmlNewDocRawNode(doc, NULL, (const xmlChar*)"system", NULL);
+    xmlDocPtr doc = xmlNewDoc(XMLSTR "1.0");
+    xmlNodePtr sysnode = xmlNewDocRawNode(doc, NULL, (const xmlChar*)"system", NULL);
     xmlDocSetRootElement(doc, sysnode);
 
     map<string,ElementBase*>::iterator it;
     for (it=system.begin(); it!=system.end(); ++it)
     {
-        ElementBase& elem = *it->second   ; // for convenience
-        elemnode=xmlNewTextChild(sysnode,NULL, XMLSTR "element", NULL);
-        xmlNewProp (elemnode, XMLSTR "name", XMLSTR it->first.c_str());
-        xmlNewProp (elemnode, XMLSTR "class", XMLSTR elem.getOptixClass().c_str()); // on n'a pas besoin des pointeurs etournés
-        //   pour le chaînage next suffit; Si l'attribut de chaînage next n'est écrit,
-        //   il n'y a pas de suivant (m_next=null qui est le défaut de création)
-        if(elem.getNext())
-            xmlNewProp (elemnode, XMLSTR "next", XMLSTR elem.getNext()->getName().c_str());
-        Surface* surf=dynamic_cast<Surface*>(it->second);
-        if(surf)  // en prévision des groupes qui ne sont pas des surfaces
-        {
-            RecordMode rec=surf->getRecording();
-            if(rec)
-                xmlNewProp (elemnode, XMLSTR "rec", XMLSTR std::to_string(rec).c_str());
-        }
-        if(elem.getTransmissive() && elem.getOptixClass().compare(0,8,"Grating<" )!=0 ) //gratings are reflective by default
-            xmlNewProp (elemnode, XMLSTR "trans", XMLSTR "true");
-
-
-        map<string,Parameter>::iterator it;
-        for(it=elem.m_parameters.begin(); it != elem.m_parameters.end(); ++it)  // protected but function is declared friend of OpticalElement
-        {
-            parmnode=xmlNewTextChild(elemnode,NULL,XMLSTR "param", XMLSTR it->first.c_str());
-            Parameter &param=it->second;
-            if(param.flags & ArrayData)
-            {
-                arraynode=xmlNewTextChild(parmnode,NULL,XMLSTR "array", NULL);
-                sprintf(cvbuf,"%Ld, %Ld", param.paramArray->dims[0], param.paramArray->dims[1]);
-                xmlNewProp (arraynode, XMLSTR "dims", XMLSTR cvbuf);
-                char *pbuf=cvbuf;
-                pbuf+=sprintf(pbuf,"%.8g", param.paramArray->data[0]);
-                for(int i=1; i<  param.paramArray->dims[0]*param.paramArray->dims[1]; ++i)
-                    pbuf+=sprintf(pbuf,", %.8g", param.paramArray->data[i]);
-                xmlNewProp (arraynode, XMLSTR "data", XMLSTR cvbuf);
-            }
-            else
-            {
-                sprintf(cvbuf,"%.8g",param.value);
-                xmlNewProp (parmnode, XMLSTR "val", XMLSTR cvbuf);
-            }
-            if(param.bounds[0]!=0)
-            {
-                sprintf(cvbuf,"%.8g",param.bounds[0]);
-                xmlNewProp (parmnode, XMLSTR "min", XMLSTR cvbuf);
-            }
-            if(param.bounds[1]!=0)
-            {
-                sprintf(cvbuf,"%.8g",param.bounds[1]);
-                xmlNewProp (parmnode, XMLSTR "max", XMLSTR cvbuf);
-            }
-            if(param.multiplier!=1.)
-            {
-                sprintf(cvbuf,"%.8g",param.multiplier);
-                xmlNewProp (parmnode, XMLSTR "mult", XMLSTR cvbuf);
-            }
-            // Les paramètres type, group, et flags sont non modifiables
-        }
+        *it->second >> sysnode;  // will create the element node including Surface class parameters
+//        ElementBase& elem = *it->second   ; // for convenience
+//        elemnode=xmlNewTextChild(sysnode,NULL, XMLSTR "element", NULL);
+//        xmlNewProp (elemnode, XMLSTR "name", XMLSTR it->first.c_str());
+//        xmlNewProp (elemnode, XMLSTR "class", XMLSTR elem.getOptixClass().c_str()); // on n'a pas besoin des pointeurs etournés
+//        //   pour le chaînage next suffit; Si l'attribut de chaînage next n'est écrit,
+//        //   il n'y a pas de suivant (m_next=null qui est le défaut de création)
+//        if(elem.getNext())
+//            xmlNewProp (elemnode, XMLSTR "next", XMLSTR elem.getNext()->getName().c_str());
+//        Surface* surf=dynamic_cast<Surface*>(it->second);
+//        if(surf)  // en prévision des groupes qui ne sont pas des surfaces
+//        {
+//            RecordMode rec=surf->getRecording();
+//            if(rec)
+//                xmlNewProp (elemnode, XMLSTR "rec", XMLSTR std::to_string(rec).c_str());
+//        }
+//        if(elem.getTransmissive() && elem.getOptixClass().compare(0,8,"Grating<" )!=0 ) //gratings are reflective by default
+//            xmlNewProp (elemnode, XMLSTR "trans", XMLSTR "true");
+//
+//
+//        map<string,Parameter>::iterator it;
+//        for(it=elem.m_parameters.begin(); it != elem.m_parameters.end(); ++it)  // protected but function is declared friend of OpticalElement
+//        {
+//            parmnode=xmlNewTextChild(elemnode,NULL,XMLSTR "param", XMLSTR it->first.c_str());
+//            Parameter &param=it->second;
+//            if(param.flags & ArrayData)
+//            {
+//                arraynode=xmlNewTextChild(parmnode,NULL,XMLSTR "array", NULL);
+//                sprintf(cvbuf,"%Ld, %Ld", param.paramArray->dims[0], param.paramArray->dims[1]);
+//                xmlNewProp (arraynode, XMLSTR "dims", XMLSTR cvbuf);
+//                char *pbuf=cvbuf;
+//                pbuf+=sprintf(pbuf,"%.8g", param.paramArray->data[0]);
+//                for(int i=1; i<  param.paramArray->dims[0]*param.paramArray->dims[1]; ++i)
+//                    pbuf+=sprintf(pbuf,", %.8g", param.paramArray->data[i]);
+//                xmlNewProp (arraynode, XMLSTR "data", XMLSTR cvbuf);
+//            }
+//            else
+//            {
+//                sprintf(cvbuf,"%.8g",param.value);
+//                xmlNewProp (parmnode, XMLSTR "val", XMLSTR cvbuf);
+//            }
+//            if(param.bounds[0]!=0)
+//            {
+//                sprintf(cvbuf,"%.8g",param.bounds[0]);
+//                xmlNewProp (parmnode, XMLSTR "min", XMLSTR cvbuf);
+//            }
+//            if(param.bounds[1]!=0)
+//            {
+//                sprintf(cvbuf,"%.8g",param.bounds[1]);
+//                xmlNewProp (parmnode, XMLSTR "max", XMLSTR cvbuf);
+//            }
+//            if(param.multiplier!=1.)
+//            {
+//                sprintf(cvbuf,"%.8g",param.multiplier);
+//                xmlNewProp (parmnode, XMLSTR "mult", XMLSTR cvbuf);
+//            }
+//            // Les paramètres type, group, et flags sont non modifiables
+//        }
     }
     //xmlIndentTreeOutput = 1;  // to indent
     //  xmlKeepBlanksDefault(0);
@@ -233,6 +234,7 @@ bool DumpXmlSys(const char* filename)
  * \param elem pointer to the newly created element
  * \param[in] cur the current element node
  * \return bool
+ * \deprecated This fonction is no longer user: functionnally replaced by ElementBase::/Surface::  operator<<
  */
 bool SetXmlParameters(xmlDocPtr doc, ElementBase* elem, xmlNodePtr cur)
 {
@@ -244,7 +246,8 @@ bool SetXmlParameters(xmlDocPtr doc, ElementBase* elem, xmlNodePtr cur)
 	{
 	    if ((!xmlStrcmp(cur->name, XMLSTR "param")))
         {
-            name = xmlNodeListGetString(doc, cur->xmlChildrenNode, 1);
+            //name = xmlNodeListGetString(doc, cur->xmlChildrenNode, 1);
+            name=xmlNodeGetContent(cur);
             // initialise param avec les valeurs défaut du constructeur de elem
            // cout <<"setting parameter " << name << ":";
 		    if(elem->getParameter((char*) name, param))
@@ -257,7 +260,8 @@ bool SetXmlParameters(xmlDocPtr doc, ElementBase* elem, xmlNodePtr cur)
                 }
                 else
                 {
-                    xmlNodePtr arraynode=cur->xmlChildrenNode->next;
+                    //xmlNodePtr arraynode=cur->xmlChildrenNode->next;
+                    xmlNodePtr arraynode=xmlFirstElementChild(cur);
                     if(arraynode)
                     {
                         int dim0=0, dim1=0;
@@ -317,7 +321,7 @@ bool SetXmlParameters(xmlDocPtr doc, ElementBase* elem, xmlNodePtr cur)
                 //    cout << "  do...  ";
                 if(!elem->setParameter((char*) name, param))
                 {
-                    cout << " ERROR\n" << OptiXError <<endl;
+                    cout << " ERROR:  " << LastError <<endl;
                     success=false;
                 }
                 //else cout <<" OK\n";
@@ -334,6 +338,7 @@ bool SetXmlParameters(xmlDocPtr doc, ElementBase* elem, xmlNodePtr cur)
 
 
         }
+        // traiter ici ApertureStop et SurfaceGenerator
         cur = cur->next;
 	}
     return success;
@@ -343,7 +348,7 @@ bool LoadElementsFromXml(const char * filename, ElementCollection &system)
 {
     xmlDocPtr doc;
     xmlNodePtr sysnode, curnode;
-    xmlChar *sclass, *sname, *nextelem, *srec, *trans;
+    xmlChar *sclass, *sname, *nextelem; //, *srec, *trans;
     //size_t elemID;
     ElementBase *elem;
     map<ElementBase*, string> chaining;
@@ -390,7 +395,7 @@ bool LoadElementsFromXml(const char * filename, ElementCollection &system)
             }
             else
             {
-                cout << "element "<<sname<<" of type "<<sclass<<"created.";
+                cout << "element "<<sname<<" of type "<<sclass<<" created. ";
                 if( nextelem)
                 {
                     cout << " Will be linked to "<< nextelem << endl;
@@ -408,27 +413,31 @@ bool LoadElementsFromXml(const char * filename, ElementCollection &system)
             if(elem==NULL)   // now we can leave
                 return false;
 
-            trans= xmlGetProp(curnode, XMLSTR "trans");
-            if(trans)
-            {
-                elem->setTransmissive(true); //Value false is not stored in the XML
-                xmlFree(trans);
-            }
-
-            srec= xmlGetProp(curnode, XMLSTR "rec");
-            if(srec && dynamic_cast<Surface*>(elem))
-            {
-                dynamic_cast<Surface*>(elem)->setRecording((RecordMode)atoi((char*)srec));
-                xmlFree(srec);
-            }
-            cout << "setting parameters :  ";  // getXmlParameters would be a better name
-            if(! SetXmlParameters(doc, elem , curnode))
-            {
-               // au moins un paramètre invalide, le signaler
-               cout << "element "  << elem->getName() <<  " parameter failure\n";
-               exitcode=false;
-            }
-            else cout << "element "  << elem->getName() <<  " parameters set\n";
+            *elem << curnode;
+            Surface* surf=dynamic_cast<Surface*>(elem);
+            if(surf)
+                *surf << curnode;
+//            trans= xmlGetProp(curnode, XMLSTR "trans");
+//            if(trans)
+//            {
+//                elem->setTransmissive(true); //Value false is not stored in the XML
+//                xmlFree(trans);
+//            }
+//
+//            srec= xmlGetProp(curnode, XMLSTR "rec");
+//            if(srec && dynamic_cast<Surface*>(elem))
+//            {
+//                dynamic_cast<Surface*>(elem)->setRecording((RecordMode)atoi((char*)srec));
+//                xmlFree(srec);
+//            }
+//            cout << "setting parameters :  ";  // getXmlParameters would be a better name
+//            if(! SetXmlParameters(doc, elem , curnode))
+//            {
+//               // au moins un paramètre invalide, le signaler
+//               cout << "element "  << elem->getName() <<  " parameter failure\n";
+//               exitcode=false;
+//            }
+//            else cout << "element "  << elem->getName() <<  " parameters set\n";
 		}
         curnode = curnode->next;
 	}

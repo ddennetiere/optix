@@ -14,7 +14,8 @@
 
 #include "elementbase.h"
 #include "sourcebase.h"
-
+#define XMLSTR (xmlChar*)
+#define MAXBUF 512
 
 map<string, string> ElementBase::m_helpstrings;
 int ElementBase::m_nameIndex=0;
@@ -276,3 +277,186 @@ TextFile& operator>>(TextFile& file,  ElementBase* elem)
     file >>str; // gets runtime class
     return file;
 }
+
+void ElementBase::operator>>(xmlNodePtr sysnode)
+{
+    char cvbuf[MAXBUF];
+    xmlNodePtr parmnode,arraynode;
+    xmlNodePtr elemnode=xmlNewTextChild(sysnode,NULL, XMLSTR "element", NULL);
+    xmlNewProp (elemnode, XMLSTR "name", XMLSTR m_name.c_str());
+    xmlNewProp (elemnode, XMLSTR "class", XMLSTR getOptixClass().c_str()); // on n'a pas besoin des pointeurs etournés
+    //   pour le chaînage next suffit; Si l'attribut de chaînage next n'est écrit,
+    //   il n'y a pas de suivant (m_next=null qui est le défaut de création)
+    if(m_next)
+        xmlNewProp (elemnode, XMLSTR "next", XMLSTR m_next->getName().c_str());
+    Surface* surf=dynamic_cast<Surface*>(this);
+    if(surf)  // en prévision des groupes qui ne sont pas des surfaces
+    {
+        *surf >> elemnode;
+    }
+    if(m_transmissive && getOptixClass().compare(0,8,"Grating<" )!=0 ) //gratings are reflective by default
+        xmlNewProp (elemnode, XMLSTR "trans", XMLSTR "true");
+
+    map<string,Parameter>::iterator it;
+    for(it=m_parameters.begin(); it != m_parameters.end(); ++it)
+    {
+        parmnode=xmlNewTextChild(elemnode,NULL,XMLSTR "param", XMLSTR it->first.c_str());
+        Parameter &param=it->second;
+        if(param.flags & ArrayData)
+        {
+            arraynode=xmlNewTextChild(parmnode,NULL,XMLSTR "array", NULL);
+            sprintf(cvbuf,"%Ld, %Ld", param.paramArray->dims[0], param.paramArray->dims[1]);
+            xmlNewProp (arraynode, XMLSTR "dims", XMLSTR cvbuf);
+            char *pbuf=cvbuf;
+            pbuf+=sprintf(pbuf,"%.8g", param.paramArray->data[0]);
+            for(int i=1; i<  param.paramArray->dims[0]*param.paramArray->dims[1]; ++i)
+                pbuf+=sprintf(pbuf,", %.8g", param.paramArray->data[i]);
+            xmlNewProp (arraynode, XMLSTR "data", XMLSTR cvbuf);
+        }
+        else
+        {
+            sprintf(cvbuf,"%.8g",param.value);
+            xmlNewProp (parmnode, XMLSTR "val", XMLSTR cvbuf);
+        }
+        if(param.bounds[0]!=0)
+        {
+            sprintf(cvbuf,"%.8g",param.bounds[0]);
+            xmlNewProp (parmnode, XMLSTR "min", XMLSTR cvbuf);
+        }
+        if(param.bounds[1]!=0)
+        {
+            sprintf(cvbuf,"%.8g",param.bounds[1]);
+            xmlNewProp (parmnode, XMLSTR "max", XMLSTR cvbuf);
+        }
+        if(param.multiplier!=1.)
+        {
+            sprintf(cvbuf,"%.8g",param.multiplier);
+            xmlNewProp (parmnode, XMLSTR "mult", XMLSTR cvbuf);
+        }
+        // Les paramètres type, group, et flags sont non modifiables
+    }
+}
+
+void ElementBase::operator<<(xmlNodePtr elemnode)
+{
+    xmlChar* trans= xmlGetProp(elemnode, XMLSTR "trans");
+    if(trans)
+    {
+        setTransmissive(true); //Value false is not stored in the XML
+        xmlFree(trans);
+    }
+
+//    cout << "setting parameters :  ";  // getXmlParameters would be a better name
+//    if(! SetXmlParameters(doc, elem , curnode))
+//    {
+//       // au moins un paramètre invalide, le signaler
+//       cout << "element "  << elem->getName() <<  " parameter failure\n";
+//       exitcode=false;
+//    }
+//    else cout << "element "  << elem->getName() <<  " parameters set\n";
+	xmlChar *att, *name;
+    xmlNodePtr cur = xmlFirstElementChild(elemnode); //  elemnode->xmlChildrenNode;
+    Parameter param;
+//    bool success=true;
+	while (cur != NULL)
+	{
+	    if ((!xmlStrcmp(cur->name, XMLSTR "param")))
+        {
+            //name = xmlNodeListGetString(doc, cur->xmlChildrenNode, 1);
+            name=xmlNodeGetContent(cur);
+            // initialise param avec les valeurs défaut du constructeur de elem
+           // cout <<"setting parameter " << name << ":";
+		    if(getParameter((char*) name, param))
+            {
+                att= xmlGetProp(cur, XMLSTR "val");
+                if(att)
+                {
+                    param.value=atof((char*)att);
+                    xmlFree(att);
+                }
+                else
+                {
+                    //xmlNodePtr arraynode=cur->xmlChildrenNode->next;
+                    xmlNodePtr arraynode=xmlFirstElementChild(cur);
+                    if(arraynode)
+                    {
+                        int dim0=0, dim1=0;
+                        att=xmlGetProp(arraynode, XMLSTR "dims");
+                        if(att)
+                        {
+                            printf("    Array %s ", att);
+                            sscanf((char*)att,"%d, %d", &dim0, &dim1);
+                            xmlFree(att);
+                        }
+                        att=xmlGetProp(arraynode, XMLSTR "data");
+                        if(att)
+                        {
+                            printf("\n           %s \n", att);
+                            int N=dim0*dim1;
+                            if(N)
+                            {
+                                if(param.paramArray)
+                                    delete param.paramArray;
+                                param.paramArray=new ArrayParameter(dim0,dim1);
+                                double * pdat=param.paramArray->data;
+                                char *pbuf= (char*)att;
+                                sscanf(pbuf, "%lg", pdat);
+
+                                for (int i=1; i <N; ++i)
+                                {
+                                    pbuf=strchr(pbuf,',');
+                                    sscanf(++pbuf, "%lg", ++pdat);
+                                }
+                            }
+                            xmlFree(att);
+                        }
+                    }
+                    else
+                        printf(" INCOMPLETE parameter no value found");
+                }
+
+
+                att= xmlGetProp(cur, XMLSTR "min");
+                if(att)
+                {
+                    param.bounds[0]=atof((char*)att);
+                    xmlFree(att);
+                }
+                att= xmlGetProp(cur, XMLSTR "max");
+                if(att)
+                {
+                    param.bounds[0]=atof((char*)att);
+                    xmlFree(att);
+                }
+                att= xmlGetProp(cur, XMLSTR "mult");
+                if(att)
+                {
+                    param.multiplier=atof((char*)att);
+                    xmlFree(att);
+                }
+                //    cout << "  do...  ";
+                if(!setParameter((char*) name, param))
+                {
+                    cout << " ERROR: " << LastError <<endl;
+//                    success=false;
+                }
+                //else cout <<" OK\n";
+                if(param.flags &ArrayData)
+                    dumpParameter((char*) name) ;
+            }
+            else
+            {
+                cout << "Parameter " << (char*) name << " is not valid for object " << getName() <<
+                        " of class " << getOptixClass() << endl;
+//                success=false; // ce parametre n'existe pas dans cet objet : on signale
+            }
+            xmlFree(name);
+
+
+        }
+        // traiter ici ApertureStop et SurfaceGenerator
+        cur = cur->next;
+	}
+
+}
+

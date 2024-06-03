@@ -314,6 +314,9 @@ public:
     /** \brief  Generate the surface errors from the model given by m_errorGenerator. It relies on the elementBase function to propagate  */
     virtual void generateSurfaceErrors();  //
 
+    void operator>>(xmlNodePtr elemnode);
+    void operator<<(xmlNodePtr surfnode);
+
 #ifdef HAS_REFLEX
     /** \brief sets or replaces the Coating that will be used in reflectivity computations if enabled \see useReflectivity
      *

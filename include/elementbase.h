@@ -24,6 +24,7 @@
 
 #include "types.h"
 #include "files.h"
+#include <libxml/tree.h>
 
 
 //using namespace std; no longer valid
@@ -277,6 +278,7 @@ public:
                     reason=" has a single value type but the given parameter has an array type";
 
                 SetOptiXLastError(string("parameter name ")+ name +reason,__FILE__, __func__);
+                //std::cout << "param " << name << " wrong array/val type\n";
                 return false;
             }
             param.flags=it->second.flags;
@@ -287,6 +289,7 @@ public:
         }
         else
         {
+           // std::cout << "param " << name << " not found\n";
             SetOptiXLastError(string("parameter name ")+ name + " is invalid",__FILE__, __func__);
             return false;
         }
@@ -502,6 +505,11 @@ public:
     friend TextFile& operator>>(TextFile& file,  ElementBase* elem);  /**< \brief Retrieves a Element object from a TextFile  \todo call interface::createElementObject(type) */
 
     friend bool SaveElementsAsXml(const char * filename, ElementCollection &system);
+
+    void operator>>(xmlNodePtr sysnode);
+    void operator<<(xmlNodePtr elemnode);
+
+
 protected:
 
     /** \brief Creates and sets a new named numeric parameter
@@ -522,12 +530,12 @@ protected:
     }
     inline void removeParameter(string name){ m_parameters.erase(name);}/**< \brief removes a tagged parameter */
 
+protected: //variables
+
     static FloatType m_FlipSurfCoefs[]; /**< \brief list of coefficient of the  matrix transforming surface frame coordinates into propagation frame  coordinates  */
     static map<string, string> m_helpstrings;  /**< \brief  parameter description help strings  */
     static int m_nameIndex;  /**< \brief Index for automatic naming of surfaces created without a name */
  //   vector<RayType> m_impacts; /**<  \brief the ray impacts on the surfaces in forward or backward element space */
-
-
 
 //  surface definition primary parameters
     string m_name;   /**< \brief  an identification name for calling this surface from scripts  */
