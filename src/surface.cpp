@@ -237,16 +237,40 @@ void Surface::operator>>(xmlNodePtr elemnode)
         xmlNewProp (elemnode, XMLSTR "rec", XMLSTR std::to_string(m_recording).c_str());
 
     m_aperture >> elemnode;  // does nothing if region.size() == 0
-// add herz calls to save aperture and surface generator
+    if(m_errorGenerator)     // seulement si le pointeur est valide
+        *m_errorGenerator >> elemnode;
 }
 
 void Surface::operator<<(xmlNodePtr surfnode)
 {
     xmlChar* srec= xmlGetProp(surfnode, XMLSTR "rec");
-    setRecording((RecordMode)atoi((char*)srec));
-    xmlFree(srec);
+    if(srec)
+    {
+        setRecording((RecordMode)atoi((char*)srec));
+        xmlFree(srec);
+    }
+    // set aperture if aperture child exists in children
+    xmlNodePtr curnode=xmlFirstElementChild(surfnode);
+    while(curnode)
+    {
+        if(xmlStrcmp(curnode->name, XMLSTR "aperture")==0)
+        {
+            m_aperture << curnode;
+        }
 
-    // set aperture if aperture child exists
+        if(xmlStrcmp(curnode->name, XMLSTR "error_generator")==0)
+        {
+            if(!m_errorGenerator)    // if normally used to load a system, m_errorGenerator should be always NULL
+                m_errorGenerator=new SurfaceErrorGenerator;
+            *m_errorGenerator << curnode;
+        }
+
+        curnode=xmlNextElementSibling(curnode);
+    }
+    if(!curnode)       // aperture not found warn in debug mode
+        std::cout << "no aperture found in surface " << m_name << std::endl;
+
+
 }
 
 

@@ -135,8 +135,8 @@ class SurfaceErrorGenerator
          */
         ArrayXXd generate( );
 
-        friend xmlNodePtr operator<<(xmlNodePtr doc, const SurfaceErrorGenerator & generator);
-        friend xmlNodePtr operator>>(xmlNodePtr doc, const SurfaceErrorGenerator & generator);
+        void operator>>(xmlNodePtr surfnode);
+        void operator<<(xmlNodePtr generatornode);
 
     protected:
 
