@@ -106,8 +106,11 @@ typedef struct  __ArrayParameter
     double *data; /**< \brief a pointer to the first element of the array. The array is owned by the creator, who is in charge of its deletion*/
 #ifdef __cplusplus
     // the following functions are only defined in C++
-    /** \brief return the array data as a Matrix    */
-    inline Eigen::Map<Eigen::MatrixXd> matrix() {return Eigen::Map<Eigen::MatrixXd>(data, dims[0], dims[1]);}
+    /** \brief return the array data as a Matrix
+     *
+     * \return a matrix map of the data */
+    inline Eigen::Map<Eigen::MatrixXd> matrix()
+        {return Eigen::Map<Eigen::MatrixXd>(data, dims[0], dims[1]);}
     /** \brief construct and reserve parameter array space
     *   \param rows number of rows of the array
     *   \param cols number of columns of the array
