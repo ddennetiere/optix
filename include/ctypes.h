@@ -196,18 +196,26 @@ typedef struct __Parameter{
     ParameterGroup group=BasicGroup; /**< \brief parameter group. This field is read-only outside ElementBase class*/
     uint32_t flags=0; /**< \brief non null if parameter is not optimizable. This field is read-only outside ElementBase class */
 // methods: (only defined in C++)
+
     __Parameter(){}     /**< \brief default constructor */
     /** \brief constructor with value assignment
      * \param newvalue the  parameter value
      * \param newtype  UnitType of the parameter
-     * \param newmultiplier=1. multiplier value
+     * \param newgroup Parameter Group
+     * \param newmultiplier multiplier value (default value=1.)
      */
     inline __Parameter(double newvalue, UnitType newtype, ParameterGroup newgroup, double newmultiplier=1.):/**<  \brief standard constructor sets optimization bounds to  parameter value */
         value(newvalue), multiplier(newmultiplier), type(newtype),group(newgroup), flags(0) {bounds[0]=bounds[1]=newvalue;}
-    /** \brief constructor with array assignment
-     * \param newparamArray the  parameter array of values
-     * \param newtype  UnitType of the parameter values
-     * \param newmultiplier=1. multiplier value
+
+
+    /** \brief  Parameter array constructor with array initialization
+     *
+     * \param Nx size of the first dimension
+     * \param Ny size of the second dimension
+     * \param newtype unit type
+     * \param newgroup Parameter Group
+     * \param newmultiplier multiplier value (default is 1.)
+     *
      */
     inline __Parameter(uint64_t Nx, uint64_t Ny, UnitType newtype, ParameterGroup newgroup, double newmultiplier=1.):/**<  \brief standard constructor sets optimization bounds to  parameter value */
         paramArray(new ArrayParameter(Nx,Ny)), multiplier(newmultiplier), type(newtype), group(newgroup), flags(ArrayData|NotOptimizable)
