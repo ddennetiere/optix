@@ -267,9 +267,6 @@ void Surface::operator<<(xmlNodePtr surfnode)
 
         curnode=xmlNextElementSibling(curnode);
     }
-    if(!curnode)       // aperture not found warn in debug mode
-        std::cout << "no aperture found in surface " << m_name << std::endl;
-
 
 }
 

@@ -37,6 +37,7 @@
 
 #include "Polygon.h"
 #include "Ellipse.h"
+#include "ApertureAPI.h"
 
 using HR_clock = std::chrono::high_resolution_clock ;
 //#define POSTFIX(X, P) X#P
@@ -192,9 +193,22 @@ int main()
   // return DiscoTest();
   //  return TstMistral();
 
-    //return XmlTest();
-    LoadSystemFromXml("Beamline_test_polynomial.xml");
-    SaveSystemAsXml("polytestcopy.xml");
+    bool result=LoadSystemFromXml("polytestcopy.xml");
+    cout << "file loaded " << (result ? "OK\n" : "ERROR\n");
+//    LoadSystemFromXml("Beamline_test_polynomial.xml");
+//    size_t idM1;
+//    FindElementID("M1",&idM1);
+//    int index;
+//    AddRectangularStop(idM1,0.1, 0.03,0,0,0,0,&index);
+//    cout << "Rectangular region " << index << " successfully added\n";
+//    AddEllipticalStop(idM1,0.15, 0.03,0, 0,0,0,&index);
+//    cout << "Elliptical region " << index << " successfully added\n";
+
+
+    string  outfile = "polytestcopy2.xml";
+    cout << "saving to " << outfile << endl;
+    result=  SaveSystemAsXml(outfile.c_str());
+    cout << "file saved " << (result ?  "OK\n" : " ERROR\n");
 
     return 0;
 

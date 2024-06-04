@@ -234,10 +234,11 @@ bool DumpXmlSys(const char* filename)
  * \param elem pointer to the newly created element
  * \param[in] cur the current element node
  * \return bool
- * \deprecated This fonction is no longer user: functionnally replaced by ElementBase::/Surface::  operator<<
+ * \deprecated This fonction is no longer user: functionnally replaced by operator<<() of Element classes
  */
 bool SetXmlParameters(xmlDocPtr doc, ElementBase* elem, xmlNodePtr cur)
 {
+    cout << "\n USING SetXmlParameters\n\n";
 	xmlChar *att, *name;
     cur = cur->xmlChildrenNode;
     Parameter param;
@@ -353,7 +354,6 @@ bool LoadElementsFromXml(const char * filename, ElementCollection &system)
     ElementBase *elem;
     map<ElementBase*, string> chaining;
     bool exitcode=true;
-
 
 	doc = xmlParseFile(filename);
 

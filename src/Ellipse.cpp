@@ -125,17 +125,17 @@ void Ellipse::operator>>(xmlNodePtr apernode)
     xmlNodePtr regnode=xmlNewTextChild(apernode,NULL,XMLSTR "region", NULL); // no value
     xmlNewProp(regnode, XMLSTR "class", XMLSTR "Ellipse");
     xmlNewProp(regnode, XMLSTR "transparent", XMLSTR (m_transparent? "1" : "0"));
-    xmlNodePtr parmnode=xmlNewTextChild(apernode,NULL,XMLSTR "parameters", NULL);
+   // xmlNodePtr parmnode=xmlNewTextChild(apernode,NULL,XMLSTR "parameters", NULL); //useless
     sprintf(buf,"%.8g",a);
-    xmlNewProp(parmnode, XMLSTR "a", XMLSTR buf);
+    xmlNewProp(regnode, XMLSTR "a", XMLSTR buf);
     sprintf(buf,"%.8g",b);
-    xmlNewProp(parmnode, XMLSTR "b", XMLSTR buf);
+    xmlNewProp(regnode, XMLSTR "b", XMLSTR buf);
     sprintf(buf,"%.8g",xcenter);
-    xmlNewProp(parmnode, XMLSTR "xcenter", XMLSTR buf);
+    xmlNewProp(regnode, XMLSTR "xcenter", XMLSTR buf);
     sprintf(buf,"%.8g",ycenter);
-    xmlNewProp(parmnode, XMLSTR "ycenter",XMLSTR buf);
+    xmlNewProp(regnode, XMLSTR "ycenter",XMLSTR buf);
     sprintf(buf,"%.8g",angle);
-    xmlNewProp(parmnode, XMLSTR "angle", XMLSTR buf);
+    xmlNewProp(regnode, XMLSTR "angle", XMLSTR buf);
 }
 
 void Ellipse::operator<<(xmlNodePtr regnode)
