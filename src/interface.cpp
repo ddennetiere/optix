@@ -50,8 +50,8 @@ ElementCollection System;   /**< \brief dictionary of all elements created throu
 
 bool enableApertureLimit=true; /**< \brief Global flag to take into account or not the apertures stops in the ray tracing
                                  *  inhibitApertureLimit replaced by enableApertureLimit of complementary value  should be user transparent*/
-bool useReflectivity=false;     /**<  \brief Global flag to switch on or off the computation of reflectivity  in the ray tracing computation*/
-bool enableSurfaceErrors=false; /**< \brief Global flag indicating wether the surface errors are taken into account in propagation */
+bool enableReflectivity=false;     /**<  \brief Global flag to switch on or off the computation of reflectivity  in the ray tracing computation*/
+bool enableSurfaceErrors=false; /**< \brief Global flag indicating whether the surface errors are taken into account in propagation */
 bool threadInitialized=false;   /**< \brief Global flag to keep track of Open_MP  initialization */
 
 /** \} */ // end of InternalVar
@@ -88,15 +88,6 @@ void Init_Threads()
 }
 
 
-
-//set<size_t> ValidIDs;
-//StringVector stringData; /**< \todo seem unused*/
-
-//inline bool IsValidID(size_t ID)
-//{
-//    set<size_t>::iterator it=System.ValidIDs.find(ID);
-//    return it!=System.ValidIDs.end();
-//}
 
 #ifdef __cplusplus
 extern "C"

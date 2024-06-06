@@ -61,7 +61,8 @@
 *      \ingroup GlobalCpp
 *
 *      \defgroup mainAPI  main Interface C functions
-*      \brief Functions for defining optical systems and running computations
+*      \brief Functions defining optical systems and running computations
+*
 *      \ingroup globalc
 *
 *      declared in interface.h
@@ -127,9 +128,11 @@
 #endif
 
 
+
 /** \ingroup mainAPI
 *   \{
 */
+
 
 #include "ctypes.h"
 
@@ -142,7 +145,9 @@ extern "C"
 #endif
 
 
-    /** \brief  check and reset the error status
+
+
+     /** \brief  Check and reset the error status
      *
      * \param errstring_ptr a pointer to the error string. **This is a read only location, dont try to modify this string**
      * \return the error flag. Error status is reset to no error on exit.
@@ -173,6 +178,7 @@ extern "C"
 #else
                             );
 #endif // __cplusplus
+
 
 
     /** \brief Align the element chain starting from the given element

@@ -53,7 +53,9 @@ class SourceBase;
 //}
 
 
-/** \brief Abstract base class of all optical surfaces
+/** \brief Abstract base class of all optical surfaces \n
+* (includes a \link generel surface error generator \endlink )\n
+*
 *
 *     Surface is the base class of all shape definition classes like Plane, Quadric, Toroid
 *     and behaviour type classes like Transparency, Mirror, Grating.
@@ -63,7 +65,8 @@ class SourceBase;
 *
 *     General parameters common to all surfaces
 *     -----------------------------------------
-*       \see Element
+*     <b> are defined in class  <b href="class_element_base.html#details">ElementBase </b></b>
+*
 */
 class Surface: public  ElementBase
 {
@@ -75,10 +78,10 @@ public:
     /** \brief default  constructor (Film) with explicit chaining to previous
     */
     Surface(bool transparent=true, string name="", Surface * previous=NULL):ElementBase(transparent,name,previous),m_recording(RecordNone),
-             , m_pCoating(NULL), m_lostCount(0), m_apertureActive(false), m_errorMap(3){}
+             , m_pCoating(NULL), m_lostCount(0), m_apertureActive(false){}
 #else
     Surface(bool transparent=true, string name="", Surface * previous=NULL):ElementBase(transparent,name,previous),m_recording(RecordNone),
-              m_lostCount(0), m_apertureActive(false), m_errorMap(3){}
+              m_lostCount(0), m_apertureActive(false){}
 #endif // HAS_REFLEX
     /** \brief virtual destructor
      *   clean the surface error  generator id any
@@ -87,6 +90,8 @@ public:
     {
         if(m_errorGenerator)
             delete m_errorGenerator;
+        if(m_errorMap)
+            delete m_errorMap;
     }
 
     virtual inline string getOptixClass(){return "Surface";}/**< \brief return the most derived class name of this object */
@@ -280,6 +285,7 @@ public:
      *
      * \param point A Vector of fixed size 2 containing the coordinates (X,Y) in the surface plane of the point to be checked
      * \return 1. or 0 according to the aperture  transmission at the given point
+     *
      */
     inline double getApertureTransmissionAt(const Ref<Vector2d> & point)
     {
@@ -290,6 +296,22 @@ public:
     }
 
     inline bool isOPDvalid(){return m_OPDvalid;}/**< \brief check validity  of OPD data before computing a PSF \return true if OPD data are valid*/
+
+    void operator>>(xmlNodePtr elemnode);
+    void operator<<(xmlNodePtr surfnode);
+
+
+ /**
+ */
+
+/**
+ *  \name Surface error generator group
+ *
+ *  \anchor generel
+ *
+ *   Function to parametrize the generation and effect of surface errors
+ *
+ * \{ */
 
     /** \brief sets the bidim spline interpolator of the surface heigts errors
      *
@@ -306,19 +328,135 @@ public:
      */
     inline void setSurfaceErrors(double xmin, double xmax, double ymin, double ymax, const Ref<ArrayXXd>& heights)
     {
+        if(!m_errorMap)
+            m_errorMap=new BidimSpline(3);
         Array22d limits;
         limits << xmin, ymin, xmax,ymax;
-        m_errorMap.setFromGridData(limits, heights);
+        m_errorMap->setFromGridData(limits, heights);
     }
 
-    /** \brief  Generate the surface errors from the model given by m_errorGenerator. It relies on the elementBase function to propagate  */
+    /** \brief Destroy the SurfaceError spline inerpolator and invalidate the associated m_errorMap pointer
+     *
+     *  The m_errorMethod flag is left unchanged. Surface error are only applied  when m_errorMethod != 0 and  m_errorMap is valid
+     */
+    inline void unsetSurfaceErrors()
+    {
+        if(m_errorMap)
+            delete m_errorMap;
+        m_errorMap=NULL;
+    }
+
+    /** \brief  Generate and set the surface errors from the model given by m_errorGenerator. It relies on the elementBase function to propagate  */
     virtual void generateSurfaceErrors();  //
 
-    void operator>>(xmlNodePtr elemnode);
-    void operator<<(xmlNodePtr surfnode);
+
+    /** \brief set the method used to take this surface errors into account in the ray tracing
+     *
+     * \param meth  The method to be used for this element. Must be a member of the theErrorMethod enumeration
+     */
+    inline void setErrorMethod(ErrorMethod meth){m_errorMethod=meth;}
+
+    /** \brief returns the method used to take this surface errors into account in the ray tracing
+     *
+     * \return the method being used for this element. It is a member of the theErrorMethod enumeration
+     *
+     */
+    inline ErrorMethod getErrorMethod(){return m_errorMethod;}
+
+    /** \brief  defines the limits of the surface and the sampling pitchs of the
+     * \param xmin Low X limit of the generated surface
+     * \param xmax High X limit of the generated surface
+     * \param xstep X interval between 2 points [m unit]
+     * \param ymin Low Y limit of the generated surface
+     * \param ymax High Y limit of the generated surface
+     * \param ystep Y interval between 2 points [m unit]
+     */
+    inline void setSurfaceSampling(double xmin, double xmax, double xstep, double ymin, double ymax, double ystep)
+    {
+        if(!m_errorGenerator)
+            m_errorGenerator= new SurfaceErrorGenerator;
+        m_errorGenerator->setSurfaceSampling(xmin, xmax, xstep, ymin, ymax, ystep);
+    }
+
+    /** \brief returns limits of the surface error map and the requested sampling steps
+     *
+     * \param xstep location to return the approximate x pitch (the actual one is adjusted to make an interger number of steps in the x interval)
+     * \param ystep location to return the approximate y pitch (the actual one is adjusted to make an interger number of steps in the y interval)
+     * \return the limits the aperture limits into which the surface is defined. \(mins in the first row and maxs in the second; X in first column and Y in the second)
+     */
+    inline const Array22d& getSurfaceSampling(double* xstep=NULL, double* ystep=NULL)
+    {
+        return getSurfaceSampling(xstep, ystep);
+    }
+
+    /** \brief Set the fractal parameter of the PSD in the X or Y direction
+     *
+     * \param axe string "X" or "Y" specifying the axe to set
+     * \param N the number of frequency segments in the log/log PSD curve
+     * \param exponents The array of N fractal exponents
+     * \param frequencies the array of N-1 transition frequencies
+     * \throw an instance of ParameterException if axe name is invalid or an instance of Parameter warning if one of the exponents is >0
+     *
+     */
+    inline void setFractalParameters(const char* axe, const int N, const double *exponents, const double *frequencies)
+    {
+        if(!m_errorGenerator)
+            m_errorGenerator= new SurfaceErrorGenerator;
+        m_errorGenerator->setFractalParameters(axe, N, exponents, frequencies);
+    }
+
+    /** \brief Retrieves the fractal parameters of the surface error generator
+     *
+     * \return the fractal parameters in a FractaParameter struct
+     */
+    inline const FractalParameters& getFractalParameters(){return m_errorGenerator->getFractalParameters();}
+
+
+    /** \brief Defines the Legendre polynomials which will be  forced to zero
+     *
+     *  if this fonction
+     * \param detrend a mask array. If the value of coefficient (n,m) is not zero, the corresponding
+     *  Legendre polynomials (n,m) forced to zero
+     *  if a non initialized matrix is passed, detrending will be inhibited.
+     */
+    inline void setDetrending(const ArrayXXd& detrend)
+    {
+        if(!m_errorGenerator)
+            m_errorGenerator= new SurfaceErrorGenerator;
+        m_errorGenerator->setDetrending(detrend);
+        }
+
+    /** \brief Retrieves the mask defining the Legendre polynomials which are  forced to zero
+     *
+     * \return A the detrending mask as an Eigen::Array
+     *
+     */
+    inline const ArrayXXd& getDetrending() {return m_errorGenerator->getDetrending();}
+
+    /** \brief defines,first which Legendre Polynomials will be randomly set and the maximum sigma value they will be given ;
+     * second, the  height error sigma of the remaining surface components.
+     *
+     * \param nonZsigma [unit is m] The contribution of non constrained Legendre polynomials to the RMS height errors. Non constrained polynomials are those which are not defined by setDetrendin and Zmax.
+     * \param Zmax [unit is m] Reference of an array or matrix defining the Legendre polynomials which will be randomly defined and the maximum contribution of each one to the surface height error sigma.
+     */
+    inline void setSigmas(double nonZsigma, const Ref<ArrayXXd>& Zmax)
+    {
+        if(!m_errorGenerator)
+            m_errorGenerator= new SurfaceErrorGenerator;
+        m_errorGenerator->setSigmas(nonZsigma, Zmax);
+    }
+
+    /** \brief retrieve the matrix of maximum sigma values of the random Legendre polynomials defining the low frequency part
+     *
+     * \param[in,out] nonZ  location to return the sigma of the high frequency part not defined by legendre polynomials
+     * \return ca reference to the array of Legendre maximum sigma values
+     *
+     */
+    inline const ArrayXXd& getSigmas(double * nonZ){return m_errorGenerator->getSigmas(nonZ);}
+/** \} */
 
 #ifdef HAS_REFLEX
-    /** \brief sets or replaces the Coating that will be used in reflectivity computations if enabled \see useReflectivity
+    /** \brief sets or replaces the Coating that will be used in reflectivity computations if enabled \see enableReflectivity
      *
      * \param tableName name of te table where the coating is defined
      * \param coatingName name of the coating
@@ -339,11 +477,9 @@ protected:
        * \param[in,out] ray  input :The ray moved to the surface after a call to intercept; output: the modified ray positionned at new intercept
        * \param[in,out] normal input: The normal after a call to intercept; output: the modified normal
        */
-      void getPerturbation(Vector2d& spos, RayType& ray, VectorType& normal);
+      void applyPerturbation(Vector2d& spos, RayType& ray, VectorType& normal);
 public:
     ApertureStop m_aperture;  /**< \brief The active area of the surface   */
-    SurfaceErrorGenerator* m_errorGenerator=NULL;/**< \brief if non null and validly initialized a call to GenerateError() will set up aspline error map associated to the surface  */
-
 
 protected:
     vector<RayType> m_impacts; /**<  \brief the ray impacts on the surfaces in absolute local element space before or after reflection/transmission */
@@ -353,8 +489,10 @@ protected:
 #endif // HAS_REFLEX
     int m_lostCount=0;        /**<  \brief Count of rays lost in this surface at transmission or reflexion */
     bool m_apertureActive;  /**<  \brief boolean flag for taking the aperture active area into account */
-    BidimSpline m_errorMap; /**< \brief A bidimensionnal spline interpolator of local height and slope deviation from ideal surface */
+    BidimSpline* m_errorMap=NULL; /**< \brief A bidimensionnal spline interpolator of local height and slope deviation from ideal surface */
     ErrorMethod  m_errorMethod=None;     /**< \brief Indicates the way the surface errors are taken in computation  None=0 means surface errors ignored, LocalSlope=1 use slope errors without changing the intercept (other cases later)*/
+    SurfaceErrorGenerator* m_errorGenerator=NULL;/**< \brief if non null and validly initialized a call to GenerateError() will set up aspline error map associated to the surface  */
+
     bool m_OPDvalid=false;  /**< \brief boolean flag for keeping track of the validity of the OPD of the rays stored in the m_impacts vector */
     int m_NxOPD=0;          /**< \brief degree of Legendre polynomials of the X variable used to interpolate the OPD*/
     int m_NyOPD=0;          /**< \brief degree of Legendre polynomials of the Y variable used to interpolate the OPD */

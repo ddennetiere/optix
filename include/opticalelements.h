@@ -190,7 +190,7 @@ public:
      * \param name parameter name
      * \param param Parameter data
      * \return true if success; false if failure; Last error is set in this case
-     * \todo catch parameter error
+     * \todo reflect the  error of the base classes , when setParameter fails (base classes set last error)
      */
     inline bool setParameter(string name, Parameter& param)
     {

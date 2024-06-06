@@ -180,10 +180,10 @@ RayType& GratingBase::transmit(RayType& ray)
 
         Vector2d pos=(m_surfaceInverse*ray.position()).head(2).cast<double>();
 
-        if(enableSurfaceErrors && m_errorMethod )
+        if(m_errorMap && enableSurfaceErrors && m_errorMethod )
         {   //we use pos in surface frame check if ray is inside the definition area
-            if( m_errorMap.isValid(pos))
-                getPerturbation(pos, ray, normal); //will actualize the 3 parameters according to the m_errorMethod parameter
+            if( m_errorMap->isValid(pos))
+                applyPerturbation(pos, ray, normal); //will actualize the 3 parameters according to the m_errorMethod parameter
             else
             {
                 ray.m_amplitude_P=0; //amplitude are nulled but ray is still propagated without perturbation
@@ -252,10 +252,10 @@ RayType& GratingBase::reflect(RayType& ray)
 
         Vector2d pos=(m_surfaceInverse*ray.position()).head(2).cast<double>();
 
-        if(enableSurfaceErrors && m_errorMethod )
+        if(m_errorMap && enableSurfaceErrors && m_errorMethod )
         {   //we use pos in surface frame check if ray is inside the definition area
-            if( m_errorMap.isValid(pos))
-                getPerturbation(pos, ray, normal); //will actualize the 3 parameters according to the m_errorMethod parameter
+            if( m_errorMap->isValid(pos))
+                applyPerturbation(pos, ray, normal); //will actualize the 3 parameters according to the m_errorMethod parameter
             else
             {
                 ray.m_amplitude_P=0; //amplitude are nulled but ray is still propagated without perturbation

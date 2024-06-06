@@ -121,7 +121,7 @@ void memoryDump(void* address, uint64_t size);
 *   - <em> All parameters are in \b BasicGroup </em>
 *   - If element is first (previous==0) the incident chief ray is along Z, with an origin at 0 in absolute frame .
 *   The element distance is counted from this absolute origin.
-*   \todo Clipping is not yet implemented, but it could be done at the ElementBase level where the transform matrix are defined
+*
  */
 class ElementBase {
 public:
@@ -500,9 +500,11 @@ public:
 
     virtual void dumpData();/**< \brief dump internal data to standard output */
 
-    friend TextFile& operator<<(TextFile& file,  ElementBase& elem);  /**< \brief Dump this Element object to a TextFile, in a human readable format  */
+    friend TextFile& operator<<(TextFile& file,  ElementBase& elem);  /**< \brief Dump this Element object to a TextFile, in a human readable format
+              *         \warning saving in text file is no longer maintained */
 
-    friend TextFile& operator>>(TextFile& file,  ElementBase* elem);  /**< \brief Retrieves a Element object from a TextFile  \todo call interface::createElementObject(type) */
+    friend TextFile& operator>>(TextFile& file,  ElementBase* elem);  /**< \brief Retrieves a Element object from a TextFile
+                *   \warning  input/output from text files is no longer maintained */
 
     friend bool SaveElementsAsXml(const char * filename, ElementCollection &system);
 

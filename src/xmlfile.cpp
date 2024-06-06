@@ -25,6 +25,9 @@
 #define XMLSTR (xmlChar*)
 //#define MAXBUF 512
 
+extern bool enableReflectivity, enableApertureLimit, enableSurfaceErrors;
+
+
 bool SaveElementsAsXml(const char * filename, ElementCollection &system)
 {
     // This function is declared friend of ElementBase
@@ -35,6 +38,10 @@ bool SaveElementsAsXml(const char * filename, ElementCollection &system)
     xmlDocPtr doc = xmlNewDoc(XMLSTR "1.0");
     xmlNodePtr sysnode = xmlNewDocRawNode(doc, NULL, (const xmlChar*)"system", NULL);
     xmlDocSetRootElement(doc, sysnode);
+
+    xmlNewProp(sysnode,XMLSTR "reflectivity", XMLSTR (enableReflectivity ? "on":"off"));
+    xmlNewProp(sysnode,XMLSTR "aperture_limit", XMLSTR (enableApertureLimit ? "on":"off"));
+    xmlNewProp(sysnode,XMLSTR "surface_errors",XMLSTR (enableSurfaceErrors ? "on":"off"));
 
     map<string,ElementBase*>::iterator it;
     for (it=system.begin(); it!=system.end(); ++it)
@@ -349,7 +356,7 @@ bool LoadElementsFromXml(const char * filename, ElementCollection &system)
 {
     xmlDocPtr doc;
     xmlNodePtr sysnode, curnode;
-    xmlChar *sclass, *sname, *nextelem; //, *srec, *trans;
+    xmlChar *sclass, *sname, *nextelem, *attr; //, *srec, *trans;
     //size_t elemID;
     ElementBase *elem;
     map<ElementBase*, string> chaining;
@@ -373,6 +380,26 @@ bool LoadElementsFromXml(const char * filename, ElementCollection &system)
 		xmlFreeDoc(doc);
 		return false ;
 	}
+
+    attr=xmlGetProp(sysnode, XMLSTR "reflectivity");
+    if(attr)
+    {
+        enableReflectivity=xmlStrEqual(attr,XMLSTR "on") ? true : false;
+        xmlFree(attr);
+    }
+    attr=xmlGetProp(sysnode, XMLSTR "aperture_limit");
+    if(attr)
+    {
+        enableApertureLimit=xmlStrEqual(attr,XMLSTR "on") ? true : false;
+        xmlFree(attr);
+    }
+    attr=xmlGetProp(sysnode, XMLSTR "surface_errors");
+    if(attr)
+    {
+        enableSurfaceErrors=xmlStrEqual(attr,XMLSTR "on") ? true : false;
+        xmlFree(attr);
+    }
+
 
 	curnode = sysnode->xmlChildrenNode;
 	while (curnode != NULL)

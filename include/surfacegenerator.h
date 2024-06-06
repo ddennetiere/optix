@@ -67,6 +67,12 @@ class SurfaceErrorGenerator
             m_sampling << xstep,ystep;
         }
 
+        /** \brief returns limits of the surface error map and the requested sampling steps
+         *
+         * \param xstep location to return the approximate x pitch (the actual one is adjusted to make an interger number of steps in the x interval)
+         * \param ystep location to return the approximate y pitch (the actual one is adjusted to make an interger number of steps in the y interval)
+         * \return the limits the aperture limits into which the surface is defined. \(mins in the first row and maxs in the second; X in first column and Y in the second)
+         */
         inline const Array22d& getSurfaceSampling(double* xstep=NULL, double* ystep=NULL)
         {
             if(xstep)
@@ -90,6 +96,10 @@ class SurfaceErrorGenerator
             m_fractalSurf.setXYfractalParams(axe, N, exponents, frequencies);
         }
 
+        /** \brief Retrieves the fractal parameters of the surface error generator
+         *
+         * \return the fractal parameters in a FractaParameter struct
+         */
         inline const FractalParameters& getFractalParameters(){return m_fractalSurf.fracParms;}
 
         /** \brief Defines the Legendre polynomials which will be  forced to zero
@@ -102,6 +112,11 @@ class SurfaceErrorGenerator
             m_detrendMask=detrend.unaryExpr([](double x){return x==0? 0. : 1.;});
         }
 
+        /** \brief Retrieves the mask defining the Legendre polynomials which are  forced to zero
+         *
+         * \return A the detrending mask as an Eigen::Array
+         *
+         */
         inline const ArrayXXd& getDetrending() {return m_detrendMask;}
 
         /** \brief defines,first which Legendre Polynomials will be randomly set and the maximum sigma value they will be given ;

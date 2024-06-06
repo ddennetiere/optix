@@ -43,7 +43,7 @@ class SourceBase : public virtual Surface
          *
          *  Generate() can be called several times with different wavelengths since each ray carries its wavelength.
          *  Radiate() will propagate all ray impacts accumulated in the source since the last clearImpacts() call. */
-        virtual int generate(const double wavelength,const char polar='S')=0;    // pure virtual {cout <<"errorBase class\n";return -1;};  /**<  \todo should be made pure virtual later*/
+        virtual int generate(const double wavelength,const char polar='S')=0;    // pure virtual
 
         /** \brief implements the required pure virtual intercept() function of the base class,
          *  so that the element is completely transparent

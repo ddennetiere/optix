@@ -193,7 +193,7 @@ int main()
   // return DiscoTest();
   //  return TstMistral();
 
-    bool result=LoadSystemFromXml("polytestcopy.xml");
+    bool result=LoadSystemFromXml("polytestcopy2.xml");
     cout << "file loaded " << (result ? "OK\n" : "ERROR\n");
 //    LoadSystemFromXml("Beamline_test_polynomial.xml");
 //    size_t idM1;
@@ -205,7 +205,7 @@ int main()
 //    cout << "Elliptical region " << index << " successfully added\n";
 
 
-    string  outfile = "polytestcopy2.xml";
+    string  outfile = "polytestcopy.xml";
     cout << "saving to " << outfile << endl;
     result=  SaveSystemAsXml(outfile.c_str());
     cout << "file saved " << (result ?  "OK\n" : " ERROR\n");

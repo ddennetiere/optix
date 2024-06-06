@@ -31,17 +31,19 @@ template<typename Scalar_>  struct minOf2Op
   const Scalar_ operator()(const Scalar_& x, const Scalar_& y) const { return x < y ? x : y; }
 };
 
-void Surface::getPerturbation(Vector2d& spos, RayType& ray, VectorType& normal)
+void Surface::applyPerturbation(Vector2d& spos, RayType& ray, VectorType& normal)
 {
+    if(!m_errorMap)
+        return;  // if mistakenly called while no interpolator is defined , will apply no perturbation
     VectorType deltaN=VectorType::Zero();  // - deltaN will be the perturbation of the normal  in surface pane
     Vector2d grad;
 
-    double z= m_errorMap.valueGradient(spos(0),spos(1),grad);
+    double z= m_errorMap->valueGradient(spos(0),spos(1),grad);
     switch (m_errorMethod) {
     case SimpleShift:
         ray.moveTo(z/ray.direction().dot(normal)).rebase(); //new intercept then actualize spos and grad
         spos=(m_surfaceInverse*ray.position()).head(2).cast<double>();
-        m_errorMap.valueGradient(spos(0),spos(1),grad);
+        m_errorMap->valueGradient(spos(0),spos(1),grad);
     case LocalSlope:   //proceed to normal correction
         break;
     case SurfOffset:
@@ -56,7 +58,7 @@ void Surface::getPerturbation(Vector2d& spos, RayType& ray, VectorType& normal)
             }
             ray+=SurfShift;  //switch back to unshifted space and compute the new spos
             spos=(m_surfaceInverse*ray.position()).head(2).cast<double>();
-            m_errorMap.valueGradient(spos(0),spos(1),grad);
+            m_errorMap->valueGradient(spos(0),spos(1),grad);
         }
         break;//proceed to normal correction
     default:
@@ -129,46 +131,10 @@ RayType& Surface::reflect(RayType& ray)    /*  this implementation simply reflec
             Vector2d spos=(m_surfaceInverse*ray.position()).head(2).cast<double>();
 
             // if surface aerrors are active we must take care of the local normal perturbation
-            if(enableSurfaceErrors && m_errorMethod )
+            if(m_errorMap && enableSurfaceErrors && m_errorMethod )
             {   //we use pos in surface frame check if ray is inside the definition area
-                if( m_errorMap.isValid(spos))
-                    getPerturbation(spos, ray, normal);
-/*               { // then we can get the perturbation
-                    VectorType deltaN=VectorType::Zero();  // - deltaN will be the perturbation of the normal  in surface pane
-                    Vector2d grad;
-
-                    double z= m_errorMap.valueGradient(spos(0),spos(1),grad);
-                    switch (m_errorMethod) {
-                    case SimpleShift:
-                        ray.moveTo(z/ray.direction().dot(normal)).rebase(); //new intercept then actualize spos and grad
-                        spos=(m_surfaceInverse*ray.position()).head(2).cast<double>();
-                        m_errorMap.valueGradient(spos(0),spos(1),grad);
-                    case LocalSlope:   //proceed to normal correction
-                        break;
-                    case SurfOffset:
-                        {   //instead of changing the surface equation we move the ray by z along the normal
-                            VectorType SurfShift=z*normal;
-                            ray-=SurfShift; // no need to rebase, m_distance remains 0
-                            try{
-                                intercept(ray, &normal); // compute shifted intercept
-                            }catch(...) {
-                                throw_with_nested(InterceptException(string("Intercept exception in " )+  m_name + " catch from "  ,
-                                            __FILE__, __func__, __LINE__));
-                            }
-                            ray+=SurfShift;  //switch back to unshifted space and compute the new spos
-                            spos=(m_surfaceInverse*ray.position()).head(2).cast<double>();
-                            m_errorMap.valueGradient(spos(0),spos(1),grad);
-                        }
-                        break;//proceed to normal correction
-                    default:
-                        throw RayException(string("Invalid error method identifier, within ") +  m_name + " from " ,
-                                        __FILE__, __func__, __LINE__);
-                    }
-                    // normal correction is the same in all cases
-                    deltaN.head(2)=grad.cast<FloatType>(); // convert to long-double
-                    normal-=m_surfaceDirect*deltaN;   // in principle we should normalize  is it required ?
-
-                }*/
+                if( m_errorMap->isValid(spos))
+                    applyPerturbation(spos, ray, normal);
                 else
                 {
                     ray.m_amplitude_P=0; //amplitude are nulled but ray is still propagated without perturbation
@@ -235,6 +201,8 @@ void Surface::operator>>(xmlNodePtr elemnode)
 
     if(m_recording)
         xmlNewProp (elemnode, XMLSTR "rec", XMLSTR std::to_string(m_recording).c_str());
+    if(m_errorMethod)
+        xmlNewProp(elemnode, XMLSTR "error_method", XMLSTR std::to_string(m_errorMethod).c_str());
 
     m_aperture >> elemnode;  // does nothing if region.size() == 0
     if(m_errorGenerator)     // seulement si le pointeur est valide
@@ -243,11 +211,17 @@ void Surface::operator>>(xmlNodePtr elemnode)
 
 void Surface::operator<<(xmlNodePtr surfnode)
 {
-    xmlChar* srec= xmlGetProp(surfnode, XMLSTR "rec");
-    if(srec)
+    xmlChar* sprop= xmlGetProp(surfnode, XMLSTR "rec");
+    if(sprop)
     {
-        setRecording((RecordMode)atoi((char*)srec));
-        xmlFree(srec);
+        setRecording((RecordMode)atoi((char*)sprop));
+        xmlFree(sprop);
+    }
+    sprop= xmlGetProp(surfnode, XMLSTR "error_method");
+    if(sprop)
+    {
+        setErrorMethod((ErrorMethod)atoi((char*)sprop));
+        xmlFree(sprop);
     }
     // set aperture if aperture child exists in children
     xmlNodePtr curnode=xmlFirstElementChild(surfnode);
@@ -809,7 +783,9 @@ void Surface::generateSurfaceErrors()
     {
         ArrayXXd errormap=m_errorGenerator->generate();
         const Array22d& limits=m_errorGenerator->getSurfaceSampling();
-        m_errorMap.setFromGridData(limits, errormap);
+        if(!m_errorMap)
+            m_errorMap= new  BidimSpline(3);
+        m_errorMap->setFromGridData(limits, errormap);
     }
     if(m_next!=NULL )
         m_next->generateSurfaceErrors(); // this call will only propagate the function  until the next element derived from the Surface class
