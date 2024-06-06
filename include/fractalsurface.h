@@ -36,7 +36,7 @@ class FractalSurface
 {
     public:
         friend class SurfaceErrorGenerator;
-        /** \brief Construct a new fractalSurface object with default parameters.
+        /** \brief Construct a new fractalSurface object with default parameters (exponents = -1).
          *
          * Default fractal PSDs have only one segment and a fractal exponent of -1 both in X and Y direction
          */
@@ -59,7 +59,7 @@ class FractalSurface
          * \param axe string "X" or "Y" specifying the axe to set
          * \param N the number of frequency segments in the log/log PSD curve
          * \param exponents The array of N fractal exponents
-         * \param frequencies the array of N-1 transition frequencies
+         * \param frequencies the array of N-1 transition frequencies \f$ [in m^{-1}] \f$
          * \throw an instance of ParameterException if axe name is invalid or an instance of Parameter warning if one of the exponents is >0
          *
          */
@@ -103,11 +103,11 @@ class FractalSurface
          * \param dstep tabulation step in real space
          * \param nseg number of segments of the fractal law
          * \param exponent the array of exponent of the fractal law (nseg  values)
-         * \param ftrans the array of transition frequencies (nseg-1 values, unuses if nseg=1)
+         * \param ftrans the array of transition frequencies \f$ [in m^{-1}] \f$ (nseg-1 values, unused if nseg=1)
          * \return the filter vector to be applied in Fourier space
          */
         VectorXd frequencyFilter(int N, double dstep, int nseg, double * exponent, double *ftrans);
-        FractalParameters fracParms;   /**< vector of transition frequencies if size  */
+        FractalParameters fracParms;   /**< C struct containing the parameters of the fractal surface  */
 
     private:
         const static std::vector<int> prim23;

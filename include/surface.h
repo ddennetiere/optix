@@ -309,20 +309,21 @@ public:
  *
  *  \anchor generel
  *
- *   Function to parametrize the generation and effect of surface errors
+ *   Functions associated to the SurfaceErrorGenerator and surface errors handling
  *
  * \{ */
 
-    /** \brief sets the bidim spline interpolator of the surface heigts errors
+    /** \brief sets the bidim spline interpolator of the surface heights errors.\n
+     *  *The function is automatically called by the GenerateSurfaceErrors function, but can be independently called to install a fixed error map*
      *
-     * Since the interpolator is only valid in the given limits, activating computation with surface errors will insert
-     *  a rectangular aperture of identical size at the bottom of the aperture stop region stack.
-     * This aperture will be removed if the surface error coputation is inactivated
+     * Since the interpolator is only valid in the given limits, activating computation with surface errors will be equivalent to
+     *  inserting a rectangular aperture of identical size at the bottom of the aperture stop region stack.\n
+     * This fictitious aperture is not active when the surface error computations are inactivated
 
      * \param xmin aperture low limit in X; [in m units]
      * \param xmax aperture high limit in X; [in m units]
      * \param ymin aperture low limit in Y; [in m units]
-     * \param ymax perture high limit in Y; [in m units]
+     * \param ymax aperture high limit in Y; [in m units]
      * \param heights Array containing the height data. These data will be considered equispaced on the given aperture.
 
      */
@@ -337,7 +338,7 @@ public:
 
     /** \brief Destroy the SurfaceError spline inerpolator and invalidate the associated m_errorMap pointer
      *
-     *  The m_errorMethod flag is left unchanged. Surface error are only applied  when m_errorMethod != 0 and  m_errorMap is valid
+     *  The m_errorMethod flag is left unchanged. *Surface error are only applied  when m_errorMethod != 0 and  m_errorMap is valid*
      */
     inline void unsetSurfaceErrors()
     {
@@ -346,30 +347,40 @@ public:
         m_errorMap=NULL;
     }
 
-    /** \brief  Generate and set the surface errors from the model given by m_errorGenerator. It relies on the elementBase function to propagate  */
+    /** \brief  Generate and set the surface errors from the model given by m_errorGenerator.
+    * It relies on the elementBase function to propagate
+    * \throw an instance of ParameterException if the generator parameters are not or improperly set
+    */
     virtual void generateSurfaceErrors();  //
 
 
     /** \brief set the method used to take this surface errors into account in the ray tracing
      *
+     *  *The "method flag" is defined whenever no surfaceError generator  and no spline interpolator are set*
      * \param meth  The method to be used for this element. Must be a member of the theErrorMethod enumeration
      */
     inline void setErrorMethod(ErrorMethod meth){m_errorMethod=meth;}
 
     /** \brief returns the method used to take this surface errors into account in the ray tracing
      *
+     * * The "method flag" is defined whenever no surfaceError generator  and no spline interpolator are set*
      * \return the method being used for this element. It is a member of the theErrorMethod enumeration
      *
      */
     inline ErrorMethod getErrorMethod(){return m_errorMethod;}
 
-    /** \brief  defines the limits of the surface and the sampling pitchs of the
+    /** \brief  Defines the limits and the sampling pitches of the surface errors produced by the attached SurfaceErrorGenerator.
+     *  If no error generator is defined for this surface, one will be created with default fractal and detrending parameters
+     *
+     *  This function **must be called once** before calling Generate.
      * \param xmin Low X limit of the generated surface
      * \param xmax High X limit of the generated surface
-     * \param xstep X interval between 2 points [m unit]
+     * \param xstep X interval between 2 points [m unit].
+             *(the actual one is adjusted to make an integer number of steps in the x interval)*
      * \param ymin Low Y limit of the generated surface
      * \param ymax High Y limit of the generated surface
-     * \param ystep Y interval between 2 points [m unit]
+     * \param ystep Y interval between 2 points [m unit].
+             *(the actual one is adjusted to make an integer number of steps in the y interval)*
      */
     inline void setSurfaceSampling(double xmin, double xmax, double xstep, double ymin, double ymax, double ystep)
     {
@@ -378,23 +389,47 @@ public:
         m_errorGenerator->setSurfaceSampling(xmin, xmax, xstep, ymin, ymax, ystep);
     }
 
+    /** \brief If a surface error generator exist, the function will destroy it and the error interpolator as well,
+     *      otherwise it does nothing
+     */
+    inline void unsetErrorGenerator()
+    {
+        if(m_errorGenerator)
+        {
+            delete m_errorGenerator;
+            if(m_errorMap)
+                delete m_errorMap;
+            m_errorMap=NULL;
+        }
+        m_errorGenerator=NULL;
+    }
+
+
     /** \brief returns limits of the surface error map and the requested sampling steps
      *
-     * \param xstep location to return the approximate x pitch (the actual one is adjusted to make an interger number of steps in the x interval)
-     * \param ystep location to return the approximate y pitch (the actual one is adjusted to make an interger number of steps in the y interval)
-     * \return the limits the aperture limits into which the surface is defined. \(mins in the first row and maxs in the second; X in first column and Y in the second)
+     * \param xstep location to return the approximate x pitch
+     *        *(the actual one is adjusted to make an integer number of steps in the x interval)*
+     * \param ystep location to return the approximate y pitch
+     *        *(the actual one is adjusted to make an integer number of steps in the y interval)*
+     * \return the limits the aperture limits into which the surface is defined. (mins in the first row and maxs in the second; X in first column and Y in the second)
+     * \throw an instance of ElementException if the error generator of the surface was not set.
      */
     inline const Array22d& getSurfaceSampling(double* xstep=NULL, double* ystep=NULL)
     {
-        return getSurfaceSampling(xstep, ystep);
+        if(!m_errorGenerator)
+            throw ElementException(string("The surface error generator of surface ")+getName()+" is not activated",
+                                    __FILE__, __func__, __LINE__);
+        return m_errorGenerator->getSurfaceSampling(xstep, ystep);
     }
 
-    /** \brief Set the fractal parameter of the PSD in the X or Y direction
+    /** \brief Set the fractal parameter of the PSD in the X or Y direction.
+     *  If no error generator is defined for this surface, one will be created.
      *
+     * if Generate is called before calling this functions default values are used \see FractalSurface() creator
      * \param axe string "X" or "Y" specifying the axe to set
      * \param N the number of frequency segments in the log/log PSD curve
      * \param exponents The array of N fractal exponents
-     * \param frequencies the array of N-1 transition frequencies
+     * \param frequencies the array of N-1 transition frequencies \f$ [in m^{-1}] \f$
      * \throw an instance of ParameterException if axe name is invalid or an instance of Parameter warning if one of the exponents is >0
      *
      */
@@ -407,14 +442,21 @@ public:
 
     /** \brief Retrieves the fractal parameters of the surface error generator
      *
-     * \return the fractal parameters in a FractaParameter struct
+     * \return the fractal parameters in a FractalParameter struct
+     * \throw an instance of ElementException if the error generator of the surface was not set.
      */
-    inline const FractalParameters& getFractalParameters(){return m_errorGenerator->getFractalParameters();}
+    inline const FractalParameters& getFractalParameters()
+    {
+        if(!m_errorGenerator)
+            throw ElementException(string("The surface error generator of surface ")+getName()+" is not activated",
+                                    __FILE__, __func__, __LINE__);
+        return m_errorGenerator->getFractalParameters();
+    }
 
 
     /** \brief Defines the Legendre polynomials which will be  forced to zero
      *
-     *  if this fonction
+     * if Generate is called before calling this functions default values are used \see FractalSurface() creator
      * \param detrend a mask array. If the value of coefficient (n,m) is not zero, the corresponding
      *  Legendre polynomials (n,m) forced to zero
      *  if a non initialized matrix is passed, detrending will be inhibited.
@@ -429,15 +471,23 @@ public:
     /** \brief Retrieves the mask defining the Legendre polynomials which are  forced to zero
      *
      * \return A the detrending mask as an Eigen::Array
-     *
+     * \throw an instance of ElementException if the error generator of the surface was not set.
      */
-    inline const ArrayXXd& getDetrending() {return m_errorGenerator->getDetrending();}
+    inline const ArrayXXd& getDetrending()
+    {
+        if(!m_errorGenerator)
+            throw ElementException(string("The surface error generator of surface ")+getName()+" is not activated",
+                                    __FILE__, __func__, __LINE__);
+        return m_errorGenerator->getDetrending();
+    }
 
-    /** \brief defines,first which Legendre Polynomials will be randomly set and the maximum sigma value they will be given ;
-     * second, the  height error sigma of the remaining surface components.
+    /** \brief defines first, which Legendre Polynomials will be randomly set and the maximum sigma value they will be given;\n
+     *      second, the  height error sigma of the higher frequency components.
      *
-     * \param nonZsigma [unit is m] The contribution of non constrained Legendre polynomials to the RMS height errors. Non constrained polynomials are those which are not defined by setDetrendin and Zmax.
-     * \param Zmax [unit is m] Reference of an array or matrix defining the Legendre polynomials which will be randomly defined and the maximum contribution of each one to the surface height error sigma.
+     *  This function **must be called once** before calling Generate.
+     * \param nonZsigma [unit is m] The contribution of non constrained Legendre polynomials to the RMS height errors. Non constrained polynomials are those which are not defined by setDetrending and Zmax.
+     * \param Zmax [unit is m] Reference of an array or matrix defining the Legendre polynomials which will be randomly defined and the maximum contribution of each one to the surface height error sigma.\n
+     *      If no other constrains than detrending is sought for the low frequency part, a non intialized ArrayXXd (or MatrixXd) can be passed.
      */
     inline void setSigmas(double nonZsigma, const Ref<ArrayXXd>& Zmax)
     {
@@ -446,13 +496,20 @@ public:
         m_errorGenerator->setSigmas(nonZsigma, Zmax);
     }
 
-    /** \brief retrieve the matrix of maximum sigma values of the random Legendre polynomials defining the low frequency part
+    /** \brief retrieve the matrix of maximum sigma values of the random Legendre polynomials defining the low frequency part,
+     *  and the  height error sigma of the higher frequency part.
      *
      * \param[in,out] nonZ  location to return the sigma of the high frequency part not defined by legendre polynomials
-     * \return ca reference to the array of Legendre maximum sigma values
-     *
+     * \return a reference to the array of Legendre maximum sigma values
+     * \throw an instance of ElementException if the error generator of the surface was not set.
      */
-    inline const ArrayXXd& getSigmas(double * nonZ){return m_errorGenerator->getSigmas(nonZ);}
+    inline const ArrayXXd& getSigmas(double * nonZ)
+    {
+        if(!m_errorGenerator)
+            throw ElementException(string("The surface error generator of surface ")+getName()+" is not activated",
+                                    __FILE__, __func__, __LINE__);
+        return m_errorGenerator->getSigmas(nonZ);
+    }
 /** \} */
 
 #ifdef HAS_REFLEX

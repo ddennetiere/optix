@@ -87,7 +87,7 @@ class SurfaceErrorGenerator
          * \param axe string "X" or "Y" specifying the axe to set
          * \param N the number of frequency segments in the log/log PSD curve
          * \param exponents The array of N fractal exponents
-         * \param frequencies the array of N-1 transition frequencies
+         * \param frequencies the array of N-1 transition frequencies \f$ [in m^{-1}] \f$
          * \throw an instance of ParameterException if axe name is invalid or an instance of Parameter warning if one of the exponents is >0
          *
          */
@@ -147,6 +147,7 @@ class SurfaceErrorGenerator
         /** \brief Generate a surface model with the statically defined parameters
          *
          * \return  an array containing the height of the surface model [m unit]
+         * \throw an instance of ParameterException if the generator parameters are not or improperly set
          */
         ArrayXXd generate( );
 
