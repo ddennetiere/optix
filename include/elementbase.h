@@ -251,13 +251,25 @@ public:
         m_previous=m_next=NULL;
     }
 
-    /** \brief Modifies an existing  named numeric parameter
+    /** \brief Modifies an existing  named numeric or array parameter
     *
-    * The type and group and flags of a parameter are internally defined and cannot be changed. Their actual values will be reflected in param on return
-    * if the array flags are not identical OpticsLastError will be set and the function  will reteurn false
+    * The list of all parameters defined in this  base class and defined in the derived class is maintained in ElementBase.
+    * The base class can only check if the parameter name belong to the parameter list and, if yes, modify the parameter stored
+    * in the list. If an error occurs at this stage, it is signalled by the return value "false" and  OptiXerror is set.
+    * process the parameters locally defined.
+    * If a special action is required by a derived class when some of the parameters it controls are updated, this
+    * derived class should overload the function and first call the base class overload. In case it returns false, it should
+    * also exit with a false value. Otherwise it must check and process the parameters which it knows, returning false only if
+    * an error occurred. If the parameter is unknown it should return true, allowing further processing by derived classes.
+    *
+    * The type and group and flags of a parameter are internally defined and cannot be changed. Their actual values will be
+    * reflected in param on return
+    *
+    * if the internal parameter is defined with an array type and the new parameter with a scalar type or vice versa,
+    * the OptiXError will be set and the function  will return false
     * \param name the name of parameter to set
-    * \param param the new parameter  object
-    * \return  true if parameters was changed , false if parameter doesn't belong to the object of has a different array flag
+    * \param param[in,out] the new parameter  object. On output param contains the data as they were actually set.
+    * \return  false when the parameter was found  in the parameter list, or if the array flags don't match.
     */
     inline virtual  bool setParameter(string name, Parameter& param)
     {
@@ -530,7 +542,16 @@ protected:
         m_isaligned=false;  //maybe some changes do not require this
         return result.first;
     }
-    inline void removeParameter(string name){ m_parameters.erase(name);}/**< \brief removes a tagged parameter */
+    /** \brief removes a tagged parameter from the parameter and helpstring lists
+     *
+     *  (does nothing if name is not in the list)
+     * \param name the name of the parameter to remove
+     */
+    inline void removeParameter(string name)
+    {
+        m_parameters.erase(name);
+        m_helpstrings.erase(name);
+    }
 
 protected: //variables
 

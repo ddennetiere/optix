@@ -86,7 +86,8 @@ enum ParameterGroup /*:uint32_t*/{
     BasicGroup=0,   /**< The parameter belongs to the base group common to all surfaces */
     ShapeGroup=1,   /**< The parameter describes a surface shape */
     SourceGroup=2,  /**< The parameter describes a source*/
-    GratingGroup=3  /**<  the parameter describes a grating*/
+    GratingGroup=3,  /**<  the parameter describes a grating*/
+    SurfErrorGroup=4 /**<  the parameter describes a surface error generator*/
 };
 
 /** \ingroup enums
@@ -117,7 +118,7 @@ typedef struct  __ArrayParameter
     */
     inline __ArrayParameter(int rows, int cols){dims[0]=rows; dims[1]= cols; data=new alignas(16) double[rows*cols];}
 
-    inline __ArrayParameter(){}/**< \brief default empty constructor */
+    inline __ArrayParameter(){dims[0]=dims[1]= 0; data=NULL;}/**< \brief default empty constructor */
 
     /** \brief copy constructor with deep copy
     *   \param aparam the parameter array to copy

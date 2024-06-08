@@ -11,7 +11,7 @@
 *   \date               Last update: 2024-05-23
  ***************************************************************************/
 
-
+#include "surface.h"
 #include "surfacegenerator.h"
 
 ArrayXXd SurfaceErrorGenerator::generate()

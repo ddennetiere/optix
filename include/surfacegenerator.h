@@ -1,6 +1,5 @@
 #ifndef ERRORGENERATOR_H
 #define ERRORGENERATOR_H
-
 /**
 *************************************************************************
 *   \file       surfacegenerator.h
@@ -20,6 +19,7 @@
 *
  ***************************************************************************/
 
+
 #include "fractalsurface.h"
 //#include "EigenSafeInclude.h" Included from fractalsurface.h
 //#include <iostream>
@@ -28,6 +28,7 @@
 #include <libxml/tree.h>
 
 using namespace Eigen;
+class Surface; // limited forward declaration avoiding reentrant declarations in headers
 
 /** \brief This class generate random surface errors matching given statistical properties
  */
@@ -42,16 +43,24 @@ class SurfaceErrorGenerator
          * default constructor set the X & Y fractal model as uniform in frequency with a PSD fractal exponent of -1.
          * it also define 1 and 0 order detrending
          */
-        SurfaceErrorGenerator()
+        SurfaceErrorGenerator(Surface* parent=NULL)
         {
             m_limits.setZero();
             m_sampling.setZero();
             m_detrendMask.resize(2,2);
             m_detrendMask << 1.,1.,1.,0.;
+            parentSurface=parent;
         }
 
 
         virtual ~SurfaceErrorGenerator(){}/**< \brief default destructor */
+
+//         inline void setSurfaceSampling(const Ref<MatrixXd> &limits , double ymax, double ystep)
+//        {
+//            m_limits << xmin, ymin, xmax, ymax;
+//            m_sampling << xstep,ystep;
+//        }
+//
 
         /** \brief  defines the limits of the surface and the sampling pitchs of the
          * \param xmin Low X limit of the generated surface
@@ -156,6 +165,7 @@ class SurfaceErrorGenerator
 
     protected:
 
+        Surface *parentSurface=NULL;
         Array22d m_limits; /**< \brief limits the aperture limits into which the surface is defined. \(mins in the first row and maxs in the second; X in first column and Y in the second)
          *
          *  - \f$   limits =  \left[ {\begin{array}{cc}     x_{min} & y_{min} \\     x_{max} & y_{max} \\   \end{array} } \right]  \f$ */

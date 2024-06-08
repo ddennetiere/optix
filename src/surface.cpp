@@ -777,6 +777,109 @@ void Surface::computePSF(ndArray<std::complex<double>,4> &PSF, Array2d &pixelSiz
    nfft_finalize(&plan);  // ceci desalloue toute la structure plan
 }
 
+
+bool Surface::setParameter(string name, Parameter& param)
+{
+    //validation of fixed size formats
+    if(name=="error_limits" )
+    {
+        if(!(param.flags & ArrayData))    // else  case is handled by the base class
+            if(param.paramArray->dims[0] !=2 || param.paramArray->dims[1] !=2)
+            {
+                SetOptiXLastError(string("parameter name ")+ name + " must be a 2x2 array", __FILE__, __func__);
+                return false;
+            }
+    }
+    if(name=="sampling")
+    {
+        if(!(param.flags & ArrayData))    // else  case is handled by the base class
+            if(param.paramArray->dims[0]* param.paramArray->dims[1] !=2)
+            {
+                SetOptiXLastError(string("parameter name ")+ name + " must be a 2x1 or 1x2 array", __FILE__, __func__);
+                return false;
+            }
+    }
+
+    if(! ElementBase::setParameter(name, param)) // record param change
+        return false;
+
+   //define the number of samples
+   return true;
+}
+
+void Surface::setErrorGenerator()
+{
+    Parameter param;
+    param.type=InverseDistance;
+    param.group=SurfErrorGroup;
+    param.flags=NotOptimizable | ArrayData;
+    param.paramArray=new ArrayParameter; //default constructor set dims to 0 and data to NULL
+    // the following parameter are created uninitilized that is dims=(0;0)
+    defineParameter("fractal_frequency_x", param);
+    setHelpstring("fractal_frequency_x", "frequency limits of the X PSD segments"); // default 1 segment not limited
+    defineParameter("fractal_frequency_y", param);
+    setHelpstring("fractal_frequency_y", "frequency limits of the Y PSD segments"); // default 1 segment not limited
+
+    param.type=Distance;
+    defineParameter("error_limits", param);
+    setHelpstring("error_limits", "Bounds of the area where surface errors are defined (xmin, xmax, ymin, ymax)");
+
+    defineParameter("sampling", param);
+    setHelpstring("sampling", "Approximate sampling steps of the generated surface errors");
+
+    defineParameter("low_Zernike", param);
+    setHelpstring("low_Zernike", "Matrix of the max sigma values of low Legendre expansion");
+
+    // Fractal exponents are initialized to -1.
+    param.type=Dimensionless;
+    param.paramArray->dims[0]=param.paramArray->dims[1]=1;
+    param.paramArray->data[0]=-1.;
+
+    defineParameter("fractal_exponent_x", param);
+    setHelpstring("fractal_exponent_x", "fractal exponents of the X PSD");
+    defineParameter("fractal_exponent_y", param);
+    setHelpstring("fractal_exponent_y", "fractal exponents of the Y PSD");
+
+    // detrend tip and tilts
+    Array22d detrend;
+    detrend << 1., 1., 1., 0 ;
+    *param.paramArray=detrend;
+    defineParameter("detrending", param);
+    setHelpstring("detrending", "Low Legendre detrending mask");
+
+    param.type=Distance;
+    param.flags=NotOptimizable;
+    param.value=0;
+    defineParameter("residual_sigma", param);
+    setHelpstring("residual_sigma", "RMS height error after subtraction of constrained Legendre");
+
+   // create the generator
+   m_errorGenerator= new SurfaceErrorGenerator(this);
+
+}
+
+void Surface::unsetErrorGenerator()
+{
+    if(m_errorGenerator)
+    {
+        delete m_errorGenerator;
+        if(m_errorMap)
+            delete m_errorMap;
+        m_errorMap=NULL;
+    }
+    m_errorGenerator=NULL;
+
+    removeParameter("fractal_exponent_x");
+    removeParameter("fractal_frequency_x");
+    removeParameter("fractal_exponent_y");
+    removeParameter("fractal_frequency_y");
+    removeParameter("error_limits");
+    removeParameter("sampling");
+    removeParameter("detrending");
+    removeParameter("low_Zernike");
+    removeParameter("residual_sigma");
+}
+
 void Surface::generateSurfaceErrors()
 {
     if(m_errorGenerator)

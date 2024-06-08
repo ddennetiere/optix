@@ -137,8 +137,7 @@ bool PolynomialSurface<PolyType>::setParameter(string name, Parameter& param)
 {
     char errmsg[80];
    // cout << "in PolynomialSurface setParameter\n";
-    if(! Surface::setParameter(name, param)) // this call update the parameter list but takes no action
-            return false;
+    if(! Surface::setParameter(name, param)) // this call  update the parameter in memory  but do not carry any parameter related action
     if(name=="surfaceLimits") // do specific creation actions
     {
         if(!(param.flags & ArrayData))
@@ -185,24 +184,6 @@ bool PolynomialSurface<PolyType>::setParameter(string name, Parameter& param)
     }
     return true;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 template<class PolyType>

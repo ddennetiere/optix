@@ -70,11 +70,15 @@
 *
 *      \defgroup apertureAPI  C functions of the aperture API
 *      \brief  interface C Functions for aperture handling exported by the OptiX library\n **Aperture API is currently modified, please check the status of each function**
-*        \n Mind that region indices that were previously defined as 64 bit integers (size_t) are now defined as 32 bit integers (int)
-*      \warning The prototype of Aperture API functions will be modified to return a bolean error flag as the main API functions
-*           The modified function will be signalled in the documentation with the date of modification
+*        \n beware that region indices that were previously defined as 64 bit integers (size_t) are now defined as 32 bit integers (int)
 *      \ingroup globalc
 *
+*       Note that opaque aperture region set the ray intensities to 0, but do not stop the propagation (ray is maintained alive).
+*       This allow to compute continuous wavefronts despite the obscurations, so long it can be numerically done
+*       (even though it might be unphysical).
+*
+*      \warning The prototype of Aperture API functions were all modified to return a bolean error flag as the main API functions
+*           The up-to-date functions are signalled in the documentation with the date of modification
 *      declared in apertureAPI.h
 *      \see see also \ref mainAPI "Main Interface C functions"
 *
@@ -95,8 +99,15 @@
 *       while adding a transparent Region opens an aperture though all the stacked stops and still does not change the outside \n
 *   *   The logical stack should define region of smaller and smaller sizes from bottom to top. This is intended to allow rounding of squared apertures and stops.
 *
-*    Functions of the Aperture API used to return a size_t value. A negative meaning an error occurred.
-*    The functions are presently modified to return a boolean result true for succes , false for failure, in which can GetOptiXError will give the reason
+*       *Functions of the Aperture API used to return a int64_t value;  A negative value meant that an error occurred.*
+*       *The functions are presently modified to return a boolean result true for succes , false for failure, in which can GetOptiXError will give the reason.*
+*
+*      \defgroup surferrorAPI  C functions of the surface error API
+*      \brief  interface C Functions exported by the OptiX library to incorporate surface errors into ray tracing
+*      \ingroup globalc
+*
+*      declared in interface.h
+*      \see see also \ref mainAPI "Main Interface C functions"
 *
 *      \defgroup reflectivityAPI  C functions of the reflectivity API
 *      \brief  interface C Functions exported by the OptiX library to handle objects defined in the C++ RefleX library
@@ -129,9 +140,6 @@
 
 
 
-/** \ingroup mainAPI
-*   \{
-*/
 
 
 #include "ctypes.h"
@@ -144,6 +152,9 @@ extern "C"
 #include <stdbool.h>
 #endif
 
+/** \ingroup mainAPI
+*   \{
+*/
 
 
 
@@ -868,14 +879,33 @@ extern "C"
      * \return true if successfull; false, in case of an error and OptiXLastError is set
      */
     DLL_EXPORT bool WaveRadiate(size_t elementID, WFemission WFemitParams);
+/** \} */  //end of mainAPI group
 
 
+/** \ingroup surferrorAPI
+*   \{
+*/
+
+    DLL_EXPORT bool setSurfaceErrors(size_t elementID,double xmin, double xmax, double ymin, double ymax,
+                                     int64_t xsize, int64_t ysize, const double* heightErrors);
+
+
+    /** \brief delete the height error map associated to the surface, which hence become perfect again
+     *
+     * \param elementID size_t
+     * \return DLL_EXPORT bool
+     *
+     */
+    DLL_EXPORT bool unsetSurfaceErrors(size_t elementID );
+
+
+/** \} */  //end of surferrorAPI group
   //  DLL_EXPORT bool AddElementsFromXml(const char * filename);  la gestion des nom en double doit être testée
 
 #ifdef __cplusplus
 }
 #endif
 
-/** \} */  //end of mainAPI group
+
 
 #endif // INTERFACE_H_INCLUDED

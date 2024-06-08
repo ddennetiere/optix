@@ -60,7 +60,7 @@ class Toroid : virtual public Surface
          */
         inline bool setParameter(string name, Parameter& param)
         {
-            if(! Surface::setParameter(name, param)) // this call update the parameter list but takes no action
+            if(! Surface::setParameter(name, param)) // this call  update the parameter in memory  but do not carry any parameter related action
                     return false;
             if(name=="minor_curvature" || (name=="major_curvature" )) // do specific creation actions
                 createSurface();
