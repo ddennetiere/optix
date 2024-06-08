@@ -205,8 +205,8 @@ void Surface::operator>>(xmlNodePtr elemnode)
         xmlNewProp(elemnode, XMLSTR "error_method", XMLSTR std::to_string(m_errorMethod).c_str());
 
     m_aperture >> elemnode;  // does nothing if region.size() == 0
-    if(m_errorGenerator)     // seulement si le pointeur est valide
-        *m_errorGenerator >> elemnode;
+//    if(m_errorGenerator)     // seulement si le pointeur est valide
+//        *m_errorGenerator >> elemnode;
 }
 
 void Surface::operator<<(xmlNodePtr surfnode)
@@ -232,12 +232,12 @@ void Surface::operator<<(xmlNodePtr surfnode)
             m_aperture << curnode;
         }
 
-        if(xmlStrcmp(curnode->name, XMLSTR "error_generator")==0)
-        {
-            if(!m_errorGenerator)    // if normally used to load a system, m_errorGenerator should be always NULL
-                m_errorGenerator=new SurfaceErrorGenerator;
-            *m_errorGenerator << curnode;
-        }
+//        if(xmlStrcmp(curnode->name, XMLSTR "error_generator")==0)
+//        {
+//            if(!m_errorGenerator)    // if normally used to load a system, m_errorGenerator should be always NULL
+//                m_errorGenerator=new SurfaceErrorGenerator;
+//            *m_errorGenerator << curnode;
+//        }
 
         curnode=xmlNextElementSibling(curnode);
     }
@@ -854,20 +854,19 @@ void Surface::setErrorGenerator()
     setHelpstring("residual_sigma", "RMS height error after subtraction of constrained Legendre");
 
    // create the generator
-   m_errorGenerator= new SurfaceErrorGenerator(this);
 
 }
 
 void Surface::unsetErrorGenerator()
 {
-    if(m_errorGenerator)
-    {
-        delete m_errorGenerator;
-        if(m_errorMap)
-            delete m_errorMap;
-        m_errorMap=NULL;
-    }
-    m_errorGenerator=NULL;
+//    if(m_errorGenerator)
+//    {
+//        delete m_errorGenerator;
+//        if(m_errorMap)
+//            delete m_errorMap;
+//        m_errorMap=NULL;
+//    }
+//    m_errorGenerator=NULL;
 
     removeParameter("fractal_exponent_x");
     removeParameter("fractal_frequency_x");
@@ -882,14 +881,14 @@ void Surface::unsetErrorGenerator()
 
 void Surface::generateSurfaceErrors()
 {
-    if(m_errorGenerator)
-    {
-        ArrayXXd errormap=m_errorGenerator->generate();
-        const Array22d& limits=m_errorGenerator->getSurfaceSampling();
-        if(!m_errorMap)
-            m_errorMap= new  BidimSpline(3);
-        m_errorMap->setFromGridData(limits, errormap);
-    }
+//    if(m_errorGenerator)
+//    {
+//        ArrayXXd errormap=m_errorGenerator->generate();
+//        const Array22d& limits=m_errorGenerator->getSurfaceSampling();
+//        if(!m_errorMap)
+//            m_errorMap= new  BidimSpline(3);
+//        m_errorMap->setFromGridData(limits, errormap);
+//    }
     if(m_next!=NULL )
         m_next->generateSurfaceErrors(); // this call will only propagate the function  until the next element derived from the Surface class
 }
