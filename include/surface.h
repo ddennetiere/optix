@@ -342,8 +342,25 @@ public:
  *
  * \{ */
 
-     virtual  bool setParameter(string name, Parameter& param);
 
+
+    void setErrorGenerator();
+
+    /** \brief If a surface error generator exist, the function will destroy it and the error interpolator as well,
+    *      otherwise it does nothing
+    */
+    void unsetErrorGenerator();
+
+    virtual  bool setParameter(string name, Parameter& param);
+
+
+    /** \brief  Generate and set the surface errors from the model of the generator
+    * It relies on the elementBase function to propagate
+    * \throw an instance of ParameterException if the generator parameters are not or improperly set
+    */
+    virtual bool generateSurfaceErrors();  //
+
+    bool validateErrorGenerator();
 
     /** \brief sets the bidim spline interpolator of the surface heights errors.\n
      *  *The function is automatically called by the GenerateSurfaceErrors function, but can be independently called to install a fixed error map*
@@ -379,13 +396,6 @@ public:
         m_errorMap=NULL;
     }
 
-    /** \brief  Generate and set the surface errors from the model ...
-    * It relies on the elementBase function to propagate
-    * \throw an instance of ParameterException if the generator parameters are not or improperly set
-    */
-    virtual void generateSurfaceErrors();  //
-
-
     /** \brief set the method used to take this surface errors into account in the ray tracing
      *
      *  *The "method flag" is defined whenever no surfaceError generator  and no spline interpolator are set*
@@ -401,13 +411,6 @@ public:
      */
     inline ErrorMethod getErrorMethod(){return m_errorMethod;}
 
-
-    void setErrorGenerator();
-
-    /** \brief If a surface error generator exist, the function will destroy it and the error interpolator as well,
-     *      otherwise it does nothing
-     */
-    void unsetErrorGenerator();
 
 /** \} */
 
@@ -447,6 +450,7 @@ protected:
     bool m_apertureActive;  /**<  \brief boolean flag for taking the aperture active area into account */
     BidimSpline* m_errorMap=NULL; /**< \brief A bidimensionnal spline interpolator of local height and slope deviation from ideal surface */
     ErrorMethod  m_errorMethod=None;     /**< \brief Indicates the way the surface errors are taken in computation  None=0 means surface errors ignored, LocalSlope=1 use slope errors without changing the intercept (other cases later)*/
+    bool m_ErrorGeneratorValid=false;
 //    SurfaceErrorGenerator* m_errorGenerator=NULL;/**< \brief if non null and validly initialized a call to GenerateError() will set up aspline error map associated to the surface  */
 
     bool m_OPDvalid=false;  /**< \brief boolean flag for keeping track of the validity of the OPD of the rays stored in the m_impacts vector */

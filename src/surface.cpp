@@ -574,7 +574,6 @@ int Surface::getWavefrontData(Diagram & WFdata, double distance)
     return ip;
 }
 
-/*EIGEN_DEVICE_FUNC*/
 MatrixXd Surface::getWavefontExpansion(double distance, Index Nx, Index Ny, Array22d& XYbounds)
 {
     MatrixXd LegendreCoefs;
@@ -780,13 +779,13 @@ void Surface::computePSF(ndArray<std::complex<double>,4> &PSF, Array2d &pixelSiz
 
 bool Surface::setParameter(string name, Parameter& param)
 {
-    //validation of fixed size formats
+    //some validation based on a sigle prameter settin
     if(name=="error_limits" )
     {
         if(!(param.flags & ArrayData))    // else  case is handled by the base class
             if(param.paramArray->dims[0] !=2 || param.paramArray->dims[1] !=2)
             {
-                SetOptiXLastError(string("parameter name ")+ name + " must be a 2x2 array", __FILE__, __func__);
+                SetOptiXLastError(string("parameter name ")+ name + " must be a 2x2 array", __FILE__, __func__, __LINE__);
                 return false;
             }
     }
@@ -795,15 +794,25 @@ bool Surface::setParameter(string name, Parameter& param)
         if(!(param.flags & ArrayData))    // else  case is handled by the base class
             if(param.paramArray->dims[0]* param.paramArray->dims[1] !=2)
             {
-                SetOptiXLastError(string("parameter name ")+ name + " must be a 2x1 or 1x2 array", __FILE__, __func__);
+                SetOptiXLastError(string("parameter name ")+ name + " must be a 2x1 or 1x2 array", __FILE__, __func__, __LINE__);
                 return false;
             }
     }
+    if(name=="residual_sigma" && param.value <0)
+    {
+                SetOptiXLastError(string("parameter name ")+ name + " cannot have a negative value", __FILE__, __func__, __LINE__);
+                return false;
+    }
 
-    if(! ElementBase::setParameter(name, param)) // record param change
+    // record parameter new value
+    if(! ElementBase::setParameter(name, param))
         return false;
 
-   //define the number of samples
+   // if one of these error generator parameter was change, invalidate the generator
+    if(name=="fractal_exponent_x" || name=="fractal_frequency_x" || name=="fractal_exponent_y" || name=="fractal_frequency_y"
+       || name=="error_limits" || name=="sampling" || name=="detrending" || name=="low_Zernike" )
+       m_ErrorGeneratorValid=false;
+
    return true;
 }
 
@@ -853,21 +862,12 @@ void Surface::setErrorGenerator()
     defineParameter("residual_sigma", param);
     setHelpstring("residual_sigma", "RMS height error after subtraction of constrained Legendre");
 
-   // create the generator
+    m_ErrorGeneratorValid=false;
 
 }
 
 void Surface::unsetErrorGenerator()
 {
-//    if(m_errorGenerator)
-//    {
-//        delete m_errorGenerator;
-//        if(m_errorMap)
-//            delete m_errorMap;
-//        m_errorMap=NULL;
-//    }
-//    m_errorGenerator=NULL;
-
     removeParameter("fractal_exponent_x");
     removeParameter("fractal_frequency_x");
     removeParameter("fractal_exponent_y");
@@ -879,18 +879,189 @@ void Surface::unsetErrorGenerator()
     removeParameter("residual_sigma");
 }
 
-void Surface::generateSurfaceErrors()
+bool Surface::validateErrorGenerator()
 {
-//    if(m_errorGenerator)
-//    {
-//        ArrayXXd errormap=m_errorGenerator->generate();
-//        const Array22d& limits=m_errorGenerator->getSurfaceSampling();
-//        if(!m_errorMap)
-//            m_errorMap= new  BidimSpline(3);
-//        m_errorMap->setFromGridData(limits, errormap);
-//    }
+    if(m_ErrorGeneratorValid) // don't test again if no parameter was changed
+        return true;
+
+    Parameter param;
+    string errorstring="Incorrect initialization of surface";
+    errorstring+=m_name+ " :\n";
+
+    char format[256]="the number of %s fractal transition frequencies (%d) doesn't match the number of exponents (%d)\n";
+    char buf[256];
+    getParameter("fractal_exponent_x", param) ;
+    int nexp=param.paramArray->dims[0]*param.paramArray->dims[1];
+    getParameter("fractal_frequency_x", param) ;
+    int nfreq=param.paramArray->dims[0]*param.paramArray->dims[1];
+    if(nexp)
+    {
+        errorstring+="No X fractal exponent defined \n";
+        m_ErrorGeneratorValid=false;
+    }
+    if(nfreq <nexp-1)
+    {
+        sprintf(buf,format, "X", nfreq ,nexp);
+        errorstring+=buf;
+        m_ErrorGeneratorValid=false;
+    }
+
+    getParameter("fractal_exponent_y", param) ;
+    nexp=param.paramArray->dims[0]*param.paramArray->dims[1];
+    getParameter("fractal_frequency_y", param) ;
+    nfreq=param.paramArray->dims[0]*param.paramArray->dims[1];
+    if(nexp)
+    {
+        errorstring+="No Y fractal exponent defined \n";
+        m_ErrorGeneratorValid=false;
+    }
+    if(nfreq <nexp-1)
+    {
+        sprintf(buf,format, "Y", nfreq ,nexp);
+        errorstring+=buf;
+        m_ErrorGeneratorValid=false;
+    }
+
+    Vector4d Limits;
+    Vector2d steps;
+    strcpy(format,"%s parameter should contain %d elements, %d given\n");
+    string name="error_limits";
+    int dim=4;
+    for(int i=0; i<2; ++i)
+    {
+        getParameter(name, param) ;
+        int n=param.paramArray->dims[0]*param.paramArray->dims[1];
+        if(n!=dim)
+        {
+            sprintf(buf,format, name,  dim ,n);
+            errorstring+=buf;
+            m_ErrorGeneratorValid=false;
+        }
+        else if(i==0) //sampling has 4 values
+            Limits=Map<Vector4d>(param.paramArray->data);
+        else // sampling has 2 values
+            steps=Map<Vector2d>(param.paramArray->data);
+
+        name="sampling"; dim=2;
+    }
+
+    int xpoints(round((Limits(1)-Limits(0))/steps(0)));  // this is the interva number
+    int ypoints(round((Limits(3)-Limits(2))/steps(1)));
+    double xstep=(Limits(1)-Limits(0))/xpoints++;
+    double ystep=(Limits(3)-Limits(2))/ypoints++;
+
+    cout << "The generated error map is defined on " << xpoints << " x " << ypoints << " soit " <<  xpoints*ypoints << " points\n";
+    if( xpoints < 10 || ypoints < 8 )
+    {
+        errorstring+="The number of points is abnormally small, check 'surface_limits' and 'sampling' parameters\n";
+        m_ErrorGeneratorValid=false;
+    }
+    else//param still contains sampling we can put the real value in the sampling parameter
+    {
+        param.paramArray->data[0]=xstep;
+        param.paramArray->data[1]=ystep;
+        ElementBase::setParameter("sampling", param);   // here  we call the elementbase method to avoid invalidation
+    }
+
+    getParameter("detrending",param);
+    int Nx=param.paramArray->dims[0];
+    int Ny=param.paramArray->dims[1];
+    getParameter("low_Zernike",param);
+    Nx = Nx > param.paramArray->dims[0] ? Nx : param.paramArray->dims[0];
+    Ny = Ny > param.paramArray->dims[1] ? Ny : param.paramArray->dims[1];
+    if (Nx >= xpoints || Ny >= ypoints )
+    {
+        errorstring+="The number of interpolation grid points is too small for the requested degree of Zernike polynomials \n";
+        m_ErrorGeneratorValid=false;
+    }
+
+    if(!m_ErrorGeneratorValid)
+        SetOptiXLastError(errorstring+ "in ",__FILE__, __func__);
+
+    return m_ErrorGeneratorValid;
+}
+
+bool Surface::generateSurfaceErrors()
+{
+    if(!validateErrorGenerator())
+        return false;
+
+    FractalSurface fractalSurf;
+    Parameter param1, param2;
+
+    getParameter("fractal_exponent_x",param1);
+    int nexp=param1.paramArray->dims[0]*param1.paramArray->dims[1];
+    if(nexp==1)
+        fractalSurf.setXYfractalParams("X",1, param1.paramArray->data, NULL);
+    else
+    {
+        getParameter("fractal_frequency_x",param2);
+       //int nfreq=param2.paramArray->dims[0]*param2.paramArray->dims[1];
+        fractalSurf.setXYfractalParams("X",nexp, param1.paramArray->data, param2.paramArray->data);
+    }
+
+    getParameter("fractal_exponent_y",param1);
+    nexp=param1.paramArray->dims[0]*param1.paramArray->dims[1];
+    if(nexp==1)
+        fractalSurf.setXYfractalParams("Y",1, param1.paramArray->data, NULL);
+    else
+    {
+        getParameter("fractal_frequency_y",param2);
+       //int nfreq=param2.paramArray->dims[0]*param2.paramArray->dims[1];
+        fractalSurf.setXYfractalParams("Y",nexp, param1.paramArray->data, param2.paramArray->data);
+    }
+
+    getParameter("error_limits",param1); // the number of parameter was already validated
+    Array22d limits(Map<Array22d>(param1.paramArray->data)); // permanent copy of limits
+    getParameter("sampling",param2);
+    Map<Vector2d> steps(param2.paramArray->data); //temporary mapping
+    int xpoints(round((limits(1)-limits(0))/steps(0)));  // this is the interval number
+    int ypoints(round((limits(3)-limits(2))/steps(1)));
+
+    // increment to the number of points and generate the fractal surface
+    ArrayXXd surfError=fractalSurf.generate(++xpoints, steps(0), ++ypoints, steps(1));
+
+    getParameter("residual_sigma", param1);
+    double sigmaRes=param1.value;
+
+    getParameter("detrending",param1);
+    getParameter("low_Zernike",param2);
+    Map<ArrayXXd> detrend(param1.paramArray->data, param1.paramArray->dims[0], param1.paramArray->dims[1]);
+    Map<ArrayXXd> legendre(param2.paramArray->data, param2.paramArray->dims[0], param2.paramArray->dims[1]);
+    // detrend and legendre matrix are non-permanent
+
+    int Nx=legendre.rows() > detrend.rows() ? legendre.rows() : detrend.rows();
+    int Ny=legendre.cols() > detrend.cols() ? legendre.cols() : detrend.cols();
+
+
+    ArrayXXd mask=ArrayXXd::Zero(Nx,Ny); // this will be the applied zeroing mask
+    if(legendre.size())
+        mask.topLeftCorner(legendre.rows(), legendre.cols())=legendre;
+    if(detrend.size())
+        mask.topLeftCorner(detrend.rows(),detrend.cols())+=detrend;
+
+    fractalSurf.detrend(surfError,mask);
+    //scale the detrended surface errors to match the given sigma value
+    surfError *= sigmaRes/surfError.matrix().norm();
+
+    // generate the low frequency part from rand Legendre coefficient of specified extent
+    // beware that the given extent are sigma normalized but the Grid generating function wants natural Legendre in input
+
+    if(legendre.size())
+    {
+        MatrixXd  Lcoeffs= LegendreFromNormal(legendre) * ArrayXXd::Random(legendre.rows(), legendre.cols());
+        surfError+= LegendreSurfaceGrid(surfError.rows(), surfError.cols(), Lcoeffs);
+    }
+
+    if(!m_errorMap)
+        m_errorMap= new  BidimSpline(3);
+    m_errorMap->setFromGridData(limits, surfError);
+
+
+
     if(m_next!=NULL )
-        m_next->generateSurfaceErrors(); // this call will only propagate the function  until the next element derived from the Surface class
+        return m_next->generateSurfaceErrors(); // this call will only propagate the function  until the next element derived from the Surface class
+    return true;
 }
 
 
