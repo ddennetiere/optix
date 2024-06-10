@@ -344,37 +344,66 @@ public:
 
 
 
+    /** \brief Adds a random surface error generator to the Surface by defining the nine related parameters (cf \link generel supra \endlink )
+     *
+     *  Nine parameters are used to define the fractal/legendre model used to generate random surface errors:
+     *
+     *  *fractal_exponent_x*, *fractal_frequency_x*, *fractal_exponent_y*, *fractal_frequency_y*, *error_limits,
+     *  *sampling*, *detrending*, *low_Zernike*, *residual_sigma*.
+     *
+     *  A program should normally set all nine parameters. However fractal parameters for X and Y,\n *detrending* and *low_Zernike" are given default values at construction time.\n
+     *  *fractal_exponent_x* and *fractal_exponent_y* are given a unique value of -1, and *fractal_frequency_x*  and *fractal_frequency_y*
+     *  are defined as zero size array.\n
+     *  *low_Zernike* is set as zero size array, meaning no Zernike is constrained.\n
+     *  *detrending* is set to the 2,2 matrix \f$  \left[ {\begin{array}{cc}     1 & 1 \\  1 & 1 \\  \end{array} } \right]  \f$ to remove piston and tilt.
+     *  The 3 other parameters must be defined before calling GenerateSurfaceErrors otherwise it will raise an error.
+     */
     void setErrorGenerator();
 
-    /** \brief If a surface error generator exist, the function will destroy it and the error interpolator as well,
-    *      otherwise it does nothing
+    /** \brief Remove the  ability to generate a surface error
+     *
+     *   It deletes the 9  error defining  parameters and invalidate the error map interpolator
     */
     void unsetErrorGenerator();
 
+    /** \brief Specialisation of the  ElementBase::setParameter function inherited from ElementBase to handle the error defining parameters
+     *
+     *  It provides complimentary checks of parameter validity before setting it, and turns-off the generator validation flag \see validateErrorGenerator
+     * \param name name of the parameter
+     * \param param new value of the parameter in a Parameter struct
+     * \return true if the parameter was set; false otherwise, and OptiXerror will document the error
+     *
+     */
     virtual  bool setParameter(string name, Parameter& param);
 
 
-    /** \brief  Generate and set the surface errors from the model of the generator
-    * It relies on the elementBase function to propagate
-    * \throw an instance of ParameterException if the generator parameters are not or improperly set
+    /** \brief  Called by the framework to generate a new instance of error map and activate the error interpolator
+     *
+    * It relies on the elementBase function to propagate to all following elements.
+    * \return true if the surface errors were generated; false in case of invalid configuration. The OptiXError describes the issue.
     */
     virtual bool generateSurfaceErrors();  //
 
+    /** \brief Checks the set of error defining parameters and signals configuration errors
+     *
+     * This function is called by the SetErrorGenerator function whenever an error defining parameter was modified
+     * \return true if the parameter provide a valid set, False otherwise and the error is documented by OptiXError
+     */
     bool validateErrorGenerator();
 
-    /** \brief sets the bidim spline interpolator of the surface heights errors.\n
+    /** \brief Directly sets sets the bidim spline interpolator of the surface heights errors.\n
      *  *The function is automatically called by the GenerateSurfaceErrors function, but can be independently called to install a fixed error map*
      *
      * Since the interpolator is only valid in the given limits, activating computation with surface errors will be equivalent to
      *  inserting a rectangular aperture of identical size at the bottom of the aperture stop region stack.\n
      * This fictitious aperture is not active when the surface error computations are inactivated
-
+     *
      * \param xmin aperture low limit in X; [in m units]
      * \param xmax aperture high limit in X; [in m units]
      * \param ymin aperture low limit in Y; [in m units]
      * \param ymax aperture high limit in Y; [in m units]
      * \param heights Array containing the height data. These data will be considered equispaced on the given aperture.
-
+     *
      */
     inline void setSurfaceErrors(double xmin, double xmax, double ymin, double ymax, const Ref<ArrayXXd>& heights)
     {
@@ -387,7 +416,9 @@ public:
 
     /** \brief Destroy the SurfaceError spline inerpolator and invalidate the associated m_errorMap pointer
      *
-     *  The m_errorMethod flag is left unchanged. *Surface error are only applied  when m_errorMethod != 0 and  m_errorMap is valid*
+     *   This call should be reserved to remove a fixed error map installed by setSurfaceErrors \n
+     *  Since the m_errorMap is deleted, the surface errors are temporarily suppressed, but the error defining parameters
+     * are not deleted so that a next call to generate SurfaceErrors will create a new errorMap  and enable again surface error computations
      */
     inline void unsetSurfaceErrors()
     {
@@ -395,6 +426,14 @@ public:
             delete m_errorMap;
         m_errorMap=NULL;
     }
+
+    /** \brief  retrieve the array of height errors either imposed either defined by the surface error generator
+     *
+     * \return A 2D array of the height errors interpolated by the <a href="#pro-attribs">m_errorMap</a>  member.\n
+     *  A Null Array is returned if the error interpolator is not set ( <a href="#pro-attribs">m_errorMap</a>  = NULL)
+     *  \note This function could easily return the slope errors if needed
+     */
+    ArrayXXd getSurfaceErrors();
 
     /** \brief set the method used to take this surface errors into account in the ray tracing
      *

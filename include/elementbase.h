@@ -269,7 +269,7 @@ public:
     * if the internal parameter is defined with an array type and the new parameter with a scalar type or vice versa,
     * the OptiXError will be set and the function  will return false
     * \param name the name of parameter to set
-    * \param param[in,out] the new parameter  object. On output param contains the data as they were actually set.
+    * \param[in,out] param the new parameter  object. On output param contains the data as they were actually set.
     * \return  false when the parameter was found  in the parameter list, or if the array flags don't match.
     */
     inline virtual  bool setParameter(string name, Parameter& param)

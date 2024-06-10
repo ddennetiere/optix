@@ -367,7 +367,7 @@ void BidimSpline::setFromGridData(const Array22d& limits, const Ref<ArrayXXd>& g
 
 }
 
-Array22d BidimSpline::getLimits()
+Array22d BidimSpline::getSampling(int *nx, int* ny)
 {
     Array22d limits;
     Index endx=muX.size()-1, endy=muY.size()-1;
@@ -378,6 +378,10 @@ Array22d BidimSpline::getLimits()
         limits(1,0)=muX(endx);
         limits(1,1)=muY(endy);
     }
+    if(nx)
+        *nx=muX.size()-2*degree;;
+    if(ny)
+        *ny=muY.size()-2*degree;
     return limits;
 }
 

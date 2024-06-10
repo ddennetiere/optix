@@ -146,11 +146,11 @@ int main()
     limits << -250, -10, 250, 10;
     BidimSpline Sspline ;
 
-    cout << "size after initializing " << Sspline.controlValues().size() <<endl;
+    cout << "size after initializing " << Sspline.getControlValues().size() <<endl;
     cout <<"Memorysize " << sizeof(Sspline) << endl;;
 
     Sspline.setFromGridData(limits,surface);
-    cout << "\nSpline interpolator computed\n limits are\n" << Sspline.getLimits() <<endl;
+    cout << "\nSpline interpolator computed\n limits are\n" << Sspline.getSampling() <<endl;
     cout << Sspline(-250,-10) << endl;
     MatrixXd derivx, derivy;
     {
@@ -161,7 +161,7 @@ int main()
         cout << "input values\n";
         cout << surface.bottomRightCorner(10,10) << endl;
         cout << "interpolated values\n";
-        cout << Sspline.interpolator(X, xval, derivx).transpose()* Sspline.controlValues()*Sspline.interpolator(Y, yval, derivy ) <<endl;
+        cout << Sspline.interpolator(X, xval, derivx).transpose()* Sspline.getControlValues()*Sspline.interpolator(Y, yval, derivy ) <<endl;
     }
     ArrayXd xval=ArrayXd::LinSpaced(501, -250,250);
     ArrayXd yval=ArrayXd::LinSpaced(201, -10,10);
@@ -169,9 +169,9 @@ int main()
     MatrixXd interx=Sspline.interpolator(X, xval, derivx);
     MatrixXd intery=Sspline.interpolator(Y, yval, derivy );
 
-    surface= interx.transpose()* Sspline.controlValues()*intery;
+    surface= interx.transpose()* Sspline.getControlValues()*intery;
     SurfaceToFile(surface,"interpol.bin");
-    surface= derivx.transpose()* Sspline.controlValues()*intery;
+    surface= derivx.transpose()* Sspline.getControlValues()*intery;
     SurfaceToFile(surface,"derivX.bin");
     interx=intery=MatrixXd();
     cout <<"size after reinitializing " << interx.size() << "  " << intery.size() << endl << endl;

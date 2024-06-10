@@ -44,7 +44,7 @@ enum Axis {
 };
 
 
-/** \brief This class interpolates a surface on a rectangular area with the tensorial product of 1D cubic-Bsplines
+/** \brief This class interpolates a surface on a rectangular area with the tensor product of 1D cubic-Bsplines
  */
 class BidimSpline
 {
@@ -54,11 +54,15 @@ class BidimSpline
          * \param _degree The degree of the spline interpolating basis function (usually 3)
          */
         BidimSpline(int _degree=3):degree(_degree){}
+
         /** \brief Copy constructor         */
         BidimSpline(const BidimSpline  &srcSpline):degree(srcSpline.degree),
                     muX(srcSpline.muX), muY(srcSpline.muY), m_controlValues(srcSpline.m_controlValues) {}
+
         virtual ~BidimSpline(){}
 
+        /** \brief reset cntrol points and control values to zero size
+         */
         inline void clearData()
         {
             muX=muY=ArrayXd();
@@ -83,7 +87,16 @@ class BidimSpline
          */
         void setFromGridData(const Array22d& limits, const Ref<ArrayXXd> & gridData );
 
-        Array22d getLimits();
+        /** \brief retieves the interpolation limits as a fixed size array
+         *
+         * \param[out] nx  if not NULL, an integer location where the number of sampling  **intervals**  in X is returned
+         * \param[out] ny  if not NULL, an integer location where the number of sampling  **intervals**  in Y is returned
+         * \return a 2 x 2 array containing the interpolation limits as
+         *  \f$  \left[ {\begin{array}{cc}     x_{min} & y_{min} \\     x_{max} & y_{max} \\   \end{array} } \right]  \f$ \n
+         *  \f$  i.e. \left[    x_{min},  x_{max},  y_{min}, y_{max}  \right]  \f$\n
+         *  An empty array will be returned if the x or y node set is not initialized.
+         */
+        Array22d getSampling(int *nx = NULL, int* ny = NULL);
 
         /** \brief Find the index of the  X knot interval where the given control value u lies
          *
@@ -139,6 +152,13 @@ class BidimSpline
         int   basisFunctionDerivatives(Axis axe, double u, Ref<ArrayXXd> C);
 
 
+        /** \brief Computes the interpolation matrix for a vector of X or Y  parameters
+         *
+         * \param axe  l'axe d'interpolation
+         * \param[in] uval reference to a 1D array of input parameter values
+         * \param[out] deriv
+         * \return a matrix of basis function values for each value of the uval parameter, suitable to obtain a 2D interpolated map by a tensor product with the control values
+         */
         MatrixXd interpolator(Axis axe, const Ref< ArrayXd> & uval, MatrixXd & deriv);
 
         /** \brief gets the interpolated value for the given parameters
@@ -184,15 +204,15 @@ class BidimSpline
             return mat(0,0);
         }
 
-        /** \brief Defines the nodes of interpolation by distributing them evenly in N equal intervals over the segment[kstart,kend]
-        *
-        *       K supplementary nodes  equal to \c kstart are added at the vector head  and K-1 nodes equal to \c kend at the tail.
-        *       La dimension totale du vecteur des noeuds est N+2 K et est retournée par la fonction. K= degré des splines
+        /** \brief Defines the nodes of interpolation by distributing them evenly in N equal intervals over the segment \f$ \left[ mu_{start}, mu_{end} \right] \f$
+         *
+         *    K supplementary nodes  equal to \f$ mu_{start} \f$  are added at the vector head  and K-1 nodes equal to \f$ mu_{end} \f$  at the tail.
+         *    The total number of defined node is  N+2 K and this value is returned by the function. K is the degree of the splines.
          *
          * \param axe the reference of the axe on which the nodes are defined. (Either X or Y)
-         * \param N Number of intervals to define on the interpolation segment
-         * \param mustart first point of the interpolation segment
-         * \param muend last point of the interpolation segment
+         * \param N **Number of sub-intervals** of the interpolation segment \f$ \left[ mu_{start}, mu_{end} \right] \f$ on which the splines are defined
+         * \param mustart  first point \f$ mu_{start} \f$ of the interpolation segment
+         * \param muend  last point \f$ mu_{end} \f$ of the interpolation segment
          * \return the overall size of the created node vector
          *
          */
@@ -243,9 +263,16 @@ class BidimSpline
 
        /** \brief This function returns a constant reference to the control values
         */
-       inline const MatrixXd& controlValues(){return m_controlValues; }
+       inline const MatrixXd& getControlValues(){return m_controlValues; }
 
 
+       /** \brief compute a fit of the interpolated data to a tensor product of legendre polynomial
+        *
+        * \param[in] Nx degree of the fit in X
+        * \param[in] Ny degree of the fit in Y
+        * \param[out] pStats  if not NULL, a pointer to a \link __SurfaceStats SurfaceStats \endlink structure which will receive the statistics of the fit
+        * \return a 2D array containing the (natural) Legendre polynomial coefficients of the fit
+        */
        ArrayXXd getLegendreFit(int Nx, int Ny, SurfaceStats* pStats=NULL);
 
     protected:

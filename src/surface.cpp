@@ -864,6 +864,9 @@ void Surface::setErrorGenerator()
 
     m_ErrorGeneratorValid=false;
 
+    if(m_errorMap)
+        delete m_errorMap;
+    m_errorMap=NULL;
 }
 
 void Surface::unsetErrorGenerator()
@@ -1064,6 +1067,26 @@ bool Surface::generateSurfaceErrors()
     return true;
 }
 
+ArrayXXd Surface::getSurfaceErrors()
+{
+    ArrayXXd heights;
+    if(m_errorMap)
+    {
+        int nx, ny; // Number of intervals
+        Array22d limits=m_errorMap->getSampling(&nx, &ny);
+
+        ArrayXd xval=ArrayXd::LinSpaced(++nx, limits(0), limits(1));
+        ArrayXd yval=ArrayXd::LinSpaced(++ny, limits(2), limits(3));
+
+        MatrixXd deriv; // unused
+        MatrixXd interx=m_errorMap->interpolator(X, xval, deriv);
+        MatrixXd intery=m_errorMap->interpolator(Y, yval, deriv);
+
+        heights= interx.transpose()* m_errorMap->getControlValues()*intery;
+    }
+
+    return heights;
+}
 
 #ifdef HAS_REFLEX
 void Surface::removeCoating()
