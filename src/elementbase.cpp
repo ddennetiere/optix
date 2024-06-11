@@ -280,6 +280,7 @@ TextFile& operator>>(TextFile& file,  ElementBase* elem)
 
 void ElementBase::operator>>(xmlNodePtr sysnode)
 {
+     cout << "entering ElementBase::operator>>()\n";
     char cvbuf[MAXBUF];
     xmlNodePtr parmnode,arraynode;
     xmlNodePtr elemnode=xmlNewTextChild(sysnode,NULL, XMLSTR "element", NULL);
@@ -305,10 +306,15 @@ void ElementBase::operator>>(xmlNodePtr sysnode)
         if(param.flags & ArrayData)
         {  //modified 04/06/2024 to record data as node text
             parmnode=xmlNewTextChild(elemnode,NULL,XMLSTR "param", NULL);
+            cvbuf[0]=0;
             char *pbuf=cvbuf;
-            pbuf+=sprintf(pbuf,"%.8g", param.paramArray->data[0]);
-            for(int i=1; i<  param.paramArray->dims[0]*param.paramArray->dims[1]; ++i)
-                pbuf+=sprintf(pbuf,", %.8g", param.paramArray->data[i]);
+            int parmsize=param.paramArray->dims[0]*param.paramArray->dims[1];
+            if (parmsize)
+            {
+                pbuf+=sprintf(pbuf,"%.8g", param.paramArray->data[0]);
+                for(int i=1; i<  parmsize; ++i)
+                    pbuf+=sprintf(pbuf,", %.8g", param.paramArray->data[i]);
+            }
             arraynode=xmlNewTextChild(parmnode, NULL, XMLSTR "array", XMLSTR cvbuf);
 //            xmlNewProp (arraynode, XMLSTR "data", XMLSTR cvbuf);
             sprintf(cvbuf,"%Ld, %Ld", param.paramArray->dims[0], param.paramArray->dims[1]);
@@ -379,7 +385,7 @@ void ElementBase::operator<<(xmlNodePtr elemnode)
                         std::cout << "parameter name " << name << " no data found" << endl;
                         break;
                     }
-                    data=xmlNodeGetContent(arraynode);
+                    data=xmlNodeGetContent(arraynode);  // if size=0 data =""
                 }
             }
             else //old version
@@ -422,13 +428,14 @@ void ElementBase::operator<<(xmlNodePtr elemnode)
                 }
                 if(data)
                 {
+                    cout << "array data=" << data << endl;
                    // printf("\n           %s \n", data);
                     int N=dim0*dim1;
+                    if(param.paramArray)
+                        delete param.paramArray;
+                    param.paramArray=new ArrayParameter(dim0,dim1);
                     if(N)
                     {
-                        if(param.paramArray)
-                            delete param.paramArray;
-                        param.paramArray=new ArrayParameter(dim0,dim1);
                         double * pdat=param.paramArray->data;
                         char *pbuf= (char*)data;
                         sscanf(pbuf, "%lg", pdat);

@@ -198,13 +198,18 @@ RayType& Surface::reflect(RayType& ray)    /*  this implementation simply reflec
 
 void Surface::operator>>(xmlNodePtr elemnode)
 {
-
+    cout << "Entering Surface::operator>>()\n";
     if(m_recording)
         xmlNewProp (elemnode, XMLSTR "rec", XMLSTR std::to_string(m_recording).c_str());
     if(m_errorMethod)
         xmlNewProp(elemnode, XMLSTR "error_method", XMLSTR std::to_string(m_errorMethod).c_str());
     if(hasParameter("error_limits"))
+    {
+        cout << "Surface Error generator active\n";
         xmlNewProp(elemnode, XMLSTR "error_generator", XMLSTR "on");
+    }
+    else
+        cout << "Surface Error generator in-active\n";
     m_aperture >> elemnode;  // does nothing if region.size() == 0
 //    if(m_errorGenerator)     // seulement si le pointeur est valide
 //        *m_errorGenerator >> elemnode;
@@ -835,6 +840,9 @@ bool Surface::setParameter(string name, Parameter& param)
 
 void Surface::setErrorGenerator()
 {
+    if(hasParameter("error_limits"))    // useles (and even dangerous to create
+        return;
+
     Parameter param;
     param.type=InverseDistance;
     param.group=SurfErrorGroup;

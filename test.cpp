@@ -102,7 +102,7 @@ int main()
   // return DiscoTest();
   //  return TstMistral();
 
-    bool result=LoadSystemFromXml("polytestcopy.xml");
+    bool result=LoadSystemFromXml("polytestcopy2.xml");
     cout << "file loaded " << (result ? "OK\n" : "ERROR\n");
 
 //    LoadSystemFromXml("Beamline_test_polynomial.xml");
@@ -130,9 +130,9 @@ int main()
     }
     cout << "residual sigma= " << param.value << endl;
 
-//    string  outfile = "polytestcopy.xml";
-//    cout << "saving to " << outfile << endl;
-//    result=  SaveSystemAsXml(outfile.c_str());
+    string  outfile = "polytestcopy3.xml";
+    cout << "saving to " << outfile << endl;
+    result=  SaveSystemAsXml(outfile.c_str());
 //    cout << "file saved " << (result ?  "OK\n" : " ERROR\n");
 
     return 0;

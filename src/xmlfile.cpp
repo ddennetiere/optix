@@ -47,63 +47,7 @@ bool SaveElementsAsXml(const char * filename, ElementCollection &system)
     for (it=system.begin(); it!=system.end(); ++it)
     {
         *it->second >> sysnode;  // will create the element node including Surface class parameters
-//        ElementBase& elem = *it->second   ; // for convenience
-//        elemnode=xmlNewTextChild(sysnode,NULL, XMLSTR "element", NULL);
-//        xmlNewProp (elemnode, XMLSTR "name", XMLSTR it->first.c_str());
-//        xmlNewProp (elemnode, XMLSTR "class", XMLSTR elem.getOptixClass().c_str()); // on n'a pas besoin des pointeurs etournés
-//        //   pour le chaînage next suffit; Si l'attribut de chaînage next n'est écrit,
-//        //   il n'y a pas de suivant (m_next=null qui est le défaut de création)
-//        if(elem.getNext())
-//            xmlNewProp (elemnode, XMLSTR "next", XMLSTR elem.getNext()->getName().c_str());
-//        Surface* surf=dynamic_cast<Surface*>(it->second);
-//        if(surf)  // en prévision des groupes qui ne sont pas des surfaces
-//        {
-//            RecordMode rec=surf->getRecording();
-//            if(rec)
-//                xmlNewProp (elemnode, XMLSTR "rec", XMLSTR std::to_string(rec).c_str());
-//        }
-//        if(elem.getTransmissive() && elem.getOptixClass().compare(0,8,"Grating<" )!=0 ) //gratings are reflective by default
-//            xmlNewProp (elemnode, XMLSTR "trans", XMLSTR "true");
-//
-//
-//        map<string,Parameter>::iterator it;
-//        for(it=elem.m_parameters.begin(); it != elem.m_parameters.end(); ++it)  // protected but function is declared friend of OpticalElement
-//        {
-//            parmnode=xmlNewTextChild(elemnode,NULL,XMLSTR "param", XMLSTR it->first.c_str());
-//            Parameter &param=it->second;
-//            if(param.flags & ArrayData)
-//            {
-//                arraynode=xmlNewTextChild(parmnode,NULL,XMLSTR "array", NULL);
-//                sprintf(cvbuf,"%Ld, %Ld", param.paramArray->dims[0], param.paramArray->dims[1]);
-//                xmlNewProp (arraynode, XMLSTR "dims", XMLSTR cvbuf);
-//                char *pbuf=cvbuf;
-//                pbuf+=sprintf(pbuf,"%.8g", param.paramArray->data[0]);
-//                for(int i=1; i<  param.paramArray->dims[0]*param.paramArray->dims[1]; ++i)
-//                    pbuf+=sprintf(pbuf,", %.8g", param.paramArray->data[i]);
-//                xmlNewProp (arraynode, XMLSTR "data", XMLSTR cvbuf);
-//            }
-//            else
-//            {
-//                sprintf(cvbuf,"%.8g",param.value);
-//                xmlNewProp (parmnode, XMLSTR "val", XMLSTR cvbuf);
-//            }
-//            if(param.bounds[0]!=0)
-//            {
-//                sprintf(cvbuf,"%.8g",param.bounds[0]);
-//                xmlNewProp (parmnode, XMLSTR "min", XMLSTR cvbuf);
-//            }
-//            if(param.bounds[1]!=0)
-//            {
-//                sprintf(cvbuf,"%.8g",param.bounds[1]);
-//                xmlNewProp (parmnode, XMLSTR "max", XMLSTR cvbuf);
-//            }
-//            if(param.multiplier!=1.)
-//            {
-//                sprintf(cvbuf,"%.8g",param.multiplier);
-//                xmlNewProp (parmnode, XMLSTR "mult", XMLSTR cvbuf);
-//            }
-//            // Les paramètres type, group, et flags sont non modifiables
-//        }
+                                // and call the Surface::operator>>(element node)
     }
     //xmlIndentTreeOutput = 1;  // to indent
     //  xmlKeepBlanksDefault(0);
@@ -451,28 +395,6 @@ bool LoadElementsFromXml(const char * filename, ElementCollection &system)
 
             cout <<"elementbase " << curnode->name  << "loaded\n";
 
-
-//            trans= xmlGetProp(curnode, XMLSTR "trans");
-//            if(trans)
-//            {
-//                elem->setTransmissive(true); //Value false is not stored in the XML
-//                xmlFree(trans);
-//            }
-//
-//            srec= xmlGetProp(curnode, XMLSTR "rec");
-//            if(srec && dynamic_cast<Surface*>(elem))
-//            {
-//                dynamic_cast<Surface*>(elem)->setRecording((RecordMode)atoi((char*)srec));
-//                xmlFree(srec);
-//            }
-//            cout << "setting parameters :  ";  // getXmlParameters would be a better name
-//            if(! SetXmlParameters(doc, elem , curnode))
-//            {
-//               // au moins un paramètre invalide, le signaler
-//               cout << "element "  << elem->getName() <<  " parameter failure\n";
-//               exitcode=false;
-//            }
-//            else cout << "element "  << elem->getName() <<  " parameters set\n";
 		}
         curnode = curnode->next;
 	}
