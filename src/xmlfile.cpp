@@ -440,10 +440,18 @@ bool LoadElementsFromXml(const char * filename, ElementCollection &system)
             if(elem==NULL)   // now we can leave
                 return false;
 
-            *elem << curnode;
+            // Surface class needs to be called before the base class to define supplementary parameters (namely Error generator)
+
             Surface* surf=dynamic_cast<Surface*>(elem);
             if(surf)
                 *surf << curnode;
+
+            cout << "entering elementbase load\n";
+            *elem << curnode;
+
+            cout <<"elementbase " << curnode->name  << "loaded\n";
+
+
 //            trans= xmlGetProp(curnode, XMLSTR "trans");
 //            if(trans)
 //            {

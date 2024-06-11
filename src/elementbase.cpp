@@ -353,7 +353,7 @@ void ElementBase::operator<<(xmlNodePtr elemnode)
     Parameter param;
 //    bool success=true;
 	while (cur != NULL)  //parameter nodes
-	{
+	{  // std::cout << "node name " << (char*) cur->name << std::endl;
 	    if ((!xmlStrcmp(cur->name, XMLSTR "param")))
         {
             xmlNodePtr arraynode=NULL;
@@ -363,7 +363,7 @@ void ElementBase::operator<<(xmlNodePtr elemnode)
             if(xmlHasProp(cur, XMLSTR "name"))   // new format
             {
                 name=xmlGetProp(cur, XMLSTR "name");
-                //std::cout << "Parameter " << (char*) name << "version2\n";
+//                std::cout << "Parameter " << (char*) name << " version2\n";
                 if(!getParameter((char*) name, param))
                 {
                     std::cout << "parameter name " << name << "is not valid for class " << getOptixClass() << endl;
@@ -385,7 +385,7 @@ void ElementBase::operator<<(xmlNodePtr elemnode)
             else //old version
             {
                 name=xmlNodeGetContent(cur);
-                //std::cout << " param " << (char*) name << "  old version\n";
+                std::cout << " param " << (char*) name << "  old version\n";
                 if(!getParameter((char*) name, param))
                 {
                     std::cout << "parameter name " << name << "is not valid for class " << getOptixClass() << endl;
@@ -404,7 +404,7 @@ void ElementBase::operator<<(xmlNodePtr elemnode)
                 }
 
             }
-          //  std::cout << " array node:" << (uint64_t) arraynode << "  Val:" << (uint64_t) val << "  data:" <<(uint64_t) data <<std::endl;
+            //std::cout << " array node:" << (uint64_t) arraynode << "  Val:" << (uint64_t) val << "  data:" <<(uint64_t) data <<std::endl;
             if(arraynode)
             {
                 int dim0=0, dim1=0;
@@ -444,6 +444,7 @@ void ElementBase::operator<<(xmlNodePtr elemnode)
             }
             else if(val)  // single value case we also  min max attributes
             {
+               // std::cout << "val=" << val<< std::endl;
                 param.value=atof((char*)val);
                 xmlFree(val);
 
@@ -469,19 +470,29 @@ void ElementBase::operator<<(xmlNodePtr elemnode)
             else
                 printf(" INCOMPLETE parameter no value found\n");
 
+
         // Now we can update parameter
             if(!setParameter((char*) name, param))
             {
                 cout << " ERROR: " << LastError <<endl;
 //                    success=false;
             }
+
             // no need to dump  usually
 //            if(param.flags &ArrayData)
 //                dumpParameter((char*) name) ;
+            xmlFree(name);
         }
-        xmlFree(name);
+        else
+          cout << cur->name << "  skipped\n ";
 
-        cur = cur->next;
+
+       // cout << "old cur = " << cur << endl;
+
+        //cur = cur->next;
+        // calling NextElementSibling avoid entering intor the text node
+        cur=xmlNextElementSibling(cur);
+        //cout << "new cur=" << cur << endl;
 	} // parameter nodes
 
 }

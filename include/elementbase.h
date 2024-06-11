@@ -448,6 +448,11 @@ public:
         }
     }
 
+    inline bool hasParameter(string name)
+    {
+        return (m_parameters.find(name) != m_parameters.end());
+    }
+
     inline ParamIterator parameterBegin(){return m_parameters.begin();}/**< \brief return an iterator positionned on the first element of the parameter list of this surface*/
     inline ParamIterator parameterEnd(){return m_parameters.end();}  /**< \brief return an iterator positionned after the last element of the parameter list of this surface*/
 

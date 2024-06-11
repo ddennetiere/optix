@@ -203,7 +203,8 @@ void Surface::operator>>(xmlNodePtr elemnode)
         xmlNewProp (elemnode, XMLSTR "rec", XMLSTR std::to_string(m_recording).c_str());
     if(m_errorMethod)
         xmlNewProp(elemnode, XMLSTR "error_method", XMLSTR std::to_string(m_errorMethod).c_str());
-
+    if(hasParameter("error_limits"))
+        xmlNewProp(elemnode, XMLSTR "error_generator", XMLSTR "on");
     m_aperture >> elemnode;  // does nothing if region.size() == 0
 //    if(m_errorGenerator)     // seulement si le pointeur est valide
 //        *m_errorGenerator >> elemnode;
@@ -223,13 +224,22 @@ void Surface::operator<<(xmlNodePtr surfnode)
         setErrorMethod((ErrorMethod)atoi((char*)sprop));
         xmlFree(sprop);
     }
+    sprop= xmlGetProp(surfnode, XMLSTR "error_generator");
+    if(sprop)
+    {
+        setErrorGenerator();
+        xmlFree(sprop);
+    }
+
     // set aperture if aperture child exists in children
     xmlNodePtr curnode=xmlFirstElementChild(surfnode);
     while(curnode)
     {
         if(xmlStrcmp(curnode->name, XMLSTR "aperture")==0)
         {
+            cout << "loading aperture\n";
             m_aperture << curnode;
+            cout <<"aperture loaded\n";
         }
 
 //        if(xmlStrcmp(curnode->name, XMLSTR "error_generator")==0)
@@ -779,6 +789,9 @@ void Surface::computePSF(ndArray<std::complex<double>,4> &PSF, Array2d &pixelSiz
 
 bool Surface::setParameter(string name, Parameter& param)
 {
+    cout << m_name  << " set " << name <<endl;
+    // we bypass
+    return ElementBase::setParameter(name, param);
     //some validation based on a sigle prameter settin
     if(name=="error_limits" )
     {
@@ -803,10 +816,13 @@ bool Surface::setParameter(string name, Parameter& param)
                 SetOptiXLastError(string("parameter name ")+ name + " cannot have a negative value", __FILE__, __func__, __LINE__);
                 return false;
     }
-
+     cout << "try to set\n";
     // record parameter new value
     if(! ElementBase::setParameter(name, param))
-        return false;
+    {
+        cout << "Error: " <<LastError << endl;
+         return false;
+    }
 
    // if one of these error generator parameter was change, invalidate the generator
     if(name=="fractal_exponent_x" || name=="fractal_frequency_x" || name=="fractal_exponent_y" || name=="fractal_frequency_y"
@@ -816,16 +832,19 @@ bool Surface::setParameter(string name, Parameter& param)
    return true;
 }
 
+
 void Surface::setErrorGenerator()
 {
     Parameter param;
     param.type=InverseDistance;
     param.group=SurfErrorGroup;
     param.flags=NotOptimizable | ArrayData;
-    param.paramArray=new ArrayParameter; //default constructor set dims to 0 and data to NULL
+    param.paramArray=new ArrayParameter; //default constructor set dims to 0 and data to NULL the new arrayParameter will be deleted with param
     // the following parameter are created uninitilized that is dims=(0;0)
+
     defineParameter("fractal_frequency_x", param);
     setHelpstring("fractal_frequency_x", "frequency limits of the X PSD segments"); // default 1 segment not limited
+
     defineParameter("fractal_frequency_y", param);
     setHelpstring("fractal_frequency_y", "frequency limits of the Y PSD segments"); // default 1 segment not limited
 
@@ -839,9 +858,11 @@ void Surface::setErrorGenerator()
     defineParameter("low_Zernike", param);
     setHelpstring("low_Zernike", "Matrix of the max sigma values of low Legendre expansion");
 
+
     // Fractal exponents are initialized to -1.
     param.type=Dimensionless;
-    param.paramArray->dims[0]=param.paramArray->dims[1]=1;
+    delete param.paramArray ;
+    param.paramArray = new ArrayParameter(1,1);
     param.paramArray->data[0]=-1.;
 
     defineParameter("fractal_exponent_x", param);
