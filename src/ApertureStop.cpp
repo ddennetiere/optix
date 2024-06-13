@@ -103,11 +103,11 @@ void ApertureStop::operator>>(xmlNodePtr surfnode)
     xmlChar* surfname=xmlGetProp(surfnode,XMLSTR "name");
     if(m_regions.size()==0)
     {
-        std::cout << "no region found in " << (char*) surfname << " aperture \n";
+//        std::cout << "no region found in " << (char*) surfname << " aperture \n";
         return;
     }
-    else
-        std::cout << m_regions.size() << " regions in " << (char*) surfname << " aperture \n";
+//    else
+//        std::cout << m_regions.size() << " regions in " << (char*) surfname << " aperture \n";
     xmlNodePtr apernode=xmlNewTextChild(surfnode,NULL,XMLSTR "aperture", NULL); // no value
     xmlNewProp(apernode, XMLSTR "class", XMLSTR "ApertureStop");
 
@@ -117,7 +117,7 @@ void ApertureStop::operator>>(xmlNodePtr surfnode)
         **it>>apernode;
     }
     xmlFree(surfname);
-    std::cout << "aperture set\n";
+//    std::cout << "aperture set\n";
 }
 
 void ApertureStop::operator<<(xmlNodePtr apernode)
@@ -128,20 +128,20 @@ void ApertureStop::operator<<(xmlNodePtr apernode)
     while(regnode)
     {
         xmlChar* classtype= xmlGetProp(regnode, XMLSTR "class");
-        std::cout << "region class " << (char*)classtype << std::endl;
+//        std::cout << "region class " << (char*)classtype << std::endl;
         if(xmlStrcmp(classtype, XMLSTR "Ellipse")==0)
         {
             Ellipse * pRegion= new Ellipse;
             *pRegion << regnode;
-            Index reg=addRegion(pRegion);
-            std::cout << "ellipse added as " << reg <<std::endl;
+            /*Index reg=*/addRegion(pRegion);
+//            std::cout << "ellipse added as " << reg <<std::endl;
         }
         else if(xmlStrcmp(classtype, XMLSTR "Polygon")==0)
         {
             Polygon * pRegion= new Polygon;
             *pRegion << regnode;
-            Index reg=addRegion(pRegion);
-            std::cout << "polygon added as " << reg <<std::endl;
+            /*Index reg=*/addRegion(pRegion);
+//            std::cout << "polygon added as " << reg <<std::endl;
         }
         else
             std::cout << "unexpected region class " << classtype << " in aperture \n";
@@ -149,7 +149,7 @@ void ApertureStop::operator<<(xmlNodePtr apernode)
             xmlFree(classtype);
         regnode=xmlNextElementSibling(regnode);  // will return NULL if current regnode is the last one
     }
-        std::cout << "no more region\n";
+//        std::cout << "no more region\n";
 }
 
 

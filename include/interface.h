@@ -863,7 +863,7 @@ extern "C"
 
    /** \brief Set the transmission or reflexion mode of the element. (only available for gratings)
      *
-     * \param elementID the ID of the element to chang
+     * \param elementID the ID of the element to change
      * \param transmit true value to make the element transmissive, false if the element is reflective
      * \return true if the element is a grating and transmission mode was set, false otherwise and the element is unchanged
      */
@@ -886,9 +886,15 @@ extern "C"
 *   \{
 */
 
-    DLL_EXPORT bool setSurfaceErrors(size_t elementID,double xmin, double xmax, double ymin, double ymax,
-                                     int64_t xsize, int64_t ysize, const double* heightErrors);
+    DLL_EXPORT bool SetErrorGenerator(size_t elementID );
 
+    DLL_EXPORT bool UnsetErrorGenerator(size_t elementID );
+
+    DLL_EXPORT bool GenerateSurfaceErrors(size_t elementID);
+
+
+    DLL_EXPORT bool SetSurfaceErrors(size_t elementID,double xmin, double xmax, double ymin, double ymax,
+                                     int64_t xsize, int64_t ysize, const double* heightErrors);
 
     /** \brief delete the height error map associated to the surface, which hence become perfect again
      *
@@ -896,7 +902,26 @@ extern "C"
      * \return DLL_EXPORT bool
      *
      */
-    DLL_EXPORT bool unsetSurfaceErrors(size_t elementID );
+    DLL_EXPORT bool UnsetSurfaceErrors(size_t elementID );
+
+    DLL_EXPORT bool GetSurfaceErrors(size_t elementID, int* Nx, int* Ny, double* height_errors );
+
+    /** \brief set the method used to take this surface errors into account in the ray tracing
+     *
+     *  *The "method flag" is defined whenever no surfaceError generator  and no spline interpolator are set*
+     * \param elementID the ID of the element to change method of
+     * \param meth  The method to be used for this element. Must be a member of the theErrorMethod enumeration
+     */
+    DLL_EXPORT bool SetErrorMethod(size_t elementID, ErrorMethod meth);
+
+    /** \brief returns the method used to take this surface errors into account in the ray tracing
+     *
+     * * The "method flag" is defined whenever no surfaceError generator  and no spline interpolator are set*
+     * \ the method being used for this element. It is a member of the theErrorMethod enumeration
+     *
+     */
+    DLL_EXPORT bool GetErrorMethod(size_t elementID, ErrorMethod *meth);
+
 
 
 /** \} */  //end of surferrorAPI group

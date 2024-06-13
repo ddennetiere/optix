@@ -280,7 +280,7 @@ TextFile& operator>>(TextFile& file,  ElementBase* elem)
 
 void ElementBase::operator>>(xmlNodePtr sysnode)
 {
-     cout << "entering ElementBase::operator>>()\n";
+//     cout << "entering ElementBase::operator>>()\n";
     char cvbuf[MAXBUF];
     xmlNodePtr parmnode,arraynode;
     xmlNodePtr elemnode=xmlNewTextChild(sysnode,NULL, XMLSTR "element", NULL);
@@ -428,7 +428,7 @@ void ElementBase::operator<<(xmlNodePtr elemnode)
                 }
                 if(data)
                 {
-                    cout << "array data=" << data << endl;
+//                    cout << "array data=" << data << endl;
                    // printf("\n           %s \n", data);
                     int N=dim0*dim1;
                     if(param.paramArray)
@@ -490,8 +490,8 @@ void ElementBase::operator<<(xmlNodePtr elemnode)
 //                dumpParameter((char*) name) ;
             xmlFree(name);
         }
-        else
-          cout << cur->name << "  skipped\n ";
+//        else
+//          cout << cur->name << "  skipped\n ";
 
 
        // cout << "old cur = " << cur << endl;

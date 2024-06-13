@@ -68,6 +68,33 @@ int XmlTest();
 int TstMistral();
 int InterpolatorTest();
 
+
+    void  GetParam(Surface* psurf, string paramname, Parameter& param)
+    {
+        char* errmsg;
+        if(!psurf->getParameter(paramname, param))
+        {
+            GetOptiXError(&errmsg);
+            cout << "GetParam " << paramname << " failure:" << errmsg << endl;
+            exit(-1);
+        }
+        return  ;
+    }
+
+    void  SetParam(Surface* psurf, string paramname, Parameter& param)
+    {
+        char* errmsg;
+        if(!psurf->setParameter(paramname, param))
+        {
+            GetOptiXError(&errmsg);
+            cout << "SetParam " << paramname << " failure:" << errmsg << endl;
+            exit(-1);
+        }
+        return  ;
+    }
+
+
+
 int main()
 {
     char * version_string;
@@ -101,8 +128,13 @@ int main()
 
   // return DiscoTest();
   //  return TstMistral();
+    if(0)
+    {
+        return InterpolatorTest();
+    }
 
     bool result=LoadSystemFromXml("polytestcopy2.xml");
+
     cout << "file loaded " << (result ? "OK\n" : "ERROR\n");
 
 //    LoadSystemFromXml("Beamline_test_polynomial.xml");
@@ -120,20 +152,102 @@ int main()
     pM1->setErrorGenerator();
     cout << "error Generator created\n";
 
-    char* errmsg;
     Parameter param;
-    if(!pM1->getParameter("residual_sigma", param))
-    {
-        GetOptiXError(&errmsg);
-        cout << "failure:" << errmsg << endl;
-        return -1;
-    }
-    cout << "residual sigma= " << param.value << endl;
+    GetParam(pM1,"residual_sigma", param);
+    param.value=3.e-9; // 3 nm
+    SetParam(pM1,"residual_sigma", param);
 
+    GetParam(pM1,"error_limits", param);
+    {
+        ArrayXXd limits(2,2);
+        limits << -0.05, -0.005, 0.05, 0.005;
+        *param.paramArray=limits;
+    }
+    SetParam(pM1,"error_limits", param);
+
+    GetParam(pM1,"sampling", param);
+    {
+        ArrayXXd sampling(2,1);
+        sampling << 5e-4, 1e-4;
+        *param.paramArray=sampling;
+    }
+    SetParam(pM1,"sampling", param);
+
+//    double xexp[]={-1.5,-2.};
+//    double yexp[]={-1.};
+//    double xfl[]={100.};
+    GetParam(pM1,"fractal_exponent_x", param);
+    {
+        ArrayXXd exp(2,1);
+        exp << -1.5,-2.;
+        *param.paramArray=exp;
+    }
+    SetParam(pM1,"fractal_exponent_x", param);
+
+    GetParam(pM1,"fractal_frequency_x", param);
+    {
+        ArrayXXd freq(1,1);
+        freq << 500.;
+        *param.paramArray=freq;
+    }
+    SetParam(pM1,"fractal_frequency_x", param);
+
+
+    GetParam(pM1,"detrending", param);
+    {
+        ArrayXXd detrend(3,3);
+        detrend << 1., 1., 1.,
+                   1., 1., 0,
+                   1., 0 , 0;
+        *param.paramArray=detrend;
+    }
+
+//    GetParam(pM1,"detrending", param);
+//    {
+//        ArrayXXd detrend(2,2);
+//        detrend << 1., 1.,
+//                   1., 0 ;
+//        *param.paramArray=detrend;
+//    }
+
+//    GetParam(pM1,"detrending", param);
+//    {
+//        ArrayXXd detrend;
+//        *param.paramArray=detrend;
+//    }
+//    SetParam(pM1,"detrending", param);
+
+    GetParam(pM1,"low_Zernike", param);
+    {
+        ArrayXXd legendre(4,3);
+        legendre <<  0 , 0.,   5.e-9,
+                     0., 2e-9, 1.e-9,
+                     1.e-8, 0 , 2e-9,
+                     5.e-9, 0,  0. ;
+        *param.paramArray=legendre;
+    }
+    SetParam(pM1,"low_Zernike", param);
+    MatrixXd Legendre_sigmas;
+    double generated_sigma;
+    try{
+    if(!pM1->generateSurfaceErrors(&generated_sigma, Legendre_sigmas))
+    {
+        char* errmsg;
+        GetOptiXError(&errmsg);
+        cout << "could not generate errors from M1 cause:\n" << errmsg << endl;
+        exit(-2);
+    }
+    }catch (std::exception & excp) {
+        cout << "catch: " << excp.what() <<endl;
+    }
+    ArrayXXd errormap=pM1->getSurfaceErrors();
+    SurfaceToFile(errormap,"M1_height_errors.bin");
     string  outfile = "polytestcopy3.xml";
     cout << "saving to " << outfile << endl;
     result=  SaveSystemAsXml(outfile.c_str());
 //    cout << "file saved " << (result ?  "OK\n" : " ERROR\n");
+
+
 
     return 0;
 
@@ -928,7 +1042,7 @@ int InterpolatorTest()
 
     SurfaceToFile(surface, "mapTest.bin");
 
-    ArrayXXd Lcoeffs=LegendreFitGrid(6,5, surface);
+    ArrayXXd Lcoeffs=LegendreFitGrid(2,2, surface);
     ArrayXXd LNcoeffs=LegendreNormalize(Lcoeffs);
     ArrayXXd recoeffs=LegendreFromNormal(LNcoeffs);
 

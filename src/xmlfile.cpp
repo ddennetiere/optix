@@ -179,122 +179,6 @@ bool DumpXmlSys(const char* filename)
     return true;
 }
 
-/** \brief auxiliary fonction for loading parameter from XML. Iterates on the XML doc and sets the parameters a new element as they are read.
- * \ingroup GlobalCpp
- * \param doc Thee open XML document
- * \param elem pointer to the newly created element
- * \param[in] cur the current element node
- * \return bool
- * \deprecated This fonction is no longer user: functionnally replaced by operator<<() of Element classes
- */
-bool SetXmlParameters(xmlDocPtr doc, ElementBase* elem, xmlNodePtr cur)
-{
-    cout << "\n USING SetXmlParameters\n\n";
-	xmlChar *att, *name;
-    cur = cur->xmlChildrenNode;
-    Parameter param;
-    bool success=true;
-	while (cur != NULL)
-	{
-	    if ((!xmlStrcmp(cur->name, XMLSTR "param")))
-        {
-            //name = xmlNodeListGetString(doc, cur->xmlChildrenNode, 1);
-            name=xmlNodeGetContent(cur);
-            // initialise param avec les valeurs défaut du constructeur de elem
-           // cout <<"setting parameter " << name << ":";
-		    if(elem->getParameter((char*) name, param))
-            {
-                att= xmlGetProp(cur, XMLSTR "val");
-                if(att)
-                {
-                    param.value=atof((char*)att);
-                    xmlFree(att);
-                }
-                else
-                {
-                    //xmlNodePtr arraynode=cur->xmlChildrenNode->next;
-                    xmlNodePtr arraynode=xmlFirstElementChild(cur);
-                    if(arraynode)
-                    {
-                        int dim0=0, dim1=0;
-                        att=xmlGetProp(arraynode, XMLSTR "dims");
-                        if(att)
-                        {
-                            printf("    Array %s ", att);
-                            sscanf((char*)att,"%d, %d", &dim0, &dim1);
-                            xmlFree(att);
-                        }
-                        att=xmlGetProp(arraynode, XMLSTR "data");
-                        if(att)
-                        {
-                            printf("\n           %s \n", att);
-                            int N=dim0*dim1;
-                            if(N)
-                            {
-                                if(param.paramArray)
-                                    delete param.paramArray;
-                                param.paramArray=new ArrayParameter(dim0,dim1);
-                                double * pdat=param.paramArray->data;
-                                char *pbuf= (char*)att;
-                                sscanf(pbuf, "%lg", pdat);
-
-                                for (int i=1; i <N; ++i)
-                                {
-                                    pbuf=strchr(pbuf,',');
-                                    sscanf(++pbuf, "%lg", ++pdat);
-                                }
-                            }
-                            xmlFree(att);
-                        }
-                    }
-                    else
-                        printf(" INCOMPLETE parameter no value found");
-                }
-
-
-                att= xmlGetProp(cur, XMLSTR "min");
-                if(att)
-                {
-                    param.bounds[0]=atof((char*)att);
-                    xmlFree(att);
-                }
-                att= xmlGetProp(cur, XMLSTR "max");
-                if(att)
-                {
-                    param.bounds[0]=atof((char*)att);
-                    xmlFree(att);
-                }
-                att= xmlGetProp(cur, XMLSTR "mult");
-                if(att)
-                {
-                    param.multiplier=atof((char*)att);
-                    xmlFree(att);
-                }
-                //    cout << "  do...  ";
-                if(!elem->setParameter((char*) name, param))
-                {
-                    cout << " ERROR:  " << LastError <<endl;
-                    success=false;
-                }
-                //else cout <<" OK\n";
-                if(param.flags &ArrayData)
-                    elem->dumpParameter((char*) name) ;
-            }
-            else
-            {
-                cout << "Parameter " << (char*) name << " is not valid for object " << elem->getName() <<
-                        " of class " << elem->getOptixClass() << endl;
-                success=false; // ce parametre n'existe pas dans cet objet : on signale
-            }
-            xmlFree(name);
-
-
-        }
-        // traiter ici ApertureStop et SurfaceGenerator
-        cur = cur->next;
-	}
-    return success;
-}
 
 bool LoadElementsFromXml(const char * filename, ElementCollection &system)
 {
@@ -389,11 +273,11 @@ bool LoadElementsFromXml(const char * filename, ElementCollection &system)
             Surface* surf=dynamic_cast<Surface*>(elem);
             if(surf)
                 *surf << curnode;
-
-            cout << "entering elementbase load\n";
+//
+//            cout << "entering elementbase load\n";
             *elem << curnode;
 
-            cout <<"elementbase " << curnode->name  << "loaded\n";
+//            cout <<"elementbase " << curnode->name  << "loaded\n";
 
 		}
         curnode = curnode->next;
@@ -403,3 +287,122 @@ bool LoadElementsFromXml(const char * filename, ElementCollection &system)
 
     return exitcode;
 }
+
+
+//
+// /** \brief auxiliary fonction for loading parameter from XML. Iterates on the XML doc and sets the parameters a new element as they are read.
+// * \ingroup GlobalCpp
+// * \param doc Thee open XML document
+// * \param elem pointer to the newly created element
+// * \param[in] cur the current element node
+// * \return bool
+// * \deprecated This fonction is no longer user: functionnally replaced by operator<<() of Element classes
+// */
+//bool SetXmlParameters(xmlDocPtr doc, ElementBase* elem, xmlNodePtr cur)
+//{
+//    cout << "\n USING SetXmlParameters\n\n";
+//	xmlChar *att, *name;
+//    cur = cur->xmlChildrenNode;
+//    Parameter param;
+//    bool success=true;
+//	while (cur != NULL)
+//	{
+//	    if ((!xmlStrcmp(cur->name, XMLSTR "param")))
+//        {
+//            //name = xmlNodeListGetString(doc, cur->xmlChildrenNode, 1);
+//            name=xmlNodeGetContent(cur);
+//            // initialise param avec les valeurs défaut du constructeur de elem
+//           // cout <<"setting parameter " << name << ":";
+//		    if(elem->getParameter((char*) name, param))
+//            {
+//                att= xmlGetProp(cur, XMLSTR "val");
+//                if(att)
+//                {
+//                    param.value=atof((char*)att);
+//                    xmlFree(att);
+//                }
+//                else
+//                {
+//                    //xmlNodePtr arraynode=cur->xmlChildrenNode->next;
+//                    xmlNodePtr arraynode=xmlFirstElementChild(cur);
+//                    if(arraynode)
+//                    {
+//                        int dim0=0, dim1=0;
+//                        att=xmlGetProp(arraynode, XMLSTR "dims");
+//                        if(att)
+//                        {
+//                            printf("    Array %s ", att);
+//                            sscanf((char*)att,"%d, %d", &dim0, &dim1);
+//                            xmlFree(att);
+//                        }
+//                        att=xmlGetProp(arraynode, XMLSTR "data");
+//                        if(att)
+//                        {
+//                            printf("\n           %s \n", att);
+//                            int N=dim0*dim1;
+//                            if(N)
+//                            {
+//                                if(param.paramArray)
+//                                    delete param.paramArray;
+//                                param.paramArray=new ArrayParameter(dim0,dim1);
+//                                double * pdat=param.paramArray->data;
+//                                char *pbuf= (char*)att;
+//                                sscanf(pbuf, "%lg", pdat);
+//
+//                                for (int i=1; i <N; ++i)
+//                                {
+//                                    pbuf=strchr(pbuf,',');
+//                                    sscanf(++pbuf, "%lg", ++pdat);
+//                                }
+//                            }
+//                            xmlFree(att);
+//                        }
+//                    }
+//                    else
+//                        printf(" INCOMPLETE parameter no value found");
+//                }
+//
+//
+//                att= xmlGetProp(cur, XMLSTR "min");
+//                if(att)
+//                {
+//                    param.bounds[0]=atof((char*)att);
+//                    xmlFree(att);
+//                }
+//                att= xmlGetProp(cur, XMLSTR "max");
+//                if(att)
+//                {
+//                    param.bounds[0]=atof((char*)att);
+//                    xmlFree(att);
+//                }
+//                att= xmlGetProp(cur, XMLSTR "mult");
+//                if(att)
+//                {
+//                    param.multiplier=atof((char*)att);
+//                    xmlFree(att);
+//                }
+//                //    cout << "  do...  ";
+//                if(!elem->setParameter((char*) name, param))
+//                {
+//                    cout << " ERROR:  " << LastError <<endl;
+//                    success=false;
+//                }
+//                //else cout <<" OK\n";
+//                if(param.flags &ArrayData)
+//                    elem->dumpParameter((char*) name) ;
+//            }
+//            else
+//            {
+//                cout << "Parameter " << (char*) name << " is not valid for object " << elem->getName() <<
+//                        " of class " << elem->getOptixClass() << endl;
+//                success=false; // ce parametre n'existe pas dans cet objet : on signale
+//            }
+//            xmlFree(name);
+//
+//
+//        }
+//        // traiter ici ApertureStop et SurfaceGenerator
+//        cur = cur->next;
+//	}
+//    return success;
+//}

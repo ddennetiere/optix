@@ -198,18 +198,18 @@ RayType& Surface::reflect(RayType& ray)    /*  this implementation simply reflec
 
 void Surface::operator>>(xmlNodePtr elemnode)
 {
-    cout << "Entering Surface::operator>>()\n";
+//    cout << "Entering Surface::operator>>()\n";
     if(m_recording)
         xmlNewProp (elemnode, XMLSTR "rec", XMLSTR std::to_string(m_recording).c_str());
     if(m_errorMethod)
         xmlNewProp(elemnode, XMLSTR "error_method", XMLSTR std::to_string(m_errorMethod).c_str());
     if(hasParameter("error_limits"))
     {
-        cout << "Surface Error generator active\n";
+//        cout << "Surface Error generator active\n";
         xmlNewProp(elemnode, XMLSTR "error_generator", XMLSTR "on");
     }
-    else
-        cout << "Surface Error generator in-active\n";
+//    else
+//        cout << "Surface Error generator in-active\n";
     m_aperture >> elemnode;  // does nothing if region.size() == 0
 //    if(m_errorGenerator)     // seulement si le pointeur est valide
 //        *m_errorGenerator >> elemnode;
@@ -242,9 +242,9 @@ void Surface::operator<<(xmlNodePtr surfnode)
     {
         if(xmlStrcmp(curnode->name, XMLSTR "aperture")==0)
         {
-            cout << "loading aperture\n";
+//            cout << "loading aperture\n";
             m_aperture << curnode;
-            cout <<"aperture loaded\n";
+//            cout <<"aperture loaded\n";
         }
 
 //        if(xmlStrcmp(curnode->name, XMLSTR "error_generator")==0)
@@ -794,7 +794,7 @@ void Surface::computePSF(ndArray<std::complex<double>,4> &PSF, Array2d &pixelSiz
 
 bool Surface::setParameter(string name, Parameter& param)
 {
-    cout << m_name  << " set " << name <<endl;
+//    cout << m_name  << " set " << name <<endl;
     // we bypass
     return ElementBase::setParameter(name, param);
     //some validation based on a sigle prameter settin
@@ -821,7 +821,7 @@ bool Surface::setParameter(string name, Parameter& param)
                 SetOptiXLastError(string("parameter name ")+ name + " cannot have a negative value", __FILE__, __func__, __LINE__);
                 return false;
     }
-     cout << "try to set\n";
+//     cout << "try to set\n";
     // record parameter new value
     if(! ElementBase::setParameter(name, param))
     {
@@ -916,8 +916,9 @@ bool Surface::validateErrorGenerator()
     if(m_ErrorGeneratorValid) // don't test again if no parameter was changed
         return true;
 
+    m_ErrorGeneratorValid=true;
     Parameter param;
-    string errorstring="Incorrect initialization of surface";
+    string errorstring="Incorrect initialization of surface ";
     errorstring+=m_name+ " :\n";
 
     char format[256]="the number of %s fractal transition frequencies (%d) doesn't match the number of exponents (%d)\n";
@@ -926,7 +927,7 @@ bool Surface::validateErrorGenerator()
     int nexp=param.paramArray->dims[0]*param.paramArray->dims[1];
     getParameter("fractal_frequency_x", param) ;
     int nfreq=param.paramArray->dims[0]*param.paramArray->dims[1];
-    if(nexp)
+    if(!nexp)
     {
         errorstring+="No X fractal exponent defined \n";
         m_ErrorGeneratorValid=false;
@@ -942,7 +943,7 @@ bool Surface::validateErrorGenerator()
     nexp=param.paramArray->dims[0]*param.paramArray->dims[1];
     getParameter("fractal_frequency_y", param) ;
     nfreq=param.paramArray->dims[0]*param.paramArray->dims[1];
-    if(nexp)
+    if(!nexp)
     {
         errorstring+="No Y fractal exponent defined \n";
         m_ErrorGeneratorValid=false;
@@ -1010,11 +1011,18 @@ bool Surface::validateErrorGenerator()
     if(!m_ErrorGeneratorValid)
         SetOptiXLastError(errorstring+ "in ",__FILE__, __func__);
 
+    cout << "Error map generation parameters validated\n";
     return m_ErrorGeneratorValid;
 }
 
-bool Surface::generateSurfaceErrors()
+bool Surface::generateSurfaceErrors(double* total_sigma, MatrixXd& Legendre_sigmas )
 {
+    if(!hasParameter("error_limits"))
+    {
+        SetOptiXLastError(string("No surface error generator defined for surface ")+ m_name, __FILE__, __func__, __LINE__);
+        return false;
+    }
+    cout <<"generating surface errors of 'Surface':" << m_name << endl;
     if(!validateErrorGenerator())
         return false;
 
@@ -1042,6 +1050,7 @@ bool Surface::generateSurfaceErrors()
        //int nfreq=param2.paramArray->dims[0]*param2.paramArray->dims[1];
         fractalSurf.setXYfractalParams("Y",nexp, param1.paramArray->data, param2.paramArray->data);
     }
+//        cout << "fractal parameters set\n";
 
     getParameter("error_limits",param1); // the number of parameter was already validated
     Array22d limits(Map<Array22d>(param1.paramArray->data)); // permanent copy of limits
@@ -1050,8 +1059,11 @@ bool Surface::generateSurfaceErrors()
     int xpoints(round((limits(1)-limits(0))/steps(0)));  // this is the interval number
     int ypoints(round((limits(3)-limits(2))/steps(1)));
 
+//        cout << "ready to generate a fractal map of " << xpoints << " x "  << ypoints << " intervals\n";
     // increment to the number of points and generate the fractal surface
     ArrayXXd surfError=fractalSurf.generate(++xpoints, steps(0), ++ypoints, steps(1));
+
+//        cout << "map generated "<< xpoints << " x "  << ypoints << " points\n";
 
     getParameter("residual_sigma", param1);
     double sigmaRes=param1.value;
@@ -1061,39 +1073,57 @@ bool Surface::generateSurfaceErrors()
     Map<ArrayXXd> detrend(param1.paramArray->data, param1.paramArray->dims[0], param1.paramArray->dims[1]);
     Map<ArrayXXd> legendre(param2.paramArray->data, param2.paramArray->dims[0], param2.paramArray->dims[1]);
     // detrend and legendre matrix are non-permanent
+//        cout <<  "detrend:\n" << detrend << "\nzernike:\n" << legendre << endl;
 
     int Nx=legendre.rows() > detrend.rows() ? legendre.rows() : detrend.rows();
     int Ny=legendre.cols() > detrend.cols() ? legendre.cols() : detrend.cols();
 
-
+    MatrixXd detrendCoeffs=MatrixXd::Zero(Nx,Ny);
     ArrayXXd mask=ArrayXXd::Zero(Nx,Ny); // this will be the applied zeroing mask
     if(legendre.size())
         mask.topLeftCorner(legendre.rows(), legendre.cols())=legendre;
     if(detrend.size())
         mask.topLeftCorner(detrend.rows(),detrend.cols())+=detrend;
-
-    fractalSurf.detrend(surfError,mask);
+//    cout << "detrend mask;\n"  << mask << endl;
+    if(mask.size())
+        detrendCoeffs=fractalSurf.detrend(surfError,mask);
+//    else
+//        cout << "Mask size== 0\n";
+     //cout<<" no detrend applied\n";
     //scale the detrended surface errors to match the given sigma value
-    surfError *= sigmaRes/surfError.matrix().norm();
+    double sigmagen=sqrt(surfError.matrix().squaredNorm()/surfError.size());
+    surfError *= sigmaRes/sigmagen;
+    detrendCoeffs*=sigmaRes/sigmagen; // detrending Legendre residuals in detrendCoeffs; not directly usable
 
+//        cout << "fractal ok, will generate Zernike\n";
     // generate the low frequency part from rand Legendre coefficient of specified extent
     // beware that the given extent are sigma normalized but the Grid generating function wants natural Legendre in input
-
     if(legendre.size())
     {
         MatrixXd  Lcoeffs= LegendreFromNormal(legendre) * ArrayXXd::Random(legendre.rows(), legendre.cols());
+//            cout << "random legendres:\n" << Lcoeffs << endl;
         surfError+= LegendreSurfaceGrid(surfError.rows(), surfError.cols(), Lcoeffs);
-    }
+//        if(Lcoeffs.rows()==detrendCoeffs.rows() && Lcoeffs.cols()==detrendCoeffs.cols())
+//            Lcoeffs+=detrendCoeffs;
 
+        Legendre_sigmas=LegendreNormalize(Lcoeffs);
+        *total_sigma=sqrt(sigmaRes*sigmaRes+Legendre_sigmas.squaredNorm());
+        cout <<"constrained Legendre normalized:\n" << Legendre_sigmas ;
+        cout << "\n total constrained sigma=" << total_sigma <<endl;;
+    }
+//            cout << "surface errors computed\n";
     if(!m_errorMap)
         m_errorMap= new  BidimSpline(3);
     m_errorMap->setFromGridData(limits, surfError);
 
+//    cout << "spline interpolator set\n";
 
 
-    if(m_next!=NULL )
-        return m_next->generateSurfaceErrors(); // this call will only propagate the function  until the next element derived from the Surface class
     return true;
+    //finally we don't want this function to be recursive
+//    if(m_next!=NULL )
+//        return m_next->generateSurfaceErrors(); // this call will only propagate the function  until the next element derived from the Surface class
+
 }
 
 ArrayXXd Surface::getSurfaceErrors()

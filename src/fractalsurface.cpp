@@ -185,7 +185,9 @@ ArrayXXd FractalSurface::detrend(ArrayXXd& surface, const Ref<ArrayXXd>& mask)
         throw ParameterException(string("Bad dimensions: the internal surface size doesn't allow the requested Legendre fit, in "),
                                         __FILE__, __func__, __LINE__);
     ArrayXXd Lcoeffs=LegendreFitGrid(Nx,Ny,surface);
+//    std::cout << "legendre fit;\n" << Lcoeffs << std::endl;
     ArrayXXd maskedC=Lcoeffs.binaryExpr(mask, maskValid<double>());
+//    std::cout << "maskedC applied;\n" << maskedC << std::endl;
     surface-= LegendreSurfaceGrid(surface.rows(), surface.cols(), maskedC);
     //return LegendreFitGrid(Nx,Ny,surface); // only for test otherwise it would be better to subtract the masked values
     return Lcoeffs-maskedC;

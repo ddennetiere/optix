@@ -262,7 +262,7 @@ Location Polygon::locate(const Ref<Vector2d> &point)
 void Polygon::operator>>(xmlNodePtr apernode)
 {
     char buf[34*m_size];  // max length per number in %.8g =15 => max length 34 char/point
-    std::cout << "m_vertices(" <<m_vertices.rows() << " x " <<m_vertices.cols() << ")\n";
+//    std::cout << "m_vertices(" <<m_vertices.rows() << " x " <<m_vertices.cols() << ")\n";
 
     xmlNodePtr regnode=xmlNewTextChild(apernode,NULL,XMLSTR "region", NULL); // no value
     xmlNewProp(regnode, XMLSTR "class", XMLSTR "Polygon");

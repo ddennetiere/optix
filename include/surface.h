@@ -305,9 +305,11 @@ public:
  */
 
 /**
- *  \name Surface error generator group
+ *  \name Surface error and  height error generator group
  *
  *  \anchor generel
+ *
+ *
  *
  *   Functions associated to the surface errors generation and handling
  *
@@ -377,12 +379,12 @@ public:
     virtual  bool setParameter(string name, Parameter& param);
 
 
-    /** \brief  Called by the framework to generate a new instance of error map and activate the error interpolator
-     *
-    * It relies on the elementBase function to propagate to all following elements.
+    /** \brief  Generate a new instance of error map and activate the error interpolator
+    *
+    *
     * \return true if the surface errors were generated; false in case of invalid configuration. The OptiXError describes the issue.
     */
-    virtual bool generateSurfaceErrors();  //
+    virtual bool generateSurfaceErrors(double* total_sigma, MatrixXd& Legendre_sigmas );  //
 
     /** \brief Checks the set of error defining parameters and signals configuration errors
      *
