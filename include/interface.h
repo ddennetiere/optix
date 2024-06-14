@@ -104,6 +104,7 @@
 *
 *      \defgroup surferrorAPI  C functions of the surface error API
 *      \brief  interface C Functions exported by the OptiX library to incorporate surface errors into ray tracing
+*      \see parameter information in  the <a href="./class_surface.html#generel" > <b>error generator</b> </a>  section of Surface class
 *      \ingroup globalc
 *
 *      declared in interface.h
@@ -886,39 +887,97 @@ extern "C"
 *   \{
 */
 
-    DLL_EXPORT bool SetErrorGenerator(size_t elementID );
+    /** \brief adds a surface error generator to the surface
+     *
+     * the functions defines the nine Parameters which are needed to fully define the surface height error model
+     * (see <a href="./class_surface.html#generel" > <b>error generator</b> </a>  section of Surface class )
+     * \param[in] elementID the ID of the element to which an surface error generator should be added
+     * \return true if the generator was implemented, false if an error occurred. Error information can be recovered by calling GetOptiXError
+     */
+    DLL_EXPORT bool SetErrorGenerator(size_t elementID);
 
+    /** \brief remove the surface error generator of this surface, by deleting the corresponding interpolator and all related parameters.
+     *
+     * \param elementID The ID of the element from which an surface error generator should be removed
+     * \return true if the generator was properly removed, false if an error occurred. Error information can be recovered by calling GetOptiXError
+     *
+     */
     DLL_EXPORT bool UnsetErrorGenerator(size_t elementID );
 
-    DLL_EXPORT bool GenerateSurfaceErrors(size_t elementID);
+    /** \brief Generate a height error map attached to this surface, and initialize the corresponding spline interpolator
+     *
+     * the function will fail if a generator was not previously set for this surface by call to SetErrorGenerator, or if the configuration of
+     * the 9 height error-defining parameters is incomplete or incorrect. (more informations in the OptiXError)
+     *
+     *
+     * \param[in] elementID the ID of the element to which an surface error generator should be added
+     * \param[out] total_sigma Location to return an estimate of the total RMS height error of the generated surface
+     * \param[in,out] dims the size of the Legendre_sigma array in a double[2] array.\n In input, the product dims[0]*dims[1]
+     *  is the allocated number of elements of the array passed in the Legendre_sigma parameter.\n  In output dims contains
+     *  the size of the returned array. If this parameter is the NULL pointer, the Legendre RMS information is not returned
+     *  Note that this size is equal the size "low_Zernike" array parameter, and is known in advance.
+     * \param[in,out] Legendre_sigma pointer to a memory location where the sigmas of the constrained Zernike polynomials are
+     *  returned. If NULL, this information is not returned.
+     * \return true if the height error generation was successful, false if it failed. Failure information can be recovered by calling GetOptiXError
+     * \note RMS values of the Legendre polynomials are computed as the integral
+     *
+     */
+    DLL_EXPORT bool GenerateSurfaceErrors(size_t elementID, double* total_sigma, int32_t *dims=NULL, double *Legendre_sigma=NULL );
 
 
+    /** \brief Install a fixed height error map interpolator into this surface.
+     *
+     * If a generator is available for this surface, a call to GenerateSurfaceErrors will overwrite this error map
+     * \param elementID the ID of the element to which a height error map and interpolator should be added
+     * \param xmin Low limit of the error map in the X direction
+     * \param xmax High limit of the error map in the X direction
+     * \param ymin Low limit of the error map in the Y direction
+     * \param ymax High limit of the error map in the Y direction
+     * \param xsize Number of points of the heighError array in the X direction
+     * \param ysize Number of points of the heighError array in the Y direction
+     * \param heightErrors a (xsize x ysize) array the height errors to be affected to the surface (fast varying dimension is along X)
+     * \return true if the function was successful; false otherwise and set OptiXLastError
+     */
     DLL_EXPORT bool SetSurfaceErrors(size_t elementID,double xmin, double xmax, double ymin, double ymax,
-                                     int64_t xsize, int64_t ysize, const double* heightErrors);
+                                     int32_t xsize, int32_t ysize, const double* heightErrors);
 
     /** \brief delete the height error map associated to the surface, which hence become perfect again
      *
-     * \param elementID size_t
-     * \return DLL_EXPORT bool
-     *
+     *  This function doesn't remove the Error generator if any one is attached to the surface
+     * \param elementID  The ID of the element from which the height error map should be removed
+     * \return true if the function was successful; false otherwise and set OptiXLastError
      */
     DLL_EXPORT bool UnsetSurfaceErrors(size_t elementID );
 
-    DLL_EXPORT bool GetSurfaceErrors(size_t elementID, int* Nx, int* Ny, double* height_errors );
+    /** \brief retrieves the height error map associated to the surface
+     *
+     * \param elementID The ID of the element from which the height error map should be get
+     * \param[in,out] dims the size of the height_errors array in a double[2] array.\n In input, the product dims[0]*dims[1]
+     *  is the allocated number of elements of the array passed in the Legendre_sigma parameter.\n  In output dims contains
+     *  the size of the returned array.
+     * \param[out] height_errors An array of double whose size is dims[0]* dims[1], that will receive the height error map
+     *  associated with the surface
+     * \return true if the function was successful; false otherwise and set OptiXLastError
+     *
+     */
+    DLL_EXPORT bool GetSurfaceErrors(size_t elementID, int* dims, double* height_errors );
 
     /** \brief set the method used to take this surface errors into account in the ray tracing
      *
      *  *The "method flag" is defined whenever no surfaceError generator  and no spline interpolator are set*
      * \param elementID the ID of the element to change method of
-     * \param meth  The method to be used for this element. Must be a member of the theErrorMethod enumeration
+     * \param meth  The error method to be used with this element. It must be a member of the the ErrorMethod enumeration
+     * \return   true if the  function was successful; false otherwise and set OptiXLastError
      */
     DLL_EXPORT bool SetErrorMethod(size_t elementID, ErrorMethod meth);
 
     /** \brief returns the method used to take this surface errors into account in the ray tracing
      *
-     * * The "method flag" is defined whenever no surfaceError generator  and no spline interpolator are set*
-     * \ the method being used for this element. It is a member of the theErrorMethod enumeration
-     *
+     * The "method flag" is defined whenever no surfaceError generator  and no spline interpolator are set*
+     * \param elementID The ID of the element for which the error method is requested
+     * \param[out] meth an integer location to receive the error method being used for this element.
+     *       It is a member of the the ErrorMethod enumeration
+     * \return true if the function was successful; false otherwise and set OptiXLastError
      */
     DLL_EXPORT bool GetErrorMethod(size_t elementID, ErrorMethod *meth);
 
