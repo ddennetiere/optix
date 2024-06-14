@@ -1637,6 +1637,24 @@ extern "C"
         return true;
     }
 
+    DLL_EXPORT bool SurfaceErrorsEnable(const bool activity)
+    {
+        enableSurfaceErrors=activity;
+        return true;
+    }
+
+
+    DLL_EXPORT bool SurfaceErrorsGetState(bool *activityFlag)
+    {
+        if(!activityFlag)
+        {
+            SetOptiXLastError("Invalid reference to activityFlag", __FILE__, __func__);
+            return false;
+        }
+        *activityFlag= enableSurfaceErrors;
+        return true;
+    }
+
 // -----------------------------------------------------------------
 // |           Aperture and wavefront related functions            |
 // -----------------------------------------------------------------

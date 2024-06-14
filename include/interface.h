@@ -982,6 +982,21 @@ extern "C"
     DLL_EXPORT bool GetErrorMethod(size_t elementID, ErrorMethod *meth);
 
 
+    /** \brief Sets at global level whether the Surface height errors are considered or not in the ray tracing computation.
+     *
+     * This function sets a global flag which affects all surfaces of the system. When set, a specific surface can be excluded by setting its ErrorMethod to 0
+     * \param activity true if height errors are to be considered in ray tracing computations, false if not.
+     * \return always true
+     */
+    DLL_EXPORT bool SurfaceErrorsEnable(const bool activity);
+
+    /** \brief retrieve the global flag defining whether the Surface height errors are considered or not in the ray tracing computation.
+     *
+     * \param activityFlag a pointer to a boolean location where the state flag can be returned
+     * \return true if the flag was retrieved, false if the activityFlag pointer is invalid (the OptXerror will be set)
+     *
+     */
+    DLL_EXPORT bool SurfaceErrorsGetState(bool *activityFlag);
 
 /** \} */  //end of surferrorAPI group
   //  DLL_EXPORT bool AddElementsFromXml(const char * filename);  la gestion des nom en double doit être testée
