@@ -4,6 +4,21 @@ OptiX Ray-tracing Library
 OptiX is a ray-tracer library for X-ray optics.
 All function are exposed in C form, though it is internally written in C++
 
+June 14, 2024
+-------------
+V2.5
+
+- Surface errors simulation:
+  specific surface error API added to the library  (see doc)
+
+
+June-july 2023
+---------------
+
+- wavefront computations completed (natural and Legendre polynomial interpolation)
+- added new aperture API (acts on ray intensity)
+- ray intensity includes polarization
+
 March 2022  
 --------------
 V2.3 
