@@ -1022,7 +1022,7 @@ bool Surface::generateSurfaceErrors(double* total_sigma, MatrixXd& Legendre_sigm
         SetOptiXLastError(string("No surface error generator defined for surface ")+ m_name, __FILE__, __func__, __LINE__);
         return false;
     }
-    cout <<"generating surface errors of 'Surface':" << m_name << endl;
+//    cout <<"generating surface errors of 'Surface':" << m_name << endl;
     if(!validateErrorGenerator())
         return false;
 
@@ -1063,7 +1063,7 @@ bool Surface::generateSurfaceErrors(double* total_sigma, MatrixXd& Legendre_sigm
     // increment to the number of points and generate the fractal surface
     ArrayXXd surfError=fractalSurf.generate(++xpoints, steps(0), ++ypoints, steps(1));
 
-//        cout << "map generated "<< xpoints << " x "  << ypoints << " points\n";
+       cout << "map generated "<< xpoints << " x "  << ypoints << " points\n";
 
     getParameter("residual_sigma", param1);
     double sigmaRes=param1.value;
@@ -1109,7 +1109,7 @@ bool Surface::generateSurfaceErrors(double* total_sigma, MatrixXd& Legendre_sigm
         Legendre_sigmas=LegendreNormalize(Lcoeffs);
         *total_sigma=sqrt(sigmaRes*sigmaRes+Legendre_sigmas.squaredNorm());
         cout <<"constrained Legendre normalized:\n" << Legendre_sigmas ;
-        cout << "\n total constrained sigma=" << total_sigma <<endl;;
+        cout << "\n total constrained sigma=" << *total_sigma <<endl;;
     }
 //            cout << "surface errors computed\n";
     if(!m_errorMap)
