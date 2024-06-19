@@ -114,9 +114,9 @@ public:
 
     virtual VectorType intercept(RayBaseType& ray, VectorType * normal=NULL )=0; /**< \brief Pure virtual function
     *
-    *   Implemented in shape classes (Plane , Quadric, Toroid, and SourceBase)
-    *   \n All implementations <b> must move and rebase </b> the ray at its intersection with the surface and return this position
-    *   \n if the ray is not alive the last active position is kept and expressed in local absolute frame cordinates
+    *   Re-implemented in shape classes (Plane , Quadric, Toroid, PolynomialSurface and SourceBase)
+    *   These functions must work in the Surface AbsoluteLocalFrame only and must not apply the translationFromPrevious
+    *   \n if the ray is not alive the last active position is kept and expressed in local absolute frame coordinates
     */
 
     virtual RayType& transmit(RayType& ray);       /**<  \brief  ray transmission and impact storage. \n To be reimplemented in derived class

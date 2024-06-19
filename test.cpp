@@ -1245,11 +1245,11 @@ int testKB()
     }catch (...) {
         cout << "catch: unknown" <<endl;
     }
-    cout << " set method to LocalSlope\n";
-    pM1->setErrorMethod(LocalSlope);
+    cout << " set method to SurfOffset\n";
+    pM1->setErrorMethod(SimpleShift);
 
     cout << "Enable surface errors in ray tracing \n";
-    SurfaceErrorsEnable(false );
+    SurfaceErrorsEnable(true );
 
     // here we start the ray tracing
 
@@ -1329,6 +1329,34 @@ int testKB()
 
 
         cout << "impacts stored in KBspotdiag.imp" << endl << endl;
+    }
+
+
+    Diagram spotDg(4);
+
+    cout << "\nSPOT-DIAG\n";
+    ncounts=screen->getSpotDiagram(spotDg,0);
+    if(ncounts)
+    {
+        for(int i=0; i<4 ; ++i)
+           cout << spotDg.m_min[i] << " \t" << spotDg.m_max[i] << " \t" << spotDg.m_sigma[i] << endl;
+
+        fstream spotfile("KB_foc.sdg", ios::out | ios::binary);
+        spotfile << spotDg;
+        spotfile.close();
+        cout << endl << endl;
+    }
+
+    ncounts=screen->getSpotDiagram(spotDg,0.002);
+    if(ncounts)
+    {
+        for(int i=0; i<4 ; ++i)
+           cout << spotDg.m_min[i] << " \t" << spotDg.m_max[i] << " \t" << spotDg.m_sigma[i] << endl;
+
+        fstream spotfile("KB_foc+2mm.sdg", ios::out | ios::binary);
+        spotfile << spotDg;
+        spotfile.close();
+        cout << endl << endl;
     }
 
     ncounts=pM1->getImpactData(impactDg,SurfaceFrame);

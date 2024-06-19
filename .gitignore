@@ -25,13 +25,14 @@ wigner3j.f95
 ftypes.f95
 OptiX.png
 *.pptx
-
+version.h
 
 # not maintained directories
 bibliography/
 removed/
 bin/
 solemio/
+surfaceDB/
 python/
 xml/
 __*/
