@@ -171,7 +171,7 @@ RayType& GratingBase::transmit(RayType& ray)
 {
 
     VectorType normal;
-
+    ray-=m_translationFromPrevious;
     intercept(ray, &normal);    // intercept effectue le changement de repère entrée/sortie (update seulement si alive)
     if(ray.m_alive)
     {
@@ -184,7 +184,7 @@ RayType& GratingBase::transmit(RayType& ray)
         {   //we use pos in surface frame check if ray is inside the definition area
             if( m_errorMap->isValid(pos))
                 applyPerturbation(pos, ray, normal); //will actualize the 3 parameters according to the m_errorMethod parameter
-            else
+            if( m_errorMap->isValid(pos)) // spos might be changed by applyPerturbation
             {
                 ray.m_amplitude_P=0; //amplitude are nulled but ray is still propagated without perturbation
                 ray.m_amplitude_S=0;
@@ -256,7 +256,7 @@ RayType& GratingBase::reflect(RayType& ray)
         {   //we use pos in surface frame check if ray is inside the definition area
             if( m_errorMap->isValid(pos))
                 applyPerturbation(pos, ray, normal); //will actualize the 3 parameters according to the m_errorMethod parameter
-            else
+            if( m_errorMap->isValid(pos)) // spos might be changed by applyPerturbation
             {
                 ray.m_amplitude_P=0; //amplitude are nulled but ray is still propagated without perturbation
                 ray.m_amplitude_S=0;

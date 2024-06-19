@@ -58,7 +58,10 @@ void Surface::applyPerturbation(Vector2d& spos, RayType& ray, VectorType& normal
             }
             ray+=SurfShift;  //switch back to unshifted space and compute the new spos
             spos=(m_surfaceInverse*ray.position()).head(2).cast<double>();
-            m_errorMap->valueGradient(spos(0),spos(1),grad);
+            if(m_errorMap->isValid(spos)) // if inside limits compute the normal correction
+                m_errorMap->valueGradient(spos(0),spos(1),grad);
+            else
+                return;
         }
         break;//proceed to normal correction
     default:
@@ -73,8 +76,8 @@ void Surface::applyPerturbation(Vector2d& spos, RayType& ray, VectorType& normal
 
 RayType& Surface::transmit(RayType& ray)
 {
-
-    intercept(ray); // intercept effectue le changement de repère previous to this. The position is updated only if the ray is alive
+    ray-=m_translationFromPrevious;
+    intercept(ray); // intercept n'effectue  pas le changement de repère previous to this. The position is updated only if the ray is alive
     if(ray.m_alive)
     {
         if(m_recording==RecordInput)
@@ -102,7 +105,7 @@ RayType& Surface::transmit(RayType& ray)
 
 RayType& Surface::reflect(RayType& ray)    /*  this implementation simply reflect the ray on the tangent plane at intercept position*/
 {
-
+        ray-=m_translationFromPrevious;
         VectorType normal;
     try{
         intercept(ray, &normal);
@@ -130,12 +133,12 @@ RayType& Surface::reflect(RayType& ray)    /*  this implementation simply reflec
             // find pos in surface frame 2024/05/27 moved out of aperture case as needed also by surf.errors
             Vector2d spos=(m_surfaceInverse*ray.position()).head(2).cast<double>();
 
-            // if surface aerrors are active we must take care of the local normal perturbation
+            // if surface aerrors are active we must take care of the local normal (and Z) perturbation
             if(m_errorMap && enableSurfaceErrors && m_errorMethod )
             {   //we use pos in surface frame check if ray is inside the definition area
                 if( m_errorMap->isValid(spos))
                     applyPerturbation(spos, ray, normal);
-                else
+                if( m_errorMap->isValid(spos)) // spos might be changed by applyPerturbation
                 {
                     ray.m_amplitude_P=0; //amplitude are nulled but ray is still propagated without perturbation
                     ray.m_amplitude_S=0;
@@ -327,7 +330,7 @@ int Surface::getSpotDiagram(Diagram & spotDiagram, double distance)
 //        delete[] spotDiagram.m_spots;
 //    cout << "getting diagram of  "  << m_name <<  " n " << m_impacts.size() << "  mem " << &m_impacts[0] << endl;
 
-    if(spotDiagram.m_dim < 5)
+    if(spotDiagram.m_dim < 4)
         throw std::invalid_argument("SpotDiagram argument should have a vector dimension of at least 5");
 
 
