@@ -31,18 +31,21 @@ template<typename Scalar_>  struct minOf2Op
   const Scalar_ operator()(const Scalar_& x, const Scalar_& y) const { return x < y ? x : y; }
 };
 
-void Surface::applyPerturbation(Vector2d& spos, RayType& ray, VectorType& normal)
+bool Surface::applyPerturbation(Vector2d& spos, RayType& ray, VectorType& normal)
 {
     if(!m_errorMap)
-        return;  // if mistakenly called while no interpolator is defined , will apply no perturbation
+        return false;  // if mistakenly called while no interpolator is defined , will apply no perturbation
     VectorType deltaN=VectorType::Zero();  // - deltaN will be the perturbation of the normal  in surface pane
     Vector2d grad;
-
+    if(!m_errorMap->isValid(spos))
+        return false ;
     double z= m_errorMap->valueGradient(spos(0),spos(1),grad);
     switch (m_errorMethod) {
     case SimpleShift:
         ray.moveTo(z/ray.direction().dot(normal)).rebase(); //new intercept then actualize spos and grad
         spos=(m_surfaceInverse*ray.position()).head(2).cast<double>();
+        if(!m_errorMap->isValid(spos))
+            return false ;
         m_errorMap->valueGradient(spos(0),spos(1),grad);
     case LocalSlope:   //proceed to normal correction
         break;
@@ -51,13 +54,16 @@ void Surface::applyPerturbation(Vector2d& spos, RayType& ray, VectorType& normal
             VectorType SurfShift=z*normal;
             ray-=SurfShift; // no need to rebase, m_distance remains 0
             try{
-                intercept(ray, &normal); // compute shifted intercept
+                intercept(ray, &normal); // compute shifted intercept 19/06/24 intercept no longer applies the ttraslation from previous
             }catch(...) {
                 throw_with_nested(InterceptException(string("Intercept exception in " )+  m_name + " catch from "  ,
                             __FILE__, __func__, __LINE__));
             }
             ray+=SurfShift;  //switch back to unshifted space and compute the new spos
+
             spos=(m_surfaceInverse*ray.position()).head(2).cast<double>();
+            if(!m_errorMap->isValid(spos))
+                return false ;
             m_errorMap->valueGradient(spos(0),spos(1),grad);
         }
         break;//proceed to normal correction
@@ -68,14 +74,16 @@ void Surface::applyPerturbation(Vector2d& spos, RayType& ray, VectorType& normal
     // normal correction is the same in all cases
     deltaN.head(2)=grad.cast<FloatType>(); // convert to long-double
     normal-=m_surfaceDirect*deltaN;   // in principle we should normalize  is it required ?
+    return true;
 }
 
 
 RayType& Surface::transmit(RayType& ray)
 {
+    ray-=m_translationFromPrevious; // change ref frame from previous to this surface (moved from intercept function 2024-06-19)
 
-    intercept(ray); // intercept effectue le changement de repère previous to this. The position is updated only if the ray is alive
-    if(ray.m_alive)
+    intercept(ray);    // intercept no longer applies the frame change from previous to this surface
+    if(ray.m_alive)  // update if alive only
     {
         if(m_recording==RecordInput)
             m_impacts.push_back(ray);
@@ -103,27 +111,19 @@ RayType& Surface::transmit(RayType& ray)
 RayType& Surface::reflect(RayType& ray)    /*  this implementation simply reflect the ray on the tangent plane at intercept position*/
 {
 
-        VectorType normal;
+    VectorType normal;
+    ray-=m_translationFromPrevious; // change ref frame from previous to this surface (moved from intercept function 2024-06-19)
+
+
     try{
-        intercept(ray, &normal);
+        intercept(ray, &normal);    // intercept no longer applies the frame change from previous to this surface
     }catch(...) {
             throw_with_nested(InterceptException(string("Intercept exception in " )+  m_name + " catch from "  ,
                         __FILE__, __func__, __LINE__));
     }
-//    catch(EigenException & eigexcpt) {
-//        throw InterceptException(eigexcpt.what()+"\nEigenException within  " +  m_name + " from "  ,
-//                                        __FILE__, __func__, __LINE__);
-//    }catch(RayException & excpt)
-//    {
-//        throw InterceptException(excpt.what()+"\nRayException within " +  m_name + " from "  ,
-//                                        __FILE__, __func__, __LINE__);
-//    }catch(...)
-//    {
-//        throw InterceptException(string("Unknown Exception within ") +  m_name + " from" ,
-//                                        __FILE__, __func__, __LINE__);
-//    }
+
     try{
-        if(ray.m_alive)
+        if(ray.m_alive)     // update if alive only
         {
             if(m_recording==RecordInput)
                 m_impacts.push_back(ray);
@@ -133,9 +133,15 @@ RayType& Surface::reflect(RayType& ray)    /*  this implementation simply reflec
             // if surface aerrors are active we must take care of the local normal perturbation
             if(m_errorMap && enableSurfaceErrors && m_errorMethod )
             {   //we use pos in surface frame check if ray is inside the definition area
-                if( m_errorMap->isValid(spos))
-                    applyPerturbation(spos, ray, normal);
-                else
+                bool validPos;
+                    try{validPos=applyPerturbation(spos, ray, normal);
+                    } catch(std::exception & excpt)
+                    {
+                        throw RayException(string(excpt.what())+ " catch from applyPerturbation in " +m_name+" from",
+                                           __FILE__, __func__, __LINE__);
+                    }
+
+                if(!validPos)
                 {
                     ray.m_amplitude_P=0; //amplitude are nulled but ray is still propagated without perturbation
                     ray.m_amplitude_S=0;
@@ -184,11 +190,12 @@ RayType& Surface::reflect(RayType& ray)    /*  this implementation simply reflec
                                         __FILE__, __func__, __LINE__);
     }catch(RayException & excpt)
     {
-        throw RayException(excpt.what()+"\nRayException within " +  m_name + " rfrom "  ,
+        throw RayException(excpt.what()+"\nRayException within " +  m_name + " from "  ,
                                         __FILE__, __func__, __LINE__);
-    }catch(...)
+    }
+    catch(std::exception &excpt)
     {
-        throw RayException(string("Unknown Exception catch in ") +  m_name + " r" ,
+        throw RayException(string(excpt.what())+" catch in " +  m_name + " from " ,
                                         __FILE__, __func__, __LINE__);
     }
 
@@ -327,8 +334,8 @@ int Surface::getSpotDiagram(Diagram & spotDiagram, double distance)
 //        delete[] spotDiagram.m_spots;
 //    cout << "getting diagram of  "  << m_name <<  " n " << m_impacts.size() << "  mem " << &m_impacts[0] << endl;
 
-    if(spotDiagram.m_dim < 5)
-        throw std::invalid_argument("SpotDiagram argument should have a vector dimension of at least 5");
+    if(spotDiagram.m_dim < 4)
+        throw std::invalid_argument("SpotDiagram argument should have a vector dimension of at least 4");
 
 
     vector<RayType> impacts;
@@ -354,7 +361,7 @@ int Surface::getSpotDiagram(Diagram & spotDiagram, double distance)
     Map<VectorXd> vMin(spotDiagram.m_min,spotDiagram.m_dim), vMax(spotDiagram.m_max,spotDiagram.m_dim);
 
     vector<RayType>::iterator pRay;
-
+    // translation dans le repere local aligné : OZ dans la direction du chief-ray
     RayType::PlaneType obsPlane(VectorType::UnitZ(), -distance);  // equation UnitZ*X - distance =0
     Index ip;
     for(ip=0, pRay=impacts.begin(); pRay!=impacts.end(); ++pRay)

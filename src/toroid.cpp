@@ -78,7 +78,8 @@ RayBaseType::VectorType Toroid::intercept(RayBaseType& ray, VectorType * normal)
     {
     //    high_resolution_clock clock;
     //    high_resolution_clock::time_point start(clock.now());
-        ray-=m_translationFromPrevious; // change ref frame from previous to this surface
+
+//            ray-=m_translationFromPrevious; // moved to transmit /reflect 2024-06-19
 
         if(!ray.m_alive)
         {

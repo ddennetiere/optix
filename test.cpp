@@ -1246,10 +1246,10 @@ int testKB()
         cout << "catch: unknown" <<endl;
     }
     cout << " set method to LocalSlope\n";
-    pM1->setErrorMethod(LocalSlope);
+    pM1->setErrorMethod(None);
 
     cout << "Enable surface errors in ray tracing \n";
-    SurfaceErrorsEnable(false );
+    SurfaceErrorsEnable(true );
 
     // here we start the ray tracing
 
@@ -1312,54 +1312,129 @@ int testKB()
        return -1;
     }
     cout << "Ray tracing OK\n";
-
-    Diagram impactDg(6);
-
-    cout << "\nIMPACTS\n";
-  //  int ncounts=screen->getSpotDiagram(spotDg,0);
-    int ncounts=screen->getImpactData(impactDg,AlignedLocalFrame);
-    if(ncounts)
+    if(0)
     {
-        for(int i=0; i<6 ; ++i)
-           cout << impactDg.m_min[i] << " \t" << impactDg.m_max[i] << " \t" << impactDg.m_sigma[i] << endl;
+        Diagram impactDg(6);
 
-        fstream spotfile("KBspotdiag.imp", ios::out | ios::binary);
-        spotfile << impactDg;
-        spotfile.close();
+        cout << "\nIMPACTS\n";
+      //  int ncounts=screen->getSpotDiagram(spotDg,0);
+        int ncounts=screen->getImpactData(impactDg,AlignedLocalFrame);
+        if(ncounts)
+        {
+            for(int i=0; i<6 ; ++i)
+               cout << impactDg.m_min[i] << " \t" << impactDg.m_max[i] << " \t" << impactDg.m_sigma[i] << endl;
+
+            fstream spotfile("KBspotdiag.imp", ios::out | ios::binary);
+            spotfile << impactDg;
+            spotfile.close();
 
 
-        cout << "impacts stored in KBspotdiag.imp" << endl << endl;
+            cout << "impacts stored in KBspotdiag.imp" << endl << endl;
+        }
+
+        ncounts=pM1->getImpactData(impactDg,SurfaceFrame);
+        if(ncounts)
+        {
+            for(int i=0; i<2 ; ++i)
+               cout << impactDg.m_min[i] << " \t" << impactDg.m_max[i] << " \t" << impactDg.m_sigma[i] << endl;
+
+            fstream spotfile("M1spots.imp", ios::out | ios::binary);
+            spotfile << impactDg;
+            spotfile.close();
+
+
+            cout << "impacts stored in M1spots.imp" << endl << endl;
+        }
+
+
+        ncounts=pM2->getImpactData(impactDg,SurfaceFrame);
+        if(ncounts)
+        {
+            for(int i=0; i<2 ; ++i)
+               cout << impactDg.m_min[i] << " \t" << impactDg.m_max[i] << " \t" << impactDg.m_sigma[i] << endl;
+
+            fstream spotfile("M2spots.imp", ios::out | ios::binary);
+            spotfile << impactDg;
+            spotfile.close();
+
+
+            cout << "impacts stored in M2spots.imp" << endl << endl;
+        }
+
     }
 
-    ncounts=pM1->getImpactData(impactDg,SurfaceFrame);
+    Diagram spotDg(4);
+
+    cout << "\nIMPACTS \n";
+    int ncounts=screen->getSpotDiagram(spotDg,0);
     if(ncounts)
     {
-        for(int i=0; i<2 ; ++i)
-           cout << impactDg.m_min[i] << " \t" << impactDg.m_max[i] << " \t" << impactDg.m_sigma[i] << endl;
+        for(int i=0; i<4 ; ++i)
+           cout << spotDg.m_min[i] << " \t" << spotDg.m_max[i] << " \t" << spotDg.m_sigma[i] << endl;
 
-        fstream spotfile("M1spots.imp", ios::out | ios::binary);
-        spotfile << impactDg;
+        fstream spotfile("KBerr_none.sdg", ios::out | ios::binary);
+        spotfile << spotDg;
         spotfile.close();
+    }
 
+    cout << " set method to LocalSlope\n";
+    pM1->setErrorMethod(LocalSlope);
+    if(!Radiate(sourceID))
+    {
+       GetOptiXError( &errstr);
+       cout << "Radiation error : " << errstr << endl;
+       return -1;
+    }
+    ncounts=screen->getSpotDiagram(spotDg,0);
+    if(ncounts)
+    {
+        for(int i=0; i<4 ; ++i)
+           cout << spotDg.m_min[i] << " \t" << spotDg.m_max[i] << " \t" << spotDg.m_sigma[i] << endl;
 
-        cout << "impacts stored in M1spots.imp" << endl << endl;
+        fstream spotfile("KBerr_local.sdg", ios::out | ios::binary);
+        spotfile << spotDg;
+        spotfile.close();
     }
 
 
-    ncounts=pM2->getImpactData(impactDg,SurfaceFrame);
+    cout << " set method to SimpleShift\n";
+    pM1->setErrorMethod(SimpleShift);
+    if(!Radiate(sourceID))
+    {
+       GetOptiXError( &errstr);
+       cout << "Radiation error : " << errstr << endl;
+       return -1;
+    }
+    ncounts=screen->getSpotDiagram(spotDg,0);
     if(ncounts)
     {
-        for(int i=0; i<2 ; ++i)
-           cout << impactDg.m_min[i] << " \t" << impactDg.m_max[i] << " \t" << impactDg.m_sigma[i] << endl;
+        for(int i=0; i<4 ; ++i)
+           cout << spotDg.m_min[i] << " \t" << spotDg.m_max[i] << " \t" << spotDg.m_sigma[i] << endl;
 
-        fstream spotfile("M2spots.imp", ios::out | ios::binary);
-        spotfile << impactDg;
+        fstream spotfile("KBerr_simple.sdg", ios::out | ios::binary);
+        spotfile << spotDg;
         spotfile.close();
-
-
-        cout << "impacts stored in M2spots.imp" << endl << endl;
     }
 
+
+    cout << " set method to SurfOffset\n";
+    pM1->setErrorMethod(SurfOffset);
+    if(!Radiate(sourceID))
+    {
+       GetOptiXError( &errstr);
+       cout << "Radiation error : " << errstr << endl;
+       return -1;
+    }
+    ncounts=screen->getSpotDiagram(spotDg,0);
+    if(ncounts)
+    {
+        for(int i=0; i<4 ; ++i)
+           cout << spotDg.m_min[i] << " \t" << spotDg.m_max[i] << " \t" << spotDg.m_sigma[i] << endl;
+
+        fstream spotfile("KBerr_offset.sdg", ios::out | ios::binary);
+        spotfile << spotDg;
+        spotfile.close();
+    }
 
 
 

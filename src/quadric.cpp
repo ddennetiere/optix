@@ -26,7 +26,7 @@ Quadric::~Quadric(){}
 
 RayBaseType::VectorType Quadric::intercept(RayBaseType& ray, VectorType * normal)
 {
-    ray-=m_translationFromPrevious; // change ref frame from previous to this surface
+//    ray-=m_translationFromPrevious; // moved to transmit /reflect 2024-06-19
 
     if(ray.m_alive)
     {
