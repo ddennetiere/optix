@@ -245,7 +245,7 @@ bool LoadElementsFromXml(const char * filename, ElementCollection &system)
             {
                 char errstr[128];
                 sprintf(errstr, "Cannot create element %s of type %s", sname, sclass);
-                SetOptiXLastError(errstr,__FILE__,__func__, __LINE__);
+                SetOptiXLastError("File reading error",__FILE__,__func__);
                 // do the cleanup before leaving
             }
             else

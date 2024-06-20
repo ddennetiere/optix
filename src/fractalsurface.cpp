@@ -118,7 +118,6 @@ ArrayXXd FractalSurface::generate(int32_t xSize, double xStep, int32_t ySize, do
 {
 
     //frequency steps unit =1 /distance unit= 1/(N*step)
-//    std::cout << "sampling: " << xStep << ", " << yStep <<std::endl;
 
     int ftNx=span(xSize+10);  // add some points to avoid the periodisation of FT
     int ftNy=span(ySize+10);
@@ -126,8 +125,6 @@ ArrayXXd FractalSurface::generate(int32_t xSize, double xStep, int32_t ySize, do
 
     VectorXd xFilter=frequencyFilter(ftNx, xStep, fracParms.nx, fracParms.exponent_x, fracParms.frequency_x);
     RowVectorXd yFilter= frequencyFilter(ftNy, yStep, fracParms.ny, fracParms.exponent_y, fracParms.frequency_y);
-
-//    std::cout << "Frequency filter set\n";
 
     double sig=1./(xFilter.norm()*yFilter.norm()*sqrt(ftNx*ftNy));
     std::normal_distribution<double> normalrnd(0.,sig); //mean=0, sigma=1. après filtrage
@@ -139,12 +136,9 @@ ArrayXXd FractalSurface::generate(int32_t xSize, double xStep, int32_t ySize, do
     ArrayXd xpos= ArrayXd::LinSpaced(ftNx+1,-0.5,0.5); // for convenience but the last point must not be used
     ArrayXd ypos= ArrayXd::LinSpaced(ftNy+1,-0.5,0.5);
 
-//    std::cout << "ready to FT\n";
 
     nfft_plan plan;
     nfft_init_2d(&plan,ftNy,ftNx,ftNx*ftNy);
-
-//    std::cout << "Fourier plan initialized\n";
 
     // we map here the x and y reduced coordinates of the datapoints
     Map<ArrayXXd,0, InnerStride<2> > mapX(plan.x, ftNx,ftNy) ;  //fixed inner stride=2 for the interlaced X and Y values
@@ -165,15 +159,10 @@ ArrayXXd FractalSurface::generate(int32_t xSize, double xStep, int32_t ySize, do
     Map<ArrayXXcd> mapFT((std::complex<double>*)plan.f_hat,ftNx,ftNy);  // map the complex Fourier array
 
     // compute the Fourier coefficient of the initial random surface
-//    std::cout << "compute spectrum\n";
     nfft_adjoint(&plan);
-
-//    std::cout << "filter spectrum\n";
 
     mapFT.colwise()*=xFilter.array();
     mapFT.rowwise()*=yFilter.array();
-
-//    std::cout << "compute height map\n";
 
     nfft_trafo(&plan);
 
@@ -209,8 +198,6 @@ VectorXd FractalSurface::frequencyFilter(int N, double dstep, int nseg, double *
 {
     int l2=N/2;
     int n2=(N%2==1)?l2:l2-1;
-
-//    std::cout << N <<  "  l2=" <<l2 << "  n2=" << n2 <<std::endl;
     VectorXd filter(N);
 //    Map<VectorXd, 0, InnerStride<> > negpart(filter.data()+n2, l2, InnerStride<>(-1) );
 //    Map<VectorXd> pospart(filter.data()+n2, n2);
@@ -223,13 +210,6 @@ VectorXd FractalSurface::frequencyFilter(int N, double dstep, int nseg, double *
 //        ntrans[i]=N*dstep*ftrans[i];
 //        coeff[i+1]=coeff[i]*pow(ntrans[i], exponent[i]-exponent[i+1]);
 //    }
-
-
-//    std::cout << "exponent=" << exponent[0];
-//    for (int i=1; i<nseg; ++i)
-//       std::cout << " frequency limit=" << ftrans[i-1] << "\nexponent=" << exponent[i];
-//    std::cout << std::endl;
-
     double coeff=1.;
 
     double *ppos, *pneg=ppos=filter.data()+l2;
@@ -238,17 +218,17 @@ VectorXd FractalSurface::frequencyFilter(int N, double dstep, int nseg, double *
     for(int iseg=0; iseg< nseg; ++iseg)
     {
         double fmax=0;
-        int nmax=l2;
+        int nmax=n2;
         if(iseg <nseg -1)
         {
             fmax=N*dstep*ftrans[iseg];
-            if(fmax < l2)
+            if(fmax < n2)
                 nmax=int(fmax);
 //            std::cout << iseg << "  " << fmax ;
         }
 
 //        std::cout << "  " << nmax << std::endl;
-        while (n < nmax )
+        while (n <=nmax )
         {
             ++n, ++ppos, --pneg;
             *pneg=*ppos=coeff*pow(n,exponent[iseg]);
