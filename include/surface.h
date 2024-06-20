@@ -153,6 +153,9 @@ public:
         } catch(RayException &excpt) {
             throw excpt;
         }
+        catch(...){
+            throw RayException(string("Unexpected exception in surface ")+ m_name, __FILE__, __func__, __LINE__);
+        }
 
         // the ray is propagated even though it could be dead in order to keep the same ray index in all impact vectors
         if(m_next!=NULL )  // FP

@@ -87,7 +87,7 @@ class SourceBase : public virtual Surface
         }
 
         /** \brief propagate all generated rays stored in impacts
-         * \todo This function need to be parallelized. it would need to create system clones fro thread safety
+         * \todo This function needs to be parallelized. it would need to create system clones for thread safety
          */
         inline int radiate()
         {

@@ -67,6 +67,7 @@ int TestEllipse();
 int XmlTest();
 int TstMistral();
 int InterpolatorTest();
+int testKB();
 
 
     void  GetParam(Surface* psurf, string paramname, Parameter& param)
@@ -106,11 +107,15 @@ int main()
     char message[msglen+1]; // create a copy buffer with space for 0 ant end
     strncpy(message,(char*)strerr, msglen ); //copy the message  (mandatory; strerr cannot be printed directly)
     cout << "Error level  " << erreur << " message: "<< message << endl << endl;
-
-    cout <<"size of bool " << sizeof(bool) <<endl;
-    cout << "size of int " << sizeof(int) << endl;
-    cout << "true " << true << "  false " << false <<endl;
+//
+//    cout <<"size of bool " << sizeof(bool) <<endl;
+//    cout << "size of int " << sizeof(int) << endl;
+//    cout << "true " << true << "  false " << false <<endl;
     cout << "starting \n";
+
+    //return TestEllipse();
+
+    return testKB();
 
  //    SurfaceErrorGenerator generator;
 //    return 0;
@@ -215,7 +220,7 @@ int main()
 //        ArrayXXd detrend;
 //        *param.paramArray=detrend;
 //    }
-//    SetParam(pM1,"detrending", param);
+    SetParam(pM1,"detrending", param);
 
     GetParam(pM1,"low_Zernike", param);
     {
@@ -1002,6 +1007,15 @@ int TestEllipse()
         cout << endl << endl;
     }
 
+    string  outfile = "Ellipse.xml";
+    cout << "saving to " << outfile << endl;
+    if(!SaveSystemAsXml(outfile.c_str()))
+    {
+        char * errstr;
+        GetOptiXError(&errstr);
+        cout << "XML save error:\n" << errstr << endl;
+        return -1;
+    }
 
 
 
@@ -1102,6 +1116,327 @@ int InterpolatorTest()
     SurfaceToFile(surface,"derivX.bin");
     interx=intery=MatrixXd();
     cout <<"size after reinitializing " << interx.size() << "  " << intery.size() << endl << endl;
+
+    return 0;
+}
+
+int testKB()
+{
+    char * errstr;
+    if(!LoadSystemFromXml("KBtest.xml"))
+    {
+        GetOptiXError(&errstr);
+        cout << "XML load error :\n" << errstr <<endl;
+        return -1;
+    }
+
+    cout << "file loaded OK\n" ;
+
+
+    // we add surface errors
+    size_t idP_in, idM1, idM2, idP_out, idScreen, sourceID;
+    cout << "getting surfaces \n";
+
+    if(!FindElementID("M1",&idM1))
+    {
+        cout << "element 'M1' was not found\n";
+        return -1;
+    }
+    Surface* pM1=dynamic_cast<Surface*> ((ElementBase*)idM1);
+
+    if(!FindElementID("M2",&idM2))
+    {
+        cout << "element 'M2' was not found\n";
+        return -1;
+    }
+    Surface* pM2=dynamic_cast<Surface*> ((ElementBase*)idM2);
+
+    pM1->setErrorGenerator();
+    pM2->setErrorGenerator();
+
+    cout<< "setting the parameters of the surface error generators\n";
+
+    Parameter param;
+    GetParam(pM1,"residual_sigma", param);
+    param.value=3.e-9; // 3 nm
+    SetParam(pM1,"residual_sigma", param);
+//    SetParam(pM2,"residual_sigma", param);
+
+
+    GetParam(pM1,"error_limits", param);
+    {
+        ArrayXXd limits(2,2);
+        limits << -0.055, -0.005, 0.055, 0.005;
+        *param.paramArray=limits;
+    }
+    SetParam(pM1,"error_limits", param);
+//    SetParam(pM2,"error_limits", param);
+
+    GetParam(pM1,"sampling", param);
+    {
+        ArrayXXd sampling(2,1);
+        sampling << 5e-4, 1e-4;
+        *param.paramArray=sampling;
+    }
+    SetParam(pM1,"sampling", param);
+//    SetParam(pM2,"sampling", param);
+
+    GetParam(pM1,"fractal_exponent_x", param);
+    {
+        ArrayXXd exp(2,1);
+        exp << -1.5,-2.;
+        *param.paramArray=exp;
+    }
+    SetParam(pM1,"fractal_exponent_x", param);
+//    SetParam(pM2,"fractal_exponent_x", param);
+
+    GetParam(pM1,"fractal_frequency_x", param);
+    {
+        ArrayXXd freq(1,1);
+        freq << 500.;
+        *param.paramArray=freq;
+    }
+    SetParam(pM1,"fractal_frequency_x", param);
+//    SetParam(pM2,"fractal_frequency_x", param);
+
+    // we keep default value of -1 for the Y fractal exponent
+
+    GetParam(pM1,"detrending", param);
+    {
+        ArrayXXd detrend(3,3);
+        detrend << 1., 1., 1.,
+                   1., 1., 0,
+                   1., 0 , 0;
+        *param.paramArray=detrend;
+    }
+    SetParam(pM1,"detrending", param);
+//    SetParam(pM2,"detrending", param);
+
+    GetParam(pM1,"low_Zernike", param);
+    {
+        ArrayXXd legendre(4,3);
+        legendre <<  0 , 0.,   5.e-9,
+                     0., 2e-9, 1.e-9,
+                     1.e-8, 0 , 2e-9,
+                     5.e-9, 0,  0. ;
+        *param.paramArray=legendre;
+    }
+    SetParam(pM1,"low_Zernike", param);
+//    SetParam(pM2,"low_Zernike", param);
+
+    string  outfile = "KBerrors.xml";
+    cout << "saving to " << outfile << endl;
+    if(!SaveSystemAsXml(outfile.c_str()))
+        cout << "XML save error\n";
+    else
+        cout << "XML saved\n";
+
+
+    MatrixXd Legendre_sigmas;
+    double fractal_sigma;
+
+    try{
+        if(!pM1->generateSurfaceErrors(&fractal_sigma, Legendre_sigmas))
+        {
+            GetOptiXError(&errstr);
+            cout << "could not generate errors from M1 cause:\n" << errstr << endl;
+            exit(-2);
+        }
+    }catch (...) {
+        cout << "catch: unknown" <<endl;
+    }
+    cout << " set method to LocalSlope\n";
+    pM1->setErrorMethod(None);
+
+    cout << "Enable surface errors in ray tracing \n";
+    SurfaceErrorsEnable(true );
+
+    // here we start the ray tracing
+
+
+    double lambda=1.e-9;
+
+    cout << "getting source \n";
+    if(!FindElementID("source",&sourceID))
+    {
+        cout << "element 'source' was not found\n";
+        return -1;
+    }
+
+    cout << "calling align on source\n";
+    if(!Align(sourceID, lambda))
+    {
+       GetOptiXError( &errstr);
+       cout << "Alignment error : " << errstr << endl;
+       return -1;
+    }
+
+    if(!Generate(sourceID, lambda))
+    {
+       GetOptiXError( &errstr);
+       cout << "Source generation error : " << errstr << endl;
+       return -1;
+    }
+
+
+
+    if(!FindElementID("pupil_in",&idP_in))
+    {
+        cout << "element 'pupil_in' was not found\n";
+        return -1;
+    }
+//    Surface* p_in=dynamic_cast<Surface*> ((ElementBase*)idP_in);
+
+    if(!FindElementID("pupil_out",&idP_out))
+    {
+        cout << "element 'pupil_out' was not found\n";
+        return -1;
+    }
+//    Surface* p_out=dynamic_cast<Surface*> ((ElementBase*)idP_out);
+
+    if(!FindElementID("screen",&idScreen))
+    {
+        cout << "element 'screen' was not found\n";
+        return -1;
+    }
+    Surface* screen=dynamic_cast<Surface*> ((ElementBase*)idScreen);
+
+
+
+
+    cout << "start ray tracing\n";
+    if(!Radiate(sourceID))
+    {
+       GetOptiXError( &errstr);
+       cout << "Radiation error : " << errstr << endl;
+       return -1;
+    }
+    cout << "Ray tracing OK\n";
+    if(0)
+    {
+        Diagram impactDg(6);
+
+        cout << "\nIMPACTS\n";
+      //  int ncounts=screen->getSpotDiagram(spotDg,0);
+        int ncounts=screen->getImpactData(impactDg,AlignedLocalFrame);
+        if(ncounts)
+        {
+            for(int i=0; i<6 ; ++i)
+               cout << impactDg.m_min[i] << " \t" << impactDg.m_max[i] << " \t" << impactDg.m_sigma[i] << endl;
+
+            fstream spotfile("KBspotdiag.imp", ios::out | ios::binary);
+            spotfile << impactDg;
+            spotfile.close();
+
+
+            cout << "impacts stored in KBspotdiag.imp" << endl << endl;
+        }
+
+        ncounts=pM1->getImpactData(impactDg,SurfaceFrame);
+        if(ncounts)
+        {
+            for(int i=0; i<2 ; ++i)
+               cout << impactDg.m_min[i] << " \t" << impactDg.m_max[i] << " \t" << impactDg.m_sigma[i] << endl;
+
+            fstream spotfile("M1spots.imp", ios::out | ios::binary);
+            spotfile << impactDg;
+            spotfile.close();
+
+
+            cout << "impacts stored in M1spots.imp" << endl << endl;
+        }
+
+
+        ncounts=pM2->getImpactData(impactDg,SurfaceFrame);
+        if(ncounts)
+        {
+            for(int i=0; i<2 ; ++i)
+               cout << impactDg.m_min[i] << " \t" << impactDg.m_max[i] << " \t" << impactDg.m_sigma[i] << endl;
+
+            fstream spotfile("M2spots.imp", ios::out | ios::binary);
+            spotfile << impactDg;
+            spotfile.close();
+
+
+            cout << "impacts stored in M2spots.imp" << endl << endl;
+        }
+
+    }
+
+    Diagram spotDg(4);
+
+    cout << "\nIMPACTS \n";
+    int ncounts=screen->getSpotDiagram(spotDg,0);
+    if(ncounts)
+    {
+        for(int i=0; i<4 ; ++i)
+           cout << spotDg.m_min[i] << " \t" << spotDg.m_max[i] << " \t" << spotDg.m_sigma[i] << endl;
+
+        fstream spotfile("KBerr_none.sdg", ios::out | ios::binary);
+        spotfile << spotDg;
+        spotfile.close();
+    }
+
+    cout << " set method to LocalSlope\n";
+    pM1->setErrorMethod(LocalSlope);
+    if(!Radiate(sourceID))
+    {
+       GetOptiXError( &errstr);
+       cout << "Radiation error : " << errstr << endl;
+       return -1;
+    }
+    ncounts=screen->getSpotDiagram(spotDg,0);
+    if(ncounts)
+    {
+        for(int i=0; i<4 ; ++i)
+           cout << spotDg.m_min[i] << " \t" << spotDg.m_max[i] << " \t" << spotDg.m_sigma[i] << endl;
+
+        fstream spotfile("KBerr_local.sdg", ios::out | ios::binary);
+        spotfile << spotDg;
+        spotfile.close();
+    }
+
+
+    cout << " set method to SimpleShift\n";
+    pM1->setErrorMethod(SimpleShift);
+    if(!Radiate(sourceID))
+    {
+       GetOptiXError( &errstr);
+       cout << "Radiation error : " << errstr << endl;
+       return -1;
+    }
+    ncounts=screen->getSpotDiagram(spotDg,0);
+    if(ncounts)
+    {
+        for(int i=0; i<4 ; ++i)
+           cout << spotDg.m_min[i] << " \t" << spotDg.m_max[i] << " \t" << spotDg.m_sigma[i] << endl;
+
+        fstream spotfile("KBerr_simple.sdg", ios::out | ios::binary);
+        spotfile << spotDg;
+        spotfile.close();
+    }
+
+
+    cout << " set method to SurfOffset\n";
+    pM1->setErrorMethod(SurfOffset);
+    if(!Radiate(sourceID))
+    {
+       GetOptiXError( &errstr);
+       cout << "Radiation error : " << errstr << endl;
+       return -1;
+    }
+    ncounts=screen->getSpotDiagram(spotDg,0);
+    if(ncounts)
+    {
+        for(int i=0; i<4 ; ++i)
+           cout << spotDg.m_min[i] << " \t" << spotDg.m_max[i] << " \t" << spotDg.m_sigma[i] << endl;
+
+        fstream spotfile("KBerr_offset.sdg", ios::out | ios::binary);
+        spotfile << spotDg;
+        spotfile.close();
+    }
+
+
 
     return 0;
 }
