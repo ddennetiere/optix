@@ -147,16 +147,14 @@ using namespace Eigen;
      */
     std::pair<double,double> fitSlopes(Index Nx, Index Ny, const Ref<ArrayX4d>& slopedata);
 
-    /** \brief Compute the ray intercept *in the surface reference frame*
+    /** \brief Compute the ray intercept in the surface reference frame
      *
-     *  This function was renamed sbase_intercept from intercept to avoid confusion with the intercept functions of
-     *  Surface derived classes  which are working in the local_aligned frame
      * \param ray the ray the intercept is looked for (in the surface reference frame)
      * \param normal optional vector to return the normalized normal vector
      * \return the computed intercept. If algorithm fails, the function  will throw an OptiXException.
      *  If no solution is found the ray will be marked as lost
      */
-    RayBaseType::VectorType sbase_intercept(RayBaseType& ray, RayBaseType::VectorType * normal=NULL );
+    RayBaseType::VectorType intercept(RayBaseType& ray, RayBaseType::VectorType * normal=NULL );
 
  protected  :
     MatrixXType m_coeffs;

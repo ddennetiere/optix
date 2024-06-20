@@ -48,14 +48,13 @@ class SourceBase : public virtual Surface
         /** \brief implements the required pure virtual intercept() function of the base class,
          *  so that the element is completely transparent
          *
-         *   ray must be expressed in **this** surface frame, in input as in output
-         *   \param[in,out]  this function doesn't change ray
-         *   \param[out] normal  The Unit Z vector will be always returned
-         *   \return Unchanged ray position
+         * \param ray  the ray in previous space if there is one
+         * \param normal  The Unit Z vector will be always return
+         * \return Unchanged ray position but expressed in this exit space
          */
         virtual VectorType intercept(RayBaseType& ray, VectorType *normal=NULL)
         {
-//            ray-=m_translationFromPrevious; // moved to transmit /reflect 2024-06-19
+            ray-=m_translationFromPrevious; // change ref fram from previous to this surface  ray is not rebased
             if(ray.m_alive)
             {
                 if(normal)

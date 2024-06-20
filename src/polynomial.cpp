@@ -18,7 +18,7 @@
 
 //#define VERBOSE
 
-RayBaseType::VectorType Polynomial::sbase_intercept(RayBaseType& ray,  RayBaseType::VectorType * normal )
+RayBaseType::VectorType Polynomial::intercept(RayBaseType& ray,  RayBaseType::VectorType * normal )
 {
     std::stringstream errmsg;
     VectorXType Px,Py, d1x, d1y, d2x, d2y;

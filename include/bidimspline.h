@@ -191,8 +191,7 @@ class BidimSpline
         inline double valueGradient(double x, double y, Ref<Vector2d> gradient)
         {
             if(x <muX(0)|| x >muX(muX.size()-1) || y <muY(0)|| y >muY(muY.size()-1))
-                throw std::runtime_error(string("BidimSpline::valueGradient point ")+std::to_string(x)+","+
-                                                std::to_string(y)+" out of limits");
+                throw std::runtime_error("argument out of the valid range");
             Index n=degree+1 ;
 
             MatrixXd splineX, splineY;

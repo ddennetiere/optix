@@ -114,8 +114,7 @@ public:
 
     virtual VectorType intercept(RayBaseType& ray, VectorType * normal=NULL )=0; /**< \brief Pure virtual function
     *
-    *   Re-mplemented in shape classes (Plane , Quadric, Toroid, PlynomialSurface and SourceBase)
-    *   These functions must work in the Surface AbsoluteLocalFrame only and must not apply the translationFromPrevious
+    *   Implemented in shape classes (Plane , Quadric, Toroid, and SourceBase)
     *   \n All implementations <b> must move and rebase </b> the ray at its intersection with the surface and return this position
     *   \n if the ray is not alive the last active position is kept and expressed in local absolute frame cordinates
     */
@@ -480,10 +479,8 @@ protected:
        * \param[in,out] spos the 2D position of the intercept in the surface frame. In input the unperturbed position, in output the corrected one
        * \param[in,out] ray  input :The ray moved to the surface after a call to intercept; output: the modified ray positionned at new intercept
        * \param[in,out] normal input: The normal after a call to intercept; output: the modified normal
-       * \return true if the perturbation was computed; false if spos was found outside the m_errorMap interpolation limits. In
-       *        such case, the ray position will be left at the value of last estimated intercept and normal will have its unperturbed value
        */
-      bool applyPerturbation(Vector2d& spos, RayType& ray, VectorType& normal);
+      void applyPerturbation(Vector2d& spos, RayType& ray, VectorType& normal);
 public:
     ApertureStop m_aperture;  /**< \brief The active area of the surface   */
 

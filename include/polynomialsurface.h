@@ -62,21 +62,14 @@ class PolynomialSurface:virtual public Surface, public PolyType
          */
         virtual inline int align(double wavelength=0){return 0;} // La surface est alignée sur le plan de définition pas sur la normale à l'origine
 
-        /** \brief computes the intercept of ray with this quadric surface in the surface local absolute frame and sets the new origin at the intercept
-        *
-        *   Ray must be expressed in **this** surface frame, in input as in output
-        *   \param[in,out]  ray  on input : the last ray position expressed in this surface frame. in output the ray positionned on the surface in this surface frame
-        *   \param[out] normal address of a vector which, if not null,  will receive the surface normal (normalized) at the intercept point
-        *   \return a reference to the modified ray
-        */
         virtual VectorType intercept(RayBaseType& ray, VectorType * normal=NULL)
         {
-//            ray-=m_translationFromPrevious; // moved to transmit /reflect 2024-06-19
+            ray-=m_translationFromPrevious; // change ref fram from previous to this surface  ray is not rebased
             if(ray.m_alive)
             {
                 ray.transform(m_surfaceInverse);
                 VectorType ntemp;
-                PolyType::sbase_intercept(ray,&ntemp); // move the ray to intercept and rebase it, in surface frame
+                PolyType::intercept(ray,&ntemp); // move the ray to intercept and rebase it, in surface frame
                 ray.transform(m_surfaceDirect);
                 if(!ray.m_alive)
                     cout << m_name << " ray was lost\n";

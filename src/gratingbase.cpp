@@ -171,10 +171,9 @@ RayType& GratingBase::transmit(RayType& ray)
 {
 
     VectorType normal;
-    ray-=m_translationFromPrevious; // change ref frame from previous to this surface (moved from intercept function 2024-06-19)
 
-    intercept(ray, &normal);    // intercept no longer applies the frame change from previous to this surface
-    if(ray.m_alive)  // update if alive only
+    intercept(ray, &normal);    // intercept effectue le changement de repère entrée/sortie (update seulement si alive)
+    if(ray.m_alive)
     {
         if(m_recording==RecordInput)
             m_impacts.push_back(ray);
@@ -243,10 +242,9 @@ RayType& GratingBase::transmit(RayType& ray)
 RayType& GratingBase::reflect(RayType& ray)
 {
     VectorType normal;
-    ray-=m_translationFromPrevious; // change ref frame from previous to this surface (moved from intercept function 2024-06-19)
 
-    intercept(ray, &normal);    // intercept no longer applies the frame change from previous to this surface
-    if(ray.m_alive)  // update if alive only
+    intercept(ray, &normal);    // intercept effectue le changement de repère entrée/sortie
+    if(ray.m_alive)
     {
 
         if(m_recording==RecordInput)
