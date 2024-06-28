@@ -331,7 +331,7 @@ int Surface::getSpotDiagram(Diagram & spotDiagram, double distance)
 //    cout << "getting diagram of  "  << m_name <<  " n " << m_impacts.size() << "  mem " << &m_impacts[0] << endl;
 
     if(spotDiagram.m_dim < 4)
-        throw std::invalid_argument("SpotDiagram argument should have a vector dimension of at least 5");
+        throw std::invalid_argument("SpotDiagram argument should have a vector dimension of at least 4");
 
 
     vector<RayType> impacts;
@@ -362,7 +362,7 @@ int Surface::getSpotDiagram(Diagram & spotDiagram, double distance)
     Index ip;
     for(ip=0, pRay=impacts.begin(); pRay!=impacts.end(); ++pRay)
     {
-        if(pRay->m_alive)
+        if(pRay->m_alive)  // cette précaution est inutile getImpact ne retourne que des rayons valides (et seulement le compt des rayons perdus)
         {
             pRay->moveToPlane(obsPlane);
             spotMat.block<2,1>(0,ip)=pRay->position().segment(0,2).cast<double>();
@@ -397,6 +397,71 @@ int Surface::getSpotDiagram(Diagram & spotDiagram, double distance)
     vSigma=(spotMat.rowwise().squaredNorm().array()/spotDiagram.m_count-vMean.array().square()).sqrt();
     return ip;
 }
+
+Tensor<int32_t,3> Surface::getFocalDiagram(const int dims[3], const double zbound[2], double* xbound, double * ybound)
+{
+    Tensor<int32_t,3> diagram;
+    vector<RayType> impacts;
+    /*int lost=*/ getImpacts(impacts,AlignedLocalFrame);
+
+    int spotcount=impacts.size();
+    if(spotcount ==0)
+        return diagram;
+
+    diagram.resize(dims[0], dims[1], dims[2]);
+    diagram.setZero();
+//    RayType::PlaneType obsPlane(VectorType::UnitZ(), 0);
+
+    Matrix<FloatType,2,Dynamic> pos(2,spotcount), dir(2,spotcount);
+    Index ip;
+    vector<RayType>::iterator pRay;
+    for(ip=0, pRay=impacts.begin(); pRay!=impacts.end(); ++pRay)
+    {
+        if(pRay->m_alive) // useless precaution
+        {
+//            pRay->moveToPlane(obsPlane);
+            pos.col(ip)=pRay->position().segment(0,2);
+            dir.col(ip)=pRay->direction().segment(0,2)/pRay->direction()(2);
+            ++ip;
+        }
+    }
+
+    Vector<FloatType,Dynamic> zval=Vector<FloatType, Dynamic>::LinSpaced(dims[2],zbound[0],zbound[1]);
+    Array<FloatType,Dynamic,Dynamic> matx, maty;
+//    cout << "zval\n" << zval.transpose() << endl;
+
+    matx=(zval*dir.row(0)).array().rowwise()+pos.row(0).array(); //  xstep).round().cast<int>();
+    maty=(zval*dir.row(1)).array().rowwise()+pos.row(1).array(); // /ystep).round().cast<int>();
+//    cout << "size="<< matx(seqN(0, 2, nz-1),all).size() <<endl;
+    xbound[0]=matx(seqN(0, 2, dims[2]-1),all).minCoeff() ;
+    xbound[1]=matx(seqN(0, 2, dims[2]-1),all).maxCoeff() ;
+    ybound[0]=maty(seqN(0, 2, dims[2]-1),all).minCoeff() ;
+    ybound[1]=maty(seqN(0, 2, dims[2]-1),all).maxCoeff() ;
+
+    double xstep=(xbound[1]-xbound[0])/(dims[0]-1);
+    double ystep=(ybound[1]-ybound[0])/(dims[1]-1);
+    cout <<"X " << xbound[0] <<", " << xbound[1] << "  step " <<  xstep << endl;
+    cout <<"y " << ybound[0] <<", " << ybound[1] << "  step " <<  ystep << endl;
+    matx=(matx-xbound[0])/xstep;
+    maty=(maty-ybound[0])/ystep;
+
+    Index i,iz=0;
+    for( i=0; i< spotcount; ++i)
+    {
+        for(iz=0; iz <dims[2]; ++iz)
+        {
+            int ix=(int)round(matx(iz,i));
+            int iy=(int)round(maty(iz,i));
+//            if(iy <0 || ix >=dims[0] || iy <0 || iy >=dims[1])
+//                cout << "index overflow (" << iz << ", " <<ix << ", " <<iy <<")\n";
+//            else
+               ++ diagram(ix,iy,iz);
+        }
+    }
+//    cout << endl << i << "   " << iz << endl;
+    return diagram;
+}
+
 
 int Surface::getImpactData(Diagram &impactData, FrameID frame)
 {

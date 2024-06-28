@@ -20,7 +20,8 @@
 #include "elementbase.h"  // include many basic headers
 #include "ApertureStop.h"
 #include "bidimspline.h"  // Needed for surface errors
-//#include "surfacegenerator.h"
+
+#include <unsupported/Eigen/CXX11/Tensor>
 
 #ifdef HAS_REFLEX
     #include "CoatingTable.h"
@@ -193,16 +194,27 @@ public:
    // int getNewImpactData(int n, DiagramType<n> &impactData, FrameID frame=LocalAbsoluteFrame);
 
     /** \brief Computes and fills-up a SpotDiagram object from the internally stored impact collection
-     * \param spotDiagram a SpotDiagram object reference which wiill be uptated on return
+     * \param spotDiagram a SpotDiagram object reference which will be updated on return
      * \param distance the distance from this surface along the alignment ray where the observation plane is located
      * \return the number of stored impacts
      */
     int getSpotDiagram(Diagram & spotDiagram, double distance=0);
 
+    /** \brief compute the 3D impact density on a 3d volume
+     *
+     * \param dims the number of requested points in the x, y, z directions
+     * \param zbound the limits [zmin, zmax] of the computation volume along the chief ray
+     * \param xbound an array of 2 doubles where the array limits in the x direction will be returned, if not NULL
+     * \param ybound an array of 2 doubles where the array limits in the y direction will be returned, if not NULL
+     * \return a tensor of size (dims[0], dims[1], dims[2]) containing the 3D impact number
+     *
+     */
+    Tensor<int32_t,3> getFocalDiagram(const int dims[3], const double zbound[2], double* xbound=NULL, double * ybound=NULL);
+
     /** \brief Computes and fills-up a CausticDiagram object from the internally stored impact collection
      *
      * The CausticDiagram consists in the point of each ray wich is the closest to the central alignment ray
-     * \param causticData a CausticDiagram object reference which will be uptated on return
+     * \param causticData a CausticDiagram object reference which will be updated on return. The dimension f
      * * \n  ATENTION the Diagram spotDiagram.m_spots array might be reallocated by this function. Do not pass a C struct allocated by malloc
      * \return the number of stored impacts
      */    int getCaustic(Diagram& causticData);

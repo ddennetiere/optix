@@ -1359,6 +1359,40 @@ int testKB()
         cout << endl << endl;
     }
 
+    double  xlimit[2], ylimit[2], zlimit[2]={-0.002,0.002};
+    int dims[3]={201,201,101};
+    Tensor<int,3> focdiag=screen->getFocalDiagram(dims, zlimit, (double*)xlimit, (double*)ylimit);
+    cout <<"limits X [" << xlimit[0] << ", " << xlimit[1] << "]  y [" << ylimit[0] << ", " << ylimit[1] << "]\n";
+    fstream focfile("KB_focdiag.fdg", ios::out | ios::binary);
+    if(focfile.is_open())
+    {
+        cout << "writing header\n";
+        focfile.write((char*)xlimit, 2*sizeof(double));
+        focfile.write((char*)ylimit, 2*sizeof(double));
+        focfile.write((char*)zlimit, 2*sizeof(double));
+        focfile.write((char*)dims, 3*sizeof(int));
+        cout << "Header written\n";
+        focfile.write((char*)focdiag.data(), dims[0]*dims[1]*dims[2]*sizeof(int));
+        focfile.close();
+        cout << endl << endl;
+    }
+    else
+        cout << "could not open KB_focdiag.fdg in output\n";
+
+
+    ncounts=screen->getSpotDiagram(spotDg,-0.002);
+    if(ncounts)
+    {
+        for(int i=0; i<4 ; ++i)
+           cout << spotDg.m_min[i] << " \t" << spotDg.m_max[i] << " \t" << spotDg.m_sigma[i] << endl;
+
+        fstream spotfile("KB_foc-2mm.sdg", ios::out | ios::binary);
+        spotfile << spotDg;
+        spotfile.close();
+        cout << endl << endl;
+    }
+
+
     ncounts=pM1->getImpactData(impactDg,SurfaceFrame);
     if(ncounts)
     {
