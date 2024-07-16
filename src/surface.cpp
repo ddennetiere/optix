@@ -14,7 +14,10 @@
 
 #include "surface.h"
 //#include "sourcebase.h"
-#include "wavefront.h"
+#include "wavefront.h" // needed from Legendre fits of optical surfaces and wave-fronts
+#include "fractalsurface.h" // needed to generate surface errors
+#include <exception>
+
 #define NFFT_PRECISION_DOUBLE
 #include <nfft3mp.h>
 extern void Init_Threads();
@@ -28,17 +31,59 @@ template<typename Scalar_>  struct minOf2Op
   const Scalar_ operator()(const Scalar_& x, const Scalar_& y) const { return x < y ? x : y; }
 };
 
+void Surface::applyPerturbation(Vector2d& spos, RayType& ray, VectorType& normal)
+{
+    if(!m_errorMap)
+        return;  // if mistakenly called while no interpolator is defined , will apply no perturbation
+    VectorType deltaN=VectorType::Zero();  // - deltaN will be the perturbation of the normal  in surface pane
+    Vector2d grad;
+
+    double z= m_errorMap->valueGradient(spos(0),spos(1),grad);
+    switch (m_errorMethod) {
+    case SimpleShift:
+        ray.moveTo(z/ray.direction().dot(normal)).rebase(); //new intercept then actualize spos and grad
+        spos=(m_surfaceInverse*ray.position()).head(2).cast<double>();
+        m_errorMap->valueGradient(spos(0),spos(1),grad);
+    case LocalSlope:   //proceed to normal correction
+        break;
+    case SurfOffset:
+        {   //instead of changing the surface equation we move the ray by z along the normal
+            VectorType SurfShift=z*normal;
+            ray-=SurfShift; // no need to rebase, m_distance remains 0
+            try{
+                intercept(ray, &normal); // compute shifted intercept
+            }catch(...) {
+                throw_with_nested(InterceptException(string("Intercept exception in " )+  m_name + " catch from "  ,
+                            __FILE__, __func__, __LINE__));
+            }
+            ray+=SurfShift;  //switch back to unshifted space and compute the new spos
+            spos=(m_surfaceInverse*ray.position()).head(2).cast<double>();
+            if(m_errorMap->isValid(spos)) // if inside limits compute the normal correction
+                m_errorMap->valueGradient(spos(0),spos(1),grad);
+            else
+                return;
+        }
+        break;//proceed to normal correction
+    default:
+        throw RayException(string("Invalid error method identifier, within ") +  m_name + " from " ,
+                        __FILE__, __func__, __LINE__);
+    }
+    // normal correction is the same in all cases
+    deltaN.head(2)=grad.cast<FloatType>(); // convert to long-double
+    normal-=m_surfaceDirect*deltaN;   // in principle we should normalize  is it required ?
+}
+
 
 RayType& Surface::transmit(RayType& ray)
 {
-
-    intercept(ray); // intercept effectue le changement de repère previous to this. The position is updated only if the ray is alive
+    ray-=m_translationFromPrevious;
+    intercept(ray); // intercept n'effectue  pas le changement de repère previous to this. The position is updated only if the ray is alive
     if(ray.m_alive)
     {
         if(m_recording==RecordInput)
             m_impacts.push_back(ray);
 
-        if(!inhibitApertureLimit && m_apertureActive)
+        if(enableApertureLimit && m_apertureActive)
         {
             Vector2d pos=(m_surfaceInverse*ray.position()).head(2).cast<double>();
             double T=m_aperture.getTransmissionAt(pos);
@@ -60,32 +105,50 @@ RayType& Surface::transmit(RayType& ray)
 
 RayType& Surface::reflect(RayType& ray)    /*  this implementation simply reflect the ray on the tangent plane at intercept position*/
 {
-
+        ray-=m_translationFromPrevious;
         VectorType normal;
     try{
         intercept(ray, &normal);
-    } catch(EigenException & eigexcpt) {
-        throw InterceptException(eigexcpt.what()+"\nEigenException within  " +  m_name + " from "  ,
-                                        __FILE__, __func__, __LINE__);
-    }catch(RayException & excpt)
-    {
-        throw InterceptException(excpt.what()+"\nRayException within " +  m_name + " from "  ,
-                                        __FILE__, __func__, __LINE__);
-    }catch(...)
-    {
-        throw InterceptException(string("Unknown Exception within ") +  m_name + " from" ,
-                                        __FILE__, __func__, __LINE__);
+    }catch(...) {
+            throw_with_nested(InterceptException(string("Intercept exception in " )+  m_name + " catch from "  ,
+                        __FILE__, __func__, __LINE__));
     }
+//    catch(EigenException & eigexcpt) {
+//        throw InterceptException(eigexcpt.what()+"\nEigenException within  " +  m_name + " from "  ,
+//                                        __FILE__, __func__, __LINE__);
+//    }catch(RayException & excpt)
+//    {
+//        throw InterceptException(excpt.what()+"\nRayException within " +  m_name + " from "  ,
+//                                        __FILE__, __func__, __LINE__);
+//    }catch(...)
+//    {
+//        throw InterceptException(string("Unknown Exception within ") +  m_name + " from" ,
+//                                        __FILE__, __func__, __LINE__);
+//    }
     try{
         if(ray.m_alive)
         {
             if(m_recording==RecordInput)
                 m_impacts.push_back(ray);
+            // find pos in surface frame 2024/05/27 moved out of aperture case as needed also by surf.errors
+            Vector2d spos=(m_surfaceInverse*ray.position()).head(2).cast<double>();
 
-            if(!inhibitApertureLimit && m_apertureActive)
+            // if surface aerrors are active we must take care of the local normal (and Z) perturbation
+            if(m_errorMap && enableSurfaceErrors && m_errorMethod )
+            {   //we use pos in surface frame check if ray is inside the definition area
+                if( m_errorMap->isValid(spos))
+                    applyPerturbation(spos, ray, normal);
+                if( m_errorMap->isValid(spos)) // spos might be changed by applyPerturbation
+                {
+                    ray.m_amplitude_P=0; //amplitude are nulled but ray is still propagated without perturbation
+                    ray.m_amplitude_S=0;
+                }
+
+            }
+            // aperture takes into account a possible shift due to surface errors, so actual spos
+            if(enableApertureLimit && m_apertureActive)
             {
-                Vector2d pos=(m_surfaceInverse*ray.position()).head(2).cast<double>();
-                double T=m_aperture.getTransmissionAt(pos);
+                double T=m_aperture.getTransmissionAt(spos);
                 ray.m_amplitude_P*=T;
                 ray.m_amplitude_S*=T;
             }
@@ -124,12 +187,77 @@ RayType& Surface::reflect(RayType& ray)    /*  this implementation simply reflec
                                         __FILE__, __func__, __LINE__);
     }catch(RayException & excpt)
     {
-        throw RayException(excpt.what()+"\nRayException withinin " +  m_name + " rfrom "  ,
+        throw RayException(excpt.what()+"\nRayException within " +  m_name + " rfrom "  ,
                                         __FILE__, __func__, __LINE__);
     }catch(...)
     {
         throw RayException(string("Unknown Exception catch in ") +  m_name + " r" ,
                                         __FILE__, __func__, __LINE__);
+    }
+
+}
+
+#define XMLSTR (xmlChar*)
+
+void Surface::operator>>(xmlNodePtr elemnode)
+{
+//    cout << "Entering Surface::operator>>()\n";
+    if(m_recording)
+        xmlNewProp (elemnode, XMLSTR "rec", XMLSTR std::to_string(m_recording).c_str());
+    if(m_errorMethod)
+        xmlNewProp(elemnode, XMLSTR "error_method", XMLSTR std::to_string(m_errorMethod).c_str());
+    if(hasParameter("error_limits"))
+    {
+//        cout << "Surface Error generator active\n";
+        xmlNewProp(elemnode, XMLSTR "error_generator", XMLSTR "on");
+    }
+//    else
+//        cout << "Surface Error generator in-active\n";
+    m_aperture >> elemnode;  // does nothing if region.size() == 0
+//    if(m_errorGenerator)     // seulement si le pointeur est valide
+//        *m_errorGenerator >> elemnode;
+}
+
+void Surface::operator<<(xmlNodePtr surfnode)
+{
+    xmlChar* sprop= xmlGetProp(surfnode, XMLSTR "rec");
+    if(sprop)
+    {
+        setRecording((RecordMode)atoi((char*)sprop));
+        xmlFree(sprop);
+    }
+    sprop= xmlGetProp(surfnode, XMLSTR "error_method");
+    if(sprop)
+    {
+        setErrorMethod((ErrorMethod)atoi((char*)sprop));
+        xmlFree(sprop);
+    }
+    sprop= xmlGetProp(surfnode, XMLSTR "error_generator");
+    if(sprop)
+    {
+        setErrorGenerator();
+        xmlFree(sprop);
+    }
+
+    // set aperture if aperture child exists in children
+    xmlNodePtr curnode=xmlFirstElementChild(surfnode);
+    while(curnode)
+    {
+        if(xmlStrcmp(curnode->name, XMLSTR "aperture")==0)
+        {
+//            cout << "loading aperture\n";
+            m_aperture << curnode;
+//            cout <<"aperture loaded\n";
+        }
+
+//        if(xmlStrcmp(curnode->name, XMLSTR "error_generator")==0)
+//        {
+//            if(!m_errorGenerator)    // if normally used to load a system, m_errorGenerator should be always NULL
+//                m_errorGenerator=new SurfaceErrorGenerator;
+//            *m_errorGenerator << curnode;
+//        }
+
+        curnode=xmlNextElementSibling(curnode);
     }
 
 }
@@ -202,8 +330,8 @@ int Surface::getSpotDiagram(Diagram & spotDiagram, double distance)
 //        delete[] spotDiagram.m_spots;
 //    cout << "getting diagram of  "  << m_name <<  " n " << m_impacts.size() << "  mem " << &m_impacts[0] << endl;
 
-    if(spotDiagram.m_dim < 5)
-        throw std::invalid_argument("SpotDiagram argument should have a vector dimension of at least 5");
+    if(spotDiagram.m_dim < 4)
+        throw std::invalid_argument("SpotDiagram argument should have a vector dimension of at least 4");
 
 
     vector<RayType> impacts;
@@ -234,7 +362,7 @@ int Surface::getSpotDiagram(Diagram & spotDiagram, double distance)
     Index ip;
     for(ip=0, pRay=impacts.begin(); pRay!=impacts.end(); ++pRay)
     {
-        if(pRay->m_alive)
+        if(pRay->m_alive)  // cette précaution est inutile getImpact ne retourne que des rayons valides (et seulement le compt des rayons perdus)
         {
             pRay->moveToPlane(obsPlane);
             spotMat.block<2,1>(0,ip)=pRay->position().segment(0,2).cast<double>();
@@ -269,6 +397,71 @@ int Surface::getSpotDiagram(Diagram & spotDiagram, double distance)
     vSigma=(spotMat.rowwise().squaredNorm().array()/spotDiagram.m_count-vMean.array().square()).sqrt();
     return ip;
 }
+
+Tensor<int32_t,3> Surface::getFocalDiagram(const int dims[3], const double zbound[2], double* xbound, double * ybound)
+{
+    Tensor<int32_t,3> diagram;
+    vector<RayType> impacts;
+    /*int lost=*/ getImpacts(impacts,AlignedLocalFrame);
+
+    int spotcount=impacts.size();
+    if(spotcount ==0)
+        return diagram;
+
+    diagram.resize(dims[0], dims[1], dims[2]);
+    diagram.setZero();
+//    RayType::PlaneType obsPlane(VectorType::UnitZ(), 0);
+
+    Matrix<FloatType,2,Dynamic> pos(2,spotcount), dir(2,spotcount);
+    Index ip;
+    vector<RayType>::iterator pRay;
+    for(ip=0, pRay=impacts.begin(); pRay!=impacts.end(); ++pRay)
+    {
+        if(pRay->m_alive) // useless precaution
+        {
+//            pRay->moveToPlane(obsPlane);
+            pos.col(ip)=pRay->position().segment(0,2);
+            dir.col(ip)=pRay->direction().segment(0,2)/pRay->direction()(2);
+            ++ip;
+        }
+    }
+
+    Vector<FloatType,Dynamic> zval=Vector<FloatType, Dynamic>::LinSpaced(dims[2],zbound[0],zbound[1]);
+    Array<FloatType,Dynamic,Dynamic> matx, maty;
+//    cout << "zval\n" << zval.transpose() << endl;
+
+    matx=(zval*dir.row(0)).array().rowwise()+pos.row(0).array(); //  xstep).round().cast<int>();
+    maty=(zval*dir.row(1)).array().rowwise()+pos.row(1).array(); // /ystep).round().cast<int>();
+//    cout << "size="<< matx(seqN(0, 2, nz-1),all).size() <<endl;
+    xbound[0]=matx(seqN(0, 2, dims[2]-1),all).minCoeff() ;
+    xbound[1]=matx(seqN(0, 2, dims[2]-1),all).maxCoeff() ;
+    ybound[0]=maty(seqN(0, 2, dims[2]-1),all).minCoeff() ;
+    ybound[1]=maty(seqN(0, 2, dims[2]-1),all).maxCoeff() ;
+
+    double xstep=(xbound[1]-xbound[0])/(dims[0]-1);
+    double ystep=(ybound[1]-ybound[0])/(dims[1]-1);
+    cout <<"X " << xbound[0] <<", " << xbound[1] << "  step " <<  xstep << endl;
+    cout <<"y " << ybound[0] <<", " << ybound[1] << "  step " <<  ystep << endl;
+    matx=(matx-xbound[0])/xstep;
+    maty=(maty-ybound[0])/ystep;
+
+    Index i,iz=0;
+    for( i=0; i< spotcount; ++i)
+    {
+        for(iz=0; iz <dims[2]; ++iz)
+        {
+            int ix=(int)round(matx(iz,i));
+            int iy=(int)round(maty(iz,i));
+//            if(iy <0 || ix >=dims[0] || iy <0 || iy >=dims[1])
+//                cout << "index overflow (" << iz << ", " <<ix << ", " <<iy <<")\n";
+//            else
+               ++ diagram(ix,iy,iz);
+        }
+    }
+//    cout << endl << i << "   " << iz << endl;
+    return diagram;
+}
+
 
 int Surface::getImpactData(Diagram &impactData, FrameID frame)
 {
@@ -464,7 +657,6 @@ int Surface::getWavefrontData(Diagram & WFdata, double distance)
     return ip;
 }
 
-/*EIGEN_DEVICE_FUNC*/
 MatrixXd Surface::getWavefontExpansion(double distance, Index Nx, Index Ny, Array22d& XYbounds)
 {
     MatrixXd LegendreCoefs;
@@ -503,16 +695,21 @@ MatrixXd Surface::getWavefontExpansion(double distance, Index Nx, Index Ny, Arra
 
 void Surface::computeOPD(double distance, Index Nx, Index Ny)
 {
-    /**< \todo Tester dans cette fonction si les calculs actuellement stockés sont utilisables ou non */
+    /**< \todo  Tester dans cette fonction si les rayons actuellement stockés sont utilisables ou non */
+
+    /**< \todo Dans le cas où les surfaces portent des perturbations. Le fit sur legendre ne rend pas les perturbations "haute et moyenne"  fréquence.
+
+        Peut-on recupérer les fluctuation de direction et en inférer une "rugosité" ?*/
 
     MatrixXd LegendreCoefs;
     vector<RayType> impacts;
     getImpacts(impacts,AlignedLocalFrame);
 
     if(impacts.size()< (size_t) 2*Nx*Ny)
-        throw std::runtime_error("The impact number is to small to compute a valid OPD");
+        throw std::runtime_error("The impact number is too small to compute a valid OPD");
 
     VectorType referencePoint= VectorType::UnitZ()*distance;
+    // the slopeMat arrays contains the data required for LegendreIntegrateteSlopes namely transverse X & Y aberration, then  X & Y aperture angles
     ArrayX4d slopeMat(impacts.size(),4 );  // impacts ne contient que les rayons 'alive'
 
     vector<RayType>::iterator pRay;
@@ -528,7 +725,7 @@ void Surface::computeOPD(double distance, Index Nx, Index Ny)
         slopeMat(ip,0)= (delta(0)*pRay->direction()(2)- delta(2)*pRay->direction()(0) ) /sqrtl(1.L-pRay->direction()(1)*pRay->direction()(1)); // l'aberration transversale
         slopeMat(ip,1)= (delta(1)*pRay->direction()(2)- delta(2)*pRay->direction()(1) ) /sqrtl(1.L-pRay->direction()(0)*pRay->direction()(0));
         slopeMat.block<1,2>(ip,2)= pRay->direction().segment(0,2).cast<double>(); // la direction U
-         m_amplitudes(ip,0)=pRay->m_amplitude_S;
+        m_amplitudes(ip,0)=pRay->m_amplitude_S;
         m_amplitudes(ip,1)=pRay->m_amplitude_P;
     }
     m_XYbounds.row(0)=slopeMat.block(0,2,ip,2).colwise().minCoeff(); // ici il est permis de faire min max sur les valeurs passées dans XY bounds
@@ -541,6 +738,7 @@ void Surface::computeOPD(double distance, Index Nx, Index Ny)
     // jusqu'ici pas de différence avec la fonction  si ce n'est la sauvegarde des amplitudes complexe dans m_amplitudes
 
     m_OPDdata.leftCols(2)=slopeMat.rightCols(2);
+    // This is the "low frequency" component o the OPD perturbation. What about the residuals ? how can they be injected in the the computation ?
     m_OPDdata.col(2)=Legendre2DInterpolate(slopeMat.col(2), slopeMat.col(3), m_XYbounds, LegendreCoefs);
     m_NxOPD=Nx;
     m_NyOPD=Ny;
@@ -615,7 +813,7 @@ void Surface::computePSF(ndArray<std::complex<double>,4> &PSF, Array2d &pixelSiz
 
     nfft_plan plan;
 
-    nfft_init_2d(&plan,dims[1],dims[0],m_OPDdata.rows());
+    nfft_init_2d(&plan,dims[1],dims[0],m_OPDdata.rows()); // m_OPDdata.rows() is the number of contributing rays
 
     Array2d unorm, ucenter;
     unorm = (m_XYbounds.row(1)-m_XYbounds.row(0))*oversampling;
@@ -630,6 +828,7 @@ void Surface::computePSF(ndArray<std::complex<double>,4> &PSF, Array2d &pixelSiz
     complex<double> i2pi_lambda(0,-2.*M_PI/lambda);/**< \todo  Extensive checking of the phase shifts signs. \n The sign of phase shifts must be consistent throughout, with the convention that wave propagates
                 *   in the form \f$ e^{i k z} \f$  */
 
+    //Assign the angular directions of contributing rays to  plan.x
     Map<Array2Xd> Ux(plan.x,2,m_OPDdata.rows()); // il faut normaliser et transposer les 2 premières colonnes de m_OPDdata
     Ux=(m_OPDdata.leftCols(2).transpose().colwise()-ucenter).colwise()/unorm;
 
@@ -644,7 +843,7 @@ void Surface::computePSF(ndArray<std::complex<double>,4> &PSF, Array2d &pixelSiz
         Map<ArrayXXcd> Tf((complex<double>*)plan.f_hat,dims[1],dims[0] );
         Map<ArrayXXcd> Spsf(pSdat,dims[0], dims[1]);
         Map<ArrayXXcd> Ppsf(pPdat,dims[0], dims[1]);
-
+        // ADD the quadratic phase correction corresponding to the distance to the reference point
         ArrayXd correctOPD=m_OPDdata.col(2) +
                 m_OPDdata.leftCols(2).matrix().rowwise().squaredNorm().array()*distOffset(ioffset)/2.;  // approximation faible ouerture
 
@@ -659,6 +858,363 @@ void Surface::computePSF(ndArray<std::complex<double>,4> &PSF, Array2d &pixelSiz
     }
    nfft_finalize(&plan);  // ceci desalloue toute la structure plan
 }
+
+
+bool Surface::setParameter(string name, Parameter& param)
+{
+//    cout << m_name  << " set " << name <<endl;
+    // we bypass
+    return ElementBase::setParameter(name, param);
+    //some validation based on a sigle prameter settin
+    if(name=="error_limits" )
+    {
+        if(!(param.flags & ArrayData))    // else  case is handled by the base class
+            if(param.paramArray->dims[0] !=2 || param.paramArray->dims[1] !=2)
+            {
+                SetOptiXLastError(string("parameter name ")+ name + " must be a 2x2 array", __FILE__, __func__, __LINE__);
+                return false;
+            }
+    }
+    if(name=="sampling")
+    {
+        if(!(param.flags & ArrayData))    // else  case is handled by the base class
+            if(param.paramArray->dims[0]* param.paramArray->dims[1] !=2)
+            {
+                SetOptiXLastError(string("parameter name ")+ name + " must be a 2x1 or 1x2 array", __FILE__, __func__, __LINE__);
+                return false;
+            }
+    }
+    if(name=="residual_sigma" && param.value <0)
+    {
+                SetOptiXLastError(string("parameter name ")+ name + " cannot have a negative value", __FILE__, __func__, __LINE__);
+                return false;
+    }
+//     cout << "try to set\n";
+    // record parameter new value
+    if(! ElementBase::setParameter(name, param))
+    {
+        cout << "Error: " <<LastError << endl;
+         return false;
+    }
+
+   // if one of these error generator parameter was change, invalidate the generator
+    if(name=="fractal_exponent_x" || name=="fractal_frequency_x" || name=="fractal_exponent_y" || name=="fractal_frequency_y"
+       || name=="error_limits" || name=="sampling" || name=="detrending" || name=="low_Zernike" )
+       m_ErrorGeneratorValid=false;
+
+   return true;
+}
+
+
+void Surface::setErrorGenerator()
+{
+    if(hasParameter("error_limits"))    // useles (and even dangerous to create
+        return;
+
+    Parameter param;
+    param.type=InverseDistance;
+    param.group=SurfErrorGroup;
+    param.flags=NotOptimizable | ArrayData;
+    param.paramArray=new ArrayParameter; //default constructor set dims to 0 and data to NULL the new arrayParameter will be deleted with param
+    // the following parameter are created uninitilized that is dims=(0;0)
+
+    defineParameter("fractal_frequency_x", param);
+    setHelpstring("fractal_frequency_x", "frequency limits of the X PSD segments"); // default 1 segment not limited
+
+    defineParameter("fractal_frequency_y", param);
+    setHelpstring("fractal_frequency_y", "frequency limits of the Y PSD segments"); // default 1 segment not limited
+
+    param.type=Distance;
+    defineParameter("error_limits", param);
+    setHelpstring("error_limits", "Bounds of the area where surface errors are defined (xmin, xmax, ymin, ymax)");
+
+    defineParameter("sampling", param);
+    setHelpstring("sampling", "Approximate sampling steps of the generated surface errors");
+
+    defineParameter("low_Zernike", param);
+    setHelpstring("low_Zernike", "Matrix of the max sigma values of low Legendre expansion");
+
+
+    // Fractal exponents are initialized to -1.
+    param.type=Dimensionless;
+    delete param.paramArray ;
+    param.paramArray = new ArrayParameter(1,1);
+    param.paramArray->data[0]=-1.;
+
+    defineParameter("fractal_exponent_x", param);
+    setHelpstring("fractal_exponent_x", "fractal exponents of the X PSD");
+    defineParameter("fractal_exponent_y", param);
+    setHelpstring("fractal_exponent_y", "fractal exponents of the Y PSD");
+
+    // detrend tip and tilts
+    Array22d detrend;
+    detrend << 1., 1., 1., 0 ;
+    *param.paramArray=detrend;
+    defineParameter("detrending", param);
+    setHelpstring("detrending", "Low Legendre detrending mask");
+
+    param.type=Distance;
+    param.flags=NotOptimizable;
+    param.value=0;
+    defineParameter("residual_sigma", param);
+    setHelpstring("residual_sigma", "RMS height error after subtraction of constrained Legendre");
+
+    m_ErrorGeneratorValid=false;
+
+    if(m_errorMap)
+        delete m_errorMap;
+    m_errorMap=NULL;
+}
+
+void Surface::unsetErrorGenerator()
+{
+    removeParameter("fractal_exponent_x");
+    removeParameter("fractal_frequency_x");
+    removeParameter("fractal_exponent_y");
+    removeParameter("fractal_frequency_y");
+    removeParameter("error_limits");
+    removeParameter("sampling");
+    removeParameter("detrending");
+    removeParameter("low_Zernike");
+    removeParameter("residual_sigma");
+}
+
+bool Surface::validateErrorGenerator()
+{
+    if(m_ErrorGeneratorValid) // don't test again if no parameter was changed
+        return true;
+
+    m_ErrorGeneratorValid=true;
+    Parameter param;
+    string errorstring="Incorrect initialization of surface ";
+    errorstring+=m_name+ " :\n";
+
+    char format[256]="the number of %s fractal transition frequencies (%d) doesn't match the number of exponents (%d)\n";
+    char buf[256];
+    getParameter("fractal_exponent_x", param) ;
+    int nexp=param.paramArray->dims[0]*param.paramArray->dims[1];
+    getParameter("fractal_frequency_x", param) ;
+    int nfreq=param.paramArray->dims[0]*param.paramArray->dims[1];
+    if(!nexp)
+    {
+        errorstring+="No X fractal exponent defined \n";
+        m_ErrorGeneratorValid=false;
+    }
+    if(nfreq <nexp-1)
+    {
+        sprintf(buf,format, "X", nfreq ,nexp);
+        errorstring+=buf;
+        m_ErrorGeneratorValid=false;
+    }
+
+    getParameter("fractal_exponent_y", param) ;
+    nexp=param.paramArray->dims[0]*param.paramArray->dims[1];
+    getParameter("fractal_frequency_y", param) ;
+    nfreq=param.paramArray->dims[0]*param.paramArray->dims[1];
+    if(!nexp)
+    {
+        errorstring+="No Y fractal exponent defined \n";
+        m_ErrorGeneratorValid=false;
+    }
+    if(nfreq <nexp-1)
+    {
+        sprintf(buf,format, "Y", nfreq ,nexp);
+        errorstring+=buf;
+        m_ErrorGeneratorValid=false;
+    }
+
+    Vector4d Limits;
+    Vector2d steps;
+    strcpy(format,"%s parameter should contain %d elements, %d given\n");
+    string name="error_limits";
+    int dim=4;
+    for(int i=0; i<2; ++i)
+    {
+        getParameter(name, param) ;
+        int n=param.paramArray->dims[0]*param.paramArray->dims[1];
+        if(n!=dim)
+        {
+            sprintf(buf,format, name,  dim ,n);
+            errorstring+=buf;
+            m_ErrorGeneratorValid=false;
+        }
+        else if(i==0) //sampling has 4 values
+            Limits=Map<Vector4d>(param.paramArray->data);
+        else // sampling has 2 values
+            steps=Map<Vector2d>(param.paramArray->data);
+
+        name="sampling"; dim=2;
+    }
+
+    int xpoints(round((Limits(1)-Limits(0))/steps(0)));  // this is the interva number
+    int ypoints(round((Limits(3)-Limits(2))/steps(1)));
+    double xstep=(Limits(1)-Limits(0))/xpoints++;
+    double ystep=(Limits(3)-Limits(2))/ypoints++;
+
+    cout << "The generated error map is defined on " << xpoints << " x " << ypoints << " soit " <<  xpoints*ypoints << " points\n";
+    if( xpoints < 10 || ypoints < 8 )
+    {
+        errorstring+="The number of points is abnormally small, check 'surface_limits' and 'sampling' parameters\n";
+        m_ErrorGeneratorValid=false;
+    }
+    else//param still contains sampling we can put the real value in the sampling parameter
+    {
+        param.paramArray->data[0]=xstep;
+        param.paramArray->data[1]=ystep;
+        ElementBase::setParameter("sampling", param);   // here  we call the elementbase method to avoid invalidation
+    }
+
+    getParameter("detrending",param);
+    int Nx=param.paramArray->dims[0];
+    int Ny=param.paramArray->dims[1];
+    getParameter("low_Zernike",param);
+    Nx = Nx > param.paramArray->dims[0] ? Nx : param.paramArray->dims[0];
+    Ny = Ny > param.paramArray->dims[1] ? Ny : param.paramArray->dims[1];
+    if (Nx >= xpoints || Ny >= ypoints )
+    {
+        errorstring+="The number of interpolation grid points is too small for the requested degree of Zernike polynomials \n";
+        m_ErrorGeneratorValid=false;
+    }
+
+    if(!m_ErrorGeneratorValid)
+        SetOptiXLastError(errorstring+ "in ",__FILE__, __func__);
+
+    cout << "Error map generation parameters validated\n";
+    return m_ErrorGeneratorValid;
+}
+
+bool Surface::generateSurfaceErrors(double* total_sigma, MatrixXd& Legendre_sigmas )
+{
+    if(!hasParameter("error_limits"))
+    {
+        SetOptiXLastError(string("No surface error generator defined for surface ")+ m_name, __FILE__, __func__, __LINE__);
+        return false;
+    }
+//    cout <<"generating surface errors of 'Surface':" << m_name << endl;
+    if(!validateErrorGenerator())
+        return false;
+
+    FractalSurface fractalSurf;
+    Parameter param1, param2;
+
+    getParameter("fractal_exponent_x",param1);
+    int nexp=param1.paramArray->dims[0]*param1.paramArray->dims[1];
+    if(nexp==1)
+        fractalSurf.setXYfractalParams("X",1, param1.paramArray->data, NULL);
+    else
+    {
+        getParameter("fractal_frequency_x",param2);
+       //int nfreq=param2.paramArray->dims[0]*param2.paramArray->dims[1];
+        fractalSurf.setXYfractalParams("X",nexp, param1.paramArray->data, param2.paramArray->data);
+    }
+
+    getParameter("fractal_exponent_y",param1);
+    nexp=param1.paramArray->dims[0]*param1.paramArray->dims[1];
+    if(nexp==1)
+        fractalSurf.setXYfractalParams("Y",1, param1.paramArray->data, NULL);
+    else
+    {
+        getParameter("fractal_frequency_y",param2);
+       //int nfreq=param2.paramArray->dims[0]*param2.paramArray->dims[1];
+        fractalSurf.setXYfractalParams("Y",nexp, param1.paramArray->data, param2.paramArray->data);
+    }
+//        cout << "fractal parameters set\n";
+
+    getParameter("error_limits",param1); // the number of parameter was already validated
+    Array22d limits(Map<Array22d>(param1.paramArray->data)); // permanent copy of limits
+    getParameter("sampling",param2);
+    Map<Vector2d> steps(param2.paramArray->data); //temporary mapping
+    int xpoints(round((limits(1)-limits(0))/steps(0)));  // this is the interval number
+    int ypoints(round((limits(3)-limits(2))/steps(1)));
+
+//        cout << "ready to generate a fractal map of " << xpoints << " x "  << ypoints << " intervals\n";
+    // increment to the number of points and generate the fractal surface
+    ArrayXXd surfError=fractalSurf.generate(++xpoints, steps(0), ++ypoints, steps(1));
+
+       cout << "map generated "<< xpoints << " x "  << ypoints << " points\n";
+
+    getParameter("residual_sigma", param1);
+    double sigmaRes=param1.value;
+
+    getParameter("detrending",param1);
+    getParameter("low_Zernike",param2);
+    Map<ArrayXXd> detrend(param1.paramArray->data, param1.paramArray->dims[0], param1.paramArray->dims[1]);
+    Map<ArrayXXd> legendre(param2.paramArray->data, param2.paramArray->dims[0], param2.paramArray->dims[1]);
+    // detrend and legendre matrix are non-permanent
+//        cout <<  "detrend:\n" << detrend << "\nzernike:\n" << legendre << endl;
+
+    int Nx=legendre.rows() > detrend.rows() ? legendre.rows() : detrend.rows();
+    int Ny=legendre.cols() > detrend.cols() ? legendre.cols() : detrend.cols();
+
+    MatrixXd detrendCoeffs=MatrixXd::Zero(Nx,Ny);
+    ArrayXXd mask=ArrayXXd::Zero(Nx,Ny); // this will be the applied zeroing mask
+    if(legendre.size())
+        mask.topLeftCorner(legendre.rows(), legendre.cols())=legendre;
+    if(detrend.size())
+        mask.topLeftCorner(detrend.rows(),detrend.cols())+=detrend;
+//    cout << "detrend mask;\n"  << mask << endl;
+    if(mask.size())
+        detrendCoeffs=fractalSurf.detrend(surfError,mask);
+//    else
+//        cout << "Mask size== 0\n";
+     //cout<<" no detrend applied\n";
+    //scale the detrended surface errors to match the given sigma value
+    double sigmagen=sqrt(surfError.matrix().squaredNorm()/surfError.size());
+    surfError *= sigmaRes/sigmagen;
+    detrendCoeffs*=sigmaRes/sigmagen; // detrending Legendre residuals in detrendCoeffs; not directly usable
+
+//        cout << "fractal ok, will generate Zernike\n";
+    // generate the low frequency part from rand Legendre coefficient of specified extent
+    // beware that the given extent are sigma normalized but the Grid generating function wants natural Legendre in input
+    if(legendre.size())
+    {
+        MatrixXd  Lcoeffs= LegendreFromNormal(legendre) * ArrayXXd::Random(legendre.rows(), legendre.cols());
+//            cout << "random legendres:\n" << Lcoeffs << endl;
+        surfError+= LegendreSurfaceGrid(surfError.rows(), surfError.cols(), Lcoeffs);
+//        if(Lcoeffs.rows()==detrendCoeffs.rows() && Lcoeffs.cols()==detrendCoeffs.cols())
+//            Lcoeffs+=detrendCoeffs;
+
+        Legendre_sigmas=LegendreNormalize(Lcoeffs);
+        *total_sigma=sqrt(sigmaRes*sigmaRes+Legendre_sigmas.squaredNorm());
+        cout <<"constrained Legendre normalized:\n" << Legendre_sigmas ;
+        cout << "\n total constrained sigma=" << *total_sigma <<endl;;
+    }
+//            cout << "surface errors computed\n";
+    if(!m_errorMap)
+        m_errorMap= new  BidimSpline(3);
+    m_errorMap->setFromGridData(limits, surfError);
+
+//    cout << "spline interpolator set\n";
+
+
+    return true;
+    //finally we don't want this function to be recursive
+//    if(m_next!=NULL )
+//        return m_next->generateSurfaceErrors(); // this call will only propagate the function  until the next element derived from the Surface class
+
+}
+
+ArrayXXd Surface::getSurfaceErrors()
+{
+    ArrayXXd heights;
+    if(m_errorMap)
+    {
+        int nx, ny; // Number of intervals
+        Array22d limits=m_errorMap->getSampling(&nx, &ny);
+
+        ArrayXd xval=ArrayXd::LinSpaced(++nx, limits(0), limits(1));
+        ArrayXd yval=ArrayXd::LinSpaced(++ny, limits(2), limits(3));
+
+        MatrixXd deriv; // unused
+        MatrixXd interx=m_errorMap->interpolator(X, xval, deriv);
+        MatrixXd intery=m_errorMap->interpolator(Y, yval, deriv);
+
+        heights= interx.transpose()* m_errorMap->getControlValues()*intery;
+    }
+
+    return heights;
+}
+
 #ifdef HAS_REFLEX
 void Surface::removeCoating()
 {

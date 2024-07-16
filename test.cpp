@@ -30,14 +30,22 @@
 #include "interface.h"
 #include "wavefront.h"
 
+//#include "heightmap.h"
+#include "fractalsurface.h"
+#include "bidimspline.h"
+//#include "surfacegenerator.h"
+
 #include "Polygon.h"
 #include "Ellipse.h"
+#include "ApertureAPI.h"
 
 using HR_clock = std::chrono::high_resolution_clock ;
 //#define POSTFIX(X, P) X#P
 //#define M_PIl POSTFIX(M_PI, L)
 //#include <unsupported\Eigen\CXX11\src\Tensor\TensorBase.h>
 //#include <unsupported\Eigen\CXX11\src\Tensor\Tensor.h>
+
+
 
 
 /** \brief helper functor to extract the coefficient-wise minimum value of two arrays
@@ -57,6 +65,36 @@ int SphereTest();
 int QuickTest();
 int TestEllipse();
 int XmlTest();
+int TstMistral();
+int InterpolatorTest();
+int testKB();
+
+
+    void  GetParam(Surface* psurf, string paramname, Parameter& param)
+    {
+        char* errmsg;
+        if(!psurf->getParameter(paramname, param))
+        {
+            GetOptiXError(&errmsg);
+            cout << "GetParam " << paramname << " failure:" << errmsg << endl;
+            exit(-1);
+        }
+        return  ;
+    }
+
+    void  SetParam(Surface* psurf, string paramname, Parameter& param)
+    {
+        char* errmsg;
+        if(!psurf->setParameter(paramname, param))
+        {
+            GetOptiXError(&errmsg);
+            cout << "SetParam " << paramname << " failure:" << errmsg << endl;
+            exit(-1);
+        }
+        return  ;
+    }
+
+
 
 int main()
 {
@@ -69,16 +107,154 @@ int main()
     char message[msglen+1]; // create a copy buffer with space for 0 ant end
     strncpy(message,(char*)strerr, msglen ); //copy the message  (mandatory; strerr cannot be printed directly)
     cout << "Error level  " << erreur << " message: "<< message << endl << endl;
-
-    cout <<"size of bool " << sizeof(bool) <<endl;
-    cout << "size of int " << sizeof(int) << endl;
-    cout << "true " << true << "  false " << false <<endl;
+//
+//    cout <<"size of bool " << sizeof(bool) <<endl;
+//    cout << "size of int " << sizeof(int) << endl;
+//    cout << "true " << true << "  false " << false <<endl;
     cout << "starting \n";
 
-  //  return Solemio2Xml("D:\\Documents SOLEIL\\Dossiers-Lignes\\Disco\\Solemio\\DISCOdefinitif.sole");
-   return DiscoTest();
+    //return TestEllipse();
 
-    //return XmlTest();
+    return testKB();
+
+ //    SurfaceErrorGenerator generator;
+//    return 0;
+     // heightmap was removed from optics project 22/05/2024
+//    HeightMap hmp;
+//
+//    hmp.fromModel("D:\\projets\\projetsCB\\OptiX\\surfaceDB\\SESO_ALBA-fit_1,7.crms", 0.05, 0.04, 0.001);
+//    return (0);
+
+  //  return Solemio2Xml("D:\\Documents SOLEIL\\Dossiers-Lignes\\Disco\\Solemio\\DISCOdefinitif.sole");
+//    return Solemio2Xml("D:\\Documents SOLEIL\\Lignes externes\\APE\\Solemio-LE\\APELE-R1 700T VREF");
+//    return Solemio2Xml("D:\\Documents SOLEIL\\Lignes externes\\APE\\APE-New\\APELE-R2 1200T  Gauss-aligned");
+
+//    return Solemio2Xml("D:\\projets\\projetsCB\\OptiX\\solemio\\CASSIOPEE");
+
+  // return DiscoTest();
+  //  return TstMistral();
+    if(0)
+    {
+        return InterpolatorTest();
+    }
+
+    bool result=LoadSystemFromXml("polytestcopy2.xml");
+
+    cout << "file loaded " << (result ? "OK\n" : "ERROR\n");
+
+//    LoadSystemFromXml("Beamline_test_polynomial.xml");
+    size_t idM1;
+    FindElementID("M1",&idM1);
+//    int index;
+//    AddRectangularStop(idM1,0.1, 0.03,0,0,0,0,&index);
+//    cout << "Rectangular region " << index << " successfully added\n";
+//    AddEllipticalStop(idM1,0.15, 0.03,0, 0,0,0,&index);
+//    cout << "Elliptical region " << index << " successfully added\n";
+
+    Surface* pM1 = (Surface *) idM1;
+    cout << "M1 surface class= "  << pM1->getOptixClass() << endl;
+
+    pM1->setErrorGenerator();
+    cout << "error Generator created\n";
+
+    Parameter param;
+    GetParam(pM1,"residual_sigma", param);
+    param.value=3.e-9; // 3 nm
+    SetParam(pM1,"residual_sigma", param);
+
+    GetParam(pM1,"error_limits", param);
+    {
+        ArrayXXd limits(2,2);
+        limits << -0.05, -0.005, 0.05, 0.005;
+        *param.paramArray=limits;
+    }
+    SetParam(pM1,"error_limits", param);
+
+    GetParam(pM1,"sampling", param);
+    {
+        ArrayXXd sampling(2,1);
+        sampling << 5e-4, 1e-4;
+        *param.paramArray=sampling;
+    }
+    SetParam(pM1,"sampling", param);
+
+//    double xexp[]={-1.5,-2.};
+//    double yexp[]={-1.};
+//    double xfl[]={100.};
+    GetParam(pM1,"fractal_exponent_x", param);
+    {
+        ArrayXXd exp(2,1);
+        exp << -1.5,-2.;
+        *param.paramArray=exp;
+    }
+    SetParam(pM1,"fractal_exponent_x", param);
+
+    GetParam(pM1,"fractal_frequency_x", param);
+    {
+        ArrayXXd freq(1,1);
+        freq << 500.;
+        *param.paramArray=freq;
+    }
+    SetParam(pM1,"fractal_frequency_x", param);
+
+
+    GetParam(pM1,"detrending", param);
+    {
+        ArrayXXd detrend(3,3);
+        detrend << 1., 1., 1.,
+                   1., 1., 0,
+                   1., 0 , 0;
+        *param.paramArray=detrend;
+    }
+
+//    GetParam(pM1,"detrending", param);
+//    {
+//        ArrayXXd detrend(2,2);
+//        detrend << 1., 1.,
+//                   1., 0 ;
+//        *param.paramArray=detrend;
+//    }
+
+//    GetParam(pM1,"detrending", param);
+//    {
+//        ArrayXXd detrend;
+//        *param.paramArray=detrend;
+//    }
+    SetParam(pM1,"detrending", param);
+
+    GetParam(pM1,"low_Zernike", param);
+    {
+        ArrayXXd legendre(4,3);
+        legendre <<  0 , 0.,   5.e-9,
+                     0., 2e-9, 1.e-9,
+                     1.e-8, 0 , 2e-9,
+                     5.e-9, 0,  0. ;
+        *param.paramArray=legendre;
+    }
+    SetParam(pM1,"low_Zernike", param);
+    MatrixXd Legendre_sigmas;
+    double generated_sigma;
+    try{
+    if(!pM1->generateSurfaceErrors(&generated_sigma, Legendre_sigmas))
+    {
+        char* errmsg;
+        GetOptiXError(&errmsg);
+        cout << "could not generate errors from M1 cause:\n" << errmsg << endl;
+        exit(-2);
+    }
+    }catch (std::exception & excp) {
+        cout << "catch: " << excp.what() <<endl;
+    }
+    ArrayXXd errormap=pM1->getSurfaceErrors();
+    SurfaceToFile(errormap,"M1_height_errors.bin");
+    string  outfile = "polytestcopy3.xml";
+    cout << "saving to " << outfile << endl;
+    result=  SaveSystemAsXml(outfile.c_str());
+//    cout << "file saved " << (result ?  "OK\n" : " ERROR\n");
+
+
+
+    return 0;
 
 
     ArrayXd v1(7), v2(7), v3;
@@ -829,6 +1005,421 @@ int TestEllipse()
 
 
         cout << endl << endl;
+    }
+
+    string  outfile = "Ellipse.xml";
+    cout << "saving to " << outfile << endl;
+    if(!SaveSystemAsXml(outfile.c_str()))
+    {
+        char * errstr;
+        GetOptiXError(&errstr);
+        cout << "XML save error:\n" << errstr << endl;
+        return -1;
+    }
+
+
+
+    return 0;
+}
+
+int InterpolatorTest()
+{
+
+    FractalSurface fracSurf;
+
+   // int n=6145;
+
+   // cout << n << " span=" << fracSurf.span(n) << endl;
+
+//    double fracFrequencies[]={200.};
+//    double fracExponents[]={-1., -1.5 };
+//    VectorXd Filter=fracSurf.frequencyFilter(45,0.001,2,fracExponents,fracFrequencies);
+//    cout << endl << Filter.transpose() << endl;
+//    fstream fracfile("fractalout.dat", ios::out | ios::binary);
+//    if(!fracfile.is_open())
+//    {
+//        SetOptiXLastError("Can't open the file for writing the fractal filter",__FILE__,__func__);
+//        return -1;
+//    }
+//
+    double xexp[]={-1.5,-2.};
+    double yexp[]={-1.};
+    double xfl[]={100.};
+    cout << "initiating surface\n";
+
+    fracSurf.setXYfractalParams("X",2,xexp,xfl);
+//    cout << "fractX set\n";
+    fracSurf.setXYfractalParams("Y",1,yexp,NULL);
+
+//    cout << "fractal parameters set\n";
+    ArrayXXd surface = fracSurf.generate(501,0.001, 201, 2e-4);
+
+    SurfaceToFile(surface, "mapTest.bin");
+
+    ArrayXXd Lcoeffs=LegendreFitGrid(2,2, surface);
+    ArrayXXd LNcoeffs=LegendreNormalize(Lcoeffs);
+    ArrayXXd recoeffs=LegendreFromNormal(LNcoeffs);
+
+    cout << endl <<Lcoeffs << endl;
+    cout << endl << LNcoeffs  << endl;
+    double sigma2= surface.matrix().squaredNorm()/surface.rows()/surface.cols();
+    cout << "sigma =" << sqrt(sigma2) << "   sigma corr=" << sqrt(sigma2-LNcoeffs(0,0)*LNcoeffs(0,0)-LNcoeffs(1,0)*LNcoeffs(1,0)-LNcoeffs(0,1)*LNcoeffs(0,1)) << endl;
+
+    ArrayXXd detCoeffs=Lcoeffs.topLeftCorner(2,2);
+    detCoeffs(1,1)=0;
+
+    ArrayXXd detrended= surface- LegendreSurfaceGrid(surface.rows(), surface.cols(), detCoeffs);
+    cout << "detrended sigma=" << sqrt(detrended.matrix().squaredNorm()/detrended.rows()/detrended.cols()) << endl;
+
+    ArrayXXd mask=ArrayXXd::Zero(Lcoeffs.rows(), Lcoeffs.cols());
+    mask(0,0)=mask(1,0)=mask(0,1)=1.;
+
+    Lcoeffs= fracSurf.detrend(surface, mask);
+    LNcoeffs=LegendreNormalize(Lcoeffs);
+
+    SurfaceToFile(surface,"detrendMapTest.bin");
+    cout << endl <<Lcoeffs << endl;
+    cout << endl << LNcoeffs  << endl;
+
+    cout << "Fractalsurf memory size " << sizeof(fracSurf) << endl;
+
+    Array22d limits;
+    limits << -250, -10, 250, 10;
+    BidimSpline Sspline ;
+
+    cout << "size after initializing " << Sspline.getControlValues().size() <<endl;
+    cout <<"Memorysize " << sizeof(Sspline) << endl;;
+
+    Sspline.setFromGridData(limits,surface);
+    cout << "\nSpline interpolator computed\n limits are\n" << Sspline.getSampling() <<endl;
+    cout << Sspline(-250,-10) << endl;
+    MatrixXd derivx, derivy;
+    {
+        ArrayXd xval(10), yval(10);
+        xval << 241,242,243,244, 245,246,247,248,249,250;
+        yval << 9.1, 9.2, 9.3, 9.4, 9.5,9.6,9.7,9.8,9.9,10;
+
+        cout << "input values\n";
+        cout << surface.bottomRightCorner(10,10) << endl;
+        cout << "interpolated values\n";
+        cout << Sspline.interpolator(X, xval, derivx).transpose()* Sspline.getControlValues()*Sspline.interpolator(Y, yval, derivy ) <<endl;
+    }
+    ArrayXd xval=ArrayXd::LinSpaced(501, -250,250);
+    ArrayXd yval=ArrayXd::LinSpaced(201, -10,10);
+    cout << "new x,y values set\n ";
+    MatrixXd interx=Sspline.interpolator(X, xval, derivx);
+    MatrixXd intery=Sspline.interpolator(Y, yval, derivy );
+
+    surface= interx.transpose()* Sspline.getControlValues()*intery;
+    SurfaceToFile(surface,"interpol.bin");
+    surface= derivx.transpose()* Sspline.getControlValues()*intery;
+    SurfaceToFile(surface,"derivX.bin");
+    interx=intery=MatrixXd();
+    cout <<"size after reinitializing " << interx.size() << "  " << intery.size() << endl << endl;
+
+    return 0;
+}
+
+int testKB()
+{
+    char * errstr;
+    if(!LoadSystemFromXml("KBtest.xml"))
+    {
+        GetOptiXError(&errstr);
+        cout << "XML load error :\n" << errstr <<endl;
+        return -1;
+    }
+
+    cout << "file loaded OK\n" ;
+
+
+    // we add surface errors
+    size_t idP_in, idM1, idM2, idP_out, idScreen, sourceID;
+    cout << "getting surfaces \n";
+
+    if(!FindElementID("M1",&idM1))
+    {
+        cout << "element 'M1' was not found\n";
+        return -1;
+    }
+    Surface* pM1=dynamic_cast<Surface*> ((ElementBase*)idM1);
+
+    if(!FindElementID("M2",&idM2))
+    {
+        cout << "element 'M2' was not found\n";
+        return -1;
+    }
+    Surface* pM2=dynamic_cast<Surface*> ((ElementBase*)idM2);
+
+    pM1->setErrorGenerator();
+    pM2->setErrorGenerator();
+
+    cout<< "setting the parameters of the surface error generators\n";
+
+    Parameter param;
+    GetParam(pM1,"residual_sigma", param);
+    param.value=3.e-9; // 3 nm
+    SetParam(pM1,"residual_sigma", param);
+//    SetParam(pM2,"residual_sigma", param);
+
+
+    GetParam(pM1,"error_limits", param);
+    {
+        ArrayXXd limits(2,2);
+        limits << -0.055, -0.005, 0.055, 0.005;
+        *param.paramArray=limits;
+    }
+    SetParam(pM1,"error_limits", param);
+//    SetParam(pM2,"error_limits", param);
+
+    GetParam(pM1,"sampling", param);
+    {
+        ArrayXXd sampling(2,1);
+        sampling << 5e-4, 1e-4;
+        *param.paramArray=sampling;
+    }
+    SetParam(pM1,"sampling", param);
+//    SetParam(pM2,"sampling", param);
+
+    GetParam(pM1,"fractal_exponent_x", param);
+    {
+        ArrayXXd exp(2,1);
+        exp << -1.5,-2.;
+        *param.paramArray=exp;
+    }
+    SetParam(pM1,"fractal_exponent_x", param);
+//    SetParam(pM2,"fractal_exponent_x", param);
+
+    GetParam(pM1,"fractal_frequency_x", param);
+    {
+        ArrayXXd freq(1,1);
+        freq << 500.;
+        *param.paramArray=freq;
+    }
+    SetParam(pM1,"fractal_frequency_x", param);
+//    SetParam(pM2,"fractal_frequency_x", param);
+
+    // we keep default value of -1 for the Y fractal exponent
+
+    GetParam(pM1,"detrending", param);
+    {
+        ArrayXXd detrend(3,3);
+        detrend << 1., 1., 1.,
+                   1., 1., 0,
+                   1., 0 , 0;
+        *param.paramArray=detrend;
+    }
+    SetParam(pM1,"detrending", param);
+//    SetParam(pM2,"detrending", param);
+
+    GetParam(pM1,"low_Zernike", param);
+    {
+        ArrayXXd legendre(4,3);
+        legendre <<  0 , 0.,   5.e-9,
+                     0., 2e-9, 1.e-9,
+                     1.e-8, 0 , 2e-9,
+                     5.e-9, 0,  0. ;
+        *param.paramArray=legendre;
+    }
+    SetParam(pM1,"low_Zernike", param);
+//    SetParam(pM2,"low_Zernike", param);
+
+    string  outfile = "KBerrors.xml";
+    cout << "saving to " << outfile << endl;
+    if(!SaveSystemAsXml(outfile.c_str()))
+        cout << "XML save error\n";
+    else
+        cout << "XML saved\n";
+
+
+    MatrixXd Legendre_sigmas;
+    double fractal_sigma;
+
+    try{
+        if(!pM1->generateSurfaceErrors(&fractal_sigma, Legendre_sigmas))
+        {
+            GetOptiXError(&errstr);
+            cout << "could not generate errors from M1 cause:\n" << errstr << endl;
+            exit(-2);
+        }
+    }catch (...) {
+        cout << "catch: unknown" <<endl;
+    }
+    cout << " set method to SurfOffset\n";
+    pM1->setErrorMethod(SimpleShift);
+
+    cout << "Enable surface errors in ray tracing \n";
+    SurfaceErrorsEnable(true );
+
+    // here we start the ray tracing
+
+
+    double lambda=1.e-9;
+
+    cout << "getting source \n";
+    if(!FindElementID("source",&sourceID))
+    {
+        cout << "element 'source' was not found\n";
+        return -1;
+    }
+
+    cout << "calling align on source\n";
+    if(!Align(sourceID, lambda))
+    {
+       GetOptiXError( &errstr);
+       cout << "Alignment error : " << errstr << endl;
+       return -1;
+    }
+
+    if(!Generate(sourceID, lambda))
+    {
+       GetOptiXError( &errstr);
+       cout << "Source generation error : " << errstr << endl;
+       return -1;
+    }
+
+
+
+    if(!FindElementID("pupil_in",&idP_in))
+    {
+        cout << "element 'pupil_in' was not found\n";
+        return -1;
+    }
+//    Surface* p_in=dynamic_cast<Surface*> ((ElementBase*)idP_in);
+
+    if(!FindElementID("pupil_out",&idP_out))
+    {
+        cout << "element 'pupil_out' was not found\n";
+        return -1;
+    }
+//    Surface* p_out=dynamic_cast<Surface*> ((ElementBase*)idP_out);
+
+    if(!FindElementID("screen",&idScreen))
+    {
+        cout << "element 'screen' was not found\n";
+        return -1;
+    }
+    Surface* screen=dynamic_cast<Surface*> ((ElementBase*)idScreen);
+
+
+
+
+    cout << "start ray tracing\n";
+    if(!Radiate(sourceID))
+    {
+       GetOptiXError( &errstr);
+       cout << "Radiation error : " << errstr << endl;
+       return -1;
+    }
+    cout << "Ray tracing OK\n";
+
+    Diagram impactDg(6);
+
+    cout << "\nIMPACTS\n";
+  //  int ncounts=screen->getSpotDiagram(spotDg,0);
+    int ncounts=screen->getImpactData(impactDg,AlignedLocalFrame);
+    if(ncounts)
+    {
+        for(int i=0; i<6 ; ++i)
+           cout << impactDg.m_min[i] << " \t" << impactDg.m_max[i] << " \t" << impactDg.m_sigma[i] << endl;
+
+        fstream spotfile("KBspotdiag.imp", ios::out | ios::binary);
+        spotfile << impactDg;
+        spotfile.close();
+
+
+        cout << "impacts stored in KBspotdiag.imp" << endl << endl;
+    }
+
+
+    Diagram spotDg(4);
+
+    cout << "\nSPOT-DIAG\n";
+    ncounts=screen->getSpotDiagram(spotDg,0);
+    if(ncounts)
+    {
+        for(int i=0; i<4 ; ++i)
+           cout << spotDg.m_min[i] << " \t" << spotDg.m_max[i] << " \t" << spotDg.m_sigma[i] << endl;
+
+        fstream spotfile("KB_foc.sdg", ios::out | ios::binary);
+        spotfile << spotDg;
+        spotfile.close();
+        cout << endl << endl;
+    }
+
+    ncounts=screen->getSpotDiagram(spotDg,0.002);
+    if(ncounts)
+    {
+        for(int i=0; i<4 ; ++i)
+           cout << spotDg.m_min[i] << " \t" << spotDg.m_max[i] << " \t" << spotDg.m_sigma[i] << endl;
+
+        fstream spotfile("KB_foc+2mm.sdg", ios::out | ios::binary);
+        spotfile << spotDg;
+        spotfile.close();
+        cout << endl << endl;
+    }
+
+    double  xlimit[2], ylimit[2], zlimit[2]={-0.002,0.002};
+    int dims[3]={201,201,101};
+    Tensor<int,3> focdiag=screen->getFocalDiagram(dims, zlimit, (double*)xlimit, (double*)ylimit);
+    cout <<"limits X [" << xlimit[0] << ", " << xlimit[1] << "]  y [" << ylimit[0] << ", " << ylimit[1] << "]\n";
+    fstream focfile("KB_focdiag.fdg", ios::out | ios::binary);
+    if(focfile.is_open())
+    {
+        cout << "writing header\n";
+        focfile.write((char*)xlimit, 2*sizeof(double));
+        focfile.write((char*)ylimit, 2*sizeof(double));
+        focfile.write((char*)zlimit, 2*sizeof(double));
+        focfile.write((char*)dims, 3*sizeof(int));
+        cout << "Header written\n";
+        focfile.write((char*)focdiag.data(), dims[0]*dims[1]*dims[2]*sizeof(int));
+        focfile.close();
+        cout << endl << endl;
+    }
+    else
+        cout << "could not open KB_focdiag.fdg in output\n";
+
+
+    ncounts=screen->getSpotDiagram(spotDg,-0.002);
+    if(ncounts)
+    {
+        for(int i=0; i<4 ; ++i)
+           cout << spotDg.m_min[i] << " \t" << spotDg.m_max[i] << " \t" << spotDg.m_sigma[i] << endl;
+
+        fstream spotfile("KB_foc-2mm.sdg", ios::out | ios::binary);
+        spotfile << spotDg;
+        spotfile.close();
+        cout << endl << endl;
+    }
+
+
+    ncounts=pM1->getImpactData(impactDg,SurfaceFrame);
+    if(ncounts)
+    {
+        for(int i=0; i<2 ; ++i)
+           cout << impactDg.m_min[i] << " \t" << impactDg.m_max[i] << " \t" << impactDg.m_sigma[i] << endl;
+
+        fstream spotfile("M1spots.imp", ios::out | ios::binary);
+        spotfile << impactDg;
+        spotfile.close();
+
+
+        cout << "impacts stored in M1spots.imp" << endl << endl;
+    }
+
+
+    ncounts=pM2->getImpactData(impactDg,SurfaceFrame);
+    if(ncounts)
+    {
+        for(int i=0; i<2 ; ++i)
+           cout << impactDg.m_min[i] << " \t" << impactDg.m_max[i] << " \t" << impactDg.m_sigma[i] << endl;
+
+        fstream spotfile("M2spots.imp", ios::out | ios::binary);
+        spotfile << impactDg;
+        spotfile.close();
+
+
+        cout << "impacts stored in M2spots.imp" << endl << endl;
     }
 
 

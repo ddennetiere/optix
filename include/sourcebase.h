@@ -43,18 +43,18 @@ class SourceBase : public virtual Surface
          *
          *  Generate() can be called several times with different wavelengths since each ray carries its wavelength.
          *  Radiate() will propagate all ray impacts accumulated in the source since the last clearImpacts() call. */
-        virtual int generate(const double wavelength,const char polar='S')=0;    // pure virtual {cout <<"errorBase class\n";return -1;};  /**<  \todo should be made pure virtual later*/
+        virtual int generate(const double wavelength,const char polar='S')=0;    // pure virtual
 
-        /** \brief implements the required pure virtual intercept() function of the base class,
-         *  so that the element is completely transparent
-         *
-         * \param ray  the ray in previous space if there is one
-         * \param normal  The Unit Z vector will be always return
-         * \return Unchanged ray position but expressed in this exit space
-         */
+        /** \brief computes the intercept of ray with this plane surface  in the surface local absolute frame and sets the new origin at the intercept
+        *
+        *   Ray must be expressed in **this** surface frame, in input as in output
+        *   \param[in,out]  ray  on input : the last ray position expressed in this surface frame. in output the ray positionned on the surface in this surface frame
+        *   \param[out] normal address of a vector which, if not null,  will receive the surface normal (normalized) at the intercept point
+        *   \return a reference to the modified ray
+        */
         virtual VectorType intercept(RayBaseType& ray, VectorType *normal=NULL)
         {
-            ray-=m_translationFromPrevious; // change ref fram from previous to this surface  ray is not rebased
+            // ray-=m_translationFromPrevious; // since 19/06/2024 DO NOT change ref fram from previous to this surface  ray is not rebased
             if(ray.m_alive)
             {
                 if(normal)
@@ -86,7 +86,7 @@ class SourceBase : public virtual Surface
         }
 
         /** \brief propagate all generated rays stored in impacts
-         * \todo This function need to be parallelized. it would need to create system clones fro thread safety
+         * \todo This function needs to be parallelized. it would need to create system clones for thread safety
          */
         inline int radiate()
         {

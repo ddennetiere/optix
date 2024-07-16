@@ -62,9 +62,16 @@ class PolynomialSurface:virtual public Surface, public PolyType
          */
         virtual inline int align(double wavelength=0){return 0;} // La surface est alignée sur le plan de définition pas sur la normale à l'origine
 
+        /** \brief computes the intercept of ray with this plane surface  in the surface local absolute frame and sets the new origin at the intercept
+        *
+        *   Ray must be expressed in **this** surface frame, in input as in output
+        *   \param[in,out]  ray  on input : the last ray position expressed in this surface frame. in output the ray positionned on the surface in this surface frame
+        *   \param[out] normal address of a vector which, if not null,  will receive the surface normal (normalized) at the intercept point
+        *   \return a reference to the modified ray
+        */
         virtual VectorType intercept(RayBaseType& ray, VectorType * normal=NULL)
         {
-            ray-=m_translationFromPrevious; // change ref fram from previous to this surface  ray is not rebased
+            // ray-=m_translationFromPrevious; // since 19/06/2024 DO NOT change ref fram from previous to this surface  ray is not rebased
             if(ray.m_alive)
             {
                 ray.transform(m_surfaceInverse);
@@ -137,8 +144,7 @@ bool PolynomialSurface<PolyType>::setParameter(string name, Parameter& param)
 {
     char errmsg[80];
    // cout << "in PolynomialSurface setParameter\n";
-    if(! Surface::setParameter(name, param)) // this call update the parameter list but takes no action
-            return false;
+    if(! Surface::setParameter(name, param)) // this call  update the parameter in memory  but do not carry any parameter related action
     if(name=="surfaceLimits") // do specific creation actions
     {
         if(!(param.flags & ArrayData))
@@ -185,24 +191,6 @@ bool PolynomialSurface<PolyType>::setParameter(string name, Parameter& param)
     }
     return true;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 template<class PolyType>

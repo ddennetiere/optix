@@ -48,8 +48,10 @@ map<string,CoatingTable> coatingTables;  /**< \brief a set of CoatingTable. A co
 ElementCollection System;   /**< \brief dictionary of all elements created through this interface  */
                            // system, hence all optical elements, will be deleted
 
-bool inhibitApertureLimit=true; /**< \brief Global flag to take into account or not the apertures stops in the ray tracing */
-bool useReflectivity=false;     /**<  \brief Global flag to switch on or off the computation of reflectivity  in the ray tracing computation*/
+bool enableApertureLimit=true; /**< \brief Global flag to take into account or not the apertures stops in the ray tracing
+                                 *  inhibitApertureLimit replaced by enableApertureLimit of complementary value  should be user transparent*/
+bool enableReflectivity=false;     /**<  \brief Global flag to switch on or off the computation of reflectivity  in the ray tracing computation*/
+bool enableSurfaceErrors=false; /**< \brief Global flag indicating whether the surface errors are taken into account in propagation */
 bool threadInitialized=false;   /**< \brief Global flag to keep track of Open_MP  initialization */
 
 /** \} */ // end of InternalVar
@@ -86,15 +88,6 @@ void Init_Threads()
 }
 
 
-
-//set<size_t> ValidIDs;
-//StringVector stringData; /**< \todo seem unused*/
-
-//inline bool IsValidID(size_t ID)
-//{
-//    set<size_t>::iterator it=System.ValidIDs.find(ID);
-//    return it!=System.ValidIDs.end();
-//}
 
 #ifdef __cplusplus
 extern "C"
@@ -1441,10 +1434,233 @@ extern "C"
 
         return true;
     }
+// ------------------------------------------------------------------------
+// |           Surface error related functions                             |
+// ------------------------------------------------------------------------
 
-//            Aperture and wavefront related functions
+    DLL_EXPORT bool SetErrorGenerator(size_t elementID )
+    {
+        ClearOptiXError();
+        if(!System.isValidID(elementID))
+        {
+            SetOptiXLastError("Invalid element ID", __FILE__, __func__, __LINE__);
+            return false;
+        }
+        Surface* psurf=dynamic_cast<Surface*>((ElementBase*) elementID);
+        if(!psurf)
+        {
+            SetOptiXLastError(string("Element ")+((ElementBase*) elementID)->getName()+" is not a Surface", __FILE__, __func__, __LINE__);
+            return false;
+        }
 
-    DLL_EXPORT void SetAperturesActive(const bool activity){inhibitApertureLimit=!activity;}
+        psurf->setErrorGenerator();
+        return true;
+    }
+
+    DLL_EXPORT bool UnsetErrorGenerator(size_t elementID )
+    {
+        ClearOptiXError();
+        if(!System.isValidID(elementID))
+        {
+            SetOptiXLastError("Invalid element ID", __FILE__, __func__, __LINE__);
+            return false;
+        }
+        Surface* psurf=dynamic_cast<Surface*>((ElementBase*) elementID);
+        if(!psurf)
+        {
+            SetOptiXLastError(string("Element ")+((ElementBase*) elementID)->getName()+" is not a Surface", __FILE__, __func__, __LINE__);
+            return false;
+        }
+        if(!psurf->hasParameter("error_limits"))
+        {
+            SetOptiXLastError(string("Surface ")+psurf->getName()+" doesn't have an active surface error generator",
+                               __FILE__, __func__, __LINE__);
+            return false;
+        }
+        psurf->unsetErrorGenerator();
+        return true;
+    }
+
+    DLL_EXPORT bool GenerateSurfaceErrors(size_t elementID, double* total_sigma, int32_t *dims, double *Legendre_sigma )
+    {
+        ClearOptiXError();
+        if(!System.isValidID(elementID))
+        {
+            SetOptiXLastError("Invalid element ID", __FILE__, __func__, __LINE__);
+            return false;
+        }
+        Surface* psurf=dynamic_cast<Surface*>((ElementBase*) elementID);
+        if(!psurf)
+        {
+            SetOptiXLastError(string("Element ")+((ElementBase*) elementID)->getName()+" is not a Surface", __FILE__, __func__, __LINE__);
+            return false;
+        }
+        if(!psurf->hasParameter("error_limits"))
+        {
+            SetOptiXLastError(string("Surface ")+psurf->getName()+" doesn't have an active surface error generator",
+                               __FILE__, __func__, __LINE__);
+            return false;
+        }
+        MatrixXd sigmaMat;
+        if( ! psurf->generateSurfaceErrors(total_sigma, sigmaMat))
+            return false;
+
+        if(dims && Legendre_sigma)
+        {
+            int32_t lsize=sigmaMat.rows()* sigmaMat.cols();
+            if(dims[0]*dims[1] < lsize)
+            {
+                SetOptiXLastError(string("The allocated size of Legendre_sigma array is too small for the actual ")+
+                                  std::to_string(sigmaMat.rows())+"*"+std::to_string(sigmaMat.cols())+" size, in element "+
+                                  ((ElementBase*) elementID)->getName(), __FILE__, __func__, __LINE__);
+                return false;
+            }
+            dims[0]=sigmaMat.rows();
+            dims[1]=sigmaMat.cols();
+            memcpy(Legendre_sigma, sigmaMat.data(), lsize*sizeof(double));
+        }
+        return true;
+    }
+
+    DLL_EXPORT bool SetSurfaceErrors(size_t elementID,double xmin, double xmax, double ymin, double ymax,
+                                     int32_t xsize, int32_t ysize, const double* heightErrors)
+    {
+        ClearOptiXError();
+        if(!System.isValidID(elementID))
+        {
+            SetOptiXLastError("Invalid element ID", __FILE__, __func__, __LINE__);
+            return false;
+        }
+        Surface* psurf=dynamic_cast<Surface*>((ElementBase*) elementID);
+        if(!psurf)
+        {
+            SetOptiXLastError(string("Element ")+((ElementBase*) elementID)->getName()+" is not a Surface", __FILE__, __func__, __LINE__);
+            return false;
+        }
+        const Map<ArrayXXd> errmap((double*)heightErrors, xsize, ysize);
+        psurf->setSurfaceErrors(xmin, xmax, ymin, ymax, errmap);
+        return true;
+    }
+
+
+     DLL_EXPORT bool UnsetSurfaceErrors(size_t elementID )
+     {
+        ClearOptiXError();
+        if(!System.isValidID(elementID))
+        {
+            SetOptiXLastError("Invalid element ID", __FILE__, __func__, __LINE__);
+            return false;
+        }
+        Surface* psurf=dynamic_cast<Surface*>((ElementBase*) elementID);
+        if(!psurf)
+        {
+            SetOptiXLastError(string("Element ")+((ElementBase*) elementID)->getName()+" is not a Surface", __FILE__, __func__, __LINE__);
+            return false;
+        }
+        psurf->unsetSurfaceErrors();
+        return true;
+     }
+
+    DLL_EXPORT bool GetSurfaceErrors(size_t elementID, int* dims, double* height_errors )
+    {
+        ClearOptiXError();
+        if(!System.isValidID(elementID))
+        {
+            SetOptiXLastError("Invalid element ID", __FILE__, __func__, __LINE__);
+            return false;
+        }
+        Surface* psurf=dynamic_cast<Surface*>((ElementBase*) elementID);
+        if(!psurf)
+        {
+            SetOptiXLastError(string("Element ")+((ElementBase*) elementID)->getName()+" is not a Surface", __FILE__, __func__, __LINE__);
+            return false;
+        }
+        if(!dims || !height_errors)
+        {
+            SetOptiXLastError(string("Element ")+((ElementBase*) elementID)->getName()+" invalid dims or height_errors pointer", __FILE__, __func__, __LINE__);
+            return false;
+        }
+        int heightsize=dims[0]*dims[1];
+        ArrayXXd errmap=psurf->getSurfaceErrors() ;
+        int mapsize=errmap.rows()*errmap.cols();
+        if(!mapsize)
+        {
+            SetOptiXLastError(string("Thereis no error map associated to Surface ")+
+                            ((ElementBase*) elementID)->getName(), __FILE__, __func__, __LINE__);
+            return false;
+        }
+        if(heightsize < mapsize)
+        {
+            SetOptiXLastError(string("The allocated size of height_errors array is too small for the actual ")+
+                            std::to_string(errmap.rows())+"*"+std::to_string(errmap.cols())+" size, in element "+
+                            ((ElementBase*) elementID)->getName(), __FILE__, __func__, __LINE__);
+            return false;
+        }
+        dims[0]=errmap.rows();
+        dims[1]=errmap.cols();
+        memcpy(height_errors, errmap.data(), mapsize*sizeof(double)) ;
+        return true;
+    }
+
+    DLL_EXPORT bool SetErrorMethod(size_t elementID, ErrorMethod meth)
+    {
+        ClearOptiXError();
+        if(!System.isValidID(elementID))
+        {
+            SetOptiXLastError("Invalid element ID", __FILE__, __func__, __LINE__);
+            return false;
+        }
+        Surface* psurf=dynamic_cast<Surface*>((ElementBase*) elementID);
+        if(!psurf)
+        {
+            SetOptiXLastError(string("Element ")+((ElementBase*) elementID)->getName()+" is not a Surface", __FILE__, __func__, __LINE__);
+            return false;
+        }
+        psurf->setErrorMethod(meth);
+        return true;
+    }
+
+    DLL_EXPORT bool GetErrorMethod(size_t elementID, ErrorMethod *meth)
+    {
+        ClearOptiXError();
+        if(!System.isValidID(elementID))
+        {
+            SetOptiXLastError("Invalid element ID", __FILE__, __func__, __LINE__);
+            return false;
+        }
+        Surface* psurf=dynamic_cast<Surface*>((ElementBase*) elementID);
+        if(!psurf)
+        {
+            SetOptiXLastError(string("Element ")+((ElementBase*) elementID)->getName()+" is not a Surface", __FILE__, __func__, __LINE__);
+            return false;
+        }
+        *meth=psurf->getErrorMethod();
+        return true;
+    }
+
+    DLL_EXPORT bool SurfaceErrorsEnable(const bool activity)
+    {
+        enableSurfaceErrors=activity;
+        return true;
+    }
+
+
+    DLL_EXPORT bool SurfaceErrorsGetState(bool *activityFlag)
+    {
+        if(!activityFlag)
+        {
+            SetOptiXLastError("Invalid reference to activityFlag", __FILE__, __func__);
+            return false;
+        }
+        *activityFlag= enableSurfaceErrors;
+        return true;
+    }
+
+// -----------------------------------------------------------------
+// |           Aperture and wavefront related functions            |
+// -----------------------------------------------------------------
+
+    DLL_EXPORT void SetAperturesActive(const bool activity){enableApertureLimit=activity;}
 
     DLL_EXPORT bool GetAperturesActive(bool *activityFlag)
     {
@@ -1453,7 +1669,7 @@ extern "C"
             SetOptiXLastError("Invalid reference to activityFlag", __FILE__, __func__);
             return false;
         }
-        *activityFlag= !inhibitApertureLimit;
+        *activityFlag= enableApertureLimit;
         return true;
     }
 

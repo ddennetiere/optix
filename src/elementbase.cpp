@@ -14,7 +14,8 @@
 
 #include "elementbase.h"
 #include "sourcebase.h"
-
+#define XMLSTR (xmlChar*)
+#define MAXBUF 512
 
 map<string, string> ElementBase::m_helpstrings;
 int ElementBase::m_nameIndex=0;
@@ -276,3 +277,230 @@ TextFile& operator>>(TextFile& file,  ElementBase* elem)
     file >>str; // gets runtime class
     return file;
 }
+
+void ElementBase::operator>>(xmlNodePtr sysnode)
+{
+//     cout << "entering ElementBase::operator>>()\n";
+    char cvbuf[MAXBUF];
+    xmlNodePtr parmnode,arraynode;
+    xmlNodePtr elemnode=xmlNewTextChild(sysnode,NULL, XMLSTR "element", NULL);
+    xmlNewProp (elemnode, XMLSTR "name", XMLSTR m_name.c_str());
+    xmlNewProp (elemnode, XMLSTR "class", XMLSTR getOptixClass().c_str()); // on n'a pas besoin des pointeurs etournés
+    //   pour le chaînage next suffit; Si l'attribut de chaînage next n'est écrit,
+    //   il n'y a pas de suivant (m_next=null qui est le défaut de création)
+    if(m_next)
+        xmlNewProp (elemnode, XMLSTR "next", XMLSTR m_next->getName().c_str());
+    Surface* surf=dynamic_cast<Surface*>(this);
+    if(surf)  // en prévision des groupes qui ne sont pas des surfaces
+    {
+        *surf >> elemnode;
+    }
+    if(m_transmissive && getOptixClass().compare(0,8,"Grating<" )!=0 ) //gratings are reflective by default
+        xmlNewProp (elemnode, XMLSTR "trans", XMLSTR "true");
+
+    map<string,Parameter>::iterator it;
+    for(it=m_parameters.begin(); it != m_parameters.end(); ++it)
+    {
+//        parmnode=xmlNewTextChild(elemnode,NULL,XMLSTR "param", XMLSTR it->first.c_str());
+        Parameter &param=it->second;
+        if(param.flags & ArrayData)
+        {  //modified 04/06/2024 to record data as node text
+            parmnode=xmlNewTextChild(elemnode,NULL,XMLSTR "param", NULL);
+            cvbuf[0]=0;
+            char *pbuf=cvbuf;
+            int parmsize=param.paramArray->dims[0]*param.paramArray->dims[1];
+            if (parmsize)
+            {
+                pbuf+=sprintf(pbuf,"%.8g", param.paramArray->data[0]);
+                for(int i=1; i<  parmsize; ++i)
+                    pbuf+=sprintf(pbuf,", %.8g", param.paramArray->data[i]);
+            }
+            arraynode=xmlNewTextChild(parmnode, NULL, XMLSTR "array", XMLSTR cvbuf);
+//            xmlNewProp (arraynode, XMLSTR "data", XMLSTR cvbuf);
+            sprintf(cvbuf,"%Ld, %Ld", param.paramArray->dims[0], param.paramArray->dims[1]);
+            xmlNewProp (arraynode, XMLSTR "dims", XMLSTR cvbuf);
+        }
+        else
+        {
+            sprintf(cvbuf,"%.8g",param.value);
+            parmnode=xmlNewTextChild(elemnode,NULL,XMLSTR "param", XMLSTR cvbuf);
+         }
+        xmlNewProp (parmnode, XMLSTR "name", XMLSTR it->first.c_str());
+        if(param.bounds[0]!=0)
+        {
+            sprintf(cvbuf,"%.8g",param.bounds[0]);
+            xmlNewProp (parmnode, XMLSTR "min", XMLSTR cvbuf);
+        }
+        if(param.bounds[1]!=0)
+        {
+            sprintf(cvbuf,"%.8g",param.bounds[1]);
+            xmlNewProp (parmnode, XMLSTR "max", XMLSTR cvbuf);
+        }
+        if(param.multiplier!=1.)
+        {
+            sprintf(cvbuf,"%.8g",param.multiplier);
+            xmlNewProp (parmnode, XMLSTR "mult", XMLSTR cvbuf);
+        }
+        // Les paramètres type, group, et flags sont non modifiables
+    }
+}
+
+void ElementBase::operator<<(xmlNodePtr elemnode)
+{
+    xmlChar* trans= xmlGetProp(elemnode, XMLSTR "trans");
+    if(trans)
+    {
+        setTransmissive(true); //Value false is not stored in the XML
+        xmlFree(trans);
+    }
+
+	xmlChar *att=NULL, *name=NULL;
+    xmlNodePtr cur = xmlFirstElementChild(elemnode); //  elemnode->xmlChildrenNode;
+    Parameter param;
+//    bool success=true;
+	while (cur != NULL)  //parameter nodes
+	{  // std::cout << "node name " << (char*) cur->name << std::endl;
+	    if ((!xmlStrcmp(cur->name, XMLSTR "param")))
+        {
+            xmlNodePtr arraynode=NULL;
+            xmlChar *val=NULL, *data=NULL;
+            //check version
+           // bool V1=xmlHasProp(cur, XMLSTR "name");
+            if(xmlHasProp(cur, XMLSTR "name"))   // new format
+            {
+                name=xmlGetProp(cur, XMLSTR "name");
+//                std::cout << "Parameter " << (char*) name << " version2\n";
+                if(!getParameter((char*) name, param))
+                {
+                    std::cout << "parameter name " << name << "is not valid for class " << getOptixClass() << endl;
+                    break;
+                }
+                if(xmlChildElementCount(cur)==0)
+                    val=xmlNodeGetContent(cur);
+                else
+                {
+                    arraynode=xmlFirstElementChild(cur);
+                    if(!arraynode)
+                    {
+                        std::cout << "parameter name " << name << " no data found" << endl;
+                        break;
+                    }
+                    data=xmlNodeGetContent(arraynode);  // if size=0 data =""
+                }
+            }
+            else //old version
+            {
+                name=xmlNodeGetContent(cur);
+                std::cout << " param " << (char*) name << "  old version\n";
+                if(!getParameter((char*) name, param))
+                {
+                    std::cout << "parameter name " << name << "is not valid for class " << getOptixClass() << endl;
+                    break;
+                }
+                val= xmlGetProp(cur, XMLSTR "val");
+                if(!val)
+                {
+                    arraynode=xmlFirstElementChild(cur);
+                    if(!arraynode)
+                    {
+                        std::cout << "parameter name " << name << " no data found" << endl;
+                        break;
+                    }
+                    data=xmlGetProp(arraynode, XMLSTR "data");
+                }
+
+            }
+            //std::cout << " array node:" << (uint64_t) arraynode << "  Val:" << (uint64_t) val << "  data:" <<(uint64_t) data <<std::endl;
+            if(arraynode)
+            {
+                int dim0=0, dim1=0;
+                att=xmlGetProp(arraynode, XMLSTR "dims");
+                if(att)
+                {
+                   // printf("    Array %s ", att);
+                    sscanf((char*)att,"%d, %d", &dim0, &dim1);
+                    xmlFree(att);
+                }
+                else
+                {
+                    std::cout << "dims not found";
+                    break;
+                }
+                if(data)
+                {
+//                    cout << "array data=" << data << endl;
+                   // printf("\n           %s \n", data);
+                    int N=dim0*dim1;
+                    if(param.paramArray)
+                        delete param.paramArray;
+                    param.paramArray=new ArrayParameter(dim0,dim1);
+                    if(N)
+                    {
+                        double * pdat=param.paramArray->data;
+                        char *pbuf= (char*)data;
+                        sscanf(pbuf, "%lg", pdat);
+
+                        for (int i=1; i <N; ++i)
+                        {
+                            pbuf=strchr(pbuf,',');
+                            sscanf(++pbuf, "%lg", ++pdat);
+                        }
+                    }
+                    xmlFree(data);
+                }
+            }
+            else if(val)  // single value case we also  min max attributes
+            {
+               // std::cout << "val=" << val<< std::endl;
+                param.value=atof((char*)val);
+                xmlFree(val);
+
+                att= xmlGetProp(cur, XMLSTR "min");
+                if(att)
+                {
+                    param.bounds[0]=atof((char*)att);
+                    xmlFree(att);
+                }
+                att= xmlGetProp(cur, XMLSTR "max");
+                if(att)
+                {
+                    param.bounds[0]=atof((char*)att);
+                    xmlFree(att);
+                }
+                att= xmlGetProp(cur, XMLSTR "mult");
+                if(att)
+                {
+                    param.multiplier=atof((char*)att);
+                    xmlFree(att);
+                }
+            }
+            else
+                printf(" INCOMPLETE parameter no value found\n");
+
+
+        // Now we can update parameter
+            if(!setParameter((char*) name, param))
+            {
+                cout << " ERROR: " << LastError <<endl;
+//                    success=false;
+            }
+
+            // no need to dump  usually
+//            if(param.flags &ArrayData)
+//                dumpParameter((char*) name) ;
+            xmlFree(name);
+        }
+//        else
+//          cout << cur->name << "  skipped\n ";
+
+
+       // cout << "old cur = " << cur << endl;
+
+        //cur = cur->next;
+        // calling NextElementSibling avoid entering intor the text node
+        cur=xmlNextElementSibling(cur);
+        //cout << "new cur=" << cur << endl;
+	} // parameter nodes
+
+}
+

@@ -171,16 +171,28 @@ RayType& GratingBase::transmit(RayType& ray)
 {
 
     VectorType normal;
-
+    ray-=m_translationFromPrevious;
     intercept(ray, &normal);    // intercept effectue le changement de repère entrée/sortie (update seulement si alive)
     if(ray.m_alive)
     {
         if(m_recording==RecordInput)
             m_impacts.push_back(ray);
 
-        if(!inhibitApertureLimit && m_apertureActive)
+        Vector2d pos=(m_surfaceInverse*ray.position()).head(2).cast<double>();
+
+        if(m_errorMap && enableSurfaceErrors && m_errorMethod )
+        {   //we use pos in surface frame check if ray is inside the definition area
+            if( m_errorMap->isValid(pos))
+                applyPerturbation(pos, ray, normal); //will actualize the 3 parameters according to the m_errorMethod parameter
+            if( m_errorMap->isValid(pos)) // spos might be changed by applyPerturbation
+            {
+                ray.m_amplitude_P=0; //amplitude are nulled but ray is still propagated without perturbation
+                ray.m_amplitude_S=0;
+            }
+        }
+
+        if(enableApertureLimit && m_apertureActive)
         {
-            Vector2d pos=(m_surfaceInverse*ray.position()).head(2).cast<double>();
             double T=m_aperture.getTransmissionAt(pos);
             ray.m_amplitude_P*=T;
             ray.m_amplitude_S*=T;
@@ -238,16 +250,36 @@ RayType& GratingBase::reflect(RayType& ray)
         if(m_recording==RecordInput)
             m_impacts.push_back(ray);
 
-        if(!inhibitApertureLimit && m_apertureActive)
+        Vector2d pos=(m_surfaceInverse*ray.position()).head(2).cast<double>();
+
+        if(m_errorMap && enableSurfaceErrors && m_errorMethod )
+        {   //we use pos in surface frame check if ray is inside the definition area
+            if( m_errorMap->isValid(pos))
+                applyPerturbation(pos, ray, normal); //will actualize the 3 parameters according to the m_errorMethod parameter
+            if( m_errorMap->isValid(pos)) // spos might be changed by applyPerturbation
+            {
+                ray.m_amplitude_P=0; //amplitude are nulled but ray is still propagated without perturbation
+                ray.m_amplitude_S=0;
+            }
+        }
+
+        if(enableApertureLimit && m_apertureActive)
         {
-            Vector2d pos=(m_surfaceInverse*ray.position()).head(2).cast<double>();
             double T=m_aperture.getTransmissionAt(pos);
             ray.m_amplitude_P*=T;
             ray.m_amplitude_S*=T;
         }
 
+//    #ifdef TEST_POLYGRATING // ce test peut sans doute être supprimé 28/05/2024
+//        VectorType surfpos=m_surfaceInverse*ray.position();
+//        VectorType G0=gratingVector(surfpos, m_surfaceInverse*normal);
+//        cout  << surfpos.transpose() << "  G " << G0.transpose() <<endl;
+//        VectorType G=m_surfaceDirect*G0*m_useOrder*ray.m_wavelength;
+//        // le vecteur réseau exprimé dans le repère de calcul (absolu local)
+//    #else
         VectorType G=m_surfaceDirect*gratingVector(m_surfaceInverse*ray.position(), m_surfaceInverse*normal)*m_useOrder*ray.m_wavelength; // le vecteur réseau exprimé dans le repère de calcul (absolu local)
         // G par  construction est dans le plan tangent G.Normal=0
+//    #endif // TEST_POLYGRATING
 
             FloatType KinPerp=normal.dot(ray.direction());
             VectorType KoutParal=ray.direction()-KinPerp*normal +G ; // = KinParal +G

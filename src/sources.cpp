@@ -453,6 +453,112 @@ int AstigmaticGaussianSource::generate(const double wavelength, const char polar
 }
 
 
+//   ----------------   UniformGaussianSource implementation   --------------------------
+
+
+UniformGaussianSource::UniformGaussianSource(string name ,Surface * previous):Surface(true,name, previous)
+{
+   // cout << "creating Gaussian source " << name << endl;
+    Parameter param;
+    param.type=Dimensionless;
+    param.group=SourceGroup;
+    param.value=1000.;
+    param.flags=NotOptimizable;
+    defineParameter("nRays", param);  // 1000 points par défaut
+
+    param.type=Distance;
+    param.value=0;
+    param.flags=0;
+    defineParameter("sigmaX", param);  //
+    defineParameter("sigmaY", param);  // default sigma source = 0 (source ponctuelle)
+
+
+    param.type=Angle ;
+    param.value=0.35e-3;
+    defineParameter("semiXdiv", param); //
+    defineParameter("semiYdiv", param); // default round source dsigma div = 500 µrad
+
+
+    setHelpstring("nRays", " number of rays to be generated");  // complete la liste de infobulles de la classe Surface
+    setHelpstring("sigmaX", "RMS source size in X direction");
+    setHelpstring("sigmaY", "RMS source size in Y direction");
+    setHelpstring("semiXdiv", "1/2 source divergence in X direction");
+    setHelpstring("semiYdiv", "1/2 source divergence in y direction");
+
+}
+
+int UniformGaussianSource::generate(const double wavelength, const char polar)
+{
+    int nRays;
+    FloatType sigmaX, sigmaY, semiXdiv, semiYdiv;
+
+    Parameter param;
+    getParameter("nRays",param);
+    nRays=lround(param.value);
+    if(nRays<1)
+        nRays=1;
+    getParameter("sigmaX", param);
+    sigmaX=param.value;
+    getParameter("sigmaY", param);
+    sigmaY=param.value;
+    getParameter("semiXdiv", param);
+    semiXdiv=param.value;
+    getParameter("semiYdiv", param);
+    semiYdiv=param.value;
+
+    RayType::ComplexType Samp, Pamp;
+    if(polar=='S')
+        Samp=1., Pamp=0;
+    else if(polar=='P')
+        Samp=0, Pamp=1.;
+    else if(polar=='R')
+        Samp=sqrt(2.), Pamp=complex<double>(0,-sqrt(2.));
+    else if(polar=='L')
+        Samp=sqrt(2.), Pamp=complex<double>(0,sqrt(2.));
+    else
+        throw ParameterException("invalid polarization (S, P, R or L only are  allowed)", __FILE__, __func__, __LINE__);
+
+
+    normal_distribution<FloatType> gaussX(0.,sigmaX);
+
+    normal_distribution<FloatType> gaussY(0., sigmaY);
+
+    uniform_real_distribution<FloatType> uniformXprim(-semiXdiv, semiXdiv);
+
+    uniform_real_distribution<FloatType> uniformYprim(-semiYdiv, semiYdiv);
+
+    reserveImpacts(m_impacts.size() + nRays);
+    VectorType org=VectorType::Zero(),dir=VectorType::Zero();
+
+    if(nRays==1) // retourne le rayon axial
+    {
+        org <<0, 0, 0;
+        dir << 0, 0, 1.L;
+        m_impacts.push_back(RayType(RayBaseType(org,dir),wavelength,Samp,Pamp)); // amplitude set to 1 and S polar by default
+        return nRays;
+    }
+    random_device rd;
+    // if not clean enough use a Mersenne twister as mt19937 gen{rd()};
+    for(int i=0; i<nRays; ++ i)
+    {
+        org <<0, 0, 0;
+        if(sigmaX > 0)
+            org(0)=gaussX(rd);
+        if(sigmaY >0)
+            org(1)=gaussY(rd);
+        dir << 0, 0, 1.L;
+        if(semiXdiv > 0)
+            dir(0)=uniformXprim(rd);
+        if(semiYdiv > 0)
+            dir(1)=uniformYprim(rd);
+        dir.normalize();
+        m_impacts.push_back(RayType(RayBaseType(org,dir),wavelength,Samp,Pamp)); // amplitude set to 1 and S polar by default
+    }
+    m_OPDvalid=false;
+    return nRays;
+}
+
+
 
 //   ----------------   BMtypeGaussianSource implementation   --------------------------
 

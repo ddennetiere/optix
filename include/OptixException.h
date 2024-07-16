@@ -22,7 +22,7 @@
 #include <string>
 
 using std::string;
-using  std::runtime_error;
+using  std::runtime_error, std::logic_error;
 
 /** \brief Exception notifying he occurence of an error in ray propagation
  */
@@ -33,7 +33,7 @@ public:
     {
         char str[256];
         sprintf(str, " %s  %s line %d", file.c_str(), callingFunction.c_str(), line);
-        what_str=what.empty()?string("RayException in"):what + str;
+        what_str=(what.empty()?string("RayException in"):what)+ str;
     }
     virtual ~RayException() {}
     virtual string  what(){return what_str;}
@@ -48,7 +48,7 @@ public:
     {
         char str[256];
         sprintf(str, "  %s  %s line %d",  file.c_str(), callingFunction.c_str(), line);
-        what_str=cause.empty()?string("EigenException in"):cause + str;
+        what_str=(cause.empty()?string("EigenException in"):cause) + str;
     }
     virtual ~EigenException() {}
     virtual string  what(){return what_str;}
@@ -63,7 +63,7 @@ public:
     {
         char str[256];
         sprintf(str, "   %s function  %s line %d", file.c_str(), callingFunction.c_str(), line);
-        what_str=cause.empty()?string("InterceptException in"):cause + str;
+        what_str=(cause.empty()?string("InterceptException in"):cause) + str;
     }
     virtual ~InterceptException() {}
     virtual string  what(){return what_str;}
@@ -79,12 +79,30 @@ public:
     {
         char str[256];
         sprintf(str, "  %s  %s line %d",  file.c_str(), callingFunction.c_str(), line);
-        what_str=what.empty()?string("ParameterException in"):what + str;
+        what_str=(what.empty()?string("ParameterException in"):what) + str;
     }
     virtual ~ParameterException() {}
     virtual string  what(){return what_str;}
     string what_str;
 };
+
+
+/** \brief Non fatal error emitted whenever a parameter is not in the expected range
+ */
+class ParameterWarning:public logic_error
+{
+public:
+    ParameterWarning(string what ="", string file="", string callingFunction="", int line=-1 ):logic_error("ParameterWarning")
+    {
+        char str[256];
+        sprintf(str, "  %s  %s line %d",  file.c_str(), callingFunction.c_str(), line);
+        what_str=(what.empty()?string("ParameterWarning in"):what) + str;
+    }
+    virtual ~ParameterWarning() {}
+    virtual string  what(){return what_str;}
+    string what_str;
+};
+
 
 
 /** \brief Tagged parameter setting or recovering error
@@ -96,9 +114,25 @@ public:
     {
         char str[256];
         sprintf(str, " %s  %s line %d",  file.c_str(), callingFunction.c_str(), line);
-        what_str=what.empty()?string("TextFileException in"):what + str;
+        what_str=(what.empty()?string("TextFileException in"):what) + str;
     }
     virtual ~TextFileException() {}
+    virtual string  what(){return what_str;}
+    string what_str;
+};
+
+/** \brief exception raised by xml reader if the object being read-in cannot be constructed
+ */
+class XmlFileException:public runtime_error
+{
+public:
+    XmlFileException(string what ="", string file="", string callingFunction="", int line=-1 ):runtime_error("XmlFileException")
+    {
+        char str[256];
+        sprintf(str, " %s  %s line %d",  file.c_str(), callingFunction.c_str(), line);
+        what_str=(what.empty()?string("XmlFileException in"):what) + str;
+    }
+    virtual ~XmlFileException() {}
     virtual string  what(){return what_str;}
     string what_str;
 };
@@ -114,7 +148,7 @@ public:
     {
         char str[128];
         sprintf(str, " in %s  %s line %d",  file.c_str(), callingFunction.c_str(), line);
-        what_str=what.empty()?string("ElementException"):what + str;
+        what_str=(what.empty()?string("ElementException"):what) + str;
     }
     virtual ~ElementException() {}
     virtual string  what(){return what_str;}

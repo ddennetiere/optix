@@ -102,6 +102,9 @@ public:
  *   \b sigmaYdiv | Angle | RMS source divergence in Y direction
  *  \note
  *  All parameters are defined and stored as doubles. nRays will be rounded to the nearest integer
+ *  \warning
+ *  The gaussian generator uses  \b std::random_device \b as a source of random number.
+ *  It might not be available on non Windows system and could be replaced by \b default_random_engine \b
  */
 class GaussianSource: public virtual SourceBase
 {
@@ -138,6 +141,9 @@ public:
  *   \b waistY | Distance | distance of Y waist to the "source plane"
  *  \note
  *  All parameters are defined and store as double. nRays will be rounded to the nearest integer
+ *  \warning
+ *  The gaussian generator uses  \b std::random_device \b as a source of random number.
+ *  It might not be available on non Windows system and could be replaced by \b default_random_engine \b
  */
 class AstigmaticGaussianSource: public virtual SourceBase
 {
@@ -174,7 +180,10 @@ public:
  *  This function has maxima at \f$ \pm \: {[ \pi \: ( \sqrt {\frac {2} {\pi} + 1 } - 1) \: ]}^{\frac {1}{2}}  \sigma' \approx \pm \: 0.94 \:\sigma' \f$
  *  \note
  *  All parameters are defined and stored as doubles. nRays will be rounded to the nearest integer
- */
+ *  \warning
+ *  The gaussian generator uses  \b std::random_device \b as a source of random number.
+ *  It might not be available on non Windows system and could be replaced by \b default_random_engine \b
+  */
 class BMtypeGaussianSource: public virtual SourceBase
 {
 public:
@@ -188,7 +197,17 @@ public:
 
 };
 
-
+/** \ingroup elemClasses
+ *  \brief alias Source<Secondary> \n Implements a source whose radiation properties are calculated by propagation from a primary source to this
+ *
+ *  \warning  This class is not fully implemented, DO NOT USE
+ *  The class has xx specific parameters belonging to the SourceGroup
+ *     -----------------------------------------
+ *
+ *   Name of parameter | UnitType | Description
+ *   ----------------- | -------- | --------------
+ *  \todo Complete and test SecondarySource class
+ */
 class SecondarySource: public virtual SourceBase
 {
 public:
@@ -227,6 +246,38 @@ protected:
 
 };
 
+/** \ingroup elemClasses
+ *  \brief alias Source<UniformGaussian> \n this class describes a source with  gaussian spatial and uniform angular distribution
+ *    The class has five specific parameters belonging to the SourceGroup
+ *     -----------------------------------------
+ *
+ *   Name of parameter | UnitType | Description
+ *   ----------------- | -------- | --------------
+ *   \b nRays | Dimensionless | number of rays to be generated
+ *   \b trajectoryRadius | Distance | Radius of the trajectory in the simulated bending magnet
+ *   \b sigmaX | Distance | RMS source size in the X direction
+ *   \b sigmaY | Distance | RMS source size in the Y direction
+ *   \b semiXdiv | Angle | 1/2 source divergence in X direction
+ *   \b semiXdiv | Angle | 1/2 source divergence in  in Y direction
+ *
+ *  \note
+ *  All parameters are defined and stored as doubles. nRays will be rounded to the nearest integer
+ *  \warning
+ *  The gaussian generator uses  \b std::random_device \b as a source of random number.
+ *  It might not be available on non Windows system and could be replaced by \b default_random_engine \b
+ */
+class UniformGaussianSource: public virtual SourceBase
+{
+public:
+    /** Default constructor */
+    UniformGaussianSource(string name="" ,Surface * previous=NULL);
+    /** Default destructor */
+    virtual ~UniformGaussianSource(){}
+    virtual inline string getOptixClass(){return "Source<UniformGaussian>";}   /**< return the derived class name ie. Source<Gaussian> */
+    virtual int generate(const double wavelength, const char polar='S');    /**< implementation of SourceBase::generate for GaussianSource() */
+    //public members
+
+};
 
 
 #endif // SOURCES_H

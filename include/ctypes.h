@@ -69,6 +69,16 @@ enum FrameID{
 };
 
 /** \ingroup enums
+ *   \brief Identifies the method used to account for surface errors in ray tracing propagation
+ */
+enum ErrorMethod{
+    None=0, /**< No correction applied */
+    LocalSlope=1,   /**< Only the local slope at intercept position is used. No intercept correction applied */
+    SimpleShift=2,  /**< First order intercept and slope error refinement applied  */
+    SurfOffset=3    /**< The surface is shifted by dZ and intercept computed again (in case of large shape curvature) */
+};
+
+/** \ingroup enums
  * \brief parameter group indicator intended for property pages
  *
  */ /*  explicit underlying type is uint32_t */
@@ -76,7 +86,8 @@ enum ParameterGroup /*:uint32_t*/{
     BasicGroup=0,   /**< The parameter belongs to the base group common to all surfaces */
     ShapeGroup=1,   /**< The parameter describes a surface shape */
     SourceGroup=2,  /**< The parameter describes a source*/
-    GratingGroup=3  /**<  the parameter describes a grating*/
+    GratingGroup=3,  /**<  the parameter describes a grating*/
+    SurfErrorGroup=4 /**<  the parameter describes a surface error generator*/
 };
 
 /** \ingroup enums
@@ -96,15 +107,18 @@ typedef struct  __ArrayParameter
     double *data; /**< \brief a pointer to the first element of the array. The array is owned by the creator, who is in charge of its deletion*/
 #ifdef __cplusplus
     // the following functions are only defined in C++
-    /** \brief return the array data as a Matrix    */
-    inline Eigen::Map<Eigen::MatrixXd> matrix() {return Eigen::Map<Eigen::MatrixXd>(data, dims[0], dims[1]);}
+    /** \brief return the array data as a Matrix
+     *
+     * \return a matrix map of the data */
+    inline Eigen::Map<Eigen::MatrixXd> matrix()
+        {return Eigen::Map<Eigen::MatrixXd>(data, dims[0], dims[1]);}
     /** \brief construct and reserve parameter array space
     *   \param rows number of rows of the array
     *   \param cols number of columns of the array
     */
     inline __ArrayParameter(int rows, int cols){dims[0]=rows; dims[1]= cols; data=new alignas(16) double[rows*cols];}
 
-    inline __ArrayParameter(){}/**< \brief default empty constructor */
+    inline __ArrayParameter(){dims[0]=dims[1]= 0; data=NULL;}/**< \brief default empty constructor */
 
     /** \brief copy constructor with deep copy
     *   \param aparam the parameter array to copy
@@ -183,18 +197,26 @@ typedef struct __Parameter{
     ParameterGroup group=BasicGroup; /**< \brief parameter group. This field is read-only outside ElementBase class*/
     uint32_t flags=0; /**< \brief non null if parameter is not optimizable. This field is read-only outside ElementBase class */
 // methods: (only defined in C++)
+
     __Parameter(){}     /**< \brief default constructor */
     /** \brief constructor with value assignment
      * \param newvalue the  parameter value
      * \param newtype  UnitType of the parameter
-     * \param newmultiplier=1. multiplier value
+     * \param newgroup Parameter Group
+     * \param newmultiplier multiplier value (default value=1.)
      */
     inline __Parameter(double newvalue, UnitType newtype, ParameterGroup newgroup, double newmultiplier=1.):/**<  \brief standard constructor sets optimization bounds to  parameter value */
         value(newvalue), multiplier(newmultiplier), type(newtype),group(newgroup), flags(0) {bounds[0]=bounds[1]=newvalue;}
-    /** \brief constructor with array assignment
-     * \param newparamArray the  parameter array of values
-     * \param newtype  UnitType of the parameter values
-     * \param newmultiplier=1. multiplier value
+
+
+    /** \brief  Parameter array constructor with array initialization
+     *
+     * \param Nx size of the first dimension
+     * \param Ny size of the second dimension
+     * \param newtype unit type
+     * \param newgroup Parameter Group
+     * \param newmultiplier multiplier value (default is 1.)
+     *
      */
     inline __Parameter(uint64_t Nx, uint64_t Ny, UnitType newtype, ParameterGroup newgroup, double newmultiplier=1.):/**<  \brief standard constructor sets optimization bounds to  parameter value */
         paramArray(new ArrayParameter(Nx,Ny)), multiplier(newmultiplier), type(newtype), group(newgroup), flags(ArrayData|NotOptimizable)
@@ -426,4 +448,24 @@ typedef struct __PSFparameters
 #endif
 }PSFparameters;
 
+/** \brief structure defining the statistical parameters of a fractal surface
+ */
+typedef struct __FractalParameters
+{
+    int32_t nx;     /**< \brief the number of fractal segments of the X PSD ( >=1)*/
+    double * exponent_x;    /**< \brief the list of fractal exponents (in principle negative) of the X PSD model one per segment (size  >= nx)*/;
+    double * frequency_x;   /**< \brief the transition frequencies between the X fractal segments i \f$ in \ meter^{-1} \f$ . Unused if nx=1 (size > nx-1) */
+    int32_t ny;     /**< \brief the number of fractal segments of the Y PSD ( >=1)*/
+    double * exponent_y;    /**< \brief the list of fractal exponents of the Y PSD model one per segment (size  >= ny)*/;
+    double * frequency_y;   /**< \brief the transition frequencies between the Y fractal segments i \f$ in \ meter^{-1} \f$ . Unused if ny=1 (size > nx-1) */
+}FractalParameters;
+
+typedef struct __SurfaceStats
+{
+    double sigma;
+    double sigmaPrimX;
+    double sigmaPrimY;
+} SurfaceStats;
+
 #endif // CTYPES_H_INCLUDED
+

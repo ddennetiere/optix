@@ -37,13 +37,9 @@
 
 #include <CoatingTable.h>
 
-extern map<string, XDatabase> dataBases;   /**< \brief a set of DABAX data bases indexed for fast access  */
-extern map<string, MaterialTable> indexTables; /**< \brief a set of tables of material index. Material tables interpolate
-                                        *  the index of the registered materials on a common energy grid with minimum number of steps*/
-extern map<string,CoatingTable> coatingTables;  /**< \brief the coating table enables interpolation of the registered coatings on a unique energy and angle grid */
-
-
-
+extern map<string, XDatabase> dataBases;  /**< defined in interface.cpp */
+extern map<string, MaterialTable> indexTables;   /**< defined in interface.cpp */
+extern map<string,CoatingTable> coatingTables;  /**< defined in interface.cpp */
 
 
 #ifdef __cplusplus

@@ -37,14 +37,13 @@ void Cylinder::createSurface()
     V(1)=sinl(param.value);
     if(!getParameter("curvature", param) )
        throw ParameterException("Curvature parameter not found", __FILE__, __func__, __LINE__);
-    if(param.value==0)  //cylindre degénéré en plan Z=0
+    if(param.value==0)  //degenerate cylinder as  plane Z=0
     {
         m_localQuadric.setZero();
         m_localQuadric(2,2)=1.L;
     }
-    else  /**< \todo cas degenéré inutile avec nouvelle definition */
+    else  //The degenerate case is not required in principle when defined by curvature, but keeping it has no cost
     {
-        //V*=param.value;
         m_localQuadric.block(0,0,2,2)=V*V.transpose()*param.value;
         m_localQuadric(3,2) =m_localQuadric(2,3)=-1.L; //  param.value;
         m_localQuadric(3,3)=0; //passe par 0

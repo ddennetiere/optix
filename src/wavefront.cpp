@@ -22,9 +22,10 @@
 
 using std::cout, std::endl;
 
+
 ArrayXXd Legendre(int Norder, const Ref<ArrayXd>& Xpos, ArrayXXd& derivative )
 {
-    cout << "bounds in Legendre  " << Xpos.minCoeff() <<"  " << Xpos.maxCoeff() << endl;
+//    cout << "bounds in Legendre  " << Xpos.minCoeff() <<"  " << Xpos.maxCoeff() << endl;
     if ((Xpos.maxCoeff() > 1.) || (Xpos.minCoeff() < -1. ))
         throw std::runtime_error("Values in Xpos vector should be in the [-1, +1] range");
 
@@ -96,6 +97,93 @@ ArrayXXd LegendreIntegrateSlopes(int Nx, int Ny, const Ref<ArrayX4d>& WFdata, co
 }
 
 
+ArrayXXd LegendreFitXYZ(int Nx, int Ny, const Ref<ArrayX3d>& XYZdata,
+                                const Ref<Array2d>& Xaperture, const Ref<Array2d>& Yaperture)
+{
+    Index numData=XYZdata.rows(), nvars=Nx*Ny;
+    Index  i=0,j=0, k=0;
+    double Kx=2./(Xaperture(1)-Xaperture(0));
+    double Ky=2./(Yaperture(1)-Yaperture(0));
+    double X0=(Xaperture(1)+Xaperture(0))/2.;
+    double Y0=(Yaperture(1)+Yaperture(0))/2.;
+    ArrayXXd Zcoefs=ArrayXXd::Zero(Nx,Ny);
+    ArrayXXd Lx, Ly, LPx, LPy;
+    ArrayXd Xnormed=Kx*(XYZdata.col(0)-X0), Ynormed=Ky*(XYZdata.col(1)-Y0);  // ccordonnées normalisés
+
+    MatrixXd Mat(numData, nvars), A;
+    VectorXd Vprim(numData), Rhs;
+
+    Lx=Legendre(Nx,Xnormed, LPx);
+    Ly=Legendre(Ny,Ynormed, LPy);
+
+    for(j=0, k=0; j < Ny; ++j)
+        for(i=0; i < Nx; ++i, ++k)
+            Mat.col(k)=Lx.col(i)*Ly.col(j);
+
+    A=Mat.transpose()*Mat;
+    Rhs=Mat.transpose()*XYZdata.matrix().col(2);
+
+    Map<VectorXd>(Zcoefs.data(), nvars)=A.lu().solve(Rhs);
+
+    return Zcoefs;
+}
+
+ArrayXXd LegendreFitGrid(int Nx, int Ny, const Ref<ArrayXXd>& griddata)
+{
+    Index numData=griddata.rows()*griddata.cols(), nvars=Nx*Ny;
+    Index  i=0,j=0, k=0;
+
+    ArrayXXd Zcoefs=ArrayXXd::Zero(Nx,Ny);
+    ArrayXXd Lx, Ly, LPx, LPy, matLx(griddata.rows(),griddata.cols()), matLy(griddata.rows(),griddata.cols());
+    ArrayXd Xnormed=ArrayXd::LinSpaced(griddata.rows(),-1.,1.);
+    ArrayXd Ynormed=ArrayXd::LinSpaced(griddata.cols(),-1.,1.);
+
+    MatrixXd Mat(numData, nvars), A;
+    VectorXd Vprim(numData), Rhs;
+    Lx=Legendre(Nx,Xnormed, LPx);
+    Ly=Legendre(Ny,Ynormed, LPy);
+
+    Map<ArrayXd> colLx(matLx.data(),numData,1);
+    Map<ArrayXd> colLy(matLy.data(),numData,1);
+
+    for(j=0, k=0; j < Ny; ++j)
+        for(i=0; i < Nx; ++i, ++k)
+        {
+            matLx.colwise()=Lx.col(i);
+            matLy.rowwise()=Ly.col(j).transpose();
+            Mat.col(k)=colLx*colLy;
+        }
+    A=Mat.transpose()*Mat;
+    Rhs=Mat.transpose()*griddata.matrix().reshaped();
+
+    Map<VectorXd>(Zcoefs.data(), nvars)=A.lu().solve(Rhs);
+
+    return Zcoefs;
+}
+
+
+
+
+ArrayXXd  LegendreNormalize(const Ref<ArrayXXd>& coefs)
+{
+    ArrayXd xnorm= ArrayXd::LinSpaced(coefs.rows(),1., 2.*coefs.rows()-1. );
+    ArrayXd ynorm= ArrayXd::LinSpaced(coefs.cols(),1., 2.*coefs.cols()-1. );
+
+    ArrayXXd normCoef=coefs.colwise()/xnorm.sqrt();
+    normCoef.rowwise()/=ynorm.sqrt().transpose();
+    return normCoef;
+}
+
+ArrayXXd  LegendreFromNormal(const Ref<ArrayXXd>& coefs)
+{
+    ArrayXd xnorm= ArrayXd::LinSpaced(coefs.rows(),1., 2.*coefs.rows()-1. );
+    ArrayXd ynorm= ArrayXd::LinSpaced(coefs.cols(),1., 2.*coefs.cols()-1. );
+
+    ArrayXXd natCoef=coefs.colwise()*xnorm.sqrt();
+    natCoef.rowwise()*=ynorm.sqrt().transpose();
+    return natCoef;
+}
+
 ArrayXXd LegendreSurface(const Ref<ArrayXd>& Xpos, const Ref<ArrayXd>& Ypos, const Ref<Array22d>& bounds, const Ref<MatrixXd>& legendreCoefs )
 {
     ArrayXXd surface;
@@ -110,6 +198,20 @@ ArrayXXd LegendreSurface(const Ref<ArrayXd>& Xpos, const Ref<ArrayXd>& Ypos, con
 
     Lx=Legendre(legendreCoefs.rows(),Xnormed, deriv);
     Ly=Legendre(legendreCoefs.cols(),Ynormed, deriv);
+    surface=Lx*legendreCoefs*Ly.transpose();
+    return surface;
+}
+
+ArrayXXd LegendreSurfaceGrid(int Nx, int Ny, const Ref<MatrixXd>& legendreCoefs )
+{
+    ArrayXXd surface;
+    MatrixXd Lx, Ly;
+    ArrayXXd deriv;
+    ArrayXd Xgrid=ArrayXd::LinSpaced(Nx,-1., 1.);
+    ArrayXd Ygrid=ArrayXd::LinSpaced(Ny,-1., 1.);
+
+    Lx=Legendre(legendreCoefs.rows(),Xgrid, deriv);
+    Ly=Legendre(legendreCoefs.cols(),Ygrid, deriv);
     surface=Lx*legendreCoefs*Ly.transpose();
     return surface;
 }

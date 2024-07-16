@@ -21,6 +21,7 @@
  ***************************************************************************/
 #include <map>
 #include "region.h"
+#include <libxml/tree.h>
 
 //using namespace std; no longer valid
 using std::map;
@@ -36,6 +37,7 @@ using std::vector;
 class ApertureStop
 {
     public:
+
         ApertureStop(){}    /**< \brief creates an empty ApertureStop container with no obstructing region*/
 
         /** \brief destructor. Clear the region list and destroy the object
@@ -52,21 +54,39 @@ class ApertureStop
          */
         double getTransmissionAt(const Ref<Vector2d> &point);
 
-        /** \brief Adds a region to the region list and return its index
+        /** \brief Adds a region to the top of the region list and return its index
          *
          * \param pRegion a pointer to the Region object to be added to the list
          * \return the index of the added element in the region list, equal to new size -1
          */
         size_t addRegion(Region* pRegion);
 
-        bool insertRegion(size_t index, Region*pRegion);
+        /** \brief  insert a region at a given position in of the region list
+         *
+         * \param index the index that the new region should have after insertion
+         * \param pRegion a pointer to the Region object to be inserted into the list
+         * \return true if successful; false if index is out of range
+         */
+        bool insertRegion(size_t index, Region *pRegion);
 
       //  size_t addRegion(string regionType, bool transparent=true);
 
+        /** \brief Define the transparency of the inner part of the specified region
+         *
+         * \param index The index of the regien whose transparency will be modified
+         * \param transparent transparency value: true if the inner part of the region is transparent, false on the reverse
+         * \return true if successful; false if index is out of range
+         */
         bool setRegionTransparency(size_t index, bool transparent);
 
 
-        bool replaceRegion(size_t index, Region*pRegion);
+        /** \brief Replace the region at a given position in of the region list by a new one
+         *
+         * \param index the index of the region to be replaced
+         * \param pRegion a pointer to the new Region object to be inserted in the list
+         * \return true if successful; false if index is out of range
+         */
+        bool replaceRegion(size_t index, Region* pRegion);
 
         /** \brief Remove the region from the region list
          *
@@ -83,6 +103,11 @@ class ApertureStop
         Region* getRegion(size_t index);
 
         size_t getRegionCount(){return m_regions.size();}   /**< \brief return the number of region assigned to this apertureStop */
+
+//        friend xmlNodePtr operator<<(xmlNodePtr surfnode, const ApertureStop & aperture);
+//        friend xmlNodePtr operator>>(xmlNodePtr surfnode,  ApertureStop & aperture);
+        void operator>>(xmlNodePtr surfnode);
+        void operator<<(xmlNodePtr apernode);
 
     protected:
         vector<Region*> m_regions;/**< \brief list of references of the Regions defining this aperture */

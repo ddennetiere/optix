@@ -23,6 +23,8 @@
 #include "EigenSafeInclude.h"
 #include <iostream>
 #include <float.h> // pour DBL_EPSILON
+#include <libxml/tree.h>
+
 
 /** \ingroup enums
  *  \brief Enumerated values use to return the position of a point with respect to a region
@@ -87,6 +89,7 @@ class Region
          */
         virtual void setSymmetric(const Ref<Vector2d> &point)=0;
 
+        virtual void  operator>>(xmlNodePtr apernode)=0;
 
     protected:
         bool m_transparent; /**< \brief An indicator of whether the region is transparent inside and opaque outside (true) or vice versa (false)  */

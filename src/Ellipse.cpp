@@ -21,7 +21,13 @@ Ellipse::Ellipse(bool transparent):Region(transparent)
 
 Ellipse::Ellipse(double a, double b, double xcenter, double ycenter, double angle)
 {
+    setParameters(a, b, xcenter, ycenter, angle);
+}
+
+void Ellipse::setParameters(double a, double b, double xcenter, double ycenter, double angle)
+{
     Matrix3d rot=Matrix3d::Identity(),trans=Matrix3d::Identity();
+    m_Mat.setZero();
     m_Mat(0,0)=1./(a*a);
     m_Mat(1,1)=1./(b*b);   // matrice sur ses axes*
     m_Mat(2,2)=-1.;
@@ -109,4 +115,50 @@ void Ellipse::getParameters(double* a, double* b, double* xcenter, double* ycent
     *a=1./sqrt((sum1-delta)/2.);
 
 }
+#define XMLSTR (xmlChar*)
+//xmlNodePtr operator<<(xmlNodePtr apernode, const Ellipse & ellipse)
+void Ellipse::operator>>(xmlNodePtr apernode)
+{
+    char buf[128];
+    double a, b, xcenter, ycenter, angle;
+    getParameters(&a, &b, &xcenter, &ycenter, &angle);
+    xmlNodePtr regnode=xmlNewTextChild(apernode,NULL,XMLSTR "region", NULL); // no value
+    xmlNewProp(regnode, XMLSTR "class", XMLSTR "Ellipse");
+    xmlNewProp(regnode, XMLSTR "transparent", XMLSTR (m_transparent? "1" : "0"));
+   // xmlNodePtr parmnode=xmlNewTextChild(apernode,NULL,XMLSTR "parameters", NULL); //useless
+    sprintf(buf,"%.8g",a);
+    xmlNewProp(regnode, XMLSTR "a", XMLSTR buf);
+    sprintf(buf,"%.8g",b);
+    xmlNewProp(regnode, XMLSTR "b", XMLSTR buf);
+    sprintf(buf,"%.8g",xcenter);
+    xmlNewProp(regnode, XMLSTR "xcenter", XMLSTR buf);
+    sprintf(buf,"%.8g",ycenter);
+    xmlNewProp(regnode, XMLSTR "ycenter",XMLSTR buf);
+    sprintf(buf,"%.8g",angle);
+    xmlNewProp(regnode, XMLSTR "angle", XMLSTR buf);
+}
 
+void Ellipse::operator<<(xmlNodePtr regnode)
+{
+    double a, b, xcenter, ycenter, angle;
+    xmlChar* strbuf = xmlGetProp(regnode, XMLSTR "a");
+
+    sscanf((char*) strbuf,"%lf", &a);
+    xmlFree(strbuf);
+    strbuf = xmlGetProp(regnode, XMLSTR "b");
+    sscanf((char*) strbuf,"%lf", &b);
+    xmlFree(strbuf);
+    strbuf = xmlGetProp(regnode, XMLSTR "xcenter");
+    sscanf((char*) strbuf,"%lf", &xcenter);
+    xmlFree(strbuf);
+    strbuf = xmlGetProp(regnode, XMLSTR "ycenter");
+    sscanf((char*) strbuf,"%lf", &ycenter);
+    xmlFree(strbuf);
+    strbuf = xmlGetProp(regnode, XMLSTR "angle");
+    sscanf((char*) strbuf,"%lf", &angle);
+    xmlFree(strbuf);
+    setParameters(a, b, xcenter, ycenter, angle);
+    strbuf = xmlGetProp(regnode, XMLSTR "transparent");
+    setTransparency(strcmp( (char*) strbuf,"1")==0 ? true: false);
+    xmlFree(strbuf);
+}

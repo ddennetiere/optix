@@ -25,6 +25,7 @@
 #include "types.h"
 
 
+
 //using namespace std; no longer valid in recent releases
 using std::fstream;
 using std::string;
@@ -340,7 +341,22 @@ public:
     bool get_element(size_t* pelemID=NULL);
     inline SolemioFile& operator>>(int& i) {*((fstream*)this)>>i; return *this;}/**< \brief read an integer value */
     inline SolemioFile& operator>>(uint32_t& i) {*((fstream*)this)>>i; return *this;}/**< \brief read an unsigned integer value */
-    inline SolemioFile& operator>>(double& i) {*((fstream*)this)>>i; return *this;}/**< \brief reads a double floating point value */
+    /** \brief reads a double floating point value */
+    inline SolemioFile& operator>>(double& i)
+    {
+        *((fstream*)this)>>i;
+        if(fail()) //try to read "nan"
+        {
+            clear();
+            string s;
+            *((fstream*)this)>>s;
+            if(s=="nan" || s=="NAN" || s=="NaN")
+                i=NAN;
+            else
+                std::cout << "error: ''" << s << "'' was found instead of double\n";
+        }
+        return *this;
+    }
     SolemioFile& operator>>(ArrayXd&  darray);/**< \brief reads an array of double of known size */
     int version;
     LinkMap iconTable, elemTable;
@@ -361,5 +377,17 @@ bool SolemioImport(string filename);
 
 
 bool LoadConfiguration(string filename);
+
+
+ /** \brief Dump the 2D array  values of  surface errors to a binary file
+ *
+ *  The file contains first the dimensions of the array (Nx, Ny) as two int32_t  integers,
+ *  immediately followed by the array values in doubles, the X dimension varying the fastest
+ * \param surface The 2D array containing the values of the surface errors
+ * \param filename Name or path of the file. If the file exists, it will be overwrited
+ *  \throw an instance of runtime error if the file is inaccessible in write mode
+ *
+ */
+void SurfaceToFile(const Ref<ArrayXXd>& surface, string filename);
 
 #endif // FILES_H_INCLUDED

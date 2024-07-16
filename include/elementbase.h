@@ -24,6 +24,7 @@
 
 #include "types.h"
 #include "files.h"
+#include <libxml/tree.h>
 
 
 //using namespace std; no longer valid
@@ -112,15 +113,15 @@ void memoryDump(void* address, uint64_t size);
 *   \b Dtheta | Angle | Correction to the incidence angle theta
 *   \b Dphi | Angle | Correction to phi rotation angle
 *   \b Dpsi | Angle | Correction to in-plane rotation angle psi
-*   \b DX | Distance | X offset of the element in the surface reference frame
-*   \b DY | Distance | Y offset of the element in the surface reference frame
-*   \b DZ | Distance | Z offset of the element in the surface reference frame
+*   \b DX | Distance | X offset of the element in the absolute reference frame
+*   \b DY | Distance | Y offset of the element in the absolute reference frame
+*   \b DZ | Distance | Z offset of the element in the absolute reference frame
 *
 *   \note
 *   - <em> All parameters are in \b BasicGroup </em>
 *   - If element is first (previous==0) the incident chief ray is along Z, with an origin at 0 in absolute frame .
 *   The element distance is counted from this absolute origin.
-*   \todo Clipping is not yet implemented, but it could be done at the ElementBase level where the transform matrix are defined
+*
  */
 class ElementBase {
 public:
@@ -165,6 +166,14 @@ public:
 
 /** \brief  call transmit or reflect according to surface type ray and iterate to the next surface*/
     virtual void propagate(RayType& ray)=0 ;/**< \param ray the propagated ray */
+
+//    /** \brief  propagate contruction  of surface errors. The function does nothing else if the runtime class is not derived from Surface   */
+//    virtual bool  generateSurfaceErrors()
+//    {
+//        if(m_next!=NULL )
+//            return m_next->generateSurfaceErrors();
+//        return true;
+//    }
 
     inline void setName(string&& name ){m_name=name;} /**< \brief sets the element name for scripting  \param name new name of the element*/
     inline string getName(){ return m_name;}    /**<  \brief retrieves the element name for scripting \return the name of the element as string*/
@@ -243,19 +252,34 @@ public:
         m_previous=m_next=NULL;
     }
 
-    /** \brief Modifies an existing  named numeric parameter
+    /** \brief Modifies an existing  named numeric or array parameter
     *
-    * The type and group and flags of a parameter are internally defined and cannot be changed. Their actual values will be reflected in param on return
-    * if the array flags are not identical OpticsLastError will be set and the function  will reteurn false
+    * The list of all parameters defined in this  base class and defined in the derived class is maintained in ElementBase.
+    * The base class can only check if the parameter name belong to the parameter list and, if yes, modify the parameter stored
+    * in the list. If an error occurs at this stage, it is signalled by the return value "false" and  OptiXerror is set.
+    * process the parameters locally defined.
+    * If a special action is required by a derived class when some of the parameters it controls are updated, this
+    * derived class should overload the function and first call the base class overload. In case it returns false, it should
+    * also exit with a false value. Otherwise it must check and process the parameters which it knows, returning false only if
+    * an error occurred. If the parameter is unknown it should return true, allowing further processing by derived classes.
+    *
+    * The type and group and flags of a parameter are internally defined and cannot be changed. Their actual values will be
+    * reflected in param on return
+    *
+    * if the internal parameter is defined with an array type and the new parameter with a scalar type or vice versa,
+    * the OptiXError will be set and the function  will return false
     * \param name the name of parameter to set
-    * \param param the new parameter  object
-    * \return  true if parameters was changed , false if parameter doesn't belong to the object of has a different array flag
+    * \param[in,out] param the new parameter  object. On output param contains the data as they were actually set.
+    * \return  false when the parameter was found  in the parameter list, or if the array flags don't match.
     */
     inline virtual  bool setParameter(string name, Parameter& param)
     {
+        //std::cout << "setting elementBase parameter " << name << std::endl;
         ParamIterator it=m_parameters.find(name);
+
         if (it !=m_parameters.end())
         {
+
             param.type=it->second.type; // type, flags and group of a parameter must not be modified
             param.group=it->second.group;
             if( (param.flags&ArrayData) != (it->second.flags&ArrayData))
@@ -267,16 +291,18 @@ public:
                     reason=" has a single value type but the given parameter has an array type";
 
                 SetOptiXLastError(string("parameter name ")+ name +reason,__FILE__, __func__);
+                //std::cout << "param " << name << " wrong array/val type\n";
                 return false;
             }
             param.flags=it->second.flags;
             it->second=param;
             m_isaligned=false;
-//            cout << "parameter "<< name <<  " set to " << param.value << endl;
+
             return true;
         }
         else
         {
+           // std::cout << "param " << name << " not found\n";
             SetOptiXLastError(string("parameter name ")+ name + " is invalid",__FILE__, __func__);
             return false;
         }
@@ -422,6 +448,11 @@ public:
         }
     }
 
+    inline bool hasParameter(string name)
+    {
+        return (m_parameters.find(name) != m_parameters.end());
+    }
+
     inline ParamIterator parameterBegin(){return m_parameters.begin();}/**< \brief return an iterator positionned on the first element of the parameter list of this surface*/
     inline ParamIterator parameterEnd(){return m_parameters.end();}  /**< \brief return an iterator positionned after the last element of the parameter list of this surface*/
 
@@ -487,11 +518,18 @@ public:
 
     virtual void dumpData();/**< \brief dump internal data to standard output */
 
-    friend TextFile& operator<<(TextFile& file,  ElementBase& elem);  /**< \brief Dump this Element object to a TextFile, in a human readable format  */
+    friend TextFile& operator<<(TextFile& file,  ElementBase& elem);  /**< \brief Dump this Element object to a TextFile, in a human readable format
+              *         \warning saving in text file is no longer maintained */
 
-    friend TextFile& operator>>(TextFile& file,  ElementBase* elem);  /**< \brief Retrieves a Element object from a TextFile  \todo call interface::createElementObject(type) */
+    friend TextFile& operator>>(TextFile& file,  ElementBase* elem);  /**< \brief Retrieves a Element object from a TextFile
+                *   \warning  input/output from text files is no longer maintained */
 
     friend bool SaveElementsAsXml(const char * filename, ElementCollection &system);
+
+    void operator>>(xmlNodePtr sysnode);
+    void operator<<(xmlNodePtr elemnode);
+
+
 protected:
 
     /** \brief Creates and sets a new named numeric parameter
@@ -510,14 +548,23 @@ protected:
         m_isaligned=false;  //maybe some changes do not require this
         return result.first;
     }
-    inline void removeParameter(string name){ m_parameters.erase(name);}/**< \brief removes a tagged parameter */
+    /** \brief removes a tagged parameter from the parameter and helpstring lists
+     *
+     *  (does nothing if name is not in the list)
+     * \param name the name of the parameter to remove
+     */
+    inline void removeParameter(string name)
+    {
+        m_parameters.erase(name);
+        m_helpstrings.erase(name);
+    }
+
+protected: //variables
 
     static FloatType m_FlipSurfCoefs[]; /**< \brief list of coefficient of the  matrix transforming surface frame coordinates into propagation frame  coordinates  */
     static map<string, string> m_helpstrings;  /**< \brief  parameter description help strings  */
     static int m_nameIndex;  /**< \brief Index for automatic naming of surfaces created without a name */
  //   vector<RayType> m_impacts; /**<  \brief the ray impacts on the surfaces in forward or backward element space */
-
-
 
 //  surface definition primary parameters
     string m_name;   /**< \brief  an identification name for calling this surface from scripts  */

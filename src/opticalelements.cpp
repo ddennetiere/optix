@@ -72,6 +72,8 @@ ElementBase* CreateElementObject(string s_type, string name)
         elem= new RadialGridSource(name);
     else if (s_type=="Source<Gaussian>" || s_type=="GaussianSource")
         elem= new GaussianSource(name);
+    else if (s_type=="Source<UniformGaussian>" || s_type=="UniformGaussianSource")
+        elem= new UniformGaussianSource(name);
     else if (s_type=="Source<Astigmatic,Gaussian>" || s_type=="AstigmaticGaussianSource")
         elem= new AstigmaticGaussianSource(name);
     else if (s_type=="Source<BMtype,Gaussian>" || s_type=="BMtypeGaussianSource")
@@ -161,6 +163,8 @@ ElementBase * ElementCopy(ElementBase* source)
         Copy= new GaussianSource(*dynamic_cast<GaussianSource*>(source));
     else if (s_type=="Source<Astigmatic,Gaussian>" || s_type=="AstigmaticGaussianSource")
         Copy= new AstigmaticGaussianSource(*dynamic_cast<AstigmaticGaussianSource*>(source));
+    else if (s_type=="Source<UniformGaussian>" || s_type=="UniformGaussianSource")
+        Copy= new UniformGaussianSource(*dynamic_cast<UniformGaussianSource*>(source));
     else if (s_type=="Source<BMtype,Gaussian>" || s_type=="BMtypeGaussianSource")
         Copy= new BMtypeGaussianSource(*dynamic_cast<BMtypeGaussianSource*>(source));
 
