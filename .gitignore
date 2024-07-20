@@ -11,7 +11,9 @@ doxygen/doxyfile
 ~$*
 *.o
 *.a
-*.cbp
+# *.cbp  # cbp saving reactivated since all dependency are available in MSYS2 distribution
+# OptiX+RefleX not yet updated
+OptiX+RefleX.cbp  
 *copie*
 *.cscope*
 *.def
