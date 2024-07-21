@@ -178,7 +178,7 @@ Th e compiled dll, is available in OptiX/release
 
 Windows environment variables can be modified  via the "Advanced settings" panel which is access in System/About/Advanced  settings (french système/A propos de/paramètres avancés du Système).
 <p> 
-	<img src="systemSettings.png" height="300"/>
+	<img src="SystemSettings.png" height="300"/>
 	<img src="environment.png" height="300"/>
 </p>
 
