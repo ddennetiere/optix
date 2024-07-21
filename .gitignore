@@ -25,7 +25,7 @@ OptiX+RefleX.cbp
 *.res
 wigner3j.f95
 ftypes.f95
-OptiX.png
+*.ico
 *.pptx
 version.h
 
