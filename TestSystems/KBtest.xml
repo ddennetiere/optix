@@ -1,0 +1,86 @@
+<?xml version="1.0"?>
+<system reflectivity="off" aperture_limit="on" surface_errors="off">
+  <element name="source" class="Source&lt;Gaussian&gt;" next="pupil_in" trans="true">
+    <param name="DX">0</param>
+    <param name="DY">0</param>
+    <param name="DZ">0</param>
+    <param name="Dphi">0</param>
+    <param name="Dpsi">0</param>
+    <param name="Dtheta">0</param>
+    <param name="distance">0</param>
+    <param name="nRays">50000</param>
+    <param name="phi">0</param>
+    <param name="psi">0</param>
+    <param name="sigmaX">1e-06</param>
+    <param name="sigmaXdiv">1.5e-05</param>
+    <param name="sigmaY">1e-06</param>
+    <param name="sigmaYdiv">1.5e-05</param>
+    <param name="theta">0</param>
+  </element>
+  <element name="pupil_in" class="Film&lt;Plane&gt;" next="M1" rec="1" trans="true">
+    <param name="DX">0</param>
+    <param name="DY">0</param>
+    <param name="DZ">0</param>
+    <param name="Dphi">0</param>
+    <param name="Dpsi">0</param>
+    <param name="Dtheta">0</param>
+    <param name="distance">10</param>
+    <param name="phi">0</param>
+    <param name="psi">0</param>
+    <param name="theta">0</param>
+  </element>  
+  <element name="M1" class="Mirror&lt;ConicBaseCylinder&gt;" next="M2" rec="1" >
+    <param name="DX">0</param>
+    <param name="DY">0</param>
+    <param name="DZ">0</param>
+    <param name="Dphi">0</param>
+    <param name="Dpsi">0</param>
+    <param name="Dtheta">0</param>
+    <param name="distance">10</param>
+    <param name="phi">0</param>
+    <param name="psi">0</param>
+    <param name="theta">0.026</param>
+    <param name="invp">-0.05</param> <!-- p=-20m -->
+    <param name="invq">1.25</param> <!--  q=0.8m -->
+    <param name="theta0">0.026</param>
+  </element>  
+  <element name="M2" class="Mirror&lt;ConicBaseCylinder&gt;" next="pupil_out" rec="1" >
+    <param name="DX">0</param>
+    <param name="DY">0</param>
+    <param name="DZ">0</param>
+    <param name="Dphi">0</param>
+    <param name="Dpsi">0</param>
+    <param name="Dtheta">0</param>
+    <param name="distance">0.2</param>
+    <param name="phi">1.57079633</param>
+    <param name="psi">0</param>
+    <param name="theta">0.026</param>
+    <param name="invp">-0.049504951</param><!-- p=-20.2m -->
+    <param name="invq">1.66666667</param><!-- q=0.60m -->
+    <param name="theta0">0.026</param>
+  </element>
+  <element name="pupil_out" class="Film&lt;Plane&gt;" next="screen" rec="1" trans="true">
+    <param name="DX">0</param>
+    <param name="DY">0</param>
+    <param name="DZ">0</param>
+    <param name="Dphi">0</param>
+    <param name="Dpsi">0</param>
+    <param name="Dtheta">0</param>
+    <param name="distance">0.1</param>
+    <param name="phi">-1.57079633</param>
+    <param name="psi">0</param>
+    <param name="theta">0</param>  
+  </element>
+  <element name="screen" class="Film&lt;Plane&gt;"  rec="1" trans="true">
+    <param name="DX">0</param>
+    <param name="DY">0</param>
+    <param name="DZ">0</param>
+    <param name="Dphi">0</param>
+    <param name="Dpsi">0</param>
+    <param name="Dtheta">0</param>
+    <param name="distance">0.5</param>
+    <param name="phi">0</param>
+    <param name="psi">0</param>
+    <param name="theta">0</param>
+  </element>  
+</system>

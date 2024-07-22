@@ -137,7 +137,7 @@
     #else
         #define DLL_EXPORT __declspec(dllimport)
     #endif
-#endif
+#endif // BUILD_DLL
 
 
 
@@ -151,7 +151,7 @@ extern "C"
 {
 #else
 #include <stdbool.h>
-#endif
+#endif // __cplusplus
 
 /** \ingroup mainAPI
 *   \{
@@ -458,7 +458,7 @@ extern "C"
      */
     DLL_EXPORT bool Generate(size_t elementID, double wavelength,
 #ifdef __cplusplus
-                             int *numRays=0);
+                             int *numRays=NULL);
 #else
                             int *numRays);
 #endif // __cplusplus
@@ -477,7 +477,7 @@ extern "C"
      */
     DLL_EXPORT bool GeneratePol(size_t elementID, double wavelength, char polar,
 #ifdef __cplusplus
-                                 int * numRays=0);
+                                 int * numRays=NULL);
 #else
                                  int * numRays);
 #endif // __cplusplus
@@ -652,7 +652,7 @@ extern "C"
      *
      *  *changed 24/06/2023 (commit 9a16050)*
       */
-    DLL_EXPORT bool GetRecording(size_t elementID, int *recordingMode);
+    DLL_EXPORT bool GetRecording(size_t elementID, enum RecordMode *recordingMode);
 
 
     /** \brief Finds the most upstream source in the element chain starting from the given element
@@ -859,7 +859,7 @@ extern "C"
      * \param recordingMode the  new recording mode which must be a value of the RecordMode enumeration
      * \return true if the element can record and the recording mode is valid; false if the element cannot record impacts (groups) or mode is invalid
      */
-    DLL_EXPORT bool SetRecording(size_t elementID, int recordingMode);
+    DLL_EXPORT bool SetRecording(size_t elementID, enum RecordMode recordingMode);
 
 
    /** \brief Set the transmission or reflexion mode of the element. (only available for gratings)
@@ -887,9 +887,11 @@ extern "C"
 *   \{
 */
 
-    /** \brief adds a surface error generator to the surface
+    /** \brief adds a random surface error generator to the surface
      *
-     * the functions defines the nine Parameters which are needed to fully define the surface height error model
+     * This function enables the generation of random height errors for this surface, by adding new parameters.
+
+     * Nine supplementary Parameters are needed to fully define the surface height error model
      * (see <a href="./class_surface.html#generel" > <b>error generator</b> </a>  section of Surface class )
      * \param[in] elementID the ID of the element to which an surface error generator should be added
      * \return true if the generator was implemented, false if an error occurred. Error information can be recovered by calling GetOptiXError
@@ -922,10 +924,13 @@ extern "C"
      * \note RMS values of the Legendre polynomials are computed as the integral
      *
      */
-    DLL_EXPORT bool GenerateSurfaceErrors(size_t elementID, double* total_sigma, int32_t *dims=NULL, double *Legendre_sigma=NULL );
+    DLL_EXPORT bool GenerateSurfaceErrors(size_t elementID, double* total_sigma, int32_t *dims, double *Legendre_sigma );
 
 
     /** \brief Install a fixed height error map interpolator into this surface.
+     *
+     * Use this function to applied a known error map (e.g. measured) to the surface. If random error generation is wanted
+     * call SetErrorGenerator() and define the error parameters of the Surface class (see <a href="./class_surface.html#generel" > error generator parameters  </a> )
      *
      * If a generator is available for this surface, a call to GenerateSurfaceErrors will overwrite this error map
      * \param elementID the ID of the element to which a height error map and interpolator should be added
@@ -969,7 +974,7 @@ extern "C"
      * \param meth  The error method to be used with this element. It must be a member of the the ErrorMethod enumeration
      * \return   true if the  function was successful; false otherwise and set OptiXLastError
      */
-    DLL_EXPORT bool SetErrorMethod(size_t elementID, ErrorMethod meth);
+    DLL_EXPORT bool SetErrorMethod(size_t elementID, enum ErrorMethod meth);
 
     /** \brief returns the method used to take this surface errors into account in the ray tracing
      *
@@ -979,7 +984,7 @@ extern "C"
      *       It is a member of the the ErrorMethod enumeration
      * \return true if the function was successful; false otherwise and set OptiXLastError
      */
-    DLL_EXPORT bool GetErrorMethod(size_t elementID, ErrorMethod *meth);
+    DLL_EXPORT bool GetErrorMethod(size_t elementID, enum ErrorMethod *meth);
 
 
     /** \brief Sets at global level whether the Surface height errors are considered or not in the ray tracing computation.

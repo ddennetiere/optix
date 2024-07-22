@@ -14,7 +14,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <stdlib.h>
-
+#include <string.h>
 
 #include "interface.h"
 #define _USE_MATH_DEFINES
@@ -36,13 +36,15 @@
 #
 int CassioTest();
 int EllipticKB();
+int KBtest();
 
 
 int main()
 {
    // return CassioTest();
    //return EllipticKB();
-   LoadConfigurationFile("../../Config.dat");
+//   LoadConfigurationFile("../../Config.dat");
+    return KBtest();
 }
 
 int CassioTest()
@@ -429,5 +431,271 @@ int EllipticKB()
 
 
 
+    return 0;
+}
+
+int KBtest()
+{
+    char * errstr;
+    if(!LoadSystemFromXml("../../TestSystems/KBtest.xml"))
+    {
+        GetOptiXError(&errstr);
+        printf("XML load error :\n%s\n", errstr);
+        return -1;
+    }
+
+    printf("file loaded OK\n") ;
+
+
+    // we add surface error generators to M1 and M2
+    size_t idP_in, idM1, idM2, idP_out, idScreen, sourceID;
+    printf("getting surfaces \n");
+
+
+    if(!FindElementID("M1",&idM1))
+    {
+        printf("element 'M1' was not found\n");
+        return -1;
+    }
+
+    if(!FindElementID("M2",&idM2))
+    {
+        printf("element 'M2' was not found\n");
+        return -1;
+    }
+
+    // These calls add the error generator parameters to the surface
+    SetErrorGenerator(idM1);
+   // SetErrorGenerator(idM2);
+
+    printf("setting the parameters of the surface error generators\n");
+
+    Parameter param;
+    param.flags=0; // to be sure the array flag is not set
+
+    // set the rms error level after zernike detrending
+
+    if(GetParameter(idM1,"residual_sigma", &param))
+    {
+        param.value=3.e-9; // 3 nm
+        SetParameter(idM1,"residual_sigma", param);
+        // here we set identical errors for both surfeces change param.value if needed
+        SetParameter(idM2,"residual_sigma", param);
+        printf("residual sigma set:\n");
+        DumpParameter(idM1,"residual_sigma");
+
+    }
+    else
+    {
+        GetOptiXError(&errstr);
+        printf("parameter error :\n%s\n", errstr);
+        return -1;
+    }
+
+    //prepare an array parameter variable
+    Parameter a_param;
+    ArrayParameter d_array;
+    a_param.paramArray=&d_array;
+    a_param.flags=NotOptimizable | ArrayData;
+
+    //Set the size of the error map
+    {
+        d_array.dims[0]=d_array.dims[1]=2;
+        double limits[]= {-0.055, 0.055, -0.005, 0.005};
+        d_array.data=limits;
+        SetParameter(idM1,"error_limits", a_param);
+    }
+    printf("\n Error_limits set;\n") ;
+    DumpParameter(idM1, "error_limits");
+
+    //Set the ssampling steps
+    {
+        d_array.dims[0]=2;
+        d_array.dims[1]=1;
+        double sampling[]= {5e-4, 1e-4};
+        d_array.data=sampling;
+        SetParameter(idM1,"sampling", a_param);
+    }
+    printf("\n Sampling set:\n") ;
+    DumpParameter(idM1, "sampling");
+
+    //Set the fractal exponents in x
+    {
+        d_array.dims[0]=2;
+        d_array.dims[1]=1;
+        double exp_x[]= {-1.5,-2.};
+        d_array.data=exp_x;
+        SetParameter(idM1,"fractal_exponent_x", a_param);
+    }
+    printf("\n fractal_exponent_x set:\n") ;
+    DumpParameter(idM1, "fractal_exponent_x");
+
+    //Set the fractal transition frequency in x  // only one value but must be an array
+    {
+        d_array.dims[0]=1;
+        d_array.dims[1]=1;
+        double freq_x[]= {500.};  // in m^-1
+        d_array.data=freq_x;
+        SetParameter(idM1,"fractal_frequency_x", a_param);
+    }
+    printf("\n fractal_frequency_x set:\n") ;
+    DumpParameter(idM1, "fractal_frequency_x");
+
+    // we keep default value of -1 for the Y fractal exponent
+    // if not repeat the steps for fractal_exponent_y and fractal_frequency_y
+
+    //Set the detrending mask ; x axis varying faster  // only one value but must be an array
+    {
+        d_array.dims[0]=d_array.dims[1]=3;
+        double mask[]= {1.,1.,1.,   1.,1.,0,  1.,0,0};
+        d_array.data=mask;
+        SetParameter(idM1,"detrending", a_param);
+    }
+    printf("\n detrending mask set:\n") ;
+    DumpParameter(idM1, "detrending");
+
+
+    //Set the max sigma of Legendre fits  // only one value but must be an array
+    {
+        d_array.dims[0]=4;
+        d_array.dims[1]=3;
+        double n_legendre[]= {0,0,1.e-8,5.e-9,   0,2.e-9,0,0,    5e-9,1.e-9,2.e-9,0};
+        d_array.data=n_legendre;
+        SetParameter(idM1,"low_Zernike", a_param);
+    }
+    printf("\n low_Zernike set:\n") ;
+    DumpParameter(idM1, "low_Zernike");
+
+    // surface M1 error parameters are define we can generate a height error realization
+    int dims[]={4, 3};
+    double total_sigma;
+    double legendre_sigmas[12];
+    GenerateSurfaceErrors(idM1, &total_sigma, dims, legendre_sigmas );
+    // print the stats. Note they are dumped to the console by the generator
+    printf("Total sigma= %8.3e\n Table of legendre sigmas:\n");
+    for(int j=0; j<3; ++j)
+    {
+        for(int i=0; i <4; ++i)
+            printf("%8.3e,", legendre_sigmas[4*j+i] );
+        printf("\n");
+    }
+
+    // set method to SimpleShift
+    SetErrorMethod(idM1, SimpleShift);
+
+ // Proceed the same way for surface M2
+
+    // Enable surface errors in ray tracing
+    SurfaceErrorsEnable(true );
+
+
+   // Now we can start the ray tracing
+
+
+    double lambda=1.e-9;
+
+    printf("getting source \n");
+    if(!FindElementID("source",&sourceID))
+    {
+        printf("element 'source' was not found\n");
+        return -1;
+    }
+
+    printf("calling align on source\n");
+    if(!Align(sourceID, lambda))
+    {
+       GetOptiXError( &errstr);
+       printf("Alignment error:\n%s\n", errstr);
+       return -1;
+    }
+    int numrays; //  numrays is defined in the xml file, but we need it to declare the spotdiag struct
+    if(!Generate(sourceID, lambda, &numrays))
+    {
+        GetOptiXError( &errstr);
+        printf("Source generation error:\n%s\n", errstr);
+        return -1;
+    }
+
+    if(!FindElementID("screen",&idScreen))
+    {
+        printf("element 'screen' was not found\n");
+        return -1;
+    }
+
+
+    printf("start ray tracing\n");
+    if(!Radiate(sourceID))
+    {
+       GetOptiXError( &errstr);
+       printf("Radiation error:\n%s\n", errstr);
+       return -1;
+    }
+    printf("Ray tracing OK\n");
+
+
+
+    C_DiagramStruct cdiagram={5,numrays,0,0}; // defines and initialize a new C_DiagramStruct
+                    // in order to record spot diagram the m_dim must be set to 5 and m_reserved should be at least the number of rays going through
+
+    cdiagram.m_min=malloc(cdiagram.m_dim*sizeof(double)); // Use m_dim and m_reserve to be sure initialization is consistent
+    cdiagram.m_max=malloc(cdiagram.m_dim*sizeof(double));
+    cdiagram.m_mean=malloc(cdiagram.m_dim*sizeof(double));
+    cdiagram.m_sigma=malloc(cdiagram.m_dim*sizeof(double));
+    cdiagram.m_spots= malloc(cdiagram.m_dim*cdiagram.m_reserved*sizeof(double));
+
+    if(!GetSpotDiagram(idScreen, &cdiagram, 0))
+    {
+        GetOptiXError( &errstr);
+        printf("GetSpotDiagram failed: %s\n",errstr);
+        return -1;
+    }
+    else
+    {
+        if(cdiagram.m_count)
+        {
+            DiagramToFile("KB_Errors.sdg", &cdiagram);
+            printf("\nSpot-diagram with %d impacts dumped to file 'KB_Errors.sdg'\n", cdiagram.m_count);
+            printf("     min         max        mean        sigma\n");
+            for (int i=0; i<5 ; ++i)
+                printf("%10.3e  %10.3e  %10.3e  %10.3e\n", cdiagram.m_min[i], cdiagram.m_max[i], cdiagram.m_mean[i], cdiagram.m_sigma[i] );
+        }
+        else
+            printf("\npot-diagram contains no impact\n");
+
+    }
+
+    //  We now  disable the error generation and ray trace again
+     SurfaceErrorsEnable(false  );
+     // clear impacts in the system but not in the source
+     uint64_t idFirst;
+     GetNextElement(sourceID, &idFirst);
+     if(!ClearImpacts(idFirst))
+    {
+        GetOptiXError( &errstr);
+        printf("ClearImpacts failed: %s\n",errstr);
+        return -1;
+    }
+     Radiate(sourceID);
+
+    if(!GetSpotDiagram(idScreen, &cdiagram, 0))
+    {
+        GetOptiXError( &errstr);
+        printf("GetSpotDiagram failed: %s\n",errstr);
+        return -1;
+    }
+    else
+    {
+        if(cdiagram.m_count)
+        {
+            DiagramToFile("KB_no_errors.sdg", &cdiagram);
+            printf("\nSpot-diagram with %d impacts dumped to file 'KB_no_errors.sdg'\n", cdiagram.m_count);
+            printf("     min         max        mean        sigma\n");
+            for (int i=0; i<5 ; ++i)
+                printf("%10.3e  %10.3e  %10.3e  %10.3e\n", cdiagram.m_min[i], cdiagram.m_max[i], cdiagram.m_mean[i], cdiagram.m_sigma[i] );
+        }
+        else
+            printf("\nSpot-diagram contains no impact\n");
+
+    }
     return 0;
 }
