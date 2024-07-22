@@ -521,13 +521,14 @@ extern "C"
 
     DLL_EXPORT bool GetNextElement(size_t elementID, size_t * nextID)
     {
-        if(System.isValidID(elementID))
+        if(!System.isValidID(elementID))
         {
-            *nextID = (size_t) ((ElementBase*)elementID)->getNext();
+            *nextID=0;
+            SetOptiXLastError("invalid element ID", __FILE__, __func__);
+            return false;
         }
-        *nextID=0;
-        SetOptiXLastError("invalid element ID", __FILE__, __func__);
-        return false;
+        *nextID = (size_t) ((ElementBase*)elementID)->getNext();
+        return true;
     }
 
     DLL_EXPORT bool GetTransmissive(size_t elementID, bool * transmissionMode)
@@ -550,7 +551,7 @@ extern "C"
         return true;
     }
 
-    DLL_EXPORT bool GetRecording(size_t elementID, int *recordingMode)
+    DLL_EXPORT bool GetRecording(size_t elementID, enum RecordMode *recordingMode)
     {
         if(!dynamic_cast<Surface*>((ElementBase*)elementID) )
         {
@@ -564,7 +565,7 @@ extern "C"
         }
     }
 
-    DLL_EXPORT bool SetRecording(size_t elementID, int recordingMode)
+    DLL_EXPORT bool SetRecording(size_t elementID, enum RecordMode recordingMode)
     {
         if(recordingMode <RecordNone || recordingMode > RecordOutput)
         {
@@ -676,7 +677,7 @@ extern "C"
                 case 1:
                     char msg[256];
                     sprintf(msg, "In Parameter::copy, the array flags of the source struct(%X) and destination struct (%X) do not match",
-                            param.flags, paramData->flags);
+                             paramData->flags, param.flags);
                     SetOptiXLastError(msg,__FILE__, __func__);
                     return false;
                 case 2:
@@ -719,8 +720,8 @@ extern "C"
         }
         else
         {
-            SetOptiXLastError(string("Array parameter  ") + paramTag  +
-                            " should be retrieved with the GetArrayParameter function"  , __FILE__, __func__);
+            SetOptiXLastError(string("Parameter  ") + paramTag  +
+                            " should be retrieved with the GetParameter function"  , __FILE__, __func__);
             return false;
         }
      }
@@ -755,8 +756,8 @@ extern "C"
         }
         else
         {
-            SetOptiXLastError(string("Array parameter  ") + paramTag  +
-                            " should be retrieved with the GetArrayParameter function"  , __FILE__, __func__);
+            SetOptiXLastError(string("Parameter  ") + paramTag  +
+                            " should be retrieved with the GetParameter function"  , __FILE__, __func__);
             return false;
         }
      }
@@ -1262,7 +1263,8 @@ extern "C"
         }
         Map<MatrixXd> mat(frame_vectors,3,4);
         mat=((ElementBase*)elementID)->surfaceFrame().matrix().topRows(3).cast<double>();
-        return true;    }
+        return true;
+    }
 
 
 
@@ -1481,7 +1483,7 @@ extern "C"
         return true;
     }
 
-    DLL_EXPORT bool GenerateSurfaceErrors(size_t elementID, double* total_sigma, int32_t *dims, double *Legendre_sigma )
+    DLL_EXPORT bool GenerateSurfaceErrors(size_t elementID, double* total_sigma, int32_t *dims=NULL, double *Legendre_sigma=NULL )
     {
         ClearOptiXError();
         if(!System.isValidID(elementID))
