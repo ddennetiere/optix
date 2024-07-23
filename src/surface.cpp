@@ -138,7 +138,7 @@ RayType& Surface::reflect(RayType& ray)    /*  this implementation simply reflec
             {   //we use pos in surface frame check if ray is inside the definition area
                 if( m_errorMap->isValid(spos))
                     applyPerturbation(spos, ray, normal);
-                if( m_errorMap->isValid(spos)) // spos might be changed by applyPerturbation
+                if(! m_errorMap->isValid(spos)) // spos might be changed by applyPerturbation
                 {
                     ray.m_amplitude_P=0; //amplitude are nulled but ray is still propagated without perturbation
                     ray.m_amplitude_S=0;
@@ -1083,7 +1083,7 @@ bool Surface::validateErrorGenerator()
     return m_ErrorGeneratorValid;
 }
 
-bool Surface::generateSurfaceErrors(double* total_sigma, MatrixXd& Legendre_sigmas )
+bool Surface::generateSurfaceErrors(int dims[2], double* total_sigma, MatrixXd& normLegendre )
 {
     if(!hasParameter("error_limits"))
     {
@@ -1132,7 +1132,8 @@ bool Surface::generateSurfaceErrors(double* total_sigma, MatrixXd& Legendre_sigm
     ArrayXXd surfError=fractalSurf.generate(++xpoints, steps(0), ++ypoints, steps(1));
 
        cout << "map generated "<< xpoints << " x "  << ypoints << " points\n";
-
+    dims[0]=xpoints;
+    dims[1]=ypoints;
     getParameter("residual_sigma", param1);
     double sigmaRes=param1.value;
 
@@ -1174,9 +1175,9 @@ bool Surface::generateSurfaceErrors(double* total_sigma, MatrixXd& Legendre_sigm
 //        if(Lcoeffs.rows()==detrendCoeffs.rows() && Lcoeffs.cols()==detrendCoeffs.cols())
 //            Lcoeffs+=detrendCoeffs;
 
-        Legendre_sigmas=LegendreNormalize(Lcoeffs);
-        *total_sigma=sqrt(sigmaRes*sigmaRes+Legendre_sigmas.squaredNorm());
-        cout <<"constrained Legendre normalized:\n" << Legendre_sigmas ;
+        normLegendre=LegendreNormalize(Lcoeffs);
+        *total_sigma=sqrt(sigmaRes*sigmaRes+normLegendre.squaredNorm());
+        cout <<"constrained Legendre normalized:\n" << normLegendre ;
         cout << "\n total constrained sigma=" << *total_sigma <<endl;;
     }
 //            cout << "surface errors computed\n";
@@ -1189,8 +1190,6 @@ bool Surface::generateSurfaceErrors(double* total_sigma, MatrixXd& Legendre_sigm
 
     return true;
     //finally we don't want this function to be recursive
-//    if(m_next!=NULL )
-//        return m_next->generateSurfaceErrors(); // this call will only propagate the function  until the next element derived from the Surface class
 
 }
 

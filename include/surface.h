@@ -393,13 +393,15 @@ public:
      */
     virtual  bool setParameter(string name, Parameter& param);
 
-
-    /** \brief  Generate a new instance of error map and activate the error interpolator
-    *
-    *
-    * \return true if the surface errors were generated; false in case of invalid configuration. The OptiXError describes the issue.
-    */
-    virtual bool generateSurfaceErrors(double* total_sigma, MatrixXd& Legendre_sigmas );  //
+    /** \brief Generate a new instance of error map and activate the error interpolator
+     *
+     * \param[out] dims[2] adress of an array of 2 int where the size of the generated heightmap (xsize,ysize) will be returned
+     * \param[out] total_sigma a location where the sigma value of the generated heights will be returned
+     * \param[out] normLegendre A matrix of normalized Legendre coefficients
+     * \return true if the surface errors were generated; false in case of invalid configuration.
+     *          The OptiXError describes the issue.
+     */
+    virtual bool generateSurfaceErrors(int dims[2], double* total_sigma, MatrixXd& normLegendre );  //
 
     /** \brief Checks the set of error defining parameters and signals configuration errors
      *

@@ -233,9 +233,10 @@ int main()
     }
     SetParam(pM1,"low_Zernike", param);
     MatrixXd Legendre_sigmas;
+    int mapdims[2];
     double generated_sigma;
     try{
-    if(!pM1->generateSurfaceErrors(&generated_sigma, Legendre_sigmas))
+    if(!pM1->generateSurfaceErrors(mapdims, &generated_sigma, Legendre_sigmas))
     {
         char* errmsg;
         GetOptiXError(&errmsg);
@@ -1234,9 +1235,9 @@ int testKB()
 
     MatrixXd Legendre_sigmas;
     double fractal_sigma;
-
+    int mapdims[2];
     try{
-        if(!pM1->generateSurfaceErrors(&fractal_sigma, Legendre_sigmas))
+        if(!pM1->generateSurfaceErrors(mapdims, &fractal_sigma, Legendre_sigmas))
         {
             GetOptiXError(&errstr);
             cout << "could not generate errors from M1 cause:\n" << errstr << endl;

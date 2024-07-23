@@ -184,7 +184,7 @@ RayType& GratingBase::transmit(RayType& ray)
         {   //we use pos in surface frame check if ray is inside the definition area
             if( m_errorMap->isValid(pos))
                 applyPerturbation(pos, ray, normal); //will actualize the 3 parameters according to the m_errorMethod parameter
-            if( m_errorMap->isValid(pos)) // spos might be changed by applyPerturbation
+            if(! m_errorMap->isValid(pos)) // spos might be changed by applyPerturbation
             {
                 ray.m_amplitude_P=0; //amplitude are nulled but ray is still propagated without perturbation
                 ray.m_amplitude_S=0;
@@ -254,7 +254,7 @@ RayType& GratingBase::reflect(RayType& ray)
 
         if(m_errorMap && enableSurfaceErrors && m_errorMethod )
         {   //we use pos in surface frame check if ray is inside the definition area
-            if( m_errorMap->isValid(pos))
+            if(! m_errorMap->isValid(pos))
                 applyPerturbation(pos, ray, normal); //will actualize the 3 parameters according to the m_errorMethod parameter
             if( m_errorMap->isValid(pos)) // spos might be changed by applyPerturbation
             {
