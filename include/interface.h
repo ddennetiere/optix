@@ -565,6 +565,20 @@ extern "C"
     DLL_EXPORT bool GetImpactsData(size_t elementID, C_DiagramStruct * diagram, enum FrameID frame);
 
 
+    /** \brief Get a 3d map of impacts when the intercepting surface is move along the local Z axis
+     *
+     * \param[in] elementID ID of the element defining the Z=0 position (it should be a plane)
+     * \param[in] dims[3] Number of computed points along x, y and Z axis (in this order)
+     * \param[in] zbound[2] Min and max z position (0 is the surface(elemID) reference position.
+     * \param[out] focdg an integer array able to store the complete diagram
+     * \param[out] xbound The limits (xmin, xmax)  of the spot diagram in X
+     * \param[out] ybound The limits (ymin, ymax)  of the spot diagram in Y
+     * \return true if the function succeeds; false if it fails and has set OptiXError
+     */
+    DLL_EXPORT bool GetFocalDiagram(size_t elementID, const int dims[3], const double zbound[2], int32_t *focdg,
+                                    double* xbound, double * ybound);
+
+
     /** \brief Gets the element immediately downstream of the given one in the link chain
      *    previousID
      * \param[in] elementID the ID of the given element
@@ -906,6 +920,7 @@ extern "C"
      */
     DLL_EXPORT bool UnsetErrorGenerator(size_t elementID );
 
+
     /** \brief Generate a height error map attached to this surface, and initialize the corresponding spline interpolator
      *
      * the function will fail if a generator was not previously set for this surface by call to SetErrorGenerator, or if the configuration of
@@ -913,18 +928,21 @@ extern "C"
      *
      *
      * \param[in] elementID the ID of the element to which an surface error generator should be added
-     * \param[out] total_sigma Location to return an estimate of the total RMS height error of the generated surface
-     * \param[in,out] dims the size of the Legendre_sigma array in a double[2] array.\n In input, the product dims[0]*dims[1]
-     *  is the allocated number of elements of the array passed in the Legendre_sigma parameter.\n  In output dims contains
-     *  the size of the returned array. If this parameter is the NULL pointer, the Legendre RMS information is not returned
-     *  Note that this size is equal the size "low_Zernike" array parameter, and is known in advance.
-     * \param[in,out] Legendre_sigma pointer to a memory location where the sigmas of the constrained Zernike polynomials are
-     *  returned. If NULL, this information is not returned.
-     * \return true if the height error generation was successful, false if it failed. Failure information can be recovered by calling GetOptiXError
-     * \note RMS values of the Legendre polynomials are computed as the integral
-     *
+     * \param[out] mapDims[2] the size (x, y) of the generated map. X is the fast varying dimension
+     * \param[out] total_sigma  Location to return (if not NULL) an estimate of the total RMS height error of the generated surface
+     * \param[in,out] LegendreDims[2] In input the size of the array passed as normalizedLegendre. In output, the size of data written in normalizedLegendre
+     * \param[out] normalizedLegendre if not NULL and LegendreDims size is not 0, a location where the coefficient of the constrained normalized Legendre
+     *  polynomials will be returned
+     * \return the height error generation was successful, false if it failed. Failure information can be recovered by calling GetOptiXError
+     * \note normalized Legendre polynomials have a rms value of 1 on the definition interval
      */
-    DLL_EXPORT bool GenerateSurfaceErrors(size_t elementID, double* total_sigma, int32_t *dims, double *Legendre_sigma );
+    DLL_EXPORT bool GenerateSurfaceErrors(size_t elementID, int32_t mapDims[2], double* total_sigma,int32_t LegendreDims[2], double *normalizedLegendre);
+//#ifdef __cplusplus
+//                Parameter *paramData =0);
+//#else
+//                Parameter *paramData);
+//#endif // __cplusplus
+
 
 
     /** \brief Install a fixed height error map interpolator into this surface.

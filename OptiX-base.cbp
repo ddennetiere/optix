@@ -41,6 +41,11 @@
 					<Add option="-s" />
 					<Add library="user32" />
 				</Linker>
+				<ExtraCommands>
+					<Add after="setx  msys_mingw $(TARGET_COMPILER_DIR)bin" />
+					<Add after="cmd /c copy $(TARGET_OUTPUT_DIR)OptiX.dll $(TARGET_COMPILER_DIR)bin" />
+					<Mode after="always" />
+				</ExtraCommands>
 			</Target>
 			<Target title="test">
 				<Option output="bin/test/OptiX" prefix_auto="1" extension_auto="1" />
@@ -154,7 +159,7 @@
 			<Option target="Test(release)" />
 		</Unit>
 		<Unit filename="include/ReflectivityAPI.h">
-			<Option target="Librarytest" />
+			<Option target="&lt;{~None~}&gt;" />
 		</Unit>
 		<Unit filename="include/Region.h">
 			<Option target="debug" />
@@ -174,7 +179,12 @@
 			<Option target="test" />
 			<Option target="Test(release)" />
 		</Unit>
-		<Unit filename="include/bidimspline.h" />
+		<Unit filename="include/bidimspline.h">
+			<Option target="debug" />
+			<Option target="release" />
+			<Option target="test" />
+			<Option target="Test(release)" />
+		</Unit>
 		<Unit filename="include/collections.h">
 			<Option target="debug" />
 			<Option target="release" />
@@ -187,7 +197,12 @@
 			<Option target="test" />
 			<Option target="Test(release)" />
 		</Unit>
-		<Unit filename="include/ctypes.h" />
+		<Unit filename="include/ctypes.h">
+			<Option target="debug" />
+			<Option target="release" />
+			<Option target="test" />
+			<Option target="Test(release)" />
+		</Unit>
 		<Unit filename="include/cylinder.h">
 			<Option target="debug" />
 			<Option target="release" />
@@ -226,7 +241,6 @@
 		</Unit>
 		<Unit filename="include/interface.h">
 			<Option target="debug" />
-			<Option target="release" />
 			<Option target="test" />
 			<Option target="Test(release)" />
 		</Unit>
@@ -507,7 +521,6 @@
 			<Option target="Test(release)" />
 		</Unit>
 		<Unit filename="src/sources.cpp">
-			<Option compile="0" />
 			<Option target="debug" />
 			<Option target="release" />
 			<Option target="test" />

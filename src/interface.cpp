@@ -144,6 +144,7 @@ extern "C"
 
     DLL_EXPORT bool CreateElement(const char* type, const char* name, size_t* elementID)
     {
+        ClearOptiXError();
         if(!elementID)
         {
             SetOptiXLastError("invalid location for returning elementID", __FILE__, __func__);
@@ -180,6 +181,7 @@ extern "C"
 
     DLL_EXPORT bool EnumerateElements(size_t * pHandle, size_t* elemID, char * nameBuffer, const int bufSize)
     {
+        ClearOptiXError();
         map<string,ElementBase*>::iterator* pit;
         if(*pHandle==0)
             pit=new map<string,ElementBase*>::iterator(System.begin());
@@ -209,6 +211,7 @@ extern "C"
 
     DLL_EXPORT bool ReleaseElementEnumHandle(size_t handle)
     {
+        ClearOptiXError();
         if(handle)
         {
             delete (map<string, ElementBase*>::iterator*) handle;
@@ -224,6 +227,7 @@ extern "C"
 
     DLL_EXPORT bool FitSurfaceToHeights(size_t elementID, int64_t Nx, int64_t Ny, const double *limits, const ArrayParameter *heights, double* sigmah)
     {
+        ClearOptiXError();
         if(!System.isValidID(elementID))
         {
             SetOptiXLastError("invalid element ID", __FILE__, __func__);
@@ -276,6 +280,7 @@ extern "C"
 
     DLL_EXPORT bool FitSurfaceToSlopes(size_t elementID, int64_t Nx, int64_t Ny, const double *limits, const ArrayParameter *slopes, double* sigmasx, double* sigmasy)
     {
+        ClearOptiXError();
         if(!System.isValidID(elementID))
         {
             SetOptiXLastError("invalid element ID", __FILE__, __func__);
@@ -340,6 +345,7 @@ extern "C"
 
     DLL_EXPORT bool FindElementID(const char* elementName, size_t * elemID)
     {
+        ClearOptiXError();
         if(!elemID)
         {
             SetOptiXLastError("invalid location for returning elemID", __FILE__, __func__);
@@ -360,6 +366,7 @@ extern "C"
 
     DLL_EXPORT bool GetElementName(size_t elementID, char* strBuffer, int bufSize)
     {
+        ClearOptiXError();
         if(!System.isValidID(elementID))
         {
             SetOptiXLastError("invalid element ID", __FILE__, __func__);
@@ -376,6 +383,7 @@ extern "C"
 
     DLL_EXPORT bool GetElementType(size_t elementID, char* strBuffer, int bufSize)
     {
+        ClearOptiXError();
         if(!System.isValidID(elementID))
         {
             SetOptiXLastError("invalid element ID", __FILE__, __func__);
@@ -392,6 +400,7 @@ extern "C"
 
     DLL_EXPORT bool DeleteElement_byName(const char* name)
     {
+        ClearOptiXError();
         map<string,ElementBase*>:: iterator it= System.find(name);
         if(it==System.end())
             return false ;
@@ -403,6 +412,7 @@ extern "C"
 
     DLL_EXPORT bool DeleteElement_byID(size_t elementID)
     {
+        ClearOptiXError();
         set<size_t>::iterator it=System.ValidIDs.find(elementID);
         if(it==System.ValidIDs.end())
             return false;
@@ -412,6 +422,7 @@ extern "C"
 
     DLL_EXPORT bool ChainElement_byName(const char* previous, const char* next)
     {
+        ClearOptiXError();
         map<string, ElementBase*>::iterator it;
         ElementBase* elprev=NULL;
         ElementBase* elnext=NULL;
@@ -444,6 +455,7 @@ extern "C"
 
     DLL_EXPORT bool ChainElement_byID(size_t prevID, size_t nextID)
     {
+        ClearOptiXError();
         if(prevID==0)
         {
             if(nextID!=0 && System.isValidID(nextID))
@@ -468,6 +480,7 @@ extern "C"
 
     DLL_EXPORT bool FindPreviousElement(const char * elementName, size_t * previousID)
     {
+        ClearOptiXError();
         if(!previousID)
         {
             SetOptiXLastError("invalid location for returning previousID", __FILE__, __func__);
@@ -489,6 +502,7 @@ extern "C"
 
     DLL_EXPORT bool FindNextElement(const char * elementName, size_t * nextID)
     {
+        ClearOptiXError();
         if(!nextID)
         {
             SetOptiXLastError("invalid location for returning nextID", __FILE__, __func__);
@@ -509,6 +523,7 @@ extern "C"
 
     DLL_EXPORT bool GetPreviousElement(size_t elementID, size_t * previousID )
     {
+        ClearOptiXError();
         if(System.isValidID(elementID))
         {
             *previousID = (size_t) ((ElementBase*)elementID)->getPrevious();
@@ -521,6 +536,7 @@ extern "C"
 
     DLL_EXPORT bool GetNextElement(size_t elementID, size_t * nextID)
     {
+        ClearOptiXError();
         if(!System.isValidID(elementID))
         {
             *nextID=0;
@@ -533,6 +549,7 @@ extern "C"
 
     DLL_EXPORT bool GetTransmissive(size_t elementID, bool * transmissionMode)
     {
+        ClearOptiXError();
         if(!System.isValidID(elementID))
         {
             SetOptiXLastError("invalid element ID", __FILE__, __func__);
@@ -544,6 +561,7 @@ extern "C"
 
     DLL_EXPORT bool SetTransmissive(size_t elementID, bool transmit)
     {
+        ClearOptiXError();
         if(!dynamic_cast<GratingBase*>((ElementBase*) elementID))
             return false;
 
@@ -553,6 +571,7 @@ extern "C"
 
     DLL_EXPORT bool GetRecording(size_t elementID, enum RecordMode *recordingMode)
     {
+        ClearOptiXError();
         if(!dynamic_cast<Surface*>((ElementBase*)elementID) )
         {
             SetOptiXLastError("The pointed element is not an optical surface",__FILE__, __func__);
@@ -567,6 +586,7 @@ extern "C"
 
     DLL_EXPORT bool SetRecording(size_t elementID, enum RecordMode recordingMode)
     {
+        ClearOptiXError();
         if(recordingMode <RecordNone || recordingMode > RecordOutput)
         {
             SetOptiXLastError("Invalid recording mode",__FILE__, __func__);
@@ -586,6 +606,7 @@ extern "C"
 
     DLL_EXPORT bool SetParameter(size_t elementID, const char* paramTag,  Parameter paramData)
     {
+        ClearOptiXError();
         if(System.isValidID(elementID))
             return ((ElementBase*)elementID)->setParameter(paramTag, paramData);
         else
@@ -618,6 +639,7 @@ extern "C"
 
     DLL_EXPORT bool DumpParameter(size_t elementID, const char* paramTag)
     {
+        ClearOptiXError();
         if(System.isValidID(elementID))
             return ((ElementBase*)elementID)->dumpParameter(paramTag);
         else
@@ -639,6 +661,7 @@ extern "C"
 
     DLL_EXPORT bool GetParameterFlags(size_t elementID, const char* paramTag, uint32_t *flags)
     {
+        ClearOptiXError();
         if(System.isValidID(elementID))
         {
             if(!((ElementBase*)elementID)->getParameterFlags(paramTag,*flags))
@@ -654,6 +677,7 @@ extern "C"
 
     DLL_EXPORT bool GetParameter(size_t elementID, const char* paramTag, Parameter* paramData)
     {
+        ClearOptiXError();
         if(System.isValidID(elementID))
         {
             uint32_t flags;
@@ -702,6 +726,7 @@ extern "C"
 
      DLL_EXPORT bool GetParameterArraySize(size_t elementID, const char* paramTag, size_t * size)
      {
+        ClearOptiXError();
         if(!System.isValidID(elementID))
         {
              SetOptiXLastError("The given elementID is invalid ", __FILE__, __func__);
@@ -729,6 +754,7 @@ extern "C"
 
     DLL_EXPORT bool GetParameterArrayDims(size_t elementID, const char* paramTag, int64_t (*dims)[2])
     {
+        ClearOptiXError();
        // cout << "in GetParameterArrayDims  sizeof i =" << sizeof(*dims)/sizeof (int64_t) <<endl;
         if(!System.isValidID(elementID))
         {
@@ -764,6 +790,7 @@ extern "C"
 
     DLL_EXPORT bool GetArrayParameter(size_t elementID, const char* paramTag, Parameter* paramData, size_t maxsize)
     {
+        ClearOptiXError();
         if( ! System.isValidID(elementID))
         {
             SetOptiXLastError("The given elementID is invalid ", __FILE__, __func__);
@@ -820,6 +847,7 @@ extern "C"
 
     DLL_EXPORT bool EnumerateParameters(size_t elementID, size_t * pHandle, char* tagBuffer, const int bufSize ,  Parameter* paramData)
     {
+        ClearOptiXError();
         if(!System.isValidID(elementID))
         {
             SetOptiXLastError("Invalid element ID", __FILE__, __func__);
@@ -853,6 +881,7 @@ extern "C"
 
         if(++(*pRef) ==((ElementBase*)elementID)->parameterEnd() )
         {
+            ClearOptiXError();
             delete pRef;
             *pHandle=0;
             if(paramData->flags & ArrayData) // clear Array data if any
@@ -873,6 +902,7 @@ extern "C"
 
     DLL_EXPORT  bool ReleaseParameterEnumHandle(size_t handle, Parameter *paramData)
     {
+        ClearOptiXError();
         if(!handle)
         {
             SetOptiXLastError("Invalid handle passed", __FILE__, __func__);
@@ -1173,6 +1203,7 @@ extern "C"
 
     DLL_EXPORT bool GetSpotDiagram(size_t elementID,  C_DiagramStruct * diagram, double distance)
     {
+        ClearOptiXError();
         if(diagram->m_dim <4)
         {
             SetOptiXLastError("m_dim must be at least 4 for spotdiagrams", __FILE__, __func__);
@@ -1207,6 +1238,7 @@ extern "C"
 
     DLL_EXPORT bool GetImpactsData(size_t elementID,  C_DiagramStruct * diagram, enum FrameID frame)
     {
+        ClearOptiXError();
         if(diagram->m_dim <= 6)
         {
             SetOptiXLastError("m_dim must be at least  6 for impact data", __FILE__, __func__);
@@ -1235,9 +1267,36 @@ extern "C"
             impactData=NULL;
             return true;
         }
-        SetOptiXLastError("Element cannot record impacts (not a surface) ", __FILE__, __func__);
+        SetOptiXLastError("Element cannot record impacts (not a surface) ", __FILE__, __func__, __LINE__);
         return false;
     }
+
+    DLL_EXPORT bool GetFocalDiagram(size_t elementID, const int dims[3], const double zbound[2], int32_t *focdg,
+                                    double* xbound, double * ybound)
+    {
+        ClearOptiXError();
+
+        Surface * surf=dynamic_cast<Surface*>((ElementBase*)elementID);
+        if(!surf)
+        {
+            SetOptiXLastError("Element is not a surface) ", __FILE__, __func__, __LINE__);
+            return false;
+        }
+
+        if(surf->getRecording()==0)
+        {
+            SetOptiXLastError("Element is not recording impacts", __FILE__, __func__);
+            return false;
+        }
+        cout << "getting focal digram \n";
+        Tensor<int,3> focdiag=surf->getFocalDiagram(dims, zbound, xbound, ybound);
+        cout << "copying diagram to return array\n";
+        memcpy(focdg, focdiag.data(), dims[0]*dims[1]*dims[2]*sizeof(int));
+        cout << "returning \n";
+        return true;
+    }
+
+
 
     DLL_EXPORT bool GetExitFrame(size_t elementID, double* frame_vectors)
     {
@@ -1312,6 +1371,7 @@ extern "C"
 
     DLL_EXPORT bool LoadSystem(const char* filename)
     {
+        ClearOptiXError();
         TextFile file(filename, ios::in);
         if(!file.is_open())
         {
@@ -1382,6 +1442,7 @@ extern "C"
 
     DLL_EXPORT bool LoadSolemioFile(char * filename)
     {
+        ClearOptiXError();
         System.clear();
         return SolemioImport(filename);
 
@@ -1390,6 +1451,7 @@ extern "C"
 
     DLL_EXPORT bool DiagramToFile(const char* filename,  C_DiagramStruct* cdiagram)
     {
+        ClearOptiXError();
         fstream spotfile(filename, ios::out | ios::binary);
         if(!spotfile.is_open())
         {
@@ -1483,7 +1545,9 @@ extern "C"
         return true;
     }
 
-    DLL_EXPORT bool GenerateSurfaceErrors(size_t elementID, double* total_sigma, int32_t *dims=NULL, double *Legendre_sigma=NULL )
+    DLL_EXPORT bool GenerateSurfaceErrors(size_t elementID, int32_t mapDims[2],
+                                          double* total_sigma, int32_t LegendreDims[2], double *normalizedLegendre)
+
     {
         ClearOptiXError();
         if(!System.isValidID(elementID))
@@ -1503,23 +1567,23 @@ extern "C"
                                __FILE__, __func__, __LINE__);
             return false;
         }
-        MatrixXd sigmaMat;
-        if( ! psurf->generateSurfaceErrors(total_sigma, sigmaMat))
+        MatrixXd legendreMat;
+        if( ! psurf->generateSurfaceErrors(mapDims, total_sigma, legendreMat))
             return false;
 
-        if(dims && Legendre_sigma)
+        if(LegendreDims && normalizedLegendre)
         {
-            int32_t lsize=sigmaMat.rows()* sigmaMat.cols();
-            if(dims[0]*dims[1] < lsize)
+            int32_t matsize=legendreMat.rows()* legendreMat.cols();
+            if( LegendreDims[0]*LegendreDims[1] < matsize)
             {
-                SetOptiXLastError(string("The allocated size of Legendre_sigma array is too small for the actual ")+
-                                  std::to_string(sigmaMat.rows())+"*"+std::to_string(sigmaMat.cols())+" size, in element "+
+                SetOptiXLastError(string("The allocated size of normalizedLegendre array is too small for the actual ")+
+                                  std::to_string(legendreMat.rows())+"*"+std::to_string(legendreMat.cols())+" size, in element "+
                                   ((ElementBase*) elementID)->getName(), __FILE__, __func__, __LINE__);
                 return false;
             }
-            dims[0]=sigmaMat.rows();
-            dims[1]=sigmaMat.cols();
-            memcpy(Legendre_sigma, sigmaMat.data(), lsize*sizeof(double));
+            LegendreDims[0]=legendreMat.rows();
+            LegendreDims[1]=legendreMat.cols();
+            memcpy(normalizedLegendre, legendreMat.data(), matsize*sizeof(double));
         }
         return true;
     }
@@ -1649,6 +1713,7 @@ extern "C"
 
     DLL_EXPORT bool SurfaceErrorsGetState(bool *activityFlag)
     {
+        ClearOptiXError();
         if(!activityFlag)
         {
             SetOptiXLastError("Invalid reference to activityFlag", __FILE__, __func__);
@@ -1721,6 +1786,7 @@ extern "C"
 
     DLL_EXPORT bool GetPsf(size_t elementID, double wavelength, PSFparameters *psfParams, C_ndArray * psfData)
     {
+        ClearOptiXError();
         if(!System.isValidID(elementID))
         {
             SetOptiXLastError("Invalid element ID", __FILE__, __func__);
@@ -1778,6 +1844,7 @@ extern "C"
 
     DLL_EXPORT bool SetCoating(size_t elementID,const char* coatingTable, const char* coatingName)
     {
+        ClearOptiXError();
         if(!System.isValidID(elementID))
         {
             SetOptiXLastError("invalid element ID", __FILE__, __func__);

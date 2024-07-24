@@ -567,29 +567,32 @@ int KBtest()
     DumpParameter(idM1, "low_Zernike");
 
     // surface M1 error parameters are define we can generate a height error realization
-    int dims[]={4, 3};
-    double total_sigma;
-    double legendre_sigmas[12];
-    GenerateSurfaceErrors(idM1, &total_sigma, dims, legendre_sigmas );
-    // print the stats. Note they are dumped to the console by the generator
-    printf("Total sigma= %8.3e\n Table of legendre sigmas:\n");
-    for(int j=0; j<3; ++j)
     {
-        for(int i=0; i <4; ++i)
-            printf("%8.3e,", legendre_sigmas[4*j+i] );
-        printf("\n");
+        int dims[]={4, 3}, mapDims[2];
+        double total_sigma;
+        double legendre_sigmas[12];
+        if(!GenerateSurfaceErrors(idM1, mapDims, &total_sigma, dims, legendre_sigmas ))
+        {
+            GetOptiXError(&errstr);
+            printf("Surface error generation failed :\n%s\n", errstr);
+            return -1;
+        }
+        printf("SurfaceError map generated with size %d x %d \n",mapDims[0], mapDims[1]);
+        // print the stats. Note they are dumped to the console by the generator
+        printf("Total sigma= %8.3e\n Table of legendre sigmas:\n");
+        for(int j=0; j<3; ++j)
+        {
+            for(int i=0; i <4; ++i)
+                printf("%8.3e,", legendre_sigmas[4*j+i] );
+            printf("\n");
+        }
     }
-
     // set method to SimpleShift
     SetErrorMethod(idM1, SimpleShift);
 
  // Proceed the same way for surface M2
 
-    // Enable surface errors in ray tracing
-    SurfaceErrorsEnable(true );
-
-
-   // Now we can start the ray tracing
+   // Now we prepare the ray tracing
 
 
     double lambda=1.e-9;
@@ -623,6 +626,9 @@ int KBtest()
     }
 
 
+    // disable surface errors in ray tracing and launch a first ray tracing
+    SurfaceErrorsEnable(false);
+
     printf("start ray tracing\n");
     if(!Radiate(sourceID))
     {
@@ -632,7 +638,7 @@ int KBtest()
     }
     printf("Ray tracing OK\n");
 
-
+    //get the spot diagarm without errors and dump it to a file
 
     C_DiagramStruct cdiagram={5,numrays,0,0}; // defines and initialize a new C_DiagramStruct
                     // in order to record spot diagram the m_dim must be set to 5 and m_reserved should be at least the number of rays going through
@@ -653,8 +659,8 @@ int KBtest()
     {
         if(cdiagram.m_count)
         {
-            DiagramToFile("KB_Errors.sdg", &cdiagram);
-            printf("\nSpot-diagram with %d impacts dumped to file 'KB_Errors.sdg'\n", cdiagram.m_count);
+            DiagramToFile("KB_no_errors.sdg", &cdiagram);
+            printf("\nSpot-diagram with %d impacts dumped to file 'KB_no_errors.sdg'\n", cdiagram.m_count);
             printf("     min         max        mean        sigma\n");
             for (int i=0; i<5 ; ++i)
                 printf("%10.3e  %10.3e  %10.3e  %10.3e\n", cdiagram.m_min[i], cdiagram.m_max[i], cdiagram.m_mean[i], cdiagram.m_sigma[i] );
@@ -664,19 +670,20 @@ int KBtest()
 
     }
 
-    //  We now  disable the error generation and ray trace again
-     SurfaceErrorsEnable(false  );
-     // clear impacts in the system but not in the source
-     uint64_t idFirst;
-     GetNextElement(sourceID, &idFirst);
+    //  We now  ensable the error generation and ray trace again
+    SurfaceErrorsEnable(true);
+    // clear impacts in the system but not in the source
+    uint64_t idFirst;
+    GetNextElement(sourceID, &idFirst);
      if(!ClearImpacts(idFirst))
     {
         GetOptiXError( &errstr);
         printf("ClearImpacts failed: %s\n",errstr);
         return -1;
     }
-     Radiate(sourceID);
+    Radiate(sourceID);
 
+    // we  get the spot diagram with errors
     if(!GetSpotDiagram(idScreen, &cdiagram, 0))
     {
         GetOptiXError( &errstr);
@@ -687,8 +694,8 @@ int KBtest()
     {
         if(cdiagram.m_count)
         {
-            DiagramToFile("KB_no_errors.sdg", &cdiagram);
-            printf("\nSpot-diagram with %d impacts dumped to file 'KB_no_errors.sdg'\n", cdiagram.m_count);
+            DiagramToFile("KB_errors.sdg", &cdiagram);
+            printf("\nSpot-diagram with %d impacts dumped to file 'KB_errors.sdg'\n", cdiagram.m_count);
             printf("     min         max        mean        sigma\n");
             for (int i=0; i<5 ; ++i)
                 printf("%10.3e  %10.3e  %10.3e  %10.3e\n", cdiagram.m_min[i], cdiagram.m_max[i], cdiagram.m_mean[i], cdiagram.m_sigma[i] );
@@ -697,5 +704,37 @@ int KBtest()
             printf("\nSpot-diagram contains no impact\n");
 
     }
+
+    printf("foc diagram section\n");
+    // Get the 3D focal diagram
+
+    double  xlimit[2], ylimit[2], zlimit[2]={-0.002,0.002};
+    int32_t dims[3]={201,201,101};   // le nombre de points en x, y et z  -  x (dims[0]) varie le plus vite
+    int32_t focmapsize=dims[0]*dims[1]*dims[2];
+    printf("reserving tensor space: size %d int\n", focmapsize);
+    int32_t *focDiagram=malloc(focmapsize*sizeof(int32_t));
+
+    printf("calling foc diagram\n");
+    GetFocalDiagram(idScreen, dims, zlimit, focDiagram, xlimit, ylimit);   // Zlimit utilisé en input xlimit et ylimit sont calculés et donnés en output
+    printf("limits X [%8.3e, %8.3e]  y [%8.3e, %8.3e] \n", xlimit[0], xlimit[1], ylimit[0], ylimit[1]) ;
+    FILE * focfile= fopen("KB_focdiag.fdg", "w");
+    if(focfile)
+    {
+        printf("writing header\n");
+        fwrite(xlimit, sizeof(double), 2, focfile);
+        fwrite(ylimit, sizeof(double), 2, focfile);
+        fwrite(zlimit, sizeof(double), 2, focfile);
+        fwrite(dims,  sizeof(int32_t), 3, focfile);
+        printf("Header written\n");
+        fwrite(focDiagram, sizeof(int32_t) ,dims[0]*dims[1]*dims[2],focfile );
+        fclose(focfile);
+        printf("Focal diagam with Surface errors written to KB_focdiag.fdg\n");
+    }
+    else
+        printf("could not open KB_focdiag.fdg in output\n");
+
+    free(focDiagram);
+
+
     return 0;
 }
