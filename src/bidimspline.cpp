@@ -13,6 +13,7 @@
 
 #include "bidimspline.h"
 #include "wavefront.h"
+#include<Eigen/SparseQR>
 
 bool SplineSolve(SparseMatrix<double,ColMajor> &A,const Ref<VectorXd> &B, Ref<VectorXd> C)
 {
@@ -357,7 +358,8 @@ void BidimSpline::buildControlPoints(const Ref<ArrayXd> &Xvalues, const Ref<Arra
 void BidimSpline::setFromGridData(const Array22d& limits, const Ref<ArrayXXd>& gridData )
 {
     if(degree!=3)
-    throw ParameterException("This function is only available for cubic B-spline interpolation. Degree MUST BE 3 ", __FILE__, __func__, __LINE__);
+        throw ParameterException("This function is only available for cubic B-spline interpolation. Degree MUST BE 3 ",
+                                  __FILE__, __func__, __LINE__);
     setUniformKnotBase(X,gridData.rows()-1,limits(0,0), limits(1,0));
 
     setUniformKnotBase(Y,gridData.cols()-1,limits(0,1), limits(1,1));
@@ -365,6 +367,157 @@ void BidimSpline::setFromGridData(const Array22d& limits, const Ref<ArrayXXd>& g
     ArrayXXd temp=uniformSpaced1DSolveT(gridData);
     m_controlValues=uniformSpaced1DSolveT(temp);
 
+}
+
+void BidimSpline::setFromGradient(const Array22d& limits, const Ref<ArrayXXd> & gradx, const Ref<ArrayXXd> & grady)
+{
+    if(degree!=3)
+        throw ParameterException("This function is only available for cubic B-spline interpolation. Degree MUST BE 3 ",
+                              __FILE__, __func__, __LINE__);
+    if(gradx.rows() != grady.rows() || gradx.cols() != grady.cols())
+        throw ParameterException("Arrays  gradx  and grady must have the same size", __FILE__, __func__, __LINE__);
+
+    Index Nx=gradx.rows()-1, Ny = gradx.cols()-1;  // nombres de segments dans  les intervalles de définition
+    Index Nx3=Nx+3, Ny3=Ny+3;
+    setUniformKnotBase(X,Nx,limits(0,0), limits(1,0));
+    setUniformKnotBase(Y,Ny,limits(0,1), limits(1,1));
+
+    Index problemSize=2*(Nx3)*(Ny3)+1;  // number of partial derivatives + integration constant
+    std::cout << "The sise of the problem is " << problemSize << std::endl;
+
+    ArrayXXd fprim(7,3);
+    fprim << -3,       3,       0,
+             -1,       0,       1,
+             -0.75,    0.25,    0.5,
+             -0.5,     0,       0.5,
+             -0.5,    -0.25,    0.75,
+             -1.,      0,       1,
+              0,      -3.,      3. ;
+
+    ArrayXXd fval(7,3);
+    fval <<  1,       0,        0,
+             0,       1.5,     -0.5,
+             1./4.,   7./12.,   1./6.,
+             1./6.,   2./3.,    1./6.,
+             1./6.,   7./12.,   1./4.,
+             -0.5,    1.5,      0,
+             0,       0,        1;
+
+    Array33i indxT;
+    indxT <<  0, Nx3,   2*Nx3,
+              1, Nx3+1, 2*Nx3+1,
+              2, Nx3+2, 2*Nx3+2;
+
+ typedef Triplet<double> Trp;
+ std::vector<Trp>  tripletList;
+ Index estTriplSize= (Nx+6)*(Ny+6)*12; // en moyenne 6 valeur par equation
+ std::cout << "entry number max size:" << problemSize*9 <<  "  estimated: " << estTriplSize  <<  std::endl;
+ tripletList.reserve(problemSize*9);
+ std::cout << "triplet list reserved\n";
+ Index ity,ieqx,ieqy, maxic=0;
+ for (ity=0, ieqx=0, ieqy=Nx3*Ny3; ity <Ny3; ++ity)
+ {                          // ity = indice dans la matrice de données bordée (condition aux limite)
+     Vector3d Vy,Vprimy;
+     Index iy;      // indice y (col) du point de données
+        // en attente
+     Vector3d Vx,Vprimx;
+     Index ix; // indice x (row) du point de données
+     Matrix3d mderx, mdery; //matrices des coeffs des derivées partielles au point de données
+
+     iy=ity-1;
+
+     if(ity < 4)
+     {
+         Vy=fval.row(ity);
+         Vprimy=fprim.row(ity);
+         if(ity==0)
+            iy=0;
+     }
+     else if(ity >= Ny)
+     {
+        Index i=ity+4-Ny;
+        Vy=fval.row(i);
+        Vprimy=fprim.row(i);
+        if(ity==Ny+2)
+            iy=Ny;
+     }
+
+     for(Index itx=0, ip0=Nx3*iy; itx<Nx3; ++itx, ++ieqx, ++ieqy)
+     {
+         ix=itx-1;
+
+         if(itx < 4)
+         {
+             Vx=fval.row(itx);
+             Vprimx=fprim.row(itx);
+             if(itx==0)
+                 ix=0;
+
+             mderx=Vprimx*Vy.transpose();
+             mdery=Vx*Vprimy.transpose();
+         }
+         else if(itx >= Nx)
+         {
+            Index i=itx+4-Nx;
+            Vx=fval.row(i);
+            Vprimx=fprim.row(i);
+            if(itx==Nx+2)
+                ix=Nx;
+
+             mderx=Vprimx*Vy.transpose();
+             mdery=Vx*Vprimy.transpose();
+         }
+         Index ip=ip0+ix;
+
+         for(Index j=0; j<9; ++j)
+         {
+             Index ic=ip+indxT(j);
+             if(ic >maxic) maxic=ic;
+             if(mderx(j))
+                tripletList.push_back(Trp(ieqx, ic, mderx(j)));
+             if(mdery(j))
+                tripletList.push_back(Trp(ieqy, ic, mdery(j)));
+         }
+     } // end itx loop
+ } // end ity loop
+
+ // clamping central point
+
+    tripletList.push_back(Trp(2*Nx3*Ny3,Nx3*(Ny3/2)+(Nx3/2),1.));
+
+    std::cout <<"triplet list filled\n";
+    std::cout << "triplet size: used: " <<tripletList.size() << " allocated: " << tripletList.capacity() <<
+                "  estimated: " << estTriplSize << std::endl;
+    std::cout << " coeffs num " << Nx3*Ny3 << std::endl;
+    std::cout << " max col:" << maxic << "  num row Dx=" << ieqx  <<  "num row Dy=" << ieqy << std::endl;
+// Fill-up the RHS
+    VectorXd Rhs(problemSize);
+    Map<MatrixXd> mderivx(Rhs.data(), Nx3, Ny3);
+    Map<MatrixXd> mderivy(Rhs.data()+Nx3*Ny3, Nx3, Ny3);
+    std::cout << "Rhs & matrices allocated\n";
+    mderivx.block(1,1, gradx.rows(), gradx.cols())= gradx;
+    mderivx.col(0)=mderivx.col(1);
+    mderivx.col(Ny3-1)=mderivx.col(Ny3-2);
+    mderivx.row(0)=mderivx.row(1);
+    mderivx.row(Nx3-1)=mderivx.row(Nx3-2);
+    mderivy.block(1,1, grady.rows(), grady.cols())= grady;
+    mderivy.col(0)=mderivy.col(1);
+    mderivy.col(Ny3-1)=mderivy.col(Ny3-2);
+    mderivy.row(0)=mderivy.row(1);
+    mderivy.row(Nx3-1)=mderivy.row(Nx3-2);
+
+    Rhs(problemSize-1)=0;
+
+    SparseMatrix<double> Smat(problemSize, Nx3*Ny3);
+    Smat.setFromTriplets(tripletList.begin(), tripletList.end());
+
+    SparseQR<SparseMatrix<double>, COLAMDOrdering<int>  > solver;
+  //  solver.compute(Smat);
+  //  m_controlValues=C
+    solver.analyzePattern(Smat);
+    std::cout << "pattern analyzed OK\n";
+    solver.factorize(Smat);
+    std::cout << "factorized\n";
 }
 
 Array22d BidimSpline::getSampling(int *nx, int* ny)

@@ -87,6 +87,9 @@ class BidimSpline
          */
         void setFromGridData(const Array22d& limits, const Ref<ArrayXXd> & gridData );
 
+
+        void setFromGradient(const Array22d& limits, const Ref<ArrayXXd> & gradx, const Ref<ArrayXXd> & grady);
+
         /** \brief retieves the interpolation limits as a fixed size array
          *
          * \param[out] nx  if not NULL, an integer location where the number of sampling  **intervals**  in X is returned

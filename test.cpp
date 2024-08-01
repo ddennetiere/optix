@@ -68,6 +68,7 @@ int XmlTest();
 int TstMistral();
 int InterpolatorTest();
 int testKB();
+int testHermes();
 
 
     void  GetParam(Surface* psurf, string paramname, Parameter& param)
@@ -115,6 +116,15 @@ int main()
 
     //return TestEllipse();
 
+    if(0)
+    {
+        return InterpolatorTest();
+    }
+    if(1)
+    {
+        return testHermes();
+    }
+
     return testKB();
 
  //    SurfaceErrorGenerator generator;
@@ -133,10 +143,7 @@ int main()
 
   // return DiscoTest();
   //  return TstMistral();
-    if(0)
-    {
-        return InterpolatorTest();
-    }
+
 
     bool result=LoadSystemFromXml("polytestcopy2.xml");
 
@@ -1113,10 +1120,16 @@ int InterpolatorTest()
 
     surface= interx.transpose()* Sspline.getControlValues()*intery;
     SurfaceToFile(surface,"interpol.bin");
-    surface= derivx.transpose()* Sspline.getControlValues()*intery;
-    SurfaceToFile(surface,"derivX.bin");
+    ArrayXXd gradx= derivx.transpose()* Sspline.getControlValues()*intery;
+    SurfaceToFile(gradx,"derivX.bin");
+    ArrayXXd grady= interx.transpose()* Sspline.getControlValues()*derivy;
+    SurfaceToFile(grady,"derivY.bin");
     interx=intery=MatrixXd();
     cout <<"size after reinitializing " << interx.size() << "  " << intery.size() << endl << endl;
+
+    BidimSpline Sinteg;
+    Sinteg.setFromGradient(limits,gradx, grady);
+    cout << "gradient integration routine OK\n";
 
     return 0;
 }
@@ -1423,8 +1436,91 @@ int testKB()
         cout << "impacts stored in M2spots.imp" << endl << endl;
     }
 
+    return 0;
+}
+
+
+int testHermes()
+{
+    char * errstr;
+    string infile="../../xml/hermes_simple_sans_errors.xml";
+    if(!LoadSystemFromXml(infile.c_str()))
+    {
+        GetOptiXError(&errstr);
+        cout << "XML load error :\n" << errstr <<endl;
+        return -1;
+    }
+
+    cout << "file " << infile  <<  " loaded OK\n" ;
+
+//    string  outfile = "../../xml/Hermes-noerr.xml";
+//    cout << "saving to " << outfile << endl;
+//    if(SaveSystemAsXml(outfile.c_str()))
+//        cout << "File save Ok\n";
+//    else
+//        cout << " error while saving xml\n";
+//
+    size_t idSource, idcur;
+
+    cout << "getting source 'ond_LE' \n";
+    if(!FindElementID("ond_LE",&idSource))
+    {
+        cout << "element source 'ond_LE' was not found\n";
+        return -1;
+    }
+    idcur=idSource;
+    Parameter param;
+    char buf[256], name[32];
+    while(idcur)
+    {
+        GetParameter(idcur, "distance", &param);
+        GetElementName(idcur, name, 32);
+        GetElementType(idcur, buf, 256);
+        cout << name << "\tdistance " << param.value << "\t\t" << buf <<endl;
+        GetNextElement(idcur, &idcur);
+    }
+
+
+    double lambda=1.240e-6/ 719.9;
+
+    cout << "\n Beamline energy " << lambda*1e9 << " nm\n";
+
+    cout << "calling align on source\n";
+    if(!Align(idSource, lambda))
+    {
+       GetOptiXError( &errstr);
+       cout << "Alignment error : " << errstr << endl;
+       return -1;
+    }
+
+    if(!Generate(idSource, lambda))
+    {
+       GetOptiXError( &errstr);
+       cout << "Source generation error : " << errstr << endl;
+       return -1;
+    }
 
 
 
+
+    cout << "start ray tracing\n";
+    if(!Radiate(idSource))
+    {
+       GetOptiXError( &errstr);
+       cout << "Radiation error : " << errstr << endl;
+       return -1;
+    }
+    cout << "Ray tracing OK\n";
+
+        if(!FindElementID("M1B",&idcur))
+    {
+        cout << "element 'M1B' was not found\n";
+        return -1;
+    }
+    Surface* M1B=dynamic_cast<Surface*> ((ElementBase*)idcur);
+
+
+
+    cout << "test end\n";
     return 0;
 }

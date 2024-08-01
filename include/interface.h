@@ -926,7 +926,6 @@ extern "C"
      * the function will fail if a generator was not previously set for this surface by call to SetErrorGenerator, or if the configuration of
      * the 9 height error-defining parameters is incomplete or incorrect. (more informations in the OptiXError)
      *
-     *
      * \param[in] elementID the ID of the element to which an surface error generator should be added
      * \param[out] mapDims[2] the size (x, y) of the generated map. X is the fast varying dimension
      * \param[out] total_sigma  Location to return (if not NULL) an estimate of the total RMS height error of the generated surface
@@ -936,7 +935,7 @@ extern "C"
      * \return the height error generation was successful, false if it failed. Failure information can be recovered by calling GetOptiXError
      * \note normalized Legendre polynomials have a rms value of 1 on the definition interval
      */
-    DLL_EXPORT bool GenerateSurfaceErrors(size_t elementID, int32_t mapDims[2], double* total_sigma,int32_t LegendreDims[2], double *normalizedLegendre);
+    DLL_EXPORT bool GenerateSurfaceErrors(size_t elementID, int32_t mapDims[2], double* total_sigma, int32_t LegendreDims[2], double *normalizedLegendre);
 //#ifdef __cplusplus
 //                Parameter *paramData =0);
 //#else
