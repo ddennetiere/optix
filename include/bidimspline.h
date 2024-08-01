@@ -140,7 +140,7 @@ class BidimSpline
          * \param interval [out] Interval into which u was found
          * \param deriv flag to request or cancel the return of 1s derivatives
          * \return An araay of either 1 or two columns
-         * \warning This function seems not as practical as the other over overload and could be removed in future
+         * \warning This function seems not as practical as the other overload and could be removed in future
          */
         ArrayXXd basisFunctions(Axis axe, double u, Index* interval, bool deriv);
 
