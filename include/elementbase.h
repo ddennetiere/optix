@@ -491,7 +491,9 @@ public:
     */
     virtual int setFrameTransforms(double wavelength)  ;
 
-    EIGEN_DEVICE_FUNC inline IsometryType& exitFrame(){return m_exitFrame;}  /**< \brief returns a reference to the space transform from laboratory oriented frame to exit space of this element */
+    inline IsometryType& exitFrame(){return m_exitFrame;}  /**< \brief returns a reference to the space transform from laboratory oriented frame to exit space of this element */
+    inline RotationType& exitFrameInverse(){return m_frameInverse;} /**< \brief returns a reference to the roration from  absolute to this element exit frame
+                                                                    (used by input recorded spot diagrams)*/
 
     inline IsometryType surfaceFrame()
     {

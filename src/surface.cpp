@@ -305,8 +305,16 @@ int Surface::getImpacts(vector<RayType> &impacts, FrameID frame)
         switch(frame)
         {
         case AlignedLocalFrame:
-            ray.origin()=m_frameInverse*it->origin();
-            ray.direction()=m_frameInverse*it->direction();
+            if(m_recording==RecordInput && m_previous)
+            {
+                ray.origin()=m_previous->exitFrameInverse()*it->origin();
+                ray.direction()=m_previous->exitFrameInverse()*it->direction();
+            }
+            else
+            {
+                ray.origin()=m_frameInverse*it->origin();
+                ray.direction()=m_frameInverse*it->direction();
+            }
             break;
         case SurfaceFrame:
             ray.origin()=m_surfaceInverse*it->origin();
