@@ -187,11 +187,14 @@ RayType& Surface::reflect(RayType& ray)    /*  this implementation simply reflec
                                         __FILE__, __func__, __LINE__);
     }catch(RayException & excpt)
     {
-        throw RayException(excpt.what()+"\nRayException within " +  m_name + " rfrom "  ,
+        throw RayException(excpt.what()+"\nRayException within " +  m_name + " from "  ,
                                         __FILE__, __func__, __LINE__);
-    }catch(...)
+    }catch (runtime_error & excpt){
+        throw RayException(string(excpt.what())+"\nruntime_error Exception within " +  m_name + " from "  ,
+                                        __FILE__, __func__, __LINE__);
+    } catch(...)
     {
-        throw RayException(string("Unknown Exception catch in ") +  m_name + " r" ,
+        throw RayException(string("Unknown Exception catch in ") +  m_name + " from" ,
                                         __FILE__, __func__, __LINE__);
     }
 
