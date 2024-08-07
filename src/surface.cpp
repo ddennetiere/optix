@@ -182,15 +182,16 @@ RayType& Surface::reflect(RayType& ray)    /*  this implementation simply reflec
             m_OPDvalid=false;
 
         return ray;
-    } catch(EigenException & eigexcpt) {
-        throw RayException(eigexcpt.what()+"\nEigenException within " +  m_name + " from "  ,
-                                        __FILE__, __func__, __LINE__);
-    }catch(RayException & excpt)
-    {
-        throw RayException(excpt.what()+"\nRayException within " +  m_name + " from "  ,
-                                        __FILE__, __func__, __LINE__);
-    }catch (runtime_error & excpt){
-        throw RayException(string(excpt.what())+"\nruntime_error Exception within " +  m_name + " from "  ,
+
+//    } catch(EigenException & eigexcpt) {
+//        throw RayException(eigexcpt.what()+"\nEigenException within " +  m_name + " from "  ,
+//                                        __FILE__, __func__, __LINE__);
+//    }catch(RayException & excpt)
+//    {
+//        throw RayException(excpt.what()+"\nRayException within " +  m_name + " from "  ,
+//                                        __FILE__, __func__, __LINE__);
+    }catch (OptixException & excpt){
+        throw RayException(excpt.what()+"\n propagation interrupted by OptixException in element " +  m_name + " catch in "  ,
                                         __FILE__, __func__, __LINE__);
     } catch(...)
     {
@@ -1094,7 +1095,7 @@ bool Surface::validateErrorGenerator()
     return m_ErrorGeneratorValid;
 }
 
-bool Surface::generateSurfaceErrors(int dims[2], double* total_sigma, MatrixXd& normLegendre )
+bool Surface::generateSurfaceErrors(int dims[2], double* total_sigma, MatrixXd& normLegendre, bool random_zernike )
 {
     if(!hasParameter("error_limits"))
     {
@@ -1180,7 +1181,10 @@ bool Surface::generateSurfaceErrors(int dims[2], double* total_sigma, MatrixXd& 
     // beware that the given extent are sigma normalized but the Grid generating function wants natural Legendre in input
     if(legendre.size())
     {
-        MatrixXd  Lcoeffs= LegendreFromNormal(legendre) * ArrayXXd::Random(legendre.rows(), legendre.cols());
+        MatrixXd  Lcoeffs = LegendreFromNormal(legendre) ;
+        if(random_zernike)
+            Lcoeffs.array() *= ArrayXXd::Random(legendre.rows(), legendre.cols());
+
 //            cout << "random legendres:\n" << Lcoeffs << endl;
         surfError+= LegendreSurfaceGrid(surfError.rows(), surfError.cols(), Lcoeffs);
 //        if(Lcoeffs.rows()==detrendCoeffs.rows() && Lcoeffs.cols()==detrendCoeffs.cols())

@@ -35,6 +35,7 @@
 					<Add option="-Wall" />
 					<Add option="-ftemplate-backtrace-limit=0" />
 					<Add option="-DBUILD_DLL" />
+					<Add option="-D$(High5)" />
 					<Add directory="include" />
 				</Compiler>
 				<Linker>
@@ -42,6 +43,7 @@
 					<Add library="user32" />
 				</Linker>
 				<ExtraCommands>
+					<Add before='[[if(IO.DirectoryExists(_(&quot;$(TARGET_COMPILER_DIR)include/highfive&quot;))) { EnvvarApply(_(&quot;High5&quot;),_(&quot;HAS_HIGH5&quot;)); } else {EnvvarApply(_(&quot;High5&quot;),_(&quot;NO_HIGH5&quot;)); ShowMessage(_T(&quot;Highfive not available&quot;)); }]]' />
 					<Add after="setx  msys_mingw $(TARGET_COMPILER_DIR)bin" />
 					<Add after="cmd /c copy $(TARGET_OUTPUT_DIR)OptiX.dll $(TARGET_COMPILER_DIR)bin" />
 					<Mode after="always" />
@@ -72,11 +74,16 @@
 					<Add option="-ftemplate-backtrace-limit=0" />
 					<Add option="-DNO_DLL" />
 					<Add option="-DNO_ALIGNMENT_DUMP" />
+					<Add option="-D$(High5)" />
 					<Add directory="include" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
+					<Add library="hdf5" />
 				</Linker>
+				<ExtraCommands>
+					<Add before='[[if(IO.DirectoryExists(_(&quot;$(TARGET_COMPILER_DIR)include/highfive&quot;))) { EnvvarApply(_(&quot;High5&quot;),_(&quot;HAS_HIGH5&quot;)); } else {EnvvarApply(_(&quot;High5&quot;),_(&quot;NO_HIGH5&quot;)); ShowMessage(_T(&quot;Highfive not available&quot;)); }]]' />
+				</ExtraCommands>
 			</Target>
 			<Target title="Librarytest">
 				<Option output="bin/Librarytest/OptiX" prefix_auto="1" extension_auto="1" />
@@ -101,6 +108,7 @@
 			<Add directory="include" />
 			<Add directory="$(TARGET_COMPILER_DIR)include/eigen3" />
 			<Add directory="$(TARGET_COMPILER_DIR)include/libxml2" />
+			<Add directory="$(TARGET_COMPILER_DIR)include/highfive" />
 		</Compiler>
 		<Linker>
 			<Add library="xml2" />

@@ -45,7 +45,9 @@ using HR_clock = std::chrono::high_resolution_clock ;
 //#include <unsupported\Eigen\CXX11\src\Tensor\TensorBase.h>
 //#include <unsupported\Eigen\CXX11\src\Tensor\Tensor.h>
 
-
+#ifdef HAS_HIGH5
+#include <H5Easy.hpp>
+#endif // HAS_HIGH5
 
 
 /** \brief helper functor to extract the coefficient-wise minimum value of two arrays
@@ -102,17 +104,26 @@ int main()
     char * version_string;
     Version(&version_string);
     cout << version_string<<endl;
-    char* strerr=NULL; // pointeur à la chaine source
+//    SetOptiXLastError("Test d'erreur ", __FILE__, __func__ , __LINE__ );
+//    ClearOptiXError();
+    char* strerr=NULL; // pointeur à la chaine source  Contrairement à l'affirmation ci-dessous elle peut être directement imprimée
     bool erreur=GetOptiXError(&strerr);
-    size_t msglen=strlen(strerr);
-    char message[msglen+1]; // create a copy buffer with space for 0 ant end
-    strncpy(message,(char*)strerr, msglen ); //copy the message  (mandatory; strerr cannot be printed directly)
-    cout << "Error level  " << erreur << " message: "<< message << endl << endl;
+//    size_t msglen=strlen(strerr);
+//    char message[msglen+1]; // create a copy buffer with space for 0 at end
+//    strcpy(message,(char*)strerr); //copy the message  (mandatory; strerr cannot be printed directly)
+    cout << "Error level  " << erreur << " message: "<< strerr << endl << endl;
 //
 //    cout <<"size of bool " << sizeof(bool) <<endl;
 //    cout << "size of int " << sizeof(int) << endl;
 //    cout << "true " << true << "  false " << false <<endl;
     cout << "starting \n";
+
+#ifdef HAS_HIGH5
+    H5Easy::File file(string("D:/Documents SOLEIL/Projets-recherche/LEAPS/LEAPS_INNOV/Superflat/Phase2/")+
+                      "Metrology/SESO_sample/nexus/Stitching_SESO_ALBA_ZOOMx1_0.nxs", H5Easy::File::ReadOnly);
+
+
+#endif // HAS_HIGH5
 
     //return TestEllipse();
 

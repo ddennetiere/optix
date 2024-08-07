@@ -341,7 +341,7 @@ public:
  *   \b error_limits       | Distance  | Array[2,2]  | Limits of the surface error interpolation (storage order: Xmin, Xmax, Ymin, Ymax
  *   \b sampling      |    Distance   | Array[2,1]   |  Approximate sampling steps (step_x, step_y) \f$ ^2 \f$
  *   \b detrending    |  Dimensionless  | Array[p,q]  | Detrending  Mask of zero-constrained *Zernike*. Legendre polynomials \f$ L_{i,j} \f$ corresponding to non-zero \n values are forced to 0 \f$ ^3 \f$
- *   \b low_Zernike   | Distance  |  Array[p',q']   | Upper bound of RMS values of the first non zero Legendre polynomials.\n Here a zero value means the corresponding \f$ L_{i,j} \f$  is not constrained, not that it is forced to 0\f$ ^3 \f$
+ *   \b low_Zernike   | Distance  |  Array[p',q']   | Upper bound of RMS values of the first non zero __Normalized Legendre polynomials__.\n Here a zero value means the corresponding \f$ L_{i,j} \f$  is not constrained, not that it is forced to 0\f$ ^3 \f$
  *   \b residual_sigma  |  Distance | Scalar  |  specifies the RMS value of  surface height fluctuations, constrained Zernike removed
  *
  *   All these parameters belong to the special SurfErrorGroup and their NotOptimizable flag is raised.
@@ -395,13 +395,15 @@ public:
 
     /** \brief Generate a new instance of error map and activate the error interpolator
      *
-     * \param[out] dims[2] adress of an array of 2 int where the size of the generated heightmap (xsize,ysize) will be returned
+     * \param[out] dims adress of an array of 2 int where the size of the generated heightmap (xsize,ysize) will be returned
      * \param[out] total_sigma a location where the sigma value of the generated heights will be returned
      * \param[out] normLegendre A matrix of normalized Legendre coefficients
+     * \param[in] random_zernike if true the zernike coefficients are assigned randomly in the -abs(low_zernike), +abs(low_zernike) interval
+     *              Otherwise, the values passed in the low_zernike parameters are kept
      * \return true if the surface errors were generated; false in case of invalid configuration.
      *          The OptiXError describes the issue.
      */
-    virtual bool generateSurfaceErrors(int dims[2], double* total_sigma, MatrixXd& normLegendre );  //
+    virtual bool generateSurfaceErrors(int dims[2], double* total_sigma, MatrixXd& normLegendre, bool random_zernike=false );  //
 
     /** \brief Checks the set of error defining parameters and signals configuration errors
      *

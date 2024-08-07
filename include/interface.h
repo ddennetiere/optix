@@ -568,8 +568,8 @@ extern "C"
     /** \brief Get a 3d map of impacts when the intercepting surface is move along the local Z axis
      *
      * \param[in] elementID ID of the element defining the Z=0 position (it should be a plane)
-     * \param[in] dims[3] Number of computed points along x, y and Z axis (in this order)
-     * \param[in] zbound[2] Min and max z position (0 is the surface(elemID) reference position.
+     * \param[in] dims Number of computed points along x, y and Z axis (in this order)
+     * \param[in] zbound Min and max z position (0 is the surface(elemID) reference position.
      * \param[out] focdg an integer array able to store the complete diagram
      * \param[out] xbound The limits (xmin, xmax)  of the spot diagram in X
      * \param[out] ybound The limits (ymin, ymax)  of the spot diagram in Y
@@ -926,16 +926,20 @@ extern "C"
      * the function will fail if a generator was not previously set for this surface by call to SetErrorGenerator, or if the configuration of
      * the 9 height error-defining parameters is incomplete or incorrect. (more informations in the OptiXError)
      *
-     * \param[in] elementID the ID of the element to which an surface error generator should be added
-     * \param[out] mapDims[2] the size (x, y) of the generated map. X is the fast varying dimension
+     * \param[in] elementID the ID of the element to which a surface error generator should be added
+     * \param[in] random_zernike if true the zernike coefficients of 'low_zernike' are assigned randomly in the -abs(low_zernike), +abs(low_zernike) interval
+     *              Otherwise, the values passed in the low_zernike parameters are kept
+     * \param[out] mapDims the size (x, y) of the generated map. X is the fast varying dimension
      * \param[out] total_sigma  Location to return (if not NULL) an estimate of the total RMS height error of the generated surface
-     * \param[in,out] LegendreDims[2] In input the size of the array passed as normalizedLegendre. In output, the size of data written in normalizedLegendre
+     * \param[in,out] LegendreDims In input the size of the array passed as normalizedLegendre. In output, the size of data written in normalizedLegendre
      * \param[out] normalizedLegendre if not NULL and LegendreDims size is not 0, a location where the coefficient of the constrained normalized Legendre
-     *  polynomials will be returned
+     *              polynomials will be returned
      * \return the height error generation was successful, false if it failed. Failure information can be recovered by calling GetOptiXError
-     * \note normalized Legendre polynomials have a rms value of 1 on the definition interval
+     * \note All zernike coefficients, in input as in output, are applied to normalized Legendre polynomials.
+     *       Normalized Legendre polynomials have a rms value of 1 on the definition interval
      */
-    DLL_EXPORT bool GenerateSurfaceErrors(size_t elementID, int32_t mapDims[2], double* total_sigma, int32_t LegendreDims[2], double *normalizedLegendre);
+    DLL_EXPORT bool GenerateSurfaceErrors(size_t elementID, bool random_zernike, int32_t mapDims[2], double* total_sigma,
+                                           int32_t LegendreDims[2], double *normalizedLegendre);
 //#ifdef __cplusplus
 //                Parameter *paramData =0);
 //#else
