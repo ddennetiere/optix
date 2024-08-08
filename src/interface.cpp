@@ -1545,7 +1545,7 @@ extern "C"
         return true;
     }
 
-    DLL_EXPORT bool GenerateSurfaceErrors(size_t elementID, int32_t mapDims[2],
+    DLL_EXPORT bool GenerateSurfaceErrors(size_t elementID, bool random_zernike, int32_t mapDims[2],
                                           double* total_sigma, int32_t LegendreDims[2], double *normalizedLegendre)
 
     {
@@ -1568,7 +1568,7 @@ extern "C"
             return false;
         }
         MatrixXd legendreMat;
-        if( ! psurf->generateSurfaceErrors(mapDims, total_sigma, legendreMat))
+        if( ! psurf->generateSurfaceErrors(mapDims, total_sigma, legendreMat, random_zernike))
             return false;
 
         if(LegendreDims && normalizedLegendre)
